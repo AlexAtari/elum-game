@@ -16,7 +16,7 @@
 | Game Design Document | 0.3 | In progress |
 | Design Philosophy | 0.1 | Draft complete |
 | Balancing | 0.1 | Ready for testing |
-| Events | — | Not started |
+| Events | 0.1 | Ready for testing |
 | World and Story | — | Not started |
 | UI Design | — | Not started |
 | Prototype | — | Not started |
@@ -44,16 +44,16 @@ The core rules, design philosophy and initial balancing values are being defined
 
 ### Current Task
 
-Create `EVENTS.md` version 0.1.
+Perform the first paper playtest.
 
 ### Next Tasks
 
-1. Define the event system.
-2. Create a first event catalogue.
-3. Perform a paper playtest.
-4. Adjust balancing values.
+1. Perform a five-round paper playtest.
+2. Document balancing problems.
+3. Adjust balancing values.
+4. Play a complete 15-round match.
 5. Define the first technical prototype.
-
+   
 ---
 
 # Source of Truth
@@ -130,8 +130,8 @@ Version 1 does not include:
 
 # Next Milestone
 
-## Events v0.1
+## Paper Playtest 0.1
 
 Goal:
 
-Create a small, fair event system that adds variety without allowing luck to decide the match.
+Test the complete game loop over five rounds and identify unclear, unbalanced or unnecessary mechanics before programming begins.
