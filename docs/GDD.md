@@ -3,7 +3,7 @@
 
 **Game Design Document**
 
-**Version:** 0.2 "Foundation"
+**Version:** 0.3 "Foundation"
 **Status:** Draft
 **Last Updated:** 2026-07-19
 
@@ -83,7 +83,10 @@ Eigenschaften:
 
 # 6. Grundstücke
 
-Jedes Feld besitzt für jede Ressource eine Qualität von 0 bis 3 Sternen.
+Jedes Feld besitzt für Nahrung, Energie und Erz eine Eignung von 0 bis 5 Sternen.
+
+Die Sterne entsprechen dem durchschnittlichen Ertrag des Feldes.
+Kristalle können nur auf Feldern mit einem entdeckten Kristallvorkommen produziert werden.
 
 Diese Qualität ist vor dem Kauf sichtbar.
 
@@ -116,7 +119,9 @@ Harvester sind universelle Maschinen.
 Eigenschaften:
 
 - ein Harvester pro Grundstück
-- Ressource jederzeit wechselbar
+- Die Produktionsart kann vor der Produktionsphase geändert werden.
+- Eine Änderung kostet 1 Aktionspunkt.
+- Ein Harvester kann genau ein Grundstück bewirtschaften.
 - Produktion richtet sich nach Bodeneignung
 - können beschädigt oder zerstört werden
 
