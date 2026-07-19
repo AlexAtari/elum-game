@@ -3,47 +3,41 @@
 
 **Game Design Document**
 
-Version: 0.1 "Foundation"
-
-Status: In Development
+**Version:** 0.2 "Foundation"
+**Status:** Draft
+**Last Updated:** 2026-07-19
 
 ---
 
 # 1. Vision
 
-E.L.U.M. ist ein rundenbasiertes Strategiespiel für Smartphones, inspiriert von M.U.L.E.
+E.L.U.M. ist ein rundenbasiertes Strategiespiel für Smartphones, inspiriert vom Klassiker M.U.L.E.
 
-Die Spieler errichten auf dem Planeten Agima eine Kolonie, erschließen neue Gebiete, bauen Ressourcen ab und entwickeln ihre Siedlung zur erfolgreichsten Kolonie des Planeten.
+Die Spieler gründen auf dem Planeten **Agima** eine Kolonie, erschließen neue Gebiete, bauen Ressourcen ab und entwickeln ihre Siedlung zur erfolgreichsten Kolonie des Planeten.
 
-Das Spiel soll einfach zu erlernen sein und trotzdem langfristig viele strategische Entscheidungen bieten.
+Eine Partie dauert etwa **20–30 Minuten**.
 
-Eine Partie dauert etwa 20–30 Minuten.
+Das Spiel soll leicht zu erlernen, aber schwer zu meistern sein.
 
 ---
 
 # 2. Designprinzipien
 
-Während der gesamten Entwicklung gelten folgende Regeln:
+Während der gesamten Entwicklung gelten folgende Grundsätze:
 
-• Easy to learn. Difficult to master.
-
-• Wenn zwei Mechaniken gleich viel Spielspaß bieten, wird immer die einfachere gewählt.
-
-• Wenige Regeln.
-Viele Entscheidungen.
-
-• Mobile First.
-Alle wichtigen Aktionen sollen mit wenigen Fingertipps möglich sein.
+- Easy to learn. Difficult to master.
+- Mobile First.
+- Wenige Regeln – viele Entscheidungen.
+- Jede Ressource muss dauerhaft wichtig bleiben.
+- Neue Mechaniken dürfen das Spiel nicht unnötig komplizierter machen.
 
 ---
 
 # 3. Spielziel
 
-Der Spieler baut auf Agima die erfolgreichste Kolonie auf.
+Gewonnen hat der Spieler mit dem höchsten Gesamtvermögen nach der letzten Runde.
 
-Gewonnen hat am Ende der Partie der Spieler mit dem höchsten Gesamtvermögen.
-
-Das Gesamtvermögen setzt sich zusammen aus:
+Das Vermögen setzt sich zusammen aus:
 
 - Credits
 - Grundstücken
@@ -51,13 +45,13 @@ Das Gesamtvermögen setzt sich zusammen aus:
 - gelagerten Ressourcen
 - Bevölkerung
 
-Die genaue Gewichtung wird im Balancing festgelegt.
+Die Gewichtung wird später im Balancing definiert.
 
 ---
 
 # 4. Spielablauf
 
-Eine Partie besteht aus etwa 15–20 Runden.
+Jede Partie dauert etwa 15–20 Runden.
 
 Jede Runde besteht aus:
 
@@ -72,86 +66,117 @@ Jede Runde besteht aus:
 
 ---
 
-# 5. Karte
+# 5. Spielkarte
 
-Die Spielkarte besteht aus Hexfeldern.
+Die Karte besteht aus Hexfeldern.
 
 Eigenschaften:
 
-- zufällig generiert
+- pro Partie zufällig generiert
 - faire Startregionen
 - Nebel des Krieges
-- Expansion über angrenzende Grundstücke
+- Expansion nur über angrenzende Grundstücke
 - Bodeneignung vor Kauf sichtbar
 - Besonderheiten nach Kauf sichtbar
 
-Die Kartengröße richtet sich nach der Spielerzahl.
+---
+
+# 6. Grundstücke
+
+Jedes Feld besitzt für jede Ressource eine Qualität von 0 bis 3 Sternen.
+
+Diese Qualität ist vor dem Kauf sichtbar.
+
+Beispiel:
+
+Nahrung ★★★
+
+Energie ★
+
+Erz ★★
+
+Kristalle ☆
+
+Zusätzlich besitzt jedes Feld versteckte Eigenschaften.
+
+Diese werden erst nach dem Kauf sichtbar.
+
+Beispiele:
+
+- Kristallvorkommen
+- besonders fruchtbarer Boden
+- instabiler Untergrund
 
 ---
 
-# 6. Spielstart
-
-Jeder Spieler beginnt mit:
-
-- einem Hauptquartier
-- zwei Harvestern
-- Startkapital
-- keinen Grundstücken
-
-Um das Hauptquartier liegen vier sichtbare Grundstücke.
-
-Zu Beginn kauft der Spieler zwei davon.
-
-Dadurch startet jede Partie mit einer strategischen Entscheidung.
-
----
-
-# 7. Ressourcen
-
-Es existieren fünf Ressourcen.
-
-🌾 Nahrung
-
-- versorgt die Bevölkerung
-- Überschüsse fördern das Bevölkerungswachstum
-
-⚡ Energie
-
-- versorgt die Kolonie
-- versorgt alle Harvester
-
-⛏ Erz
-
-- wird zum Bau neuer Harvester benötigt
-- kann verkauft werden
-
-💎 Kristalle
-
-- seltene Exportressource
-- erzielt den höchsten Marktpreis
-
-💰 Credits
-
-- Spielwährung
-
----
-
-# 8. Harvester
+# 7. Harvester
 
 Harvester sind universelle Maschinen.
 
 Eigenschaften:
 
 - ein Harvester pro Grundstück
-- Produktion frei wählbar
-- können beschädigt werden
-- können zerstört werden
+- Ressource jederzeit wechselbar
+- Produktion richtet sich nach Bodeneignung
+- können beschädigt oder zerstört werden
+
+Jeder Harvester benötigt pro Runde Energie.
+
+Steht nicht genügend Energie zur Verfügung, können einzelne Harvester nicht betrieben werden.
+
+Der Spieler entscheidet selbst, welche Harvester aktiv bleiben.
 
 ---
 
-# 9. Bevölkerung
+# 8. Produktion
 
-Alle Einwohner leben im Hauptquartier.
+Der Ertrag richtet sich nach der Sternenbewertung des Feldes.
+
+Die tatsächliche Produktion schwankt leicht.
+
+Beispiel:
+
+★★★ Feld
+
+- 25 % → 2 Einheiten
+- 50 % → 3 Einheiten
+- 25 % → 4 Einheiten
+
+Dadurch bleibt jede Runde leicht unvorhersehbar.
+
+---
+
+# 9. Ressourcen
+
+## Nahrung
+
+- versorgt die Bevölkerung
+- Überschüsse fördern das Wachstum
+
+## Energie
+
+- versorgt die Kolonie
+- versorgt alle Harvester
+
+## Erz
+
+- Bau neuer Harvester
+- Verkauf am Markt
+
+## Kristalle
+
+- selten
+- höchste Verkaufspreise
+
+## Credits
+
+Spielwährung.
+
+---
+
+# 10. Bevölkerung
+
+Alle Einwohner leben ausschließlich im Hauptquartier.
 
 Es gibt keine Arbeiter auf einzelnen Feldern.
 
@@ -159,40 +184,45 @@ Die Bevölkerung:
 
 - wächst
 - kann schrumpfen
-- entwickelt die Kolonie weiter
+- erhöht den Gesamtwert der Kolonie
 
-Das Hauptquartier verändert sein Aussehen abhängig von der Einwohnerzahl.
+Das Hauptquartier entwickelt sich optisch mit wachsender Bevölkerung.
 
 ---
 
-# 10. Markt
+# 11. Markt
 
-Einmal pro Runde kann gehandelt werden.
+Jeder Spieler darf einmal pro Runde handeln.
 
-Jeder Spieler entscheidet gleichzeitig:
+Es gibt drei Möglichkeiten:
 
 - kaufen
 - verkaufen
 - nichts tun
 
-Alle Geschäfte werden ausgeführt.
+Alle Transaktionen werden gleichzeitig ausgeführt.
 
-Angebot und Nachfrage verändern die Preise für die nächste Runde.
+Angebot und Nachfrage verändern die Marktpreise für die nächste Runde.
 
 ---
 
-# 11. Ereignisse
+# 12. Ereignisse
 
-Es gibt:
+Es existieren:
 
 - globale Ereignisse
 - lokale Ereignisse
 
-Sie beeinflussen Wirtschaft, Produktion oder einzelne Harvester.
+Beispiele:
+
+- Erdbeben
+- Rekordernte
+- Solarsturm
+- neue Kristallader
 
 ---
 
-# 12. Spielende
+# 13. Spielende
 
 Nach der letzten Runde wird das Gesamtvermögen berechnet.
 
@@ -200,13 +230,25 @@ Der Spieler mit dem höchsten Vermögen gewinnt.
 
 ---
 
+# 14. Version-2-Ideen
+
+Diese Ideen gehören bewusst **nicht** zu Version 1:
+
+- Forschung
+- Aktienmarkt
+- Konzerne
+- Grundstückshandel
+- Diplomatie
+- Multiplayer
+- Kampagne
+
+---
+
 # Offene Punkte
 
-Diese Themen werden in späteren Versionen ergänzt:
-
 - Balancing
-- Ereignisse
+- Ereignisliste
 - KI
-- UI
-- Audio
-- Story
+- Benutzeroberfläche
+- Sound
+- Animationen
