@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import HexMap from './components/HexMap'
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false)
@@ -51,17 +52,7 @@ function App() {
             </div>
           </div>
         </section>
-
-        <section className="prototype-panel">
-          <div className="planet-placeholder">AGIMA</div>
-
-          <h2>Die erste Kolonie wartet.</h2>
-          <p>
-            Als Nächstes bauen wir hier die Hexkarte, das HQ und die ersten
-            Harvester ein.
-          </p>
-        </section>
-
+        <HexMap />
         <button
           className="secondary-button"
           type="button"
