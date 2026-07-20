@@ -3,7 +3,7 @@
 
 # Game Design Document
 
-**Version:** 0.5 "Gameplay Complete"
+**Version:** 0.5 "Versorgung & Markt"
 **Status:** Draft
 **Last Updated:** 2026-07-20
 
@@ -67,7 +67,8 @@ Alle Spieler planen gleichzeitig und verdeckt:
 - neue Harvester bauen
 - freie Harvester einsetzen
 - Produktionsart bestehender Harvester ändern
-- Marktauftrag festlegen
+- Nahrung und Energie für die Bevölkerung zuteilen
+- Marktteilnahme für die einzelnen Ressourcen festlegen
 
 ## 3. Grundstücksauktionen
 
@@ -75,37 +76,40 @@ Alle Spieler planen gleichzeitig und verdeckt:
 - Der Höchstbietende gewinnt.
 - Gleichstände werden unmittelbar über eine Stichauktion entschieden.
 
-Das Grundstück wird jedoch erst zu Beginn der nächsten Runde übertragen.
+Das Grundstück wird erst zu Beginn der nächsten Runde übertragen.
 
 ## 4. Harvester einsetzen
 
 Alle freien Harvester werden auf bereits eigene, unbestrittene Grundstücke gesetzt.
 
-Neu eingesetzte Harvester produzieren bereits in derselben Runde.
+Neu eingesetzte Harvester können bereits in derselben Runde produzieren.
 
-## 5. Produktion
+## 5. Energiezuweisung
 
-Alle aktiven Harvester produzieren gleichzeitig.
+Zuerst wird die für die Kolonie beziehungsweise das HQ vorgesehene Energie reserviert.
 
-## 6. Versorgung
+Anschließend werden die Harvester mit Energie versorgt. Jeder aktive Harvester benötigt eine Einheit Energie pro Runde.
 
-Die Kolonie verbraucht Nahrung und Energie.
+Reicht die verbleibende Energie nicht für alle Harvester, werden einzelne Harvester automatisch nach der festgelegten Prioritätsregel deaktiviert.
 
-Anschließend werden alle aktiven Harvester mit Energie versorgt.
+## 6. Produktion
 
-## 7. Bevölkerungsentwicklung
+Alle mit Energie versorgten und nicht in Umrüstung befindlichen Harvester produzieren gleichzeitig.
 
-Die Bevölkerung wächst oder stagniert abhängig von der Versorgung.
+## 7. Versorgung und Bevölkerungsentwicklung
+
+Die zuvor festgelegten Mengen an Nahrung und Energie werden der Bevölkerung zugeteilt.
+
+Abhängig von der Versorgung wächst die Bevölkerung, stagniert oder schrumpft.
 
 ## 8. Markt
 
-Alle Kauf- und Verkaufsaufträge werden gleichzeitig ausgeführt.
-
-Anschließend werden die Marktpreise angepasst.
+Die Ressourcen werden nacheinander in einer gemeinsamen, interaktiven Echtzeit-Marktphase gehandelt.
 
 ## 9. Rundenende
 
-Prüfung auf Spielende.
+- Markt- und Lagerwerte werden aktualisiert.
+- Prüfung auf Spielende.
 
 Falls das Spiel nicht beendet ist, beginnt die nächste Runde.
 
@@ -115,9 +119,11 @@ Falls das Spiel nicht beendet ist, beginnt die nächste Runde.
 
 Die Karte besteht aus Hexfeldern.
 
+Im zentralen HQ- und Marktgebiet verwaltet jeder Spieler einen eigenen Koloniebereich mit eigener Bevölkerung, eigenem Lager und eigener Versorgung.
+
 Eigenschaften:
 
-- gemeinsames Hauptquartier in der Kartenmitte
+- zentrales HQ- und Marktgebiet in der Kartenmitte
 - jeder Spieler startet mit zwei automatisch zugewiesenen Startgrundstücken
 - faire, symmetrisch erzeugte Startsektoren
 - leichte Zufallsvariationen innerhalb der einzelnen Sektoren
@@ -189,11 +195,11 @@ Eigenschaften:
 
 - ein Harvester pro Grundstück
 - ein Harvester produziert immer genau **eine Ressource**
-- die Produktionsart kann vor jeder Produktionsphase geändert werden
+- die Produktionsart kann während der Planungsphase geändert werden
 - Harvester werden unabhängig von Grundstücken gebaut
 - fertige Harvester stehen zunächst als freie Harvester im HQ bereit
 - freie Harvester können auf jedem eigenen, unbestrittenen Grundstück eingesetzt werden
-- Produktion richtet sich nach der Bodeneignung
+- Produktion richtet sich nach der Eignung des Grundstücks für die aktuell produzierte Ressource
 - Harvester können beschädigt oder zerstört werden
 
 Der Bau neuer Harvester kostet Credits, Erz und Energie.
@@ -204,13 +210,15 @@ Die Baukosten werden sofort bezahlt.
 
 Zu Beginn der folgenden Runde stehen alle fertiggestellten Harvester als freie Harvester im Hauptquartier bereit.
 
-Freie Harvester können anschließend auf jedem eigenen, unbestrittenen Grundstück eingesetzt werden.
-
 Die Anzahl gleichzeitig gebauter Harvester wird ausschließlich durch die verfügbaren Ressourcen begrenzt.
 
-Jeder aktive Harvester benötigt pro Runde Energie.
+## Energieverbrauch
 
-Steht nicht genügend Energie zur Verfügung, werden Harvester automatisch deaktiviert.
+Jeder aktive Harvester benötigt pro Runde **eine Einheit Energie**.
+
+Die Versorgung der Kolonie beziehungsweise des HQ hat Vorrang. Nur die danach noch verfügbare Energie kann für Harvester verwendet werden.
+
+Steht nicht genügend Energie für alle Harvester zur Verfügung, werden Harvester automatisch deaktiviert.
 
 Die Deaktivierung erfolgt in folgender Reihenfolge:
 
@@ -223,15 +231,19 @@ Die Deaktivierung erfolgt in folgender Reihenfolge:
 3. größte Entfernung zum Hauptquartier
 4. zufällige Auswahl bei vollständigem Gleichstand
 
-Dadurch bleiben die wertvollsten und wichtigsten Produktionsstätten möglichst lange aktiv.
+Ein deaktivierter Harvester verbraucht in dieser Runde keine Energie und produziert keine Ressource. Sobald wieder genügend Energie verfügbar ist, wird er automatisch reaktiviert.
+
+## Produktionswechsel
 
 Die Produktionsart eines Harvesters kann während der Planungsphase geändert werden.
 
 Die Umrüstung dauert eine Runde.
 
-Während der Umrüstung produziert der Harvester keine Ressourcen.
+Während der Umrüstung verbraucht der Harvester keine Produktionsenergie und produziert keine Ressourcen.
 
 Ab der folgenden Runde produziert er die neu gewählte Ressource.
+
+---
 
 # 8. Produktion
 
@@ -265,10 +277,13 @@ Alle Harvester produzieren gleichzeitig.
 
 ## Energie ⚡
 
-- versorgt das Hauptquartier
+- versorgt die Bevölkerung beziehungsweise das HQ
 - versorgt alle aktiven Harvester
+- jeder aktive Harvester benötigt eine Einheit Energie pro Runde
 
-Fehlt Energie, werden Harvester automatisch deaktiviert.
+Die Versorgung der Bevölkerung beziehungsweise des HQ hat Vorrang.
+
+Fehlt anschließend Energie für alle Harvester, werden sie nach der festgelegten Prioritätsregel automatisch deaktiviert.
 
 ---
 
@@ -303,19 +318,32 @@ Credits werden benötigt für:
 
 # 10. Bevölkerung
 
-Alle Einwohner leben ausschließlich im gemeinsamen Hauptquartier.
+Alle Einwohner einer Spieler-Kolonie leben im eigenen Koloniebereich des zentralen HQ.
 
 Es existieren keine einzelnen Arbeiter auf den Grundstücken.
 
-Die Bevölkerung:
+Die Bevölkerung ist die wichtigste Kennzahl der Kolonie und entscheidet am Ende einer Partie über den Sieger.
 
-- wächst bei guter Versorgung
-- stagniert bei knapper Versorgung
-- kann bei anhaltender Unterversorgung schrumpfen
+## Versorgung
 
-Die Bevölkerung ist die wichtigste Kennzahl der Kolonie.
+Die Bevölkerung benötigt sowohl Nahrung als auch Energie.
 
-Sie entscheidet am Ende einer Partie über den Sieger.
+Während der Planungsphase legt der Spieler über zwei Schieberegler fest, wie viel Nahrung und Energie die Bevölkerung in dieser Runde erhalten soll.
+
+Vorläufige Versorgungsstufen je 10 Einwohner:
+
+| Zuteilung je Ressource | Wirkung |
+|---:|---|
+| 0 Einheiten | Unterversorgung; die Bevölkerung schrumpft |
+| 1 Einheit | Notversorgung; kein Wachstum |
+| 2 Einheiten | normale Versorgung; leichtes Wachstum |
+| 3 Einheiten | erhöhte Versorgung; stärkeres Wachstum |
+
+Die Werte dienen zunächst als sinnvolle Ausgangsbasis für Playtests.
+
+Beide Ressourcen sind für die Bevölkerungsentwicklung erforderlich. Die genaue Berechnung des gemeinsamen Effekts sowie die exakten Wachstums- und Schrumpfungsraten werden im Balancing festgelegt.
+
+Der Spieler kann die Versorgung im Notfall bewusst reduzieren, um Nahrung oder Energie für andere Zwecke zurückzuhalten.
 
 Mit wachsender Bevölkerung entwickelt sich auch das Hauptquartier optisch weiter.
 
@@ -332,7 +360,7 @@ Jede Ressource wird nacheinander gehandelt:
 3. ⛏ Erz
 4. 💎 Kristalle
 
-Vor Beginn jeder Marktphase entscheidet jeder Spieler, ob er eine Ressource kaufen, verkaufen oder nicht handeln möchte.
+Vor dem Handel mit einer Ressource entscheidet jeder Spieler, ob er kaufen, verkaufen oder nicht teilnehmen möchte.
 
 Käufer und Verkäufer handeln gleichzeitig auf einem gemeinsamen Markt.
 
@@ -340,33 +368,45 @@ Die Verkäufer starten am oberen Ende des Marktes.
 
 Die Käufer starten am unteren Ende.
 
-Durch Bewegung ihres Avatars verändern sie ihr Gebot.
+Durch die Bewegung ihres Avatars verändern die Spieler ihr Preisangebot.
 
 Jeder Schritt verändert den Preis um einen Credit.
 
-Treffen sich Käufer und Verkäufer, wird der Handel sofort abgeschlossen.
-
-Das Kolonielager dient als neutraler Handelspartner.
-
-Nicht verkaufte Ressourcen verbleiben im Lager der eigenen Kolonie und können in späteren Runden verwendet werden.
-
-Während der Marktphase können Spieler sowohl mit anderen Spielern als auch mit dem Kolonielager handeln.
-
-Das Kolonielager kauft Ressourcen zu niedrigeren Preisen und verkauft sie zu höheren Preisen als ein Handel zwischen Spielern.
-
-Dadurch werden direkte Geschäfte zwischen Spielern belohnt, ohne den Handel mit dem Kolonielager zu erzwingen.
+## Direkter Handel
 
 Treffen sich Käufer und Verkäufer, beginnt der Handel sofort.
 
-Während Käufer und Verkäufer Kontakt halten, werden in kurzen Zeitabständen kontinuierlich Ressourcen übertragen.
+Solange Käufer und Verkäufer Kontakt halten, wird fortlaufend ungefähr alle **0,5 Sekunden eine Einheit** der Ressource übertragen.
 
-Beendet einer der beiden den Kontakt, endet der Handel.
+Das Zeitintervall ist ein vorläufiger Balancing-Wert.
 
-Der Käufer kann den Handel jederzeit beenden, indem er sich entfernt.
+Der Handel endet, wenn:
 
-Der Verkäufer kann entscheiden, ob er dem Käufer folgt und dadurch einen niedrigeren Preis akzeptiert.
+- Käufer oder Verkäufer den Kontakt beenden
+- der Verkäufer keine Einheiten mehr anbieten kann
+- der Käufer nicht mehr genügend Credits besitzt
 
-Dadurch entsteht eine dynamische Preisverhandlung ohne zusätzliche Menüs oder Eingaben.
+Der Käufer kann den Handel jederzeit beenden, indem er sich vom Verkäufer entfernt.
+
+Der Verkäufer kann dem Käufer folgen und dadurch einen niedrigeren Preis akzeptieren.
+
+Möchte der Käufer nicht weiterhandeln, muss er sich entsprechend vom Verkäufer entfernen.
+
+Dadurch entsteht eine dynamische und humorvolle Preisverhandlung ohne Mengenmenüs oder zusätzliche Eingaben.
+
+## Kolonielager
+
+Das Kolonielager dient als neutraler Handelspartner.
+
+Während der Marktphase können Spieler sowohl mit anderen Spielern als auch mit dem Kolonielager handeln.
+
+Das Kolonielager kauft Ressourcen zu niedrigeren Preisen und verkauft sie zu höheren Preisen als ein direkter Handel zwischen Spielern.
+
+Dadurch werden direkte Geschäfte zwischen Spielern belohnt, ohne den Handel mit dem Kolonielager zu erzwingen.
+
+Nicht verkaufte Ressourcen verbleiben im Lager der eigenen Kolonie und können in späteren Runden verwendet werden.
+
+Die genauen Marktpreise und ihre Anpassung an Angebot und Nachfrage werden später im Balancing festgelegt.
 
 ---
 
@@ -467,10 +507,12 @@ Diese Ideen gehören bewusst nicht zu Version 1.
 ## Balancing
 
 - Harvesterkosten
-- Marktpreise
+- Marktpreise und Preisentwicklung
 - Produktionsmengen
-- Bevölkerungswachstum
-- Energieverbrauch
+- exakte Wachstums- und Schrumpfungsraten der Bevölkerung
+- Zusammenspiel von Nahrungs- und Energieversorgung
+- Rundung der Versorgung bei Bevölkerungszahlen außerhalb voller Zehnerschritte
+- Übertragungsgeschwindigkeit im Markt
 - Startwerte
 
 ---
@@ -490,6 +532,21 @@ Diese Ideen gehören bewusst nicht zu Version 1.
 - Informationsdarstellung
 - Harvesterverwaltung
 - Auktionen
+- Marktsteuerung
+- Schieberegler für Nahrung und Energie
+
+Der Statusblock soll während der Planung dauerhaft sichtbar sein und mindestens enthalten:
+
+- Bevölkerung
+- Credits
+- Ressourcenbestände
+- erwartete Produktion und Verbrauch
+- aktuelle Versorgung
+- freie Harvester
+- Harvester im Bau
+- aktive, deaktivierte und in Umrüstung befindliche Harvester
+
+Änderungen gegenüber der vorherigen Runde sollen hervorgehoben werden.
 
 ---
 
