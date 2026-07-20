@@ -19,8 +19,8 @@ type HexMapProps = {
 
 function createHexPoints(x: number, y: number, radius: number) {
   return Array.from({ length: 6 }, (_, index) => {
-    const angle = ((60 * index + 30) * Math.PI) / 180
-
+    const angle = (60 * index * Math.PI) / 180
+    
     return `${x + radius * Math.cos(angle)},${
       y + radius * Math.sin(angle)
     }`

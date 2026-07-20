@@ -64,7 +64,7 @@ export const tiles: Tile[] = [
   {
     id: 'A',
     x: 350,
-    y: 95,
+    y: 106,
     owner: 'player',
     food: 4,
     energy: 2,
@@ -72,18 +72,17 @@ export const tiles: Tile[] = [
   },
   {
     id: 'B',
-    x: 485,
-    y: 170,
+    x: 475,
+    y: 178,
     owner: 'player',
     food: 3,
     energy: 4,
     ore: 2,
   },
-
   {
     id: 'C',
-    x: 485,
-    y: 330,
+    x: 475,
+    y: 322,
     owner: 'free',
     food: 2,
     energy: 5,
@@ -92,7 +91,7 @@ export const tiles: Tile[] = [
   {
     id: 'D',
     x: 350,
-    y: 405,
+    y: 394,
     owner: 'free',
     food: 1,
     energy: 3,
@@ -100,8 +99,8 @@ export const tiles: Tile[] = [
   },
   {
     id: 'E',
-    x: 215,
-    y: 330,
+    x: 225,
+    y: 322,
     owner: 'free',
     food: 5,
     energy: 2,
@@ -109,8 +108,8 @@ export const tiles: Tile[] = [
   },
   {
     id: 'F',
-    x: 215,
-    y: 170,
+    x: 225,
+    y: 178,
     owner: 'free',
     food: 2,
     energy: 3,

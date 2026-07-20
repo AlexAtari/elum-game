@@ -9,6 +9,13 @@ import {
 } from './game'
 import './App.css'
 
+const supplyLabels = [
+  'Keine Versorgung',
+  'Mindestversorgung',
+  'Normalversorgung',
+  'Überversorgung',
+] as const
+
 function App() {
   const [gameStarted, setGameStarted] = useState(false)
   const [gameState, setGameState] = useState(
@@ -18,6 +25,8 @@ function App() {
     useState<HarvesterAssignments>({})
   const [lastReport, setLastReport] =
     useState<RoundReport | null>(null)
+  const [foodSupplyLevel, setFoodSupplyLevel] = useState(2)
+  const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
 
   const freeHarvesters =
     2 - Object.keys(harvesters).length
@@ -26,6 +35,8 @@ function App() {
     setGameState(createInitialGameState())
     setHarvesters({})
     setLastReport(null)
+    setFoodSupplyLevel(2)
+    setEnergySupplyLevel(2)
     setGameStarted(true)
   }
 
@@ -106,6 +117,48 @@ function App() {
           harvesters={harvesters}
           onAssignHarvester={assignHarvester}
         />
+
+        <section className="supply-panel">
+          <h2>Versorgung planen</h2>
+
+          <label htmlFor="food-supply">
+            🌾 Nahrung für Bevölkerung:{' '}
+            <strong>
+              {foodSupplyLevel} – {supplyLabels[foodSupplyLevel]}
+            </strong>
+          </label>
+
+          <input
+            id="food-supply"
+            type="range"
+            min="0"
+            max="3"
+            step="1"
+            value={foodSupplyLevel}
+            onChange={(event) =>
+              setFoodSupplyLevel(Number(event.target.value))
+            }
+          />
+
+          <label htmlFor="energy-supply">
+            ⚡ Energie für Bevölkerung:{' '}
+            <strong>
+              {energySupplyLevel} – {supplyLabels[energySupplyLevel]}
+            </strong>
+          </label>
+
+          <input
+            id="energy-supply"
+            type="range"
+            min="0"
+            max="3"
+            step="1"
+            value={energySupplyLevel}
+            onChange={(event) =>
+              setEnergySupplyLevel(Number(event.target.value))
+            }
+          />
+        </section>
 
         <section className="round-actions">
           <button

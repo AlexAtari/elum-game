@@ -271,3 +271,44 @@ button {
     grid-template-columns: 1fr;
   }
 }
+.supply-panel {
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(14, 21, 38, 0.78);
+}
+
+.supply-panel h2 {
+  margin-top: 0;
+}
+
+.supply-panel label {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: #aeb8cb;
+}
+
+.supply-panel label strong {
+  color: #e9edf7;
+}
+
+.supply-panel input[type='range'] {
+  width: 100%;
+  margin: 12px 0 24px;
+  cursor: pointer;
+  accent-color: #79ddb9;
+}
+
+.supply-panel input:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 650px) {
+  .supply-panel label {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
