@@ -30,6 +30,11 @@ export type HarvesterAssignments = Partial<
   Record<string, ProductionType>
 >
 
+export type SupplyPlan = {
+  foodLevel: number
+  energyLevel: number
+}
+
 export type RoundReport = {
   roundPlayed: number
   produced: Record<ProductionType, number>
@@ -154,24 +159,29 @@ const deactivationPriority: Record<ProductionType, number> = {
 export function runRound(
   currentState: GameState,
   harvesters: HarvesterAssignments,
+  supplyPlan: SupplyPlan,
 ): {
   nextState: GameState
   report: RoundReport
 } {
-  const normalFoodRequirement =
-    Math.ceil(currentState.population / 10) * 2
+  const populationGroups = Math.ceil(
+    currentState.population / 10,
+  )
 
-  const normalEnergyRequirement =
-    Math.ceil(currentState.population / 10) * 2
+  const plannedFood =
+    populationGroups * supplyPlan.foodLevel
+
+  const plannedEnergy =
+    populationGroups * supplyPlan.energyLevel
 
   const consumedFood = Math.min(
     currentState.resources.food,
-    normalFoodRequirement,
+    plannedFood,
   )
 
   const consumedEnergyByHq = Math.min(
     currentState.resources.energy,
-    normalEnergyRequirement,
+    plannedEnergy,
   )
 
   const energyAfterHq =
@@ -259,14 +269,26 @@ export function runRound(
 
   const consumedEnergyByHarvesters = activeHarvesters.length
 
+  const actualFoodLevel = Math.floor(
+    consumedFood / populationGroups,
+  )
+
+  const actualEnergyLevel = Math.floor(
+    consumedEnergyByHq / populationGroups,
+  )
+
+  const effectiveSupplyLevel = Math.min(
+    actualFoodLevel,
+    actualEnergyLevel,
+  )
+
   let populationChange = 0
 
-  if (
-    consumedFood >= normalFoodRequirement &&
-    consumedEnergyByHq >= normalEnergyRequirement
-  ) {
+  if (effectiveSupplyLevel >= 3) {
+    populationChange = 2
+  } else if (effectiveSupplyLevel >= 2) {
     populationChange = 1
-  } else if (consumedFood === 0 || consumedEnergyByHq === 0) {
+  } else if (effectiveSupplyLevel === 0) {
     populationChange = -1
   }
 

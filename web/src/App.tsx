@@ -55,7 +55,10 @@ function App() {
   }
 
   const executeRound = () => {
-    const result = runRound(gameState, harvesters)
+    const result = runRound(gameState, harvesters, {
+      foodLevel: foodSupplyLevel,
+      energyLevel: energySupplyLevel,
+    })
 
     setGameState(result.nextState)
     setLastReport(result.report)
@@ -170,9 +173,9 @@ function App() {
           </button>
 
           <p>
-            Versorgung: 2 Nahrung und 2 Energie je zehn
-            Einwohner. Jeder aktive Harvester benötigt eine
-            Energie.
+            Gewählt: {foodSupplyLevel} Nahrung und{' '}
+            {energySupplyLevel} Energie je zehn Einwohner. Jeder
+            aktive Harvester benötigt zusätzlich eine Energie.
           </p>
         </section>
 
