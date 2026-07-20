@@ -3,7 +3,7 @@
 
 # Game Design Document
 
-**Version:** 0.4 "Core Gameplay"
+**Version:** 0.5 "Gameplay Complete"
 **Status:** Draft
 **Last Updated:** 2026-07-20
 
@@ -208,9 +208,31 @@ Freie Harvester können anschließend auf jedem eigenen, unbestrittenen Grundst�
 
 Die Anzahl gleichzeitig gebauter Harvester wird ausschließlich durch die verfügbaren Ressourcen begrenzt.
 
-Jeder aktive Harvester benötigt Energie.
+Jeder aktive Harvester benötigt pro Runde Energie.
 
-Steht nicht genügend Energie zur Verfügung, deaktiviert das Spiel automatisch Harvester nach einer noch festzulegenden Prioritätsregel.
+Steht nicht genügend Energie zur Verfügung, werden Harvester automatisch deaktiviert.
+
+Die Deaktivierung erfolgt in folgender Reihenfolge:
+
+1. niedrigste Sternewertung der aktuell produzierten Ressource
+2. Produktionsart
+   - 💎 Kristalle
+   - ⛏ Erz
+   - ⚡ Energie
+   - 🌾 Nahrung
+3. größte Entfernung zum Hauptquartier
+4. zufällige Auswahl bei vollständigem Gleichstand
+
+Dadurch bleiben die wertvollsten und wichtigsten Produktionsstätten möglichst lange aktiv.
+
+Die Produktionsart eines Harvesters kann während der Planungsphase geändert werden.
+
+Die Umrüstung dauert eine Runde.
+
+Während der Umrüstung produziert der Harvester keine Ressourcen.
+
+Ab der folgenden Runde produziert er die neu gewählte Ressource.
+
 # 8. Produktion
 
 Jeder aktive Harvester produziert genau eine Ressource.
@@ -333,6 +355,18 @@ Während der Marktphase können Spieler sowohl mit anderen Spielern als auch mit
 Das Kolonielager kauft Ressourcen zu niedrigeren Preisen und verkauft sie zu höheren Preisen als ein Handel zwischen Spielern.
 
 Dadurch werden direkte Geschäfte zwischen Spielern belohnt, ohne den Handel mit dem Kolonielager zu erzwingen.
+
+Treffen sich Käufer und Verkäufer, beginnt der Handel sofort.
+
+Während Käufer und Verkäufer Kontakt halten, werden in kurzen Zeitabständen kontinuierlich Ressourcen übertragen.
+
+Beendet einer der beiden den Kontakt, endet der Handel.
+
+Der Käufer kann den Handel jederzeit beenden, indem er sich entfernt.
+
+Der Verkäufer kann entscheiden, ob er dem Käufer folgt und dadurch einen niedrigeren Preis akzeptiert.
+
+Dadurch entsteht eine dynamische Preisverhandlung ohne zusätzliche Menüs oder Eingaben.
 
 ---
 
