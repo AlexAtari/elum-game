@@ -65,6 +65,19 @@ function App() {
     }))
   }
 
+  const removeHarvester = (tileId: string) => {
+    setHarvesters((currentHarvesters) => {
+      if (!currentHarvesters[tileId]) {
+        return currentHarvesters
+      }
+
+      const updatedHarvesters = { ...currentHarvesters }
+      delete updatedHarvesters[tileId]
+
+      return updatedHarvesters
+    })
+  }
+
   const executeRound = () => {
     const result = runRound(gameState, harvesters, {
       foodLevel: foodSupplyLevel,
@@ -130,6 +143,7 @@ function App() {
           freeHarvesters={freeHarvesters}
           harvesters={harvesters}
           onAssignHarvester={assignHarvester}
+          onRemoveHarvester={removeHarvester}
         />
 
         <section className="supply-panel">

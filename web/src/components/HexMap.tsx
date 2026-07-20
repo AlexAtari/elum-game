@@ -15,12 +15,13 @@ type HexMapProps = {
     tileId: string,
     production: ProductionType,
   ) => void
+  onRemoveHarvester: (tileId: string) => void
 }
 
 function createHexPoints(x: number, y: number, radius: number) {
   return Array.from({ length: 6 }, (_, index) => {
     const angle = (60 * index * Math.PI) / 180
-    
+
     return `${x + radius * Math.cos(angle)},${
       y + radius * Math.sin(angle)
     }`
@@ -36,6 +37,7 @@ function HexMap({
   freeHarvesters,
   harvesters,
   onAssignHarvester,
+  onRemoveHarvester,
 }: HexMapProps) {
   const [selectedId, setSelectedId] = useState('A')
   const [isChoosingProduction, setIsChoosingProduction] =
@@ -199,6 +201,16 @@ function HexMap({
                       {productionTypes[selectedProduction].icon}{' '}
                       {productionTypes[selectedProduction].label}
                     </strong>
+
+                    <button
+                      className="remove-harvester-button"
+                      type="button"
+                      onClick={() =>
+                        onRemoveHarvester(selectedTile.id)
+                      }
+                    >
+                      Harvester entfernen
+                    </button>
                   </div>
                 )}
 

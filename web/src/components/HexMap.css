@@ -232,3 +232,19 @@
   background: transparent;
   font: inherit;
 }
+.remove-harvester-button {
+  margin-top: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 133, 133, 0.3);
+  border-radius: 10px;
+  color: #ffb3b3;
+  background: rgba(255, 107, 107, 0.08);
+  font: inherit;
+  font-weight: 700;
+}
+
+.remove-harvester-button:hover {
+  border-color: rgba(255, 133, 133, 0.65);
+  background: rgba(255, 107, 107, 0.14);
+}
