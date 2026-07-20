@@ -1,54 +1,29 @@
 import { useState } from 'react'
+import {
+  productionTypes,
+  tiles,
+  type HarvesterAssignments,
+  type ProductionType,
+} from '../game'
 import './HexMap.css'
 
-type TileOwner = 'hq' | 'player' | 'free'
-type ProductionType = 'food' | 'energy' | 'ore'
-
-type Tile = {
-  id: string
-  x: number
-  y: number
-  owner: TileOwner
-  food?: number
-  energy?: number
-  ore?: number
+type HexMapProps = {
+  population: number
+  freeHarvesters: number
+  harvesters: HarvesterAssignments
+  onAssignHarvester: (
+    tileId: string,
+    production: ProductionType,
+  ) => void
 }
-
-const productionTypes: Record<
-  ProductionType,
-  { label: string; icon: string }
-> = {
-  food: {
-    label: 'Nahrung',
-    icon: '🌾',
-  },
-  energy: {
-    label: 'Energie',
-    icon: '⚡',
-  },
-  ore: {
-    label: 'Erz',
-    icon: '⛏',
-  },
-}
-
-const tiles: Tile[] = [
-  { id: 'HQ', x: 350, y: 250, owner: 'hq' },
-
-  { id: 'A', x: 350, y: 95, owner: 'player', food: 4, energy: 2, ore: 4 },
-  { id: 'B', x: 485, y: 170, owner: 'player', food: 3, energy: 4, ore: 2 },
-
-  { id: 'C', x: 485, y: 330, owner: 'free', food: 2, energy: 5, ore: 1 },
-  { id: 'D', x: 350, y: 405, owner: 'free', food: 1, energy: 3, ore: 5 },
-  { id: 'E', x: 215, y: 330, owner: 'free', food: 5, energy: 2, ore: 2 },
-  { id: 'F', x: 215, y: 170, owner: 'free', food: 2, energy: 3, ore: 4 },
-]
 
 function createHexPoints(x: number, y: number, radius: number) {
   return Array.from({ length: 6 }, (_, index) => {
     const angle = ((60 * index + 30) * Math.PI) / 180
 
-    return `${x + radius * Math.cos(angle)},${y + radius * Math.sin(angle)}`
+    return `${x + radius * Math.cos(angle)},${
+      y + radius * Math.sin(angle)
+    }`
   }).join(' ')
 }
 
@@ -56,17 +31,18 @@ function formatStars(value = 0) {
   return `${'★'.repeat(value)}${'☆'.repeat(5 - value)}`
 }
 
-function HexMap() {
+function HexMap({
+  population,
+  freeHarvesters,
+  harvesters,
+  onAssignHarvester,
+}: HexMapProps) {
   const [selectedId, setSelectedId] = useState('A')
-  const [freeHarvesters, setFreeHarvesters] = useState(2)
-  const [isChoosingProduction, setIsChoosingProduction] = useState(false)
-
-  const [harvesters, setHarvesters] = useState<
-    Partial<Record<string, ProductionType>>
-  >({})
+  const [isChoosingProduction, setIsChoosingProduction] =
+    useState(false)
 
   const selectedTile =
-    tiles.find((tile) => tile.id === selectedId) ?? tiles[1]
+    tiles.find((tile) => tile.id === selectedId) ?? tiles[0]!
 
   const selectedProduction = harvesters[selectedTile.id]
 
@@ -84,12 +60,7 @@ function HexMap() {
       return
     }
 
-    setHarvesters((currentHarvesters) => ({
-      ...currentHarvesters,
-      [selectedTile.id]: production,
-    }))
-
-    setFreeHarvesters((currentAmount) => currentAmount - 1)
+    onAssignHarvester(selectedTile.id, production)
     setIsChoosingProduction(false)
   }
 
@@ -126,12 +97,17 @@ function HexMap() {
                 tabIndex={0}
                 onClick={() => selectTile(tile.id)}
                 onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
+                  if (
+                    event.key === 'Enter' ||
+                    event.key === ' '
+                  ) {
                     selectTile(tile.id)
                   }
                 }}
               >
-                <polygon points={createHexPoints(tile.x, tile.y, 83)} />
+                <polygon
+                  points={createHexPoints(tile.x, tile.y, 83)}
+                />
 
                 <text
                   className="hex-label"
@@ -175,13 +151,14 @@ function HexMap() {
               <h3>Hauptquartier</h3>
 
               <p>
-                Hier leben die Einwohner der Kolonie. Außerdem befinden sich
-                hier Lager, freie Harvester und der Zugang zum Markt.
+                Hier leben die Einwohner der Kolonie. Außerdem
+                befinden sich hier Lager, freie Harvester und der
+                Zugang zum Markt.
               </p>
 
               <div className="detail-row">
                 <span>👥 Bevölkerung</span>
-                <strong>10</strong>
+                <strong>{population}</strong>
               </div>
 
               <div className="detail-row">
@@ -214,15 +191,16 @@ function HexMap() {
                 <strong>{formatStars(selectedTile.ore)}</strong>
               </div>
 
-              {selectedTile.owner === 'player' && selectedProduction && (
-                <div className="harvester-status">
-                  <span>🚜 Harvester aktiv</span>
-                  <strong>
-                    {productionTypes[selectedProduction].icon}{' '}
-                    {productionTypes[selectedProduction].label}
-                  </strong>
-                </div>
-              )}
+              {selectedTile.owner === 'player' &&
+                selectedProduction && (
+                  <div className="harvester-status">
+                    <span>🚜 Harvester aktiv</span>
+                    <strong>
+                      {productionTypes[selectedProduction].icon}{' '}
+                      {productionTypes[selectedProduction].label}
+                    </strong>
+                  </div>
+                )}
 
               {selectedTile.owner === 'player' &&
                 !selectedProduction &&
@@ -231,7 +209,9 @@ function HexMap() {
                     className="field-button"
                     type="button"
                     disabled={freeHarvesters === 0}
-                    onClick={() => setIsChoosingProduction(true)}
+                    onClick={() =>
+                      setIsChoosingProduction(true)
+                    }
                   >
                     {freeHarvesters > 0
                       ? 'Harvester einsetzen'
@@ -243,28 +223,38 @@ function HexMap() {
                 !selectedProduction &&
                 isChoosingProduction && (
                   <div className="production-picker">
-                    <p>Was soll der Harvester produzieren?</p>
+                    <p>
+                      Was soll der Harvester produzieren?
+                    </p>
 
                     <div className="production-options">
-                      {(Object.keys(productionTypes) as ProductionType[]).map(
-                        (production) => (
-                          <button
-                            key={production}
-                            className="production-button"
-                            type="button"
-                            onClick={() => assignHarvester(production)}
-                          >
-                            <span>{productionTypes[production].icon}</span>
-                            {productionTypes[production].label}
-                          </button>
-                        ),
-                      )}
+                      {(
+                        Object.keys(
+                          productionTypes,
+                        ) as ProductionType[]
+                      ).map((production) => (
+                        <button
+                          key={production}
+                          className="production-button"
+                          type="button"
+                          onClick={() =>
+                            assignHarvester(production)
+                          }
+                        >
+                          <span>
+                            {productionTypes[production].icon}
+                          </span>
+                          {productionTypes[production].label}
+                        </button>
+                      ))}
                     </div>
 
                     <button
                       className="cancel-button"
                       type="button"
-                      onClick={() => setIsChoosingProduction(false)}
+                      onClick={() =>
+                        setIsChoosingProduction(false)
+                      }
                     >
                       Abbrechen
                     </button>
@@ -272,7 +262,11 @@ function HexMap() {
                 )}
 
               {selectedTile.owner === 'free' && (
-                <button className="field-button" type="button" disabled>
+                <button
+                  className="field-button"
+                  type="button"
+                  disabled
+                >
                   Noch nicht im Besitz
                 </button>
               )}
