@@ -1,7 +1,7 @@
 # E.L.U.M.
 ## Balancing Document
 
-**Version:** 0.1  
+**Version:** 0.2
 **Status:** Draft  
 **Last Updated:** 2026-07-19
 
@@ -89,6 +89,17 @@ Standardwahrscheinlichkeit:
 Der Ertrag kann niemals negativ sein.
 
 Kristalle können nur produziert werden, wenn nach dem Kauf ein Kristallvorkommen entdeckt wurde.
+
+## Umrüstung und Versetzung
+
+| Aktion | Energie in der Übergangsrunde | Produktion in der Übergangsrunde |
+|---|---:|---:|
+| erstmaliger Einsatz eines unbenutzten Harvesters | 1 | 100 % |
+| Produktionswechsel auf demselben Feld | 1 | 50 % der neuen Ressource, aufgerundet |
+| Versetzung auf ein anderes Feld | 1 | 0 % |
+| folgende Runde nach erfolgreichem Übergang | 1 | 100 % |
+
+Fehlt die benötigte Energie, pausiert die Umrüstung oder Einrichtung und wird in einer späteren Runde fortgesetzt.
 
 ---
 
@@ -257,6 +268,9 @@ Bei Gleichstand entscheidet:
 - Werden neue Harvester früh genug gebaut?
 - Sind drei Aktionspunkte ausreichend?
 - Ist das Versetzen eines Harvesters mit zwei AP zu teuer?
+- Ist eine Energie für Umrüstung und Einrichtung angemessen?
+- Ist die aufgerundete Produktion von 50 % während der Umrüstung zu hoch oder zu niedrig?
+- Ist eine vollständige Ausfallrunde nach einer Versetzung angemessen?
 - Werden Grundstücke regelmäßig gekauft?
 - Entstehen mehrere sinnvolle Strategien?
 - Bleibt eine Partie innerhalb von 20–30 Minuten?

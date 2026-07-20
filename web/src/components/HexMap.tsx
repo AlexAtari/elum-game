@@ -15,6 +15,10 @@ type HexMapProps = {
     tileId: string,
     production: ProductionType,
   ) => void
+  onChangeHarvesterProduction: (
+    tileId: string,
+    production: ProductionType,
+  ) => void
   onRemoveHarvester: (tileId: string) => void
 }
 
@@ -37,6 +41,7 @@ function HexMap({
   freeHarvesters,
   harvesters,
   onAssignHarvester,
+  onChangeHarvesterProduction,
   onRemoveHarvester,
 }: HexMapProps) {
   const [selectedId, setSelectedId] = useState('A')
@@ -46,7 +51,8 @@ function HexMap({
   const selectedTile =
     tiles.find((tile) => tile.id === selectedId) ?? tiles[0]!
 
-  const selectedProduction = harvesters[selectedTile.id]
+  const selectedHarvester = harvesters[selectedTile.id]
+  const selectedProduction = selectedHarvester?.production
 
   const selectTile = (tileId: string) => {
     setSelectedId(tileId)
@@ -63,6 +69,17 @@ function HexMap({
     }
 
     onAssignHarvester(selectedTile.id, production)
+    setIsChoosingProduction(false)
+  }
+
+  const changeHarvesterProduction = (
+    production: ProductionType,
+  ) => {
+    if (!selectedHarvester) {
+      return
+    }
+
+    onChangeHarvesterProduction(selectedTile.id, production)
     setIsChoosingProduction(false)
   }
 
@@ -85,7 +102,8 @@ function HexMap({
         >
           {tiles.map((tile) => {
             const isSelected = tile.id === selectedId
-            const production = harvesters[tile.id]
+            const harvester = harvesters[tile.id]
+            const production = harvester?.production
 
             return (
               <g
@@ -131,14 +149,19 @@ function HexMap({
                   </text>
                 )}
 
-                {production && (
+                {harvester && (
                   <text
                     className="hex-production-label"
                     x={tile.x}
                     y={tile.y + 38}
                     textAnchor="middle"
                   >
-                    🚜 {productionTypes[production].icon}
+                    {harvester.pendingProduction ? '🔧' : '🚜'}{' '}
+                    {
+                      productionTypes[
+                        harvester.pendingProduction ?? production!
+                      ].icon
+                    }
                   </text>
                 )}
               </g>
@@ -167,6 +190,7 @@ function HexMap({
                 <span>🚜 Freie Harvester</span>
                 <strong>{freeHarvesters}</strong>
               </div>
+
             </>
           ) : (
             <>
@@ -194,13 +218,63 @@ function HexMap({
               </div>
 
               {selectedTile.owner === 'player' &&
-                selectedProduction && (
+                selectedHarvester && (
                   <div className="harvester-status">
-                    <span>🚜 Harvester aktiv</span>
-                    <strong>
-                      {productionTypes[selectedProduction].icon}{' '}
-                      {productionTypes[selectedProduction].label}
-                    </strong>
+                    {selectedHarvester.pendingProduction ? (
+                      <>
+                        <span>
+                          🔧{' '}
+                          {selectedHarvester.retoolingReason ===
+                          'relocation'
+                            ? 'Einrichtung nach Versetzung'
+                            : 'Umrüstung ausstehend'}
+                        </span>
+                        <strong>
+                          {
+                            productionTypes[
+                              selectedHarvester.production
+                            ].icon
+                          }{' '}
+                          {
+                            productionTypes[
+                              selectedHarvester.production
+                            ].label
+                          }{' '}
+                          →{' '}
+                          {
+                            productionTypes[
+                              selectedHarvester.pendingProduction
+                            ].icon
+                          }{' '}
+                          {
+                            productionTypes[
+                              selectedHarvester.pendingProduction
+                            ].label
+                          }
+                        </strong>
+                      </>
+                    ) : (
+                      <>
+                        <span>
+                          🚜 Harvester{' '}
+                          {selectedHarvester.isNew
+                            ? 'neu eingesetzt'
+                            : 'aktiv'}
+                        </span>
+                        <strong>
+                          {productionTypes[selectedProduction!].icon}{' '}
+                          {productionTypes[selectedProduction!].label}
+                        </strong>
+                      </>
+                    )}
+
+                    <button
+                      className="change-production-button"
+                      type="button"
+                      onClick={() => setIsChoosingProduction(true)}
+                    >
+                      Produktion ändern
+                    </button>
 
                     <button
                       className="remove-harvester-button"
@@ -215,7 +289,50 @@ function HexMap({
                 )}
 
               {selectedTile.owner === 'player' &&
+                selectedHarvester &&
+                isChoosingProduction && (
+                  <div className="production-picker">
+                    <p>Neue Produktion wählen:</p>
+
+                    <div className="production-options">
+                      {(
+                        Object.keys(
+                          productionTypes,
+                        ) as ProductionType[]
+                      ).map((production) => (
+                        <button
+                          key={production}
+                          className="production-button"
+                          type="button"
+                          onClick={() =>
+                            changeHarvesterProduction(production)
+                          }
+                        >
+                          <span>
+                            {productionTypes[production].icon}
+                          </span>
+                          {production === selectedProduction
+                            ? `${productionTypes[production].label} beibehalten`
+                            : productionTypes[production].label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      className="cancel-button"
+                      type="button"
+                      onClick={() =>
+                        setIsChoosingProduction(false)
+                      }
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                )}
+
+              {selectedTile.owner === 'player' &&
                 !selectedProduction &&
+                !selectedHarvester &&
                 !isChoosingProduction && (
                   <button
                     className="field-button"
@@ -233,6 +350,7 @@ function HexMap({
 
               {selectedTile.owner === 'player' &&
                 !selectedProduction &&
+                !selectedHarvester &&
                 isChoosingProduction && (
                   <div className="production-picker">
                     <p>

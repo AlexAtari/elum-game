@@ -3,7 +3,7 @@
 
 # Game Design Document
 
-**Version:** 0.5 "Versorgung & Markt"
+**Version:** 0.6 "Versorgung & Harvester"
 **Status:** Draft
 **Last Updated:** 2026-07-20
 
@@ -94,7 +94,7 @@ Reicht die verbleibende Energie nicht für alle Harvester, werden einzelne Harve
 
 ## 6. Produktion
 
-Alle mit Energie versorgten und nicht in Umrüstung befindlichen Harvester produzieren gleichzeitig.
+Alle mit Energie versorgten Harvester produzieren gleichzeitig. Normal arbeitende Harvester produzieren den vollen Ertrag. Harvester in Umrüstung produzieren in der Übergangsrunde die neue Ressource mit halbem Ertrag. Harvester, die nach einer Versetzung auf einem neuen Feld eingerichtet werden, produzieren in der Übergangsrunde nichts.
 
 ## 7. Versorgung und Bevölkerungsentwicklung
 
@@ -237,11 +237,23 @@ Ein deaktivierter Harvester verbraucht in dieser Runde keine Energie und produzi
 
 Die Produktionsart eines Harvesters kann während der Planungsphase geändert werden.
 
-Die Umrüstung dauert eine Runde.
+Die Umrüstung auf demselben Grundstück dauert eine Übergangsrunde.
 
-Während der Umrüstung verbraucht der Harvester keine Produktionsenergie und produziert keine Ressourcen.
+Während dieser Runde benötigt der Harvester eine Einheit Energie und produziert bereits die neu gewählte Ressource mit **50 % Ertrag**. Bei ungeraden Produktionswerten wird zugunsten des Spielers auf die nächste ganze Einheit aufgerundet.
 
-Ab der folgenden Runde produziert er die neu gewählte Ressource.
+Ab der folgenden Runde produziert er die neu gewählte Ressource mit vollem Ertrag.
+
+Steht für die Umrüstung keine Energie zur Verfügung, produziert der Harvester nichts und die Umrüstung pausiert bis zu einer späteren Runde mit ausreichender Energie.
+
+## Harvester versetzen
+
+Ein Harvester kann während der Planungsphase von seinem Grundstück entfernt werden und steht anschließend sofort wieder als freier Harvester im HQ zur Verfügung.
+
+Wird ein bereits verwendeter Harvester auf einem Grundstück neu eingesetzt, benötigt die Einrichtung auf dem neuen Feld eine Übergangsrunde. Während dieser Runde verbraucht der Harvester eine Einheit Energie und produziert nichts.
+
+Steht keine Energie zur Verfügung, pausiert die Einrichtung. Erst nach einer erfolgreich abgeschlossenen Einrichtungsrunde beginnt der Harvester mit der vollen Produktion.
+
+Die erstmalige Platzierung eines bisher unbenutzten freien Harvesters benötigt keine Einrichtungsrunde. Er kann bereits in derselben Runde mit voller Leistung produzieren.
 
 ---
 

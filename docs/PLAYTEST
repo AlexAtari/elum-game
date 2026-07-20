@@ -14,6 +14,15 @@
 - Ein kleiner Notvorrat ermöglicht verschiedene Eröffnungsstrategien.
 - Startfelder sollten mehrere sinnvolle Entscheidungen zulassen.
 
+### 🔬 Harvester-Umrüstung und Versetzung
+
+- Erstmalig eingesetzte Harvester produzieren sofort mit voller Leistung.
+- Ein Produktionswechsel auf demselben Feld liefert in der Übergangsrunde 50 % der neuen Ressource, aufgerundet.
+- Ein versetzter Harvester produziert in der Einrichtungsrunde nichts.
+- Beide Übergangsaktionen benötigen zunächst eine Energie.
+- Bei Energiemangel pausiert der Vorgang.
+- Energiebedarf und Produktionsdrosselung werden später im Balancing überprüft.
+
 ### ✔ Markt
 
 - M.U.L.E.-Marktmechanik wird grundsätzlich übernommen.

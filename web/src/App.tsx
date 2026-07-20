@@ -4,6 +4,7 @@ import {
   calculateSupplyPreview,
   createInitialGameState,
   runRound,
+  type FreeHarvester,
   type HarvesterAssignments,
   type ProductionType,
   type RoundReport,
@@ -24,13 +25,15 @@ function App() {
   )
   const [harvesters, setHarvesters] =
     useState<HarvesterAssignments>({})
+  const [freeHarvesterPool, setFreeHarvesterPool] = useState<
+    FreeHarvester[]
+  >([{}, {}])
   const [lastReport, setLastReport] =
     useState<RoundReport | null>(null)
   const [foodSupplyLevel, setFoodSupplyLevel] = useState(2)
   const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
 
-  const freeHarvesters =
-    2 - Object.keys(harvesters).length
+  const freeHarvesters = freeHarvesterPool.length
 
   const supplyPreview = calculateSupplyPreview(gameState, {
     foodLevel: foodSupplyLevel,
@@ -45,6 +48,7 @@ function App() {
   const startNewGame = () => {
     setGameState(createInitialGameState())
     setHarvesters({})
+    setFreeHarvesterPool([{}, {}])
     setLastReport(null)
     setFoodSupplyLevel(2)
     setEnergySupplyLevel(2)
@@ -59,13 +63,102 @@ function App() {
       return
     }
 
+    const unusedHarvesterIndex = freeHarvesterPool.findIndex(
+      (harvester) => harvester.previousProduction === undefined,
+    )
+
+    const selectedHarvesterIndex =
+      unusedHarvesterIndex >= 0 ? unusedHarvesterIndex : 0
+
+    const selectedHarvester =
+      freeHarvesterPool[selectedHarvesterIndex]
+
+    if (!selectedHarvester) {
+      return
+    }
+
+    setFreeHarvesterPool((currentPool) =>
+      currentPool.filter(
+        (_, index) => index !== selectedHarvesterIndex,
+      ),
+    )
+
     setHarvesters((currentHarvesters) => ({
       ...currentHarvesters,
-      [tileId]: production,
+      [tileId]:
+        selectedHarvester.previousProduction === undefined
+          ? {
+              production,
+              isNew: true,
+            }
+          : {
+              production: selectedHarvester.previousProduction,
+              pendingProduction: production,
+              retoolingReason: 'relocation',
+              isNew: false,
+            },
     }))
   }
 
+  const changeHarvesterProduction = (
+    tileId: string,
+    production: ProductionType,
+  ) => {
+    setHarvesters((currentHarvesters) => {
+      const currentAssignment = currentHarvesters[tileId]
+
+      if (!currentAssignment) {
+        return currentHarvesters
+      }
+
+      if (currentAssignment.isNew) {
+        return {
+          ...currentHarvesters,
+          [tileId]: {
+            production,
+            isNew: true,
+          },
+        }
+      }
+
+      if (currentAssignment.retoolingReason === 'relocation') {
+        return {
+          ...currentHarvesters,
+          [tileId]: {
+            ...currentAssignment,
+            pendingProduction: production,
+          },
+        }
+      }
+
+      if (production === currentAssignment.production) {
+        return {
+          ...currentHarvesters,
+          [tileId]: {
+            production: currentAssignment.production,
+            isNew: false,
+          },
+        }
+      }
+
+      return {
+        ...currentHarvesters,
+        [tileId]: {
+          ...currentAssignment,
+          pendingProduction: production,
+          retoolingReason: 'production-change',
+        },
+      }
+    })
+  }
+
   const removeHarvester = (tileId: string) => {
+    const currentAssignment = harvesters[tileId]
+
+    if (!currentAssignment) {
+      return
+    }
+
     setHarvesters((currentHarvesters) => {
       if (!currentHarvesters[tileId]) {
         return currentHarvesters
@@ -76,15 +169,32 @@ function App() {
 
       return updatedHarvesters
     })
+
+    if (!currentAssignment.isNew) {
+      setFreeHarvesterPool((currentPool) => [
+        ...currentPool,
+        { previousProduction: currentAssignment.production },
+      ])
+    } else {
+      setFreeHarvesterPool((currentPool) => [
+        ...currentPool,
+        {},
+      ])
+    }
   }
 
   const executeRound = () => {
-    const result = runRound(gameState, harvesters, {
-      foodLevel: foodSupplyLevel,
-      energyLevel: energySupplyLevel,
-    })
+    const result = runRound(
+      gameState,
+      harvesters,
+      {
+        foodLevel: foodSupplyLevel,
+        energyLevel: energySupplyLevel,
+      },
+    )
 
     setGameState(result.nextState)
+    setHarvesters(result.nextHarvesters)
     setLastReport(result.report)
   }
 
@@ -143,6 +253,7 @@ function App() {
           freeHarvesters={freeHarvesters}
           harvesters={harvesters}
           onAssignHarvester={assignHarvester}
+          onChangeHarvesterProduction={changeHarvesterProduction}
           onRemoveHarvester={removeHarvester}
         />
 
@@ -244,7 +355,8 @@ function App() {
           <p>
             Gewählt: {foodSupplyLevel} Nahrung und{' '}
             {energySupplyLevel} Energie je zehn Einwohner. Jeder
-            aktive Harvester benötigt zusätzlich eine Energie.
+            produzierende oder umzurüstende Harvester benötigt
+            zusätzlich eine Energie.
           </p>
         </section>
 
@@ -296,6 +408,22 @@ function App() {
                 {lastReport.inactiveHarvesterIds.join(', ')}
               </p>
             )}
+
+            {lastReport.completedRetoolingIds.length > 0 && (
+              <p className="report-success">
+                Einrichtung/Umrüstung abgeschlossen:{' '}
+                {lastReport.completedRetoolingIds.join(', ')}
+              </p>
+            )}
+
+            {lastReport.pausedRetoolingIds.length > 0 && (
+              <p className="report-warning">
+                Einrichtung/Umrüstung wegen Energiemangels
+                pausiert:{' '}
+                {lastReport.pausedRetoolingIds.join(', ')}
+              </p>
+            )}
+
           </section>
         )}
 

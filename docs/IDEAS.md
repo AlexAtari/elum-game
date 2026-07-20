@@ -52,3 +52,21 @@ Vergleich ausschließlich über das Leaderboard.
 # Daily Challenge
 
 Kurze tägliche Herausforderung mit wechselnden Sonderregeln.
+
+---
+
+# Koloniestatus und Ausscheiden
+
+**Status:** Merkzettel für Multiplayer
+
+Jede Kolonie erhält später einen eigenen Status:
+
+- aktiv
+- kritisch, aber möglicherweise noch durch Handel rettbar
+- ausgeschieden
+
+Im Einzelspiel gegen die KI kann das Ausscheiden des menschlichen Spielers die Partie unmittelbar beenden. Optional kann die Partie weiter beobachtet werden.
+
+Im Mehrspielermodus scheidet nur die betroffene Kolonie aus. Die übrigen Spieler setzen die Partie fort.
+
+Sobald der Markt verfügbar ist, bedeutet ein Energiebestand von null nicht automatisch das Ausscheiden. Vorher muss geprüft werden, ob die Kolonie durch Kauf, Verkauf oder Handel noch gerettet werden kann.

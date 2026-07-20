@@ -26,9 +26,20 @@ export type Tile = {
   ore?: number
 }
 
+export type HarvesterAssignment = {
+  production: ProductionType
+  pendingProduction?: ProductionType
+  retoolingReason?: 'production-change' | 'relocation'
+  isNew: boolean
+}
+
 export type HarvesterAssignments = Partial<
-  Record<string, ProductionType>
+  Record<string, HarvesterAssignment>
 >
+
+export type FreeHarvester = {
+  previousProduction?: ProductionType
+}
 
 export type SupplyPlan = {
   foodLevel: number
@@ -54,6 +65,8 @@ export type RoundReport = {
   consumedEnergyByHarvesters: number
   populationChange: number
   inactiveHarvesterIds: string[]
+  completedRetoolingIds: string[]
+  pausedRetoolingIds: string[]
 }
 
 export const productionTypes: Record<
@@ -235,6 +248,7 @@ export function runRound(
   supplyPlan: SupplyPlan,
 ): {
   nextState: GameState
+  nextHarvesters: HarvesterAssignments
   report: RoundReport
 } {
   const supplyPreview = calculateSupplyPreview(
@@ -251,21 +265,44 @@ export function runRound(
   const energyAfterHq =
     currentState.resources.energy - consumedEnergyByHq
 
-  const assignedHarvesters: Array<{
-    tile: Tile
+  const harvesterTasks: Array<{
+    id: string
+    kind: 'production' | 'retooling'
+    tile?: Tile
     production: ProductionType
+    retoolingReason?: HarvesterAssignment['retoolingReason']
+    rating: number
+    distance: number
     randomOrder: number
   }> = []
 
-  for (const [tileId, production] of Object.entries(
+  for (const [tileId, assignment] of Object.entries(
     harvesters,
-  ) as Array<[string, ProductionType]>) {
+  ) as Array<[string, HarvesterAssignment]>) {
     const tile = tiles.find((candidate) => candidate.id === tileId)
 
     if (tile) {
-      assignedHarvesters.push({
+      const isRetooling =
+        assignment.pendingProduction !== undefined
+
+      harvesterTasks.push({
+        id: tile.id,
+        kind: isRetooling ? 'retooling' : 'production',
         tile,
-        production,
+        production:
+          assignment.pendingProduction ?? assignment.production,
+        retoolingReason: assignment.retoolingReason,
+        rating: isRetooling
+          ? assignment.retoolingReason === 'production-change'
+            ? Math.ceil(
+                getRating(
+                  tile,
+                  assignment.pendingProduction!,
+                ) / 2,
+              )
+            : 0
+          : getRating(tile, assignment.production),
+        distance: getDistanceFromHq(tile),
         randomOrder: Math.random(),
       })
     }
@@ -275,14 +312,12 @@ export function runRound(
 
   const amountToDeactivate = Math.max(
     0,
-    assignedHarvesters.length - availableHarvesterEnergy,
+    harvesterTasks.length - availableHarvesterEnergy,
   )
 
-  const deactivationOrder = [...assignedHarvesters].sort(
+  const deactivationOrder = [...harvesterTasks].sort(
     (first, second) => {
-      const ratingDifference =
-        getRating(first.tile, first.production) -
-        getRating(second.tile, second.production)
+      const ratingDifference = first.rating - second.rating
 
       if (ratingDifference !== 0) {
         return ratingDifference
@@ -296,9 +331,7 @@ export function runRound(
         return resourceDifference
       }
 
-      const distanceDifference =
-        getDistanceFromHq(second.tile) -
-        getDistanceFromHq(first.tile)
+      const distanceDifference = second.distance - first.distance
 
       if (distanceDifference !== 0) {
         return distanceDifference
@@ -308,15 +341,35 @@ export function runRound(
     },
   )
 
-  const inactiveHarvesterIds = deactivationOrder
+  const inactiveTaskIds = deactivationOrder
     .slice(0, amountToDeactivate)
-    .map((harvester) => harvester.tile.id)
+    .map((task) => task.id)
 
-  const inactiveHarvesterSet = new Set(inactiveHarvesterIds)
+  const inactiveTaskSet = new Set(inactiveTaskIds)
 
-  const activeHarvesters = assignedHarvesters.filter(
-    (harvester) => !inactiveHarvesterSet.has(harvester.tile.id),
+  const activeTasks = harvesterTasks.filter(
+    (task) => !inactiveTaskSet.has(task.id),
   )
+
+  const activeProductionTasks = activeTasks.filter(
+    (task) =>
+      task.tile &&
+      (task.kind === 'production' ||
+        task.retoolingReason === 'production-change'),
+  )
+
+  const completedRetoolingIds = activeTasks
+    .filter((task) => task.kind === 'retooling')
+    .map((task) => task.id)
+
+  const completedRetoolingSet = new Set(completedRetoolingIds)
+
+  const pausedRetoolingIds = harvesterTasks
+    .filter(
+      (task) =>
+        task.kind === 'retooling' && inactiveTaskSet.has(task.id),
+    )
+    .map((task) => task.id)
 
   const produced: Record<ProductionType, number> = {
     food: 0,
@@ -324,14 +377,39 @@ export function runRound(
     ore: 0,
   }
 
-  for (const harvester of activeHarvesters) {
-    produced[harvester.production] += getRating(
-      harvester.tile,
-      harvester.production,
-    )
+  for (const task of activeProductionTasks) {
+    produced[task.production] += task.rating
   }
 
-  const consumedEnergyByHarvesters = activeHarvesters.length
+  const consumedEnergyByHarvesters = activeTasks.length
+
+  const nextHarvesters: HarvesterAssignments = {}
+
+  for (const [tileId, assignment] of Object.entries(
+    harvesters,
+  ) as Array<[string, HarvesterAssignment]>) {
+    if (
+      assignment.pendingProduction &&
+      completedRetoolingSet.has(tileId)
+    ) {
+      nextHarvesters[tileId] = {
+        production: assignment.pendingProduction,
+        isNew: false,
+      }
+    } else {
+      nextHarvesters[tileId] = {
+        ...assignment,
+        isNew: false,
+      }
+    }
+  }
+
+  const inactiveHarvesterIds = harvesterTasks
+    .filter(
+      (task) =>
+        task.kind === 'production' && inactiveTaskSet.has(task.id),
+    )
+    .map((task) => task.id)
 
   const nextState: GameState = {
     round: currentState.round + 1,
@@ -357,6 +435,7 @@ export function runRound(
 
   return {
     nextState,
+    nextHarvesters,
     report: {
       roundPlayed: currentState.round,
       produced,
@@ -365,6 +444,8 @@ export function runRound(
       consumedEnergyByHarvesters,
       populationChange,
       inactiveHarvesterIds,
+      completedRetoolingIds,
+      pausedRetoolingIds,
     },
   }
 }
