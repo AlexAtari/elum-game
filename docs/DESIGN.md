@@ -1,9 +1,9 @@
 # E.L.U.M.
 ## Design Philosophy
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Status:** Draft  
-**Last Updated:** 2026-07-19
+**Last Updated:** 2026-07-20
 
 ---
 
@@ -25,7 +25,7 @@ E.L.U.M. ist kein komplexer Wirtschaftssimulator.
 
 E.L.U.M. ist ein schnelles Strategiespiel mit einfachen Regeln und vielen interessanten Entscheidungen.
 
-Der Spieler soll das Gefühl haben, eine lebendige Kolonie auf einem fremden Planeten aufzubauen.
+Der Spieler soll das Gefühl haben, eine lebendige Kolonie auf dem Planeten **Agima** aufzubauen.
 
 ---
 
@@ -39,7 +39,19 @@ Trotzdem soll auch nach vielen Partien noch Raum für neue Strategien bestehen.
 
 ---
 
-## 2. Wenige Regeln – viele Entscheidungen
+## 2. Fair starts. Skill decides.
+
+Alle Spieler beginnen unter möglichst identischen Bedingungen.
+
+Niemand soll durch den Start oder die Karte dauerhaft benachteiligt werden.
+
+Der Unterschied zwischen den Spielern soll ausschließlich durch bessere Entscheidungen entstehen.
+
+Fairness ist wichtiger als perfekte Zufälligkeit.
+
+---
+
+## 3. Wenige Regeln – viele Entscheidungen
 
 Neue Regeln werden nur eingeführt, wenn sie das Spielerlebnis deutlich verbessern.
 
@@ -47,7 +59,7 @@ Komplexität darf niemals Selbstzweck sein.
 
 ---
 
-## 3. Mobile First
+## 4. Mobile First
 
 Das Spiel wird von Anfang an für Smartphones entwickelt.
 
@@ -57,7 +69,7 @@ Lange Menüs und verschachtelte Dialoge werden vermieden.
 
 ---
 
-## 4. Jede Ressource muss wichtig sein
+## 5. Jede Ressource muss wichtig sein
 
 Keine Ressource darf im späteren Spielverlauf bedeutungslos werden.
 
@@ -67,7 +79,7 @@ Aktueller Ressourcenkreislauf:
 
 🌾 Nahrung → Bevölkerung
 
-⚡ Energie → Kolonie und Harvester
+⚡ Energie → HQ und Harvester
 
 ⛏ Erz → neue Harvester
 
@@ -77,7 +89,7 @@ Aktueller Ressourcenkreislauf:
 
 ---
 
-## 5. Der Spieler trifft Entscheidungen
+## 6. Der Spieler trifft Entscheidungen
 
 Das Spiel soll niemals nur aus Routine bestehen.
 
@@ -93,7 +105,7 @@ Beispiele:
 
 ---
 
-## 6. Sichtbarer Fortschritt
+## 7. Sichtbarer Fortschritt
 
 Der Spieler soll jederzeit sehen, dass sich seine Kolonie entwickelt.
 
@@ -107,13 +119,13 @@ Die Karte verändert sich.
 
 ---
 
-## 7. Keine unnötige Verwaltung
+## 8. Keine unnötige Verwaltung
 
 Mikromanagement wird konsequent vermieden.
 
 Beispiele:
 
-✔ Bevölkerung lebt ausschließlich im HQ.
+✔ Bevölkerung lebt ausschließlich im gemeinsamen HQ.
 
 ✔ Keine einzelnen Arbeiter.
 
@@ -121,9 +133,21 @@ Beispiele:
 
 ✔ Ein Markt pro Runde.
 
+✔ Harvester werden unabhängig von Grundstücken gebaut.
+
 ---
 
-## 8. Kurze Spielzüge
+## 9. Organische Expansion
+
+Die Kolonie wächst Schritt für Schritt.
+
+Neue Grundstücke können ausschließlich gekauft werden, wenn sie an bereits erschlossene Gebiete angrenzen.
+
+Expansion soll sich natürlich und logisch anfühlen.
+
+---
+
+## 10. Kurze Spielzüge
 
 Eine Runde soll normalerweise in weniger als zwei Minuten spielbar sein.
 
@@ -131,7 +155,21 @@ Kein Spieler soll lange auf andere warten müssen.
 
 ---
 
-## 9. Hoher Wiederspielwert
+## 11. Wettbewerb statt Bestrafung
+
+Spieler sollen durch bessere Entscheidungen gewinnen.
+
+Nicht durch Pech.
+
+Nicht durch unfaire Startbedingungen.
+
+Nicht durch komplizierte Regeln.
+
+Das Spiel belohnt strategisches Denken.
+
+---
+
+## 12. Hoher Wiederspielwert
 
 Jede Partie soll sich anders anfühlen.
 
@@ -145,7 +183,19 @@ Dies wird erreicht durch:
 
 ---
 
-## 10. Klare Informationen
+## 13. Faire Karten
+
+Jede Partie soll einzigartig wirken.
+
+Trotzdem erhalten alle Spieler statistisch gleichwertige Startbedingungen.
+
+Der Kartengenerator erzeugt eine symmetrische Grundstruktur, die anschließend durch leichte Zufallsvariationen innerhalb der einzelnen Sektoren aufgelockert wird.
+
+Dadurch wirken Karten natürlich, bleiben aber fair.
+
+---
+
+## 14. Klare Informationen
 
 Der Spieler soll jederzeit verstehen:
 
@@ -190,30 +240,42 @@ Der eigentliche Hauptcharakter des Spiels ist die Kolonie selbst.
 
 ---
 
-# Version-2-Regel
+# Version-1-Regel
 
-Neue Ideen werden zunächst nicht eingebaut.
+Version 1 ist das Fundament von E.L.U.M.
 
-Stattdessen wird gefragt:
+Neue Ideen werden nur übernommen, wenn sie:
 
-"Gehört diese Idee wirklich zu Version 1?"
+- das Spiel einfacher machen,
+- die Strategie vertiefen oder
+- den Spielfluss verbessern.
 
-Falls nein,
-
-wandert sie in IDEAS.md.
+Alle anderen Ideen werden in **IDEAS.md** dokumentiert.
 
 Version 1 soll bewusst klein, elegant und vollständig sein.
 
 ---
 
+# Unsere wichtigste Frage
+
+Bei jeder neuen Idee fragen wir:
+
+> Macht diese Änderung das Spiel wirklich besser?
+
+Wenn die Antwort nicht eindeutig **Ja** lautet,
+
+gehört sie nicht in Version 1.
+
+---
+
 # Erfolgsdefinition
 
-Eine Partie ist erfolgreich, wenn der Spieler am Ende sagt:
+Eine Partie ist erfolgreich, wenn der Spieler am Ende denkt:
 
-"Nur noch eine Runde."
+> "Beim nächsten Mal mache ich es besser."
+
+und sofort eine neue Partie starten möchte.
 
 Nicht:
 
-"Endlich vorbei."
-
-Dieses Gefühl steht über jeder einzelnen Spielmechanik.
+> "Endlich vorbei."
