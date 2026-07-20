@@ -129,6 +129,10 @@ Eigenschaften:
 
 Der Kartengenerator soll dafür sorgen, dass alle Spieler statistisch gleichwertige Startbedingungen erhalten.
 
+Die Startfelder jedes Spielers sind bewusst so gestaltet, dass mehrere sinnvolle Eröffnungsstrategien möglich sind.
+
+Mindestens ein Startfeld bietet sowohl gute Nahrungsvorkommen als auch gute Erzvorkommen, sodass der Spieler bereits in der ersten Runde zwischen sicherem Wachstum und schneller Expansion entscheiden muss.
+
 ## Kartendesign
 
 Die Spielkarte ist ein zentrales Balancing-Element.
@@ -192,9 +196,17 @@ Eigenschaften:
 - Produktion richtet sich nach der Bodeneignung
 - Harvester können beschädigt oder zerstört werden
 
-Der Bau neuer Harvester kostet Credits und Erz.
+Der Bau neuer Harvester kostet Credits, Erz und Energie.
 
-Die Anzahl neu gebauter Harvester wird ausschließlich durch verfügbare Ressourcen begrenzt.
+Neue Harvester werden während der Planungsphase in Auftrag gegeben.
+
+Die Baukosten werden sofort bezahlt.
+
+Zu Beginn der folgenden Runde stehen alle fertiggestellten Harvester als freie Harvester im Hauptquartier bereit.
+
+Freie Harvester können anschließend auf jedem eigenen, unbestrittenen Grundstück eingesetzt werden.
+
+Die Anzahl gleichzeitig gebauter Harvester wird ausschließlich durch die verfügbaren Ressourcen begrenzt.
 
 Jeder aktive Harvester benötigt Energie.
 
