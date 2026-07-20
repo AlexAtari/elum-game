@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import HexMap from './components/HexMap'
 import {
+  calculateSupplyPreview,
   createInitialGameState,
   runRound,
   type HarvesterAssignments,
@@ -30,6 +31,16 @@ function App() {
 
   const freeHarvesters =
     2 - Object.keys(harvesters).length
+
+  const supplyPreview = calculateSupplyPreview(gameState, {
+    foodLevel: foodSupplyLevel,
+    energyLevel: energySupplyLevel,
+  })
+
+  const expectedPopulation = Math.max(
+    1,
+    gameState.population + supplyPreview.populationChange,
+  )
 
   const startNewGame = () => {
     setGameState(createInitialGameState())
@@ -161,6 +172,50 @@ function App() {
               setEnergySupplyLevel(Number(event.target.value))
             }
           />
+
+          <div className="supply-preview">
+            <p className="eyebrow">
+              Vorschau Runde {gameState.round}
+            </p>
+
+            <div className="supply-preview-grid">
+              <div className="supply-preview-item">
+                <span>Verbrauch</span>
+                <strong>
+                  🌾 {supplyPreview.consumedFood}/
+                  {supplyPreview.plannedFood} · ⚡{' '}
+                  {supplyPreview.consumedEnergyByHq}/
+                  {supplyPreview.plannedEnergy}
+                </strong>
+              </div>
+
+              <div className="supply-preview-item">
+                <span>Danach im Vorrat</span>
+                <strong>
+                  🌾 {supplyPreview.remainingFood} · ⚡{' '}
+                  {supplyPreview.remainingEnergyBeforeHarvesters}
+                </strong>
+              </div>
+
+              <div className="supply-preview-item">
+                <span>Erwartete Bevölkerung</span>
+                <strong>
+                  {gameState.population} → {expectedPopulation}
+                </strong>
+              </div>
+            </div>
+
+            <p className="supply-preview-note">
+              Harvesterverbrauch und Produktion folgen danach.
+            </p>
+
+            {supplyPreview.hasShortage && (
+              <p className="supply-warning">
+                ⚠️ Die Vorräte reichen nicht für die gewählte
+                Versorgung.
+              </p>
+            )}
+          </div>
         </section>
 
         <section className="round-actions">

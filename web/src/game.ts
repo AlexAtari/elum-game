@@ -35,6 +35,17 @@ export type SupplyPlan = {
   energyLevel: number
 }
 
+export type SupplyPreview = {
+  plannedFood: number
+  plannedEnergy: number
+  consumedFood: number
+  consumedEnergyByHq: number
+  remainingFood: number
+  remainingEnergyBeforeHarvesters: number
+  populationChange: number
+  hasShortage: boolean
+}
+
 export type RoundReport = {
   roundPlayed: number
   produced: Record<ProductionType, number>
@@ -156,14 +167,10 @@ const deactivationPriority: Record<ProductionType, number> = {
   food: 3,
 }
 
-export function runRound(
+export function calculateSupplyPreview(
   currentState: GameState,
-  harvesters: HarvesterAssignments,
   supplyPlan: SupplyPlan,
-): {
-  nextState: GameState
-  report: RoundReport
-} {
+): SupplyPreview {
   const populationGroups = Math.ceil(
     currentState.population / 10,
   )
@@ -183,6 +190,63 @@ export function runRound(
     currentState.resources.energy,
     plannedEnergy,
   )
+
+  const actualFoodLevel = Math.floor(
+    consumedFood / populationGroups,
+  )
+
+  const actualEnergyLevel = Math.floor(
+    consumedEnergyByHq / populationGroups,
+  )
+
+  const effectiveSupplyLevel = Math.min(
+    actualFoodLevel,
+    actualEnergyLevel,
+  )
+
+  let populationChange = 0
+
+  if (effectiveSupplyLevel >= 3) {
+    populationChange = 2
+  } else if (effectiveSupplyLevel >= 2) {
+    populationChange = 1
+  } else if (effectiveSupplyLevel === 0) {
+    populationChange = -1
+  }
+
+  return {
+    plannedFood,
+    plannedEnergy,
+    consumedFood,
+    consumedEnergyByHq,
+    remainingFood: currentState.resources.food - consumedFood,
+    remainingEnergyBeforeHarvesters:
+      currentState.resources.energy - consumedEnergyByHq,
+    populationChange,
+    hasShortage:
+      consumedFood < plannedFood ||
+      consumedEnergyByHq < plannedEnergy,
+  }
+}
+
+export function runRound(
+  currentState: GameState,
+  harvesters: HarvesterAssignments,
+  supplyPlan: SupplyPlan,
+): {
+  nextState: GameState
+  report: RoundReport
+} {
+  const supplyPreview = calculateSupplyPreview(
+    currentState,
+    supplyPlan,
+  )
+
+  const {
+    consumedFood,
+    consumedEnergyByHq,
+    populationChange,
+  } = supplyPreview
 
   const energyAfterHq =
     currentState.resources.energy - consumedEnergyByHq
@@ -268,29 +332,6 @@ export function runRound(
   }
 
   const consumedEnergyByHarvesters = activeHarvesters.length
-
-  const actualFoodLevel = Math.floor(
-    consumedFood / populationGroups,
-  )
-
-  const actualEnergyLevel = Math.floor(
-    consumedEnergyByHq / populationGroups,
-  )
-
-  const effectiveSupplyLevel = Math.min(
-    actualFoodLevel,
-    actualEnergyLevel,
-  )
-
-  let populationChange = 0
-
-  if (effectiveSupplyLevel >= 3) {
-    populationChange = 2
-  } else if (effectiveSupplyLevel >= 2) {
-    populationChange = 1
-  } else if (effectiveSupplyLevel === 0) {
-    populationChange = -1
-  }
 
   const nextState: GameState = {
     round: currentState.round + 1,
