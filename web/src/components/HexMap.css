@@ -156,3 +156,79 @@
     min-height: auto;
   }
 }
+.hex-production-label {
+  pointer-events: none;
+  fill: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.harvester-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid rgba(121, 221, 185, 0.3);
+  border-radius: 12px;
+  background: rgba(121, 221, 185, 0.08);
+}
+
+.harvester-status span {
+  color: #aeb8cb;
+  font-size: 0.85rem;
+}
+
+.harvester-status strong {
+  color: #79ddb9;
+}
+
+.production-picker {
+  margin-top: 22px;
+}
+
+.production-picker p {
+  margin-top: 0;
+  color: #dce3ef;
+  font-weight: 700;
+}
+
+.production-options {
+  display: grid;
+  gap: 8px;
+}
+
+.production-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #e9edf7;
+  background: rgba(255, 255, 255, 0.06);
+  font: inherit;
+  font-weight: 700;
+}
+
+.production-button:hover {
+  border-color: #79ddb9;
+  background: rgba(121, 221, 185, 0.1);
+}
+
+.production-button span {
+  font-size: 1.2rem;
+}
+
+.cancel-button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  cursor: pointer;
+  border: 0;
+  color: #9ca7ba;
+  background: transparent;
+  font: inherit;
+}
