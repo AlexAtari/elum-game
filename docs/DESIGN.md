@@ -222,7 +222,13 @@ Versteckte Formeln werden vermieden.
 
 Wenn zwei Mechaniken gleich viel Spielspaß bieten,
 
-> wird immer die einfachere gewählt.
+wird immer die einfachere gewählt.
+
+## Balancing durch die Spielwelt
+
+Wann und wie Spieler miteinander konkurrieren, soll möglichst durch die Gestaltung der Karte entstehen – nicht durch zusätzliche Spielregeln.
+
+Die Spielwelt ist ein aktiver Bestandteil des Game Designs und kein bloßer Hintergrund.
 
 ---
 

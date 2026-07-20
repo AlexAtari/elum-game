@@ -129,6 +129,22 @@ Eigenschaften:
 
 Der Kartengenerator soll dafür sorgen, dass alle Spieler statistisch gleichwertige Startbedingungen erhalten.
 
+## Kartendesign
+
+Die Spielkarte ist ein zentrales Balancing-Element.
+
+Anstatt zusätzliche Spielregeln einzuführen, werden Spielfluss und Konflikte primär über die Gestaltung der Karte beeinflusst.
+
+Dazu gehören beispielsweise:
+
+- Kartengröße
+- unpassierbare Gebiete
+- natürliche Engstellen
+- Ressourcenverteilung
+- Abstand der Startgebiete
+
+Ziel ist es, dass Spieler je nach Karte früher oder später aufeinander treffen, ohne künstliche Eingriffe in den Spielablauf.
+
 ---
 
 # 6. Grundstücke
