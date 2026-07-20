@@ -289,19 +289,38 @@ Mit wachsender Bevölkerung entwickelt sich auch das Hauptquartier optisch weite
 
 # 11. Markt
 
-Jeder Spieler kann pro Runde genau einen Marktauftrag erteilen.
+Die Marktphase findet einmal pro Runde statt.
 
-Möglichkeiten:
+Jede Ressource wird nacheinander gehandelt:
 
-- Ressourcen kaufen
-- Ressourcen verkaufen
-- nichts tun
+1. 🌾 Nahrung
+2. ⚡ Energie
+3. ⛏ Erz
+4. 💎 Kristalle
 
-Alle Aufträge werden gleichzeitig ausgeführt.
+Vor Beginn jeder Marktphase entscheidet jeder Spieler, ob er eine Ressource kaufen, verkaufen oder nicht handeln möchte.
 
-Danach werden die Marktpreise anhand von Angebot und Nachfrage für die nächste Runde angepasst.
+Käufer und Verkäufer handeln gleichzeitig auf einem gemeinsamen Markt.
 
-Die genaue Preisberechnung wird im Balancing definiert.
+Die Verkäufer starten am oberen Ende des Marktes.
+
+Die Käufer starten am unteren Ende.
+
+Durch Bewegung ihres Avatars verändern sie ihr Gebot.
+
+Jeder Schritt verändert den Preis um einen Credit.
+
+Treffen sich Käufer und Verkäufer, wird der Handel sofort abgeschlossen.
+
+Das Kolonielager dient als neutraler Handelspartner.
+
+Nicht verkaufte Ressourcen verbleiben im Lager der eigenen Kolonie und können in späteren Runden verwendet werden.
+
+Während der Marktphase können Spieler sowohl mit anderen Spielern als auch mit dem Kolonielager handeln.
+
+Das Kolonielager kauft Ressourcen zu niedrigeren Preisen und verkauft sie zu höheren Preisen als ein Handel zwischen Spielern.
+
+Dadurch werden direkte Geschäfte zwischen Spielern belohnt, ohne den Handel mit dem Kolonielager zu erzwingen.
 
 ---
 
