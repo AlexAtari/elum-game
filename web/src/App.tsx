@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import HexMap from './components/HexMap'
 import {
   calculateSupplyPreview,
@@ -40,9 +40,18 @@ function App() {
     energyLevel: energySupplyLevel,
   })
 
-  const expectedPopulation = Math.max(
-    1,
-    gameState.population + supplyPreview.populationChange,
+  const plannedRound = useMemo(
+    () =>
+      runRound(gameState, harvesters, {
+        foodLevel: foodSupplyLevel,
+        energyLevel: energySupplyLevel,
+      }),
+    [
+      gameState,
+      harvesters,
+      foodSupplyLevel,
+      energySupplyLevel,
+    ],
   )
 
   const startNewGame = () => {
@@ -184,18 +193,9 @@ function App() {
   }
 
   const executeRound = () => {
-    const result = runRound(
-      gameState,
-      harvesters,
-      {
-        foodLevel: foodSupplyLevel,
-        energyLevel: energySupplyLevel,
-      },
-    )
-
-    setGameState(result.nextState)
-    setHarvesters(result.nextHarvesters)
-    setLastReport(result.report)
+    setGameState(plannedRound.nextState)
+    setHarvesters(plannedRound.nextHarvesters)
+    setLastReport(plannedRound.report)
   }
 
   if (gameStarted) {
@@ -305,7 +305,7 @@ function App() {
 
             <div className="supply-preview-grid">
               <div className="supply-preview-item">
-                <span>Verbrauch</span>
+                <span>Versorgung</span>
                 <strong>
                   🌾 {supplyPreview.consumedFood}/
                   {supplyPreview.plannedFood} · ⚡{' '}
@@ -315,29 +315,65 @@ function App() {
               </div>
 
               <div className="supply-preview-item">
+                <span>Harvesterenergie</span>
+                <strong>
+                  ⚡ {plannedRound.report.consumedEnergyByHarvesters}
+                </strong>
+              </div>
+
+              <div className="supply-preview-item">
+                <span>Produktion</span>
+                <strong>
+                  🌾 {plannedRound.report.produced.food} · ⚡{' '}
+                  {plannedRound.report.produced.energy} · ⛏{' '}
+                  {plannedRound.report.produced.ore}
+                </strong>
+              </div>
+
+              <div className="supply-preview-item">
                 <span>Danach im Vorrat</span>
                 <strong>
-                  🌾 {supplyPreview.remainingFood} · ⚡{' '}
-                  {supplyPreview.remainingEnergyBeforeHarvesters}
+                  🌾 {plannedRound.nextState.resources.food} · ⚡{' '}
+                  {plannedRound.nextState.resources.energy} · ⛏{' '}
+                  {plannedRound.nextState.resources.ore}
                 </strong>
               </div>
 
               <div className="supply-preview-item">
                 <span>Erwartete Bevölkerung</span>
                 <strong>
-                  {gameState.population} → {expectedPopulation}
+                  {gameState.population} →{' '}
+                  {plannedRound.nextState.population}
                 </strong>
               </div>
             </div>
 
             <p className="supply-preview-note">
-              Harvesterverbrauch und Produktion folgen danach.
+              Diese Vorschau entspricht der nächsten
+              Rundenabrechnung.
             </p>
 
             {supplyPreview.hasShortage && (
               <p className="supply-warning">
                 ⚠️ Die Vorräte reichen nicht für die gewählte
                 Versorgung.
+              </p>
+            )}
+
+            {plannedRound.report.inactiveHarvesterIds.length >
+              0 && (
+              <p className="supply-warning">
+                ⚠️ Wegen Energiemangels würden deaktiviert:{' '}
+                {plannedRound.report.inactiveHarvesterIds.join(
+                  ', ',
+                )}
+              </p>
+            )}
+
+            {plannedRound.report.pausedRetoolingIds.length > 0 && (
+              <p className="supply-warning">
+                ⚠️ Einrichtung/Umrüstung würde pausieren:{' '}
+                {plannedRound.report.pausedRetoolingIds.join(', ')}
               </p>
             )}
           </div>
