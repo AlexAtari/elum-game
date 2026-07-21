@@ -5,8 +5,10 @@ import {
 } from 'react'
 import {
   getWarehousePrices,
+  marketResourceTypes,
   type MarketCounterparty,
   type MarketDirection,
+  type MarketResource,
 } from '../game'
 import './MarketPanel.css'
 
@@ -19,16 +21,19 @@ type MarketStage =
 
 type MarketPanelProps = {
   roundPlayed: number
-  food: number
+  resource: MarketResource
+  resourceAmount: number
   credits: number
   referencePrice: number
   warehouseStock: number
+  nextResource: MarketResource | null
   onTrade: (
+    resource: MarketResource,
     direction: MarketDirection,
     price: number,
     counterparty: MarketCounterparty,
   ) => void
-  onComplete: () => void
+  onComplete: (resource: MarketResource) => void
 }
 
 const movementMilliseconds = 300
@@ -92,17 +97,20 @@ function tradeDelay(elapsedMilliseconds: number) {
 
 function MarketPanel({
   roundPlayed,
-  food,
+  resource,
+  resourceAmount,
   credits,
   referencePrice,
   warehouseStock,
+  nextResource,
   onTrade,
   onComplete,
 }: MarketPanelProps) {
   const { declarationSeconds, auctionSeconds } =
     getMarketTiming(roundPlayed)
+  const resourceType = marketResourceTypes[resource]
   const warehousePrices = getWarehousePrices(
-    'food',
+    resource,
     referencePrice,
   )
   const minimumPrice = warehousePrices.buyPrice
@@ -172,10 +180,13 @@ function MarketPanel({
       return
     }
 
-    const timer = window.setTimeout(onComplete, 800)
+    const timer = window.setTimeout(
+      () => onComplete(resource),
+      800,
+    )
 
     return () => window.clearTimeout(timer)
-  }, [onComplete, stage])
+  }, [onComplete, resource, stage])
 
   useEffect(() => {
     if (stage !== 'auction') {
@@ -274,7 +285,9 @@ function MarketPanel({
   const canTrade =
     stage === 'auction' &&
     pricesMeet &&
-    (role === 'seller' ? food > 0 : credits >= tradePrice) &&
+    (role === 'seller'
+      ? resourceAmount > 0
+      : credits >= tradePrice) &&
     !(
       role === 'buyer' &&
       activeCounterparty === 'warehouse' &&
@@ -299,6 +312,7 @@ function MarketPanel({
         }
 
         onTrade(
+          resource,
           role === 'seller' ? 'sell' : 'buy',
           tradePrice,
           activeCounterparty,
@@ -325,6 +339,7 @@ function MarketPanel({
     activeCounterparty,
     canTrade,
     onTrade,
+    resource,
     role,
     tradePrice,
   ])
@@ -452,7 +467,9 @@ function MarketPanel({
           <p className="eyebrow">
             Marktphase nach Runde {roundPlayed}
           </p>
-          <h2>🌾 Nahrungsauktion</h2>
+          <h2>
+            {resourceType.icon} {resourceType.auctionLabel}
+          </h2>
         </div>
 
         <div className="market-timer" aria-live="polite">
@@ -485,7 +502,7 @@ function MarketPanel({
         <div>
           <span>Dein Vorrat</span>
           <strong
-            key={`food-${food}`}
+            key={`${resource}-${resourceAmount}`}
             className={`market-live-value ${
               tradedUnits > 0
                 ? role === 'buyer'
@@ -494,7 +511,7 @@ function MarketPanel({
                 : ''
             }`}
           >
-            🌾 {food}
+            {resourceType.icon} {resourceAmount}
           </strong>
         </div>
         <div>
@@ -528,7 +545,7 @@ function MarketPanel({
                 : ''
             }`}
           >
-            🌾 {warehouseStock}
+            {resourceType.icon} {warehouseStock}
           </strong>
         </div>
 
@@ -561,9 +578,11 @@ function MarketPanel({
           <span className="market-zone sell-zone">
             HQ VERKAUFT · {warehousePrices.sellPrice} Credits
           </span>
-          <span className="market-zone hold-zone">
-            NICHT TEILNEHMEN
-          </span>
+          {stage === 'declaration' && (
+            <span className="market-zone hold-zone">
+              NICHT TEILNEHMEN
+            </span>
+          )}
           <span className="market-zone buy-zone">
             HQ KAUFT · {warehousePrices.buyPrice} Credits
           </span>
@@ -746,9 +765,14 @@ function MarketPanel({
               <button
                 className="complete-market-button"
                 type="button"
-                onClick={onComplete}
+                onClick={() => onComplete(resource)}
               >
-                Weiter zur nächsten Runde
+                {nextResource
+                  ? `Weiter zur ${
+                      marketResourceTypes[nextResource]
+                        .auctionLabel
+                    }`
+                  : 'Weiter zur nächsten Runde'}
               </button>
             </>
           )}
@@ -758,8 +782,9 @@ function MarketPanel({
               <p className="eyebrow">Markt übersprungen</p>
               <h3>Keine Teilnahme</h3>
               <p>
-                Da niemand teilnehmen möchte, findet keine
-                Nahrungsauktion statt. Es geht automatisch weiter.
+                Da niemand teilnehmen möchte, findet keine{' '}
+                {resourceType.auctionLabel} statt. Es geht
+                automatisch weiter.
               </p>
             </>
           )}

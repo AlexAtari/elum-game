@@ -42,7 +42,7 @@
 
 ### 🔬 Erster Marktprototyp
 
-- Die erste spielbare Arena handelt ausschließlich Nahrung gegen „Konsortium Orion“.
+- Die erste Marktphase handelt nacheinander Nahrung und Energie gegen „Konsortium Orion“ und das HQ-Gesamtlager. Vor jeder Ressource wird die Rolle neu gewählt.
 - In Runde 1–3 stehen acht Sekunden für die Rollenwahl und 30 Sekunden für die Auktion zur Verfügung. Die Zeiten sinken später stufenweise auf sechs/25 und fünf/20 Sekunden.
 - Wählt niemand Käufer oder Verkäufer, wird die Ressourcenauktion ohne zusätzliche Wartezeit übersprungen.
 - Eine horizontale Linie zeigt den niedrigsten Verkaufspreis, eine zweite das höchste Kaufgebot. Beide Linien können sich berühren, aber nicht kreuzen.
@@ -50,10 +50,11 @@
 - Nach jeder einzelnen Einheit wird geprüft, welcher passende Handelspartner als Nächstes an der Reihe ist; bei Gleichstand gilt die Ankunftsreihenfolge.
 - Spieler und KI bewegen sich höchstens einen Preisschritt je 0,3 Sekunden. Orion darf einen fliehenden Spieler nicht durch höhere Geschwindigkeit einholen.
 - Orion handelt zunächst höchstens vier Einheiten und verfolgt nur bis zu seiner persönlichen Preisgrenze.
-- Das HQ kauft Nahrung drei Credits unter und verkauft drei Credits über dem Orientierungspreis.
+- Das HQ kauft Nahrung und Energie drei Credits unter und verkauft sie drei Credits über dem jeweiligen Orientierungspreis.
 - Nettoverkäufe an das HQ senken den Orientierungspreis der nächsten Runde; Nettokäufe aus dem HQ erhöhen ihn.
 - Ein Zeitbalken macht die verbleibende Auktionsdauer zusätzlich zur Sekundenanzeige sichtbar.
-- Während der Auktion werden allgemeiner Status und Rundenergebnis ausgeblendet. Sichtbar bleiben nur Nahrung, Credits, HQ-Bestand, Handelsverlauf und Preislinien.
+- Während der Auktion werden allgemeiner Status und Rundenergebnis ausgeblendet. Sichtbar bleiben nur die gerade gehandelte Ressource, Credits, HQ-Bestand, Handelsverlauf und Preislinien.
+- Der Hinweis „Nicht teilnehmen“ ist nur während der Rollenwahl sichtbar und verschwindet beim Start der Auktion.
 - Veränderte Bestände und Credits erhalten pro Einzelhandel einen kurzen grünen beziehungsweise roten Farbpuls. Vor dem ersten Abschluss steht ausgeschrieben „Noch kein Handel abgeschlossen“ statt des missverständlichen Zählers „Gehandelt: 0“.
 - Dauer, Lagerbestand, Preisabstand, Handelsgeschwindigkeit, Warteschlange und Orions Preisverhalten werden im Playtest überprüft.
 
