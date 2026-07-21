@@ -173,6 +173,36 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+.build-harvester-button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px 14px;
+  cursor: pointer;
+  border: 1px solid rgba(121, 221, 185, 0.35);
+  border-radius: 10px;
+  color: #07110d;
+  background: #79ddb9;
+  font: inherit;
+  font-weight: 750;
+}
+
+.build-harvester-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.build-harvester-button:disabled {
+  cursor: not-allowed;
+  color: #778196;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tile-details .build-cost {
+  margin: 10px 0 0;
+  color: #8995aa;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .land-purchase-status {
   display: flex;
   flex-direction: column;

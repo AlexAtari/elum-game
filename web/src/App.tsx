@@ -5,6 +5,7 @@ import {
   cancelLandBid,
   calculateSupplyPreview,
   createInitialGameState,
+  orderHarvesterBuild,
   placeLandBid,
   runRound,
   type FreeHarvester,
@@ -205,6 +206,10 @@ function App() {
     setGameState(cancelLandBid)
   }
 
+  const buildHarvester = () => {
+    setGameState(orderHarvesterBuild)
+  }
+
   const executeRound = () => {
     if (plannedRound.report.landAuction?.outcome === 'tie') {
       setGameState(beginLandTieBreak)
@@ -214,6 +219,15 @@ function App() {
 
     setGameState(plannedRound.nextState)
     setHarvesters(plannedRound.nextHarvesters)
+    if (plannedRound.report.completedHarvesters > 0) {
+      setFreeHarvesterPool((currentPool) => [
+        ...currentPool,
+        ...Array.from(
+          { length: plannedRound.report.completedHarvesters },
+          () => ({}),
+        ),
+      ])
+    }
     setLastReport(plannedRound.report)
   }
 
@@ -270,12 +284,17 @@ function App() {
         <HexMap
           population={gameState.population}
           credits={gameState.credits}
+          ore={gameState.resources.ore}
           ownedTileIds={gameState.ownedTileIds}
           opponentTileIds={gameState.opponentTileIds}
           pendingLandBid={gameState.pendingLandBid}
           landAuctionTie={gameState.landAuctionTie}
           freeHarvesters={freeHarvesters}
+          harvestersInConstruction={
+            gameState.harvestersInConstruction
+          }
           harvesters={harvesters}
+          onBuildHarvester={buildHarvester}
           onPlaceLandBid={submitLandBid}
           onCancelLandOrder={cancelLandOrder}
           onAssignHarvester={assignHarvester}
@@ -502,6 +521,13 @@ function App() {
                 Dein Gebot von{' '}
                 {lastReport.landAuction.playerBid} Credits wurde
                 erstattet.
+              </p>
+            )}
+
+            {lastReport.completedHarvesters > 0 && (
+              <p className="report-success">
+                Neue Harvester fertiggestellt:{' '}
+                {lastReport.completedHarvesters}
               </p>
             )}
 

@@ -202,7 +202,7 @@ Eigenschaften:
 - Produktion richtet sich nach der Eignung des Grundstücks für die aktuell produzierte Ressource
 - Harvester können beschädigt oder zerstört werden
 
-Der Bau neuer Harvester kostet Credits, Erz und Energie.
+Der Bau neuer Harvester kostet im aktuellen Prototyp **30 Credits und 3 Erz**. Ein zusätzlicher Energiepreis bleibt eine mögliche Balancing-Option.
 
 Neue Harvester werden während der Planungsphase in Auftrag gegeben.
 

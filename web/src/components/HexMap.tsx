@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import {
+  HARVESTER_CREDIT_COST,
+  HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
   productionTypes,
   tiles,
@@ -13,12 +15,15 @@ import './HexMap.css'
 type HexMapProps = {
   population: number
   credits: number
+  ore: number
   ownedTileIds: string[]
   opponentTileIds: string[]
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
   freeHarvesters: number
+  harvestersInConstruction: number
   harvesters: HarvesterAssignments
+  onBuildHarvester: () => void
   onPlaceLandBid: (tileId: string, amount: number) => void
   onCancelLandOrder: () => void
   onAssignHarvester: (
@@ -49,12 +54,15 @@ function formatStars(value = 0) {
 function HexMap({
   population,
   credits,
+  ore,
   ownedTileIds,
   opponentTileIds,
   pendingLandBid,
   landAuctionTie,
   freeHarvesters,
+  harvestersInConstruction,
   harvesters,
+  onBuildHarvester,
   onPlaceLandBid,
   onCancelLandOrder,
   onAssignHarvester,
@@ -88,6 +96,9 @@ function HexMap({
   const minimumBid =
     selectedAuctionTie?.minimumBid ?? LAND_MINIMUM_BID
   const effectiveBidAmount = Math.max(bidAmount, minimumBid)
+  const canBuildHarvester =
+    credits >= HARVESTER_CREDIT_COST &&
+    ore >= HARVESTER_ORE_COST
 
   const selectTile = (tileId: string) => {
     setSelectedId(tileId)
@@ -268,6 +279,28 @@ function HexMap({
                 <span>🚜 Freie Harvester</span>
                 <strong>{freeHarvesters}</strong>
               </div>
+
+              <div className="detail-row">
+                <span>🏗️ Harvester im Bau</span>
+                <strong>{harvestersInConstruction}</strong>
+              </div>
+
+              <button
+                className="build-harvester-button"
+                type="button"
+                disabled={!canBuildHarvester}
+                onClick={onBuildHarvester}
+              >
+                {canBuildHarvester
+                  ? 'Harvester bauen'
+                  : 'Ressourcen reichen nicht'}
+              </button>
+
+              <p className="build-cost">
+                Kosten: {HARVESTER_CREDIT_COST} Credits +{' '}
+                {HARVESTER_ORE_COST} Erz. Fertig zu Beginn der
+                nächsten Runde.
+              </p>
 
             </>
           ) : (

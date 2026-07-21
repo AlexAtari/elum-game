@@ -16,6 +16,7 @@ export type GameState = {
   opponentTileIds: string[]
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
+  harvestersInConstruction: number
 }
 
 export type LandBid = {
@@ -92,9 +93,12 @@ export type RoundReport = {
   completedRetoolingIds: string[]
   pausedRetoolingIds: string[]
   landAuction: LandAuctionResult | null
+  completedHarvesters: number
 }
 
 export const LAND_MINIMUM_BID = 25
+export const HARVESTER_CREDIT_COST = 30
+export const HARVESTER_ORE_COST = 3
 
 export const productionTypes: Record<
   ProductionType,
@@ -188,6 +192,29 @@ export function createInitialGameState(): GameState {
     opponentTileIds: [],
     pendingLandBid: null,
     landAuctionTie: null,
+    harvestersInConstruction: 0,
+  }
+}
+
+export function orderHarvesterBuild(
+  currentState: GameState,
+): GameState {
+  if (
+    currentState.credits < HARVESTER_CREDIT_COST ||
+    currentState.resources.ore < HARVESTER_ORE_COST
+  ) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    credits: currentState.credits - HARVESTER_CREDIT_COST,
+    resources: {
+      ...currentState.resources,
+      ore: currentState.resources.ore - HARVESTER_ORE_COST,
+    },
+    harvestersInConstruction:
+      currentState.harvestersInConstruction + 1,
   }
 }
 
@@ -599,6 +626,7 @@ export function runRound(
           minimumBid: landBid!.amount + 1,
         }
       : null,
+    harvestersInConstruction: 0,
   }
 
   return {
@@ -615,6 +643,8 @@ export function runRound(
       completedRetoolingIds,
       pausedRetoolingIds,
       landAuction,
+      completedHarvesters:
+        currentState.harvestersInConstruction,
     },
   }
 }

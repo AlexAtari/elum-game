@@ -3,6 +3,7 @@ import {
   beginLandTieBreak,
   cancelLandBid,
   createInitialGameState,
+  orderHarvesterBuild,
   placeLandBid,
   runRound,
   type GameState,
@@ -13,6 +14,45 @@ const normalSupply = {
   foodLevel: 2,
   energyLevel: 2,
 }
+
+describe('Harvesterbau', () => {
+  it('bezahlt den Bauauftrag sofort mit Credits und Erz', () => {
+    const state = orderHarvesterBuild(createInitialGameState())
+
+    expect(state.credits).toBe(70)
+    expect(state.resources.ore).toBe(2)
+    expect(state.harvestersInConstruction).toBe(1)
+  })
+
+  it('verhindert einen Auftrag bei unzureichenden Ressourcen', () => {
+    const firstOrder = orderHarvesterBuild(
+      createInitialGameState(),
+    )
+    const secondOrder = orderHarvesterBuild(firstOrder)
+
+    expect(secondOrder).toBe(firstOrder)
+    expect(secondOrder.harvestersInConstruction).toBe(1)
+  })
+
+  it('stellt mehrere bezahlte Harvester zu Beginn der nächsten Runde fertig', () => {
+    const richState: GameState = {
+      ...createInitialGameState(),
+      credits: 200,
+      resources: {
+        ...createInitialGameState().resources,
+        ore: 10,
+      },
+    }
+    const firstOrder = orderHarvesterBuild(richState)
+    const secondOrder = orderHarvesterBuild(firstOrder)
+    const result = runRound(secondOrder, {}, normalSupply)
+
+    expect(result.report.completedHarvesters).toBe(2)
+    expect(result.nextState.harvestersInConstruction).toBe(0)
+    expect(result.nextState.credits).toBe(140)
+    expect(result.nextState.resources.ore).toBe(4)
+  })
+})
 
 describe('Grundstücksauktion', () => {
   it('reserviert das verdeckte Gebot', () => {
