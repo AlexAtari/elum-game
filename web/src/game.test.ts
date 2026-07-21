@@ -5,6 +5,7 @@ import {
   completeResourceMarket,
   createInitialGameState,
   executeMarketTrade,
+  getNextMarketResource,
   orderHarvesterBuild,
   placeLandBid,
   runRound,
@@ -18,6 +19,11 @@ const normalSupply = {
 }
 
 describe('Markthandel', () => {
+  it('führt Nahrung und Energie in der vorgesehenen Reihenfolge', () => {
+    expect(getNextMarketResource('food')).toBe('energy')
+    expect(getNextMarketResource('energy')).toBeNull()
+  })
+
   it('kauft eine Einheit und bezahlt den Handelspreis', () => {
     const state = executeMarketTrade(
       createInitialGameState(),
@@ -113,6 +119,24 @@ describe('Markthandel', () => {
     expect(nextState.market.food.referencePrice).toBe(10)
     expect(nextState.market.food.warehouseStock).toBe(16)
     expect(nextState.market.food.netWarehouseFlow).toBe(0)
+  })
+
+  it('wendet dieselbe Lagerlogik auf Energie an', () => {
+    const tradedState = executeMarketTrade(
+      createInitialGameState(),
+      'energy',
+      'buy',
+      11,
+      'warehouse',
+    )
+    const nextState = completeResourceMarket(
+      tradedState,
+      'energy',
+    )
+
+    expect(tradedState.resources.energy).toBe(11)
+    expect(tradedState.market.energy.warehouseStock).toBe(19)
+    expect(nextState.market.energy.referencePrice).toBe(9)
   })
 })
 

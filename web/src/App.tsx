@@ -8,6 +8,7 @@ import {
   completeResourceMarket,
   createInitialGameState,
   executeMarketTrade,
+  getNextMarketResource,
   orderHarvesterBuild,
   placeLandBid,
   runRound,
@@ -15,6 +16,7 @@ import {
   type HarvesterAssignments,
   type MarketCounterparty,
   type MarketDirection,
+  type MarketResource,
   type ProductionType,
   type RoundReport,
 } from './game'
@@ -26,6 +28,11 @@ const supplyLabels = [
   'Normalversorgung',
   'Überversorgung',
 ] as const
+
+type ActiveMarket = {
+  roundPlayed: number
+  resource: MarketResource
+}
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false)
@@ -41,11 +48,13 @@ function App() {
     useState<RoundReport | null>(null)
   const [foodSupplyLevel, setFoodSupplyLevel] = useState(2)
   const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
-  const [marketRound, setMarketRound] = useState<number | null>(
-    null,
-  )
+  const [activeMarket, setActiveMarket] =
+    useState<ActiveMarket | null>(null)
 
   const freeHarvesters = freeHarvesterPool.length
+  const activeResourceMarket = activeMarket
+    ? gameState.market[activeMarket.resource]
+    : null
 
   const supplyPreview = calculateSupplyPreview(gameState, {
     foodLevel: foodSupplyLevel,
@@ -73,7 +82,7 @@ function App() {
     setLastReport(null)
     setFoodSupplyLevel(2)
     setEnergySupplyLevel(2)
-    setMarketRound(null)
+    setActiveMarket(null)
     setGameStarted(true)
   }
 
@@ -219,8 +228,9 @@ function App() {
     setGameState(orderHarvesterBuild)
   }
 
-  const tradeFood = useCallback(
+  const tradeMarketResource = useCallback(
     (
+      resource: MarketResource,
       direction: MarketDirection,
       price: number,
       counterparty: MarketCounterparty,
@@ -228,7 +238,7 @@ function App() {
       setGameState((currentState) =>
         executeMarketTrade(
           currentState,
-          'food',
+          resource,
           direction,
           price,
           counterparty,
@@ -238,12 +248,31 @@ function App() {
     [],
   )
 
-  const completeFoodMarket = useCallback(() => {
+  const completeMarketResource = useCallback(
+    (resource: MarketResource) => {
     setGameState((currentState) =>
-      completeResourceMarket(currentState, 'food'),
+        completeResourceMarket(currentState, resource),
     )
-    setMarketRound(null)
-  }, [])
+      setActiveMarket((currentMarket) => {
+        if (
+          !currentMarket ||
+          currentMarket.resource !== resource
+        ) {
+          return currentMarket
+        }
+
+        const nextResource = getNextMarketResource(resource)
+
+        return nextResource
+          ? {
+              ...currentMarket,
+              resource: nextResource,
+            }
+          : null
+      })
+    },
+    [],
+  )
 
   const executeRound = () => {
     if (plannedRound.report.landAuction?.outcome === 'tie') {
@@ -264,7 +293,10 @@ function App() {
       ])
     }
     setLastReport(plannedRound.report)
-    setMarketRound(plannedRound.report.roundPlayed)
+    setActiveMarket({
+      roundPlayed: plannedRound.report.roundPlayed,
+      resource: 'food',
+    })
   }
 
   if (gameStarted) {
@@ -277,13 +309,13 @@ function App() {
           </div>
 
           <div className="round-badge">
-            {marketRound !== null
-              ? `Markt nach Runde ${marketRound}`
+            {activeMarket !== null
+              ? `Markt nach Runde ${activeMarket.roundPlayed}`
               : `Runde ${gameState.round}`}
           </div>
         </header>
 
-        {marketRound === null && (
+        {activeMarket === null && (
           <section className="status-panel">
             <h2>Status</h2>
 
@@ -321,19 +353,22 @@ function App() {
           </section>
         )}
 
-        {marketRound !== null ? (
+        {activeMarket !== null && activeResourceMarket ? (
           <MarketPanel
-            roundPlayed={marketRound}
-            food={gameState.resources.food}
+            key={`${activeMarket.roundPlayed}-${activeMarket.resource}`}
+            roundPlayed={activeMarket.roundPlayed}
+            resource={activeMarket.resource}
+            resourceAmount={
+              gameState.resources[activeMarket.resource]
+            }
             credits={gameState.credits}
-            referencePrice={
-              gameState.market.food.referencePrice
-            }
-            warehouseStock={
-              gameState.market.food.warehouseStock
-            }
-            onTrade={tradeFood}
-            onComplete={completeFoodMarket}
+            referencePrice={activeResourceMarket.referencePrice}
+            warehouseStock={activeResourceMarket.warehouseStock}
+            nextResource={getNextMarketResource(
+              activeMarket.resource,
+            )}
+            onTrade={tradeMarketResource}
+            onComplete={completeMarketResource}
           />
         ) : (
           <>
@@ -501,7 +536,7 @@ function App() {
           </>
         )}
 
-        {marketRound === null && lastReport && (
+        {activeMarket === null && lastReport && (
           <section className="round-report">
             <p className="eyebrow">
               Abrechnung Runde {lastReport.roundPlayed}

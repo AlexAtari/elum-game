@@ -123,6 +123,37 @@ export const MARKET_PRICES: Record<MarketResource, number> = {
   crystals: 40,
 }
 
+export const playableMarketResources: MarketResource[] = [
+  'food',
+  'energy',
+]
+
+export const marketResourceTypes: Record<
+  MarketResource,
+  { label: string; auctionLabel: string; icon: string }
+> = {
+  food: {
+    label: 'Nahrung',
+    auctionLabel: 'Nahrungsauktion',
+    icon: '🌾',
+  },
+  energy: {
+    label: 'Energie',
+    auctionLabel: 'Energieauktion',
+    icon: '⚡',
+  },
+  ore: {
+    label: 'Erz',
+    auctionLabel: 'Erzauktion',
+    icon: '⛏',
+  },
+  crystals: {
+    label: 'Kristalle',
+    auctionLabel: 'Kristallauktion',
+    icon: '💎',
+  },
+}
+
 export const MARKET_WAREHOUSE_SPREADS: Record<
   MarketResource,
   number
@@ -363,6 +394,15 @@ export function getWarehousePrices(
     buyPrice: Math.max(1, referencePrice - spread),
     sellPrice: referencePrice + spread,
   }
+}
+
+export function getNextMarketResource(
+  currentResource: MarketResource,
+): MarketResource | null {
+  const currentIndex =
+    playableMarketResources.indexOf(currentResource)
+
+  return playableMarketResources[currentIndex + 1] ?? null
 }
 
 export function completeResourceMarket(

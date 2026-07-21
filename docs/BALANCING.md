@@ -199,16 +199,16 @@ Lagerausbau gehört nicht zu Version 1.
 
 ## Preisbewegung
 
-Vorläufige Werte für den Nahrungsmarkt:
+Vorläufige Werte für Nahrung und Energie:
 
-| Parameter | Testwert |
-|---|---:|
-| Orientierungspreis zu Spielbeginn | 8 Credits |
-| HQ-Ankaufspreis | Orientierungspreis −3 |
-| HQ-Verkaufspreis | Orientierungspreis +3 |
-| HQ-Lagerbestand zu Spielbeginn | 20 Nahrung |
-| minimale Orientierung | 3 Credits |
-| maximale Orientierung | 17 Credits |
+| Parameter | Nahrung | Energie |
+|---|---:|---:|
+| Orientierungspreis zu Spielbeginn | 8 Credits | 8 Credits |
+| HQ-Ankaufspreis | Orientierung −3 | Orientierung −3 |
+| HQ-Verkaufspreis | Orientierung +3 | Orientierung +3 |
+| HQ-Lagerbestand zu Spielbeginn | 20 | 20 |
+| minimale Orientierung | 3 Credits | 3 Credits |
+| maximale Orientierung | 17 Credits | 17 Credits |
 
 Der neue Orientierungspreis gilt ab der nächsten Runde.
 
