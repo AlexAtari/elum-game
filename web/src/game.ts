@@ -7,6 +7,21 @@ export type Resources = {
   crystals: number
 }
 
+export type MarketResource = keyof Resources
+export type MarketDirection = 'buy' | 'sell'
+export type MarketCounterparty = 'orion' | 'warehouse'
+
+export type ResourceMarketState = {
+  referencePrice: number
+  warehouseStock: number
+  netWarehouseFlow: number
+}
+
+export type MarketState = Record<
+  MarketResource,
+  ResourceMarketState
+>
+
 export type GameState = {
   round: number
   population: number
@@ -17,6 +32,7 @@ export type GameState = {
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
   harvestersInConstruction: number
+  market: MarketState
 }
 
 export type LandBid = {
@@ -99,6 +115,33 @@ export type RoundReport = {
 export const LAND_MINIMUM_BID = 25
 export const HARVESTER_CREDIT_COST = 30
 export const HARVESTER_ORE_COST = 3
+
+export const MARKET_PRICES: Record<MarketResource, number> = {
+  food: 8,
+  energy: 8,
+  ore: 15,
+  crystals: 40,
+}
+
+export const MARKET_WAREHOUSE_SPREADS: Record<
+  MarketResource,
+  number
+> = {
+  food: 3,
+  energy: 3,
+  ore: 5,
+  crystals: 10,
+}
+
+const MARKET_PRICE_LIMITS: Record<
+  MarketResource,
+  { minimum: number; maximum: number }
+> = {
+  food: { minimum: 3, maximum: 17 },
+  energy: { minimum: 3, maximum: 17 },
+  ore: { minimum: 5, maximum: 30 },
+  crystals: { minimum: 15, maximum: 80 },
+}
 
 export const productionTypes: Record<
   ProductionType,
@@ -193,6 +236,28 @@ export function createInitialGameState(): GameState {
     pendingLandBid: null,
     landAuctionTie: null,
     harvestersInConstruction: 0,
+    market: {
+      food: {
+        referencePrice: MARKET_PRICES.food,
+        warehouseStock: 20,
+        netWarehouseFlow: 0,
+      },
+      energy: {
+        referencePrice: MARKET_PRICES.energy,
+        warehouseStock: 20,
+        netWarehouseFlow: 0,
+      },
+      ore: {
+        referencePrice: MARKET_PRICES.ore,
+        warehouseStock: 20,
+        netWarehouseFlow: 0,
+      },
+      crystals: {
+        referencePrice: MARKET_PRICES.crystals,
+        warehouseStock: 10,
+        netWarehouseFlow: 0,
+      },
+    },
   }
 }
 
@@ -215,6 +280,121 @@ export function orderHarvesterBuild(
     },
     harvestersInConstruction:
       currentState.harvestersInConstruction + 1,
+  }
+}
+
+export function executeMarketTrade(
+  currentState: GameState,
+  resource: MarketResource,
+  direction: MarketDirection,
+  price: number,
+  counterparty: MarketCounterparty = 'orion',
+): GameState {
+  if (!Number.isInteger(price) || price <= 0) {
+    return currentState
+  }
+
+  if (direction === 'buy') {
+    if (
+      currentState.credits < price ||
+      (counterparty === 'warehouse' &&
+        currentState.market[resource].warehouseStock <= 0)
+    ) {
+      return currentState
+    }
+
+    return {
+      ...currentState,
+      credits: currentState.credits - price,
+      resources: {
+        ...currentState.resources,
+        [resource]: currentState.resources[resource] + 1,
+      },
+      market:
+        counterparty === 'warehouse'
+          ? {
+              ...currentState.market,
+              [resource]: {
+                ...currentState.market[resource],
+                warehouseStock:
+                  currentState.market[resource].warehouseStock - 1,
+                netWarehouseFlow:
+                  currentState.market[resource].netWarehouseFlow - 1,
+              },
+            }
+          : currentState.market,
+    }
+  }
+
+  if (currentState.resources[resource] <= 0) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    credits: currentState.credits + price,
+    resources: {
+      ...currentState.resources,
+      [resource]: currentState.resources[resource] - 1,
+    },
+    market:
+      counterparty === 'warehouse'
+        ? {
+            ...currentState.market,
+            [resource]: {
+              ...currentState.market[resource],
+              warehouseStock:
+                currentState.market[resource].warehouseStock + 1,
+              netWarehouseFlow:
+                currentState.market[resource].netWarehouseFlow + 1,
+            },
+          }
+        : currentState.market,
+  }
+}
+
+export function getWarehousePrices(
+  resource: MarketResource,
+  referencePrice: number,
+) {
+  const spread = MARKET_WAREHOUSE_SPREADS[resource]
+
+  return {
+    buyPrice: Math.max(1, referencePrice - spread),
+    sellPrice: referencePrice + spread,
+  }
+}
+
+export function completeResourceMarket(
+  currentState: GameState,
+  resource: MarketResource,
+): GameState {
+  const resourceMarket = currentState.market[resource]
+  const flow = resourceMarket.netWarehouseFlow
+  const priceChange = Math.min(
+    3,
+    Math.ceil(Math.abs(flow) / 3),
+  )
+  const direction = flow > 0 ? -1 : flow < 0 ? 1 : 0
+  const limits = MARKET_PRICE_LIMITS[resource]
+  const nextReferencePrice = Math.min(
+    limits.maximum,
+    Math.max(
+      limits.minimum,
+      resourceMarket.referencePrice + direction * priceChange,
+    ),
+  )
+
+  return {
+    ...currentState,
+    market: {
+      ...currentState.market,
+      [resource]: {
+        ...resourceMarket,
+        referencePrice: nextReferencePrice,
+        netWarehouseFlow: 0,
+      },
+    },
   }
 }
 
@@ -627,6 +807,7 @@ export function runRound(
         }
       : null,
     harvestersInConstruction: 0,
+    market: currentState.market,
   }
 
   return {

@@ -3,7 +3,7 @@
 
 **Version:** 0.2
 **Status:** Draft  
-**Last Updated:** 2026-07-19
+**Last Updated:** 2026-07-21
 
 ---
 
@@ -199,21 +199,54 @@ Lagerausbau gehört nicht zu Version 1.
 
 ## Preisbewegung
 
-Alle Käufe und Verkäufe werden zum aktuellen Preis ausgeführt.
+Vorläufige Werte für den Nahrungsmarkt:
 
-Der neue Preis gilt ab der nächsten Runde.
-
-| Verhältnis von Nachfrage zu Angebot | Preisänderung |
+| Parameter | Testwert |
 |---|---:|
-| deutlich mehr Nachfrage | +20 % |
-| etwas mehr Nachfrage | +10 % |
-| ungefähr ausgeglichen | 0 % |
-| etwas mehr Angebot | −10 % |
-| deutlich mehr Angebot | −20 % |
+| Orientierungspreis zu Spielbeginn | 8 Credits |
+| HQ-Ankaufspreis | Orientierungspreis −3 |
+| HQ-Verkaufspreis | Orientierungspreis +3 |
+| HQ-Lagerbestand zu Spielbeginn | 20 Nahrung |
+| minimale Orientierung | 3 Credits |
+| maximale Orientierung | 17 Credits |
 
-Der Preis kann in einer Runde maximal um 20 % steigen oder fallen.
+Der neue Orientierungspreis gilt ab der nächsten Runde.
 
-Alle gewünschten Mengen werden ausgeführt. Der Marktbestand ist in Version 1 unbegrenzt.
+| Nettoveränderung des HQ-Bestands | Preisänderung nächste Runde |
+|---|---:|
+| 1–3 Einheiten Zufluss | −1 Credit |
+| 4–6 Einheiten Zufluss | −2 Credits |
+| ab 7 Einheiten Zufluss | −3 Credits |
+| 1–3 Einheiten Abfluss | +1 Credit |
+| 4–6 Einheiten Abfluss | +2 Credits |
+| ab 7 Einheiten Abfluss | +3 Credits |
+
+Direkter Handel mit einer anderen Kolonie beeinflusst diesen Lagerwert nicht.
+
+## Bewegung und Einzelhandel
+
+| Parameter | Testwert |
+|---|---:|
+| maximaler Bewegungstakt für alle Teilnehmer | 1 Preisschritt je 0,3 Sekunden |
+| Menge je abgeschlossener Transaktion | 1 Einheit |
+| Orions Wunschmenge je Ressourcenauktion | 4 Einheiten |
+| Orions Höchstpreis als Käufer | Orientierungspreis +1 |
+| Orions Mindestpreis als Verkäufer | Orientierungspreis −1 |
+| erste Handelsstufe | 1 Einheit je Sekunde |
+| zweite Stufe nach 3 Sekunden Kontakt | 1 Einheit je 0,65 Sekunden |
+| dritte Stufe nach 6 Sekunden Kontakt | 1 Einheit je 0,35 Sekunden |
+
+Bei mehreren passenden Partnern entscheidet zunächst die Ankunftsreihenfolge. Nach jeder einzeln übertragenen Einheit wird die Reihenfolge erneut ausgewertet.
+
+## Marktzeiten
+
+| gespielte Runde | Positionierungszeit | Auktionszeit |
+|---:|---:|---:|
+| 1–3 | 8 Sekunden | 30 Sekunden |
+| 4–7 | 6 Sekunden | 25 Sekunden |
+| ab 8 | 5 Sekunden | 20 Sekunden |
+
+Nimmt niemand an einem Ressourcenmarkt teil, entfällt die Auktionszeit vollständig.
 
 ---
 

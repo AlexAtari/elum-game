@@ -5,7 +5,7 @@
 
 **Version:** 0.6 "Versorgung & Harvester"
 **Status:** Draft
-**Last Updated:** 2026-07-20
+**Last Updated:** 2026-07-21
 
 ---
 
@@ -374,6 +374,10 @@ Jede Ressource wird nacheinander gehandelt:
 
 Vor dem Handel mit einer Ressource entscheidet jeder Spieler, ob er kaufen, verkaufen oder nicht teilnehmen möchte.
 
+Eine Bewegung nach oben meldet den Spieler als Verkäufer, eine Bewegung nach unten als Käufer und die Mittelposition als nicht teilnehmend. Bis zum Ablauf der Positionierungszeit darf die Auswahl geändert werden; danach ist die Rolle für diese Ressourcenauktion festgelegt. In frühen Runden steht mehr Entscheidungszeit zur Verfügung als in späteren Runden.
+
+Meldet sich kein Spieler als Käufer oder Verkäufer, wird die Ressourcenauktion vollständig übersprungen.
+
 Käufer und Verkäufer handeln gleichzeitig auf einem gemeinsamen Markt.
 
 Die Verkäufer starten am oberen Ende des Marktes.
@@ -384,13 +388,31 @@ Durch die Bewegung ihres Avatars verändern die Spieler ihr Preisangebot.
 
 Jeder Schritt verändert den Preis um einen Credit.
 
+Eine horizontale Linie markiert jeweils den niedrigsten Verkaufspreis und das höchste Kaufgebot. Die Linien laufen dynamisch mit den führenden Marktteilnehmern mit. Käufer und Verkäufer können die jeweils andere Preislinie erreichen, aber nicht überschreiten.
+
+Die Auktionsdauer wird im Spielverlauf kürzer. Neue Spieler erhalten dadurch in den ersten Runden mehr Zeit, während spätere Märkte zügiger ablaufen. Ein Balken zeigt die verbleibende Auktionszeit zusätzlich zur Sekundenanzeige an.
+
+Während der Auktion zeigt die Oberfläche nur unmittelbar relevante Informationen: den eigenen Bestand der gehandelten Ressource, die eigenen Credits, den Bestand des HQ-Gesamtlager, die ausgeführten Geschäfte sowie die Preislinien. Die allgemeine Statusübersicht und das vorherige Rundenergebnis werden währenddessen ausgeblendet. Steigende Werte werden bei einer Transaktion kurz grün, sinkende Werte kurz rot hervorgehoben.
+
+Die erste technische Ausbaustufe bildet nur den Nahrungsmarkt gegen den KI-Konkurrenten „Konsortium Orion“ und das HQ-Gesamtlager ab. Energie, Erz, Kristalle und weitere Spieler werden anschließend auf demselben Marktprinzip ergänzt.
+
 ## Direkter Handel
 
-Treffen sich Käufer und Verkäufer, beginnt der Handel sofort.
+Berühren sich die Preislinien von Käufer und Verkäufer, beginnt der Handel. Jede abgeschlossene Transaktion überträgt genau eine Einheit.
 
-Solange Käufer und Verkäufer Kontakt halten, wird fortlaufend ungefähr alle **0,5 Sekunden eine Einheit** der Ressource übertragen.
+Nach jeder Einheit werden die führenden Angebote und die Reihenfolge der wartenden Marktteilnehmer erneut geprüft. Gibt es keinen anderen passenden wartenden Handelspartner, kann dasselbe Paar bei anhaltendem Kontakt die nächste Einheit handeln. Der Handel startet langsam und beschleunigt bei längerem ununterbrochenem Kontakt in zwei Stufen.
 
-Das Zeitintervall ist ein vorläufiger Balancing-Wert.
+Treffen mehrere Käufer oder Verkäufer gleichzeitig auf einen passenden Gegenpart, erhält der zuerst eingetroffene Teilnehmer den nächsten Einzelhandel. Die übrigen Teilnehmer warten. Sie bleiben währenddessen frei beweglich und können ihr Angebot zurückziehen, bevor sie an der Reihe sind.
+
+Alle menschlichen und computergesteuerten Marktteilnehmer unterliegen derselben maximalen Bewegungsgeschwindigkeit. Ein verfolgender Teilnehmer darf nicht schneller sein als derjenige, der sich von ihm entfernt. KI-Spieler besitzen außerdem eine begrenzte Wunschmenge sowie einen Höchstpreis beim Kaufen beziehungsweise Mindestpreis beim Verkaufen.
+
+Vorläufige Playtest-Werte:
+
+- während der ersten drei Kontaktsekunden: eine Einheit pro Sekunde
+- nach drei Kontaktsekunden: eine Einheit ungefähr alle 0,65 Sekunden
+- nach sechs Kontaktsekunden: eine Einheit ungefähr alle 0,35 Sekunden
+
+Zeitpunkte und Intervalle sind vorläufige Balancing-Werte.
 
 Der Handel endet, wenn:
 
@@ -414,11 +436,15 @@ Während der Marktphase können Spieler sowohl mit anderen Spielern als auch mit
 
 Das Kolonielager kauft Ressourcen zu niedrigeren Preisen und verkauft sie zu höheren Preisen als ein direkter Handel zwischen Spielern.
 
+Der Ankaufspreis des HQ-Gesamtlager bildet die untere Grenze der Arena. Der Verkaufspreis des HQ-Gesamtlager bildet die obere Grenze. Das Lager ist damit ein verlässlicher, aber absichtlich ungünstigerer Handelspartner.
+
 Dadurch werden direkte Geschäfte zwischen Spielern belohnt, ohne den Handel mit dem Kolonielager zu erzwingen.
 
-Nicht verkaufte Ressourcen verbleiben im Lager der eigenen Kolonie und können in späteren Runden verwendet werden.
+Ressourcen, die Spieler an das HQ verkaufen, erhöhen dessen gemeinsamen Lagerbestand. Ressourcen, die Spieler vom HQ kaufen, verringern ihn.
 
-Die genauen Marktpreise und ihre Anpassung an Angebot und Nachfrage werden später im Balancing festgelegt.
+Ein Nettozufluss ins HQ senkt den Orientierungspreis der Ressource in der folgenden Runde. Ein Nettoabfluss erhöht ihn. Direkter Handel zwischen Kolonien verändert den HQ-Lagerbestand nicht.
+
+Nicht verkaufte Ressourcen verbleiben im Lager der eigenen Kolonie und können in späteren Runden verwendet werden.
 
 ---
 

@@ -1,15 +1,20 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import HexMap from './components/HexMap'
+import MarketPanel from './components/MarketPanel'
 import {
   beginLandTieBreak,
   cancelLandBid,
   calculateSupplyPreview,
+  completeResourceMarket,
   createInitialGameState,
+  executeMarketTrade,
   orderHarvesterBuild,
   placeLandBid,
   runRound,
   type FreeHarvester,
   type HarvesterAssignments,
+  type MarketCounterparty,
+  type MarketDirection,
   type ProductionType,
   type RoundReport,
 } from './game'
@@ -36,6 +41,9 @@ function App() {
     useState<RoundReport | null>(null)
   const [foodSupplyLevel, setFoodSupplyLevel] = useState(2)
   const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
+  const [marketRound, setMarketRound] = useState<number | null>(
+    null,
+  )
 
   const freeHarvesters = freeHarvesterPool.length
 
@@ -65,6 +73,7 @@ function App() {
     setLastReport(null)
     setFoodSupplyLevel(2)
     setEnergySupplyLevel(2)
+    setMarketRound(null)
     setGameStarted(true)
   }
 
@@ -210,6 +219,32 @@ function App() {
     setGameState(orderHarvesterBuild)
   }
 
+  const tradeFood = useCallback(
+    (
+      direction: MarketDirection,
+      price: number,
+      counterparty: MarketCounterparty,
+    ) => {
+      setGameState((currentState) =>
+        executeMarketTrade(
+          currentState,
+          'food',
+          direction,
+          price,
+          counterparty,
+        ),
+      )
+    },
+    [],
+  )
+
+  const completeFoodMarket = useCallback(() => {
+    setGameState((currentState) =>
+      completeResourceMarket(currentState, 'food'),
+    )
+    setMarketRound(null)
+  }, [])
+
   const executeRound = () => {
     if (plannedRound.report.landAuction?.outcome === 'tie') {
       setGameState(beginLandTieBreak)
@@ -229,6 +264,7 @@ function App() {
       ])
     }
     setLastReport(plannedRound.report)
+    setMarketRound(plannedRound.report.roundPlayed)
   }
 
   if (gameStarted) {
@@ -241,68 +277,90 @@ function App() {
           </div>
 
           <div className="round-badge">
-            Runde {gameState.round}
+            {marketRound !== null
+              ? `Markt nach Runde ${marketRound}`
+              : `Runde ${gameState.round}`}
           </div>
         </header>
 
-        <section className="status-panel">
-          <h2>Status</h2>
+        {marketRound === null && (
+          <section className="status-panel">
+            <h2>Status</h2>
 
-          <div className="status-grid">
-            <div className="status-item">
-              <span>👥 Bevölkerung</span>
-              <strong>{gameState.population}</strong>
+            <div className="status-grid">
+              <div className="status-item">
+                <span>👥 Bevölkerung</span>
+                <strong>{gameState.population}</strong>
+              </div>
+
+              <div className="status-item">
+                <span>💰 Credits</span>
+                <strong>{gameState.credits}</strong>
+              </div>
+
+              <div className="status-item">
+                <span>🌾 Nahrung</span>
+                <strong>{gameState.resources.food}</strong>
+              </div>
+
+              <div className="status-item">
+                <span>⚡ Energie</span>
+                <strong>{gameState.resources.energy}</strong>
+              </div>
+
+              <div className="status-item">
+                <span>⛏ Erz</span>
+                <strong>{gameState.resources.ore}</strong>
+              </div>
+
+              <div className="status-item">
+                <span>💎 Kristalle</span>
+                <strong>{gameState.resources.crystals}</strong>
+              </div>
             </div>
+          </section>
+        )}
 
-            <div className="status-item">
-              <span>💰 Credits</span>
-              <strong>{gameState.credits}</strong>
-            </div>
+        {marketRound !== null ? (
+          <MarketPanel
+            roundPlayed={marketRound}
+            food={gameState.resources.food}
+            credits={gameState.credits}
+            referencePrice={
+              gameState.market.food.referencePrice
+            }
+            warehouseStock={
+              gameState.market.food.warehouseStock
+            }
+            onTrade={tradeFood}
+            onComplete={completeFoodMarket}
+          />
+        ) : (
+          <>
+            <HexMap
+              population={gameState.population}
+              credits={gameState.credits}
+              ore={gameState.resources.ore}
+              ownedTileIds={gameState.ownedTileIds}
+              opponentTileIds={gameState.opponentTileIds}
+              pendingLandBid={gameState.pendingLandBid}
+              landAuctionTie={gameState.landAuctionTie}
+              freeHarvesters={freeHarvesters}
+              harvestersInConstruction={
+                gameState.harvestersInConstruction
+              }
+              harvesters={harvesters}
+              onBuildHarvester={buildHarvester}
+              onPlaceLandBid={submitLandBid}
+              onCancelLandOrder={cancelLandOrder}
+              onAssignHarvester={assignHarvester}
+              onChangeHarvesterProduction={
+                changeHarvesterProduction
+              }
+              onRemoveHarvester={removeHarvester}
+            />
 
-            <div className="status-item">
-              <span>🌾 Nahrung</span>
-              <strong>{gameState.resources.food}</strong>
-            </div>
-
-            <div className="status-item">
-              <span>⚡ Energie</span>
-              <strong>{gameState.resources.energy}</strong>
-            </div>
-
-            <div className="status-item">
-              <span>⛏ Erz</span>
-              <strong>{gameState.resources.ore}</strong>
-            </div>
-
-            <div className="status-item">
-              <span>💎 Kristalle</span>
-              <strong>{gameState.resources.crystals}</strong>
-            </div>
-          </div>
-        </section>
-
-        <HexMap
-          population={gameState.population}
-          credits={gameState.credits}
-          ore={gameState.resources.ore}
-          ownedTileIds={gameState.ownedTileIds}
-          opponentTileIds={gameState.opponentTileIds}
-          pendingLandBid={gameState.pendingLandBid}
-          landAuctionTie={gameState.landAuctionTie}
-          freeHarvesters={freeHarvesters}
-          harvestersInConstruction={
-            gameState.harvestersInConstruction
-          }
-          harvesters={harvesters}
-          onBuildHarvester={buildHarvester}
-          onPlaceLandBid={submitLandBid}
-          onCancelLandOrder={cancelLandOrder}
-          onAssignHarvester={assignHarvester}
-          onChangeHarvesterProduction={changeHarvesterProduction}
-          onRemoveHarvester={removeHarvester}
-        />
-
-        <section className="supply-panel">
+            <section className="supply-panel">
           <h2>Versorgung planen</h2>
 
           <label htmlFor="food-supply">
@@ -422,26 +480,28 @@ function App() {
               </p>
             )}
           </div>
-        </section>
+            </section>
 
-        <section className="round-actions">
-          <button
-            className="round-button"
-            type="button"
-            onClick={executeRound}
-          >
-            Runde ausführen
-          </button>
+            <section className="round-actions">
+              <button
+                className="round-button"
+                type="button"
+                onClick={executeRound}
+              >
+                Runde ausführen
+              </button>
 
-          <p>
-            Gewählt: {foodSupplyLevel} Nahrung und{' '}
-            {energySupplyLevel} Energie je zehn Einwohner. Jeder
-            produzierende oder umzurüstende Harvester benötigt
-            zusätzlich eine Energie.
-          </p>
-        </section>
+              <p>
+                Gewählt: {foodSupplyLevel} Nahrung und{' '}
+                {energySupplyLevel} Energie je zehn Einwohner.
+                Jeder produzierende oder umzurüstende Harvester
+                benötigt zusätzlich eine Energie.
+              </p>
+            </section>
+          </>
+        )}
 
-        {lastReport && (
+        {marketRound === null && lastReport && (
           <section className="round-report">
             <p className="eyebrow">
               Abrechnung Runde {lastReport.roundPlayed}

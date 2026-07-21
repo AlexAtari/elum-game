@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   beginLandTieBreak,
   cancelLandBid,
+  completeResourceMarket,
   createInitialGameState,
+  executeMarketTrade,
   orderHarvesterBuild,
   placeLandBid,
   runRound,
@@ -14,6 +16,105 @@ const normalSupply = {
   foodLevel: 2,
   energyLevel: 2,
 }
+
+describe('Markthandel', () => {
+  it('kauft eine Einheit und bezahlt den Handelspreis', () => {
+    const state = executeMarketTrade(
+      createInitialGameState(),
+      'food',
+      'buy',
+      8,
+    )
+
+    expect(state.credits).toBe(92)
+    expect(state.resources.food).toBe(11)
+  })
+
+  it('verkauft eine Einheit und erhält den Handelspreis', () => {
+    const state = executeMarketTrade(
+      createInitialGameState(),
+      'food',
+      'sell',
+      8,
+    )
+
+    expect(state.credits).toBe(108)
+    expect(state.resources.food).toBe(9)
+  })
+
+  it('verhindert Handel ohne Geld oder Vorrat', () => {
+    const emptyState: GameState = {
+      ...createInitialGameState(),
+      credits: 0,
+      resources: {
+        ...createInitialGameState().resources,
+        food: 0,
+      },
+    }
+
+    expect(
+      executeMarketTrade(emptyState, 'food', 'buy', 8),
+    ).toBe(emptyState)
+    expect(
+      executeMarketTrade(emptyState, 'food', 'sell', 8),
+    ).toBe(emptyState)
+  })
+
+  it('überträgt je Transaktion genau eine Einheit mit dem HQ-Lager', () => {
+    const state = executeMarketTrade(
+      createInitialGameState(),
+      'food',
+      'sell',
+      5,
+      'warehouse',
+    )
+
+    expect(state.resources.food).toBe(9)
+    expect(state.credits).toBe(105)
+    expect(state.market.food.warehouseStock).toBe(21)
+    expect(state.market.food.netWarehouseFlow).toBe(1)
+  })
+
+  it('senkt den Folgepreis bei hohem Zufluss ins HQ-Lager', () => {
+    let state = createInitialGameState()
+
+    for (let unit = 0; unit < 7; unit += 1) {
+      state = executeMarketTrade(
+        state,
+        'food',
+        'sell',
+        5,
+        'warehouse',
+      )
+    }
+
+    const nextState = completeResourceMarket(state, 'food')
+
+    expect(nextState.market.food.referencePrice).toBe(5)
+    expect(nextState.market.food.warehouseStock).toBe(27)
+    expect(nextState.market.food.netWarehouseFlow).toBe(0)
+  })
+
+  it('erhöht den Folgepreis bei hoher Nachfrage am HQ-Lager', () => {
+    let state = createInitialGameState()
+
+    for (let unit = 0; unit < 4; unit += 1) {
+      state = executeMarketTrade(
+        state,
+        'food',
+        'buy',
+        11,
+        'warehouse',
+      )
+    }
+
+    const nextState = completeResourceMarket(state, 'food')
+
+    expect(nextState.market.food.referencePrice).toBe(10)
+    expect(nextState.market.food.warehouseStock).toBe(16)
+    expect(nextState.market.food.netWarehouseFlow).toBe(0)
+  })
+})
 
 describe('Harvesterbau', () => {
   it('bezahlt den Bauauftrag sofort mit Credits und Erz', () => {
