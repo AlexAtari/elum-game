@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import HexMap from './components/HexMap'
 import {
-  cancelLandPurchase,
+  beginLandTieBreak,
+  cancelLandBid,
   calculateSupplyPreview,
   createInitialGameState,
-  reserveLandPurchase,
+  placeLandBid,
   runRound,
   type FreeHarvester,
   type HarvesterAssignments,
@@ -194,17 +195,23 @@ function App() {
     }
   }
 
-  const buyLand = (tileId: string) => {
+  const submitLandBid = (tileId: string, amount: number) => {
     setGameState((currentState) =>
-      reserveLandPurchase(currentState, tileId),
+      placeLandBid(currentState, tileId, amount),
     )
   }
 
   const cancelLandOrder = () => {
-    setGameState(cancelLandPurchase)
+    setGameState(cancelLandBid)
   }
 
   const executeRound = () => {
+    if (plannedRound.report.landAuction?.outcome === 'tie') {
+      setGameState(beginLandTieBreak)
+      setLastReport(null)
+      return
+    }
+
     setGameState(plannedRound.nextState)
     setHarvesters(plannedRound.nextHarvesters)
     setLastReport(plannedRound.report)
@@ -264,12 +271,12 @@ function App() {
           population={gameState.population}
           credits={gameState.credits}
           ownedTileIds={gameState.ownedTileIds}
-          pendingLandPurchaseId={
-            gameState.pendingLandPurchaseId
-          }
+          opponentTileIds={gameState.opponentTileIds}
+          pendingLandBid={gameState.pendingLandBid}
+          landAuctionTie={gameState.landAuctionTie}
           freeHarvesters={freeHarvesters}
           harvesters={harvesters}
-          onBuyLand={buyLand}
+          onPlaceLandBid={submitLandBid}
           onCancelLandOrder={cancelLandOrder}
           onAssignHarvester={assignHarvester}
           onChangeHarvesterProduction={changeHarvesterProduction}
@@ -479,10 +486,22 @@ function App() {
               </p>
             )}
 
-            {lastReport.acquiredTileId && (
+            {lastReport.landAuction?.outcome === 'won' && (
               <p className="report-success">
-                Grundstück übernommen: Feld{' '}
-                {lastReport.acquiredTileId}
+                Auktion gewonnen: Feld{' '}
+                {lastReport.landAuction.tileId} für{' '}
+                {lastReport.landAuction.playerBid} Credits. Orion
+                bot {lastReport.landAuction.rivalBid} Credits.
+              </p>
+            )}
+
+            {lastReport.landAuction?.outcome === 'lost' && (
+              <p className="report-warning">
+                Orion erhält Feld {lastReport.landAuction.tileId}
+                {' '}für {lastReport.landAuction.rivalBid} Credits.
+                Dein Gebot von{' '}
+                {lastReport.landAuction.playerBid} Credits wurde
+                erstattet.
               </p>
             )}
 

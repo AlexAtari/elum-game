@@ -13,7 +13,29 @@ export type GameState = {
   credits: number
   resources: Resources
   ownedTileIds: string[]
-  pendingLandPurchaseId: string | null
+  opponentTileIds: string[]
+  pendingLandBid: LandBid | null
+  landAuctionTie: LandAuctionTie | null
+}
+
+export type LandBid = {
+  tileId: string
+  amount: number
+  rivalBid: number
+  tieMinimum?: number
+}
+
+export type LandAuctionTie = {
+  tileId: string
+  tiedBid: number
+  minimumBid: number
+}
+
+export type LandAuctionResult = {
+  tileId: string
+  playerBid: number
+  rivalBid: number
+  outcome: 'won' | 'lost' | 'tie'
 }
 
 export type TileOwner = 'hq' | 'player' | 'free'
@@ -69,10 +91,10 @@ export type RoundReport = {
   inactiveHarvesterIds: string[]
   completedRetoolingIds: string[]
   pausedRetoolingIds: string[]
-  acquiredTileId: string | null
+  landAuction: LandAuctionResult | null
 }
 
-export const LAND_PRICE = 25
+export const LAND_MINIMUM_BID = 25
 
 export const productionTypes: Record<
   ProductionType,
@@ -163,44 +185,108 @@ export function createInitialGameState(): GameState {
       crystals: 0,
     },
     ownedTileIds: ['A', 'B'],
-    pendingLandPurchaseId: null,
+    opponentTileIds: [],
+    pendingLandBid: null,
+    landAuctionTie: null,
   }
 }
 
-export function reserveLandPurchase(
+function createRivalBid(tile: Tile, minimumBid: number) {
+  const highestRating = Math.max(
+    tile.food ?? 0,
+    tile.energy ?? 0,
+    tile.ore ?? 0,
+  )
+  const lowerBound = Math.max(
+    minimumBid - 1,
+    20 + highestRating * 2,
+  )
+
+  return lowerBound + Math.floor(Math.random() * 11)
+}
+
+export function placeLandBid(
   currentState: GameState,
   tileId: string,
+  amount: number,
+  rivalBidOverride?: number,
 ): GameState {
   const tile = tiles.find((candidate) => candidate.id === tileId)
+  const tie = currentState.landAuctionTie
+  const minimumBid =
+    tie?.tileId === tileId
+      ? tie.minimumBid
+      : LAND_MINIMUM_BID
 
   if (
     !tile ||
     tile.owner !== 'free' ||
     currentState.ownedTileIds.includes(tileId) ||
-    currentState.pendingLandPurchaseId !== null ||
-    currentState.credits < LAND_PRICE
+    currentState.opponentTileIds.includes(tileId) ||
+    currentState.pendingLandBid !== null ||
+    (tie !== null && tie.tileId !== tileId) ||
+    !Number.isInteger(amount) ||
+    amount < minimumBid ||
+    currentState.credits < amount
   ) {
     return currentState
   }
 
   return {
     ...currentState,
-    credits: currentState.credits - LAND_PRICE,
-    pendingLandPurchaseId: tileId,
+    credits: currentState.credits - amount,
+    pendingLandBid: {
+      tileId,
+      amount,
+      rivalBid:
+        rivalBidOverride ?? createRivalBid(tile, minimumBid),
+      tieMinimum: tie?.minimumBid,
+    },
+    landAuctionTie: null,
   }
 }
 
-export function cancelLandPurchase(
+export function cancelLandBid(
   currentState: GameState,
 ): GameState {
-  if (currentState.pendingLandPurchaseId === null) {
+  const bid = currentState.pendingLandBid
+
+  if (bid === null) {
     return currentState
   }
 
   return {
     ...currentState,
-    credits: currentState.credits + LAND_PRICE,
-    pendingLandPurchaseId: null,
+    credits: currentState.credits + bid.amount,
+    pendingLandBid: null,
+    landAuctionTie: bid.tieMinimum
+      ? {
+          tileId: bid.tileId,
+          tiedBid: bid.tieMinimum - 1,
+          minimumBid: bid.tieMinimum,
+        }
+      : null,
+  }
+}
+
+export function beginLandTieBreak(
+  currentState: GameState,
+): GameState {
+  const bid = currentState.pendingLandBid
+
+  if (!bid || bid.amount !== bid.rivalBid) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    credits: currentState.credits + bid.amount,
+    pendingLandBid: null,
+    landAuctionTie: {
+      tileId: bid.tileId,
+      tiedBid: bid.amount,
+      minimumBid: bid.amount + 1,
+    },
   }
 }
 
@@ -455,13 +541,34 @@ export function runRound(
     )
     .map((task) => task.id)
 
+  const landBid = currentState.pendingLandBid
+  const landAuction: LandAuctionResult | null = landBid
+    ? {
+        tileId: landBid.tileId,
+        playerBid: landBid.amount,
+        rivalBid: landBid.rivalBid,
+        outcome:
+          landBid.amount > landBid.rivalBid
+            ? 'won'
+            : landBid.amount < landBid.rivalBid
+              ? 'lost'
+              : 'tie',
+      }
+    : null
+
+  const playerWonLand = landAuction?.outcome === 'won'
+  const rivalWonLand = landAuction?.outcome === 'lost'
+  const tiedLandAuction = landAuction?.outcome === 'tie'
+
   const nextState: GameState = {
     round: currentState.round + 1,
     population: Math.max(
       1,
       currentState.population + populationChange,
     ),
-    credits: currentState.credits,
+    credits:
+      currentState.credits +
+      (landBid && !playerWonLand ? landBid.amount : 0),
     resources: {
       food:
         currentState.resources.food -
@@ -475,13 +582,23 @@ export function runRound(
       ore: currentState.resources.ore + produced.ore,
       crystals: currentState.resources.crystals,
     },
-    ownedTileIds: currentState.pendingLandPurchaseId
+    ownedTileIds: playerWonLand
       ? [
           ...currentState.ownedTileIds,
-          currentState.pendingLandPurchaseId,
+          landBid!.tileId,
         ]
       : currentState.ownedTileIds,
-    pendingLandPurchaseId: null,
+    opponentTileIds: rivalWonLand
+      ? [...currentState.opponentTileIds, landBid!.tileId]
+      : currentState.opponentTileIds,
+    pendingLandBid: null,
+    landAuctionTie: tiedLandAuction
+      ? {
+          tileId: landBid!.tileId,
+          tiedBid: landBid!.amount,
+          minimumBid: landBid!.amount + 1,
+        }
+      : null,
   }
 
   return {
@@ -497,7 +614,7 @@ export function runRound(
       inactiveHarvesterIds,
       completedRetoolingIds,
       pausedRetoolingIds,
-      acquiredTileId: currentState.pendingLandPurchaseId,
+      landAuction,
     },
   }
 }

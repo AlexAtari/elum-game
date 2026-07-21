@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  cancelLandPurchase,
+  beginLandTieBreak,
+  cancelLandBid,
   createInitialGameState,
-  reserveLandPurchase,
+  placeLandBid,
   runRound,
   type GameState,
   type HarvesterAssignments,
@@ -13,44 +14,99 @@ const normalSupply = {
   energyLevel: 2,
 }
 
-describe('Grundstückserwerb', () => {
-  it('reserviert den Kaufpreis und merkt ein freies Feld vor', () => {
-    const state = reserveLandPurchase(
+describe('Grundstücksauktion', () => {
+  it('reserviert das verdeckte Gebot', () => {
+    const state = placeLandBid(
       createInitialGameState(),
       'C',
+      30,
+      35,
     )
 
-    expect(state.credits).toBe(75)
-    expect(state.pendingLandPurchaseId).toBe('C')
+    expect(state.credits).toBe(70)
+    expect(state.pendingLandBid).toEqual({
+      tileId: 'C',
+      amount: 30,
+      rivalBid: 35,
+      tieMinimum: undefined,
+    })
     expect(state.ownedTileIds).toEqual(['A', 'B'])
   })
 
-  it('erstattet beim Abbrechen den reservierten Kaufpreis', () => {
-    const reservedState = reserveLandPurchase(
+  it('erstattet ein zurückgenommenes Gebot', () => {
+    const reservedState = placeLandBid(
       createInitialGameState(),
       'C',
+      30,
+      35,
     )
-    const state = cancelLandPurchase(reservedState)
+    const state = cancelLandBid(reservedState)
 
     expect(state.credits).toBe(100)
-    expect(state.pendingLandPurchaseId).toBeNull()
+    expect(state.pendingLandBid).toBeNull()
   })
 
-  it('überträgt das vorgemerkte Feld zu Beginn der nächsten Runde', () => {
-    const state = reserveLandPurchase(
+  it('überträgt das Feld bei einem höheren Gebot an den Spieler', () => {
+    const state = placeLandBid(
       createInitialGameState(),
       'C',
+      36,
+      35,
     )
     const result = runRound(state, {}, normalSupply)
 
-    expect(result.nextState.credits).toBe(75)
+    expect(result.nextState.credits).toBe(64)
     expect(result.nextState.ownedTileIds).toEqual([
       'A',
       'B',
       'C',
     ])
-    expect(result.nextState.pendingLandPurchaseId).toBeNull()
-    expect(result.report.acquiredTileId).toBe('C')
+    expect(result.nextState.pendingLandBid).toBeNull()
+    expect(result.report.landAuction?.outcome).toBe('won')
+  })
+
+  it('erstattet das Gebot und überträgt das Feld bei einer Niederlage an Orion', () => {
+    const state = placeLandBid(
+      createInitialGameState(),
+      'C',
+      30,
+      35,
+    )
+    const result = runRound(state, {}, normalSupply)
+
+    expect(result.nextState.credits).toBe(100)
+    expect(result.nextState.ownedTileIds).toEqual(['A', 'B'])
+    expect(result.nextState.opponentTileIds).toEqual(['C'])
+    expect(result.report.landAuction?.outcome).toBe('lost')
+  })
+
+  it('fordert bei Gleichstand ein höheres Stichgebot', () => {
+    const state = placeLandBid(
+      createInitialGameState(),
+      'C',
+      30,
+      30,
+    )
+    const tieState = beginLandTieBreak(state)
+
+    expect(tieState.credits).toBe(100)
+    expect(tieState.pendingLandBid).toBeNull()
+    expect(tieState.landAuctionTie).toEqual({
+      tileId: 'C',
+      tiedBid: 30,
+      minimumBid: 31,
+    })
+
+    const newBidState = placeLandBid(
+      tieState,
+      'C',
+      35,
+      34,
+    )
+    const result = runRound(newBidState, {}, normalSupply)
+
+    expect(result.report.landAuction?.outcome).toBe('won')
+    expect(result.nextState.ownedTileIds).toContain('C')
   })
 })
 

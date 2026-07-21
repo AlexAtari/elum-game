@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import {
-  LAND_PRICE,
+  LAND_MINIMUM_BID,
   productionTypes,
   tiles,
   type HarvesterAssignments,
+  type LandAuctionTie,
+  type LandBid,
   type ProductionType,
 } from '../game'
 import './HexMap.css'
@@ -12,10 +14,12 @@ type HexMapProps = {
   population: number
   credits: number
   ownedTileIds: string[]
-  pendingLandPurchaseId: string | null
+  opponentTileIds: string[]
+  pendingLandBid: LandBid | null
+  landAuctionTie: LandAuctionTie | null
   freeHarvesters: number
   harvesters: HarvesterAssignments
-  onBuyLand: (tileId: string) => void
+  onPlaceLandBid: (tileId: string, amount: number) => void
   onCancelLandOrder: () => void
   onAssignHarvester: (
     tileId: string,
@@ -46,10 +50,12 @@ function HexMap({
   population,
   credits,
   ownedTileIds,
-  pendingLandPurchaseId,
+  opponentTileIds,
+  pendingLandBid,
+  landAuctionTie,
   freeHarvesters,
   harvesters,
-  onBuyLand,
+  onPlaceLandBid,
   onCancelLandOrder,
   onAssignHarvester,
   onChangeHarvesterProduction,
@@ -58,6 +64,7 @@ function HexMap({
   const [selectedId, setSelectedId] = useState('A')
   const [isChoosingProduction, setIsChoosingProduction] =
     useState(false)
+  const [bidAmount, setBidAmount] = useState(LAND_MINIMUM_BID)
 
   const selectedTile =
     tiles.find((tile) => tile.id === selectedId) ?? tiles[0]!
@@ -67,12 +74,29 @@ function HexMap({
   const selectedIsPlayerOwned = ownedTileIds.includes(
     selectedTile.id,
   )
-  const selectedIsPendingPurchase =
-    pendingLandPurchaseId === selectedTile.id
+  const selectedIsOpponentOwned = opponentTileIds.includes(
+    selectedTile.id,
+  )
+  const selectedPendingBid =
+    pendingLandBid?.tileId === selectedTile.id
+      ? pendingLandBid
+      : null
+  const selectedAuctionTie =
+    landAuctionTie?.tileId === selectedTile.id
+      ? landAuctionTie
+      : null
+  const minimumBid =
+    selectedAuctionTie?.minimumBid ?? LAND_MINIMUM_BID
+  const effectiveBidAmount = Math.max(bidAmount, minimumBid)
 
   const selectTile = (tileId: string) => {
     setSelectedId(tileId)
     setIsChoosingProduction(false)
+    setBidAmount(
+      landAuctionTie?.tileId === tileId
+        ? landAuctionTie.minimumBid
+        : LAND_MINIMUM_BID,
+    )
   }
 
   const assignHarvester = (production: ProductionType) => {
@@ -121,14 +145,19 @@ function HexMap({
             const harvester = harvesters[tile.id]
             const production = harvester?.production
             const isPlayerOwned = ownedTileIds.includes(tile.id)
-            const isPendingPurchase =
-              pendingLandPurchaseId === tile.id
+            const isOpponentOwned = opponentTileIds.includes(
+              tile.id,
+            )
+            const hasPendingBid = pendingLandBid?.tileId === tile.id
+            const hasAuctionTie = landAuctionTie?.tileId === tile.id
             const ownershipClass =
               tile.owner === 'hq'
                 ? 'hq'
                 : isPlayerOwned
                   ? 'player'
-                  : isPendingPurchase
+                  : isOpponentOwned
+                    ? 'opponent'
+                    : hasPendingBid || hasAuctionTie
                     ? 'pending'
                     : 'free'
 
@@ -176,14 +205,25 @@ function HexMap({
                   </text>
                 )}
 
-                {isPendingPurchase && (
+                {isOpponentOwned && (
+                  <text
+                    className="hex-opponent-label"
+                    x={tile.x}
+                    y={tile.y + 32}
+                    textAnchor="middle"
+                  >
+                    ORION
+                  </text>
+                )}
+
+                {(hasPendingBid || hasAuctionTie) && (
                   <text
                     className="hex-pending-label"
                     x={tile.x}
                     y={tile.y + 32}
                     textAnchor="middle"
                   >
-                    VORGEMERKT
+                    {hasAuctionTie ? 'STICHAUKTION' : 'GEBOT'}
                   </text>
                 )}
 
@@ -235,8 +275,12 @@ function HexMap({
               <p className="eyebrow">
                 {selectedIsPlayerOwned
                   ? 'Eigenes Grundstück'
-                  : selectedIsPendingPurchase
-                    ? 'Übernahme vorgemerkt'
+                  : selectedIsOpponentOwned
+                    ? 'Konsortium Orion'
+                    : selectedAuctionTie
+                      ? 'Stichauktion'
+                      : selectedPendingBid
+                        ? 'Gebot abgegeben'
                   : 'Freies Grundstück'}
               </p>
 
@@ -431,17 +475,26 @@ function HexMap({
                   </div>
                 )}
 
-              {selectedTile.owner === 'free' &&
-                !selectedIsPlayerOwned &&
-                selectedIsPendingPurchase && (
+              {selectedIsOpponentOwned && (
+                <div className="opponent-land-status">
+                  <span>🏢 Grundstück vergeben</span>
+                  <strong>Besitzer: Konsortium Orion</strong>
+                  <p>
+                    Dieses Feld steht für weitere Gebote nicht mehr
+                    zur Verfügung.
+                  </p>
+                </div>
+              )}
+
+              {selectedPendingBid && (
                   <div className="land-purchase-status">
-                    <span>📝 Grundstück vorgemerkt</span>
+                    <span>🔒 Verdecktes Gebot abgegeben</span>
                     <strong>
-                      {LAND_PRICE} Credits reserviert
+                      {selectedPendingBid.amount} Credits reserviert
                     </strong>
                     <p>
-                      Die Übernahme erfolgt zu Beginn der nächsten
-                      Runde.
+                      Orions Gebot wird beim Ausführen der Runde
+                      aufgedeckt.
                     </p>
 
                     <button
@@ -449,30 +502,83 @@ function HexMap({
                       type="button"
                       onClick={onCancelLandOrder}
                     >
-                      Vormerkung zurücknehmen
+                      Gebot zurücknehmen
                     </button>
                   </div>
-                )}
+              )}
 
               {selectedTile.owner === 'free' &&
                 !selectedIsPlayerOwned &&
-                !selectedIsPendingPurchase && (
-                <button
-                  className="field-button"
-                  type="button"
-                  disabled={
-                    credits < LAND_PRICE ||
-                    pendingLandPurchaseId !== null
-                  }
-                  onClick={() => onBuyLand(selectedTile.id)}
-                >
-                  {credits < LAND_PRICE
-                    ? 'Nicht genügend Credits'
-                    : pendingLandPurchaseId
-                      ? 'Bereits ein Grundstück vorgemerkt'
-                      : `Für ${LAND_PRICE} Credits vormerken`}
-                </button>
-              )}
+                !selectedIsOpponentOwned &&
+                !selectedPendingBid &&
+                (pendingLandBid ||
+                (landAuctionTie && !selectedAuctionTie) ? (
+                  <button
+                    className="field-button"
+                    type="button"
+                    disabled
+                  >
+                    {pendingLandBid
+                      ? 'Bereits ein Gebot abgegeben'
+                      : `Stichauktion auf Feld ${landAuctionTie?.tileId}`}
+                  </button>
+                ) : (
+                  <div className="land-bid-panel">
+                    {selectedAuctionTie && (
+                      <div className="tie-notice">
+                        <strong>
+                          Gleichstand bei{' '}
+                          {selectedAuctionTie.tiedBid} Credits
+                        </strong>
+                        <span>
+                          Für die Stichauktion ist ein höheres Gebot
+                          erforderlich.
+                        </span>
+                      </div>
+                    )}
+
+                    <label htmlFor="land-bid">
+                      Dein verdecktes Gebot
+                      <strong>{effectiveBidAmount} Credits</strong>
+                    </label>
+
+                    <input
+                      id="land-bid"
+                      type="range"
+                      min={minimumBid}
+                      max={Math.max(minimumBid, credits)}
+                      step="1"
+                      value={effectiveBidAmount}
+                      disabled={credits < minimumBid}
+                      onChange={(event) =>
+                        setBidAmount(Number(event.target.value))
+                      }
+                    />
+
+                    <button
+                      className="field-button"
+                      type="button"
+                      disabled={credits < minimumBid}
+                      onClick={() =>
+                        onPlaceLandBid(
+                          selectedTile.id,
+                          effectiveBidAmount,
+                        )
+                      }
+                    >
+                      {credits < minimumBid
+                        ? 'Nicht genügend Credits'
+                        : selectedAuctionTie
+                          ? 'Stichgebot abgeben'
+                          : 'Gebot abgeben'}
+                    </button>
+
+                    <p className="bid-hint">
+                      Mindestgebot: {minimumBid} Credits. Orions
+                      Gebot bleibt bis zur Auswertung geheim.
+                    </p>
+                  </div>
+                ))}
             </>
           )}
         </aside>

@@ -70,6 +70,11 @@
   stroke: rgba(255, 199, 102, 0.85);
 }
 
+.hex-tile.opponent polygon {
+  fill: rgba(91, 55, 112, 0.76);
+  stroke: rgba(207, 145, 235, 0.82);
+}
+
 .hex-tile.hq polygon {
   fill: rgba(48, 82, 148, 0.9);
   stroke: rgba(139, 177, 255, 0.85);
@@ -99,6 +104,14 @@
 .hex-pending-label {
   pointer-events: none;
   fill: #ffd28a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.hex-opponent-label {
+  pointer-events: none;
+  fill: #e4b6f7;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -200,6 +213,78 @@
 .cancel-land-button:hover {
   border-color: rgba(255, 199, 102, 0.7);
   background: rgba(255, 174, 66, 0.14);
+}
+
+.land-bid-panel {
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.land-bid-panel label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #aeb8cb;
+}
+
+.land-bid-panel label strong {
+  color: #ffd28a;
+}
+
+.land-bid-panel input[type='range'] {
+  width: 100%;
+  margin: 16px 0 4px;
+  cursor: pointer;
+  accent-color: #f2b95f;
+}
+
+.bid-hint {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+}
+
+.tie-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  color: #ffd28a;
+  background: rgba(255, 174, 66, 0.1);
+}
+
+.tie-notice span {
+  color: #d8bd91;
+  font-size: 0.85rem;
+}
+
+.opponent-land-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid rgba(207, 145, 235, 0.35);
+  border-radius: 12px;
+  background: rgba(157, 91, 184, 0.1);
+}
+
+.opponent-land-status span {
+  color: #aeb8cb;
+  font-size: 0.85rem;
+}
+
+.opponent-land-status strong {
+  color: #e4b6f7;
+}
+
+.opponent-land-status p {
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 820px) {

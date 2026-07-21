@@ -25,11 +25,12 @@
 
 ### 🔬 Grundstückserwerb
 
-- Als technische Vorstufe zur Auktion kostet ein freies Grundstück zunächst fest 25 Credits.
-- Pro Runde kann höchstens ein Grundstück vorgemerkt werden.
-- Die Credits werden bei der Vormerkung reserviert und beim Abbrechen vollständig erstattet.
-- Das Grundstück geht zu Beginn der folgenden Runde in den Besitz des Spielers über.
-- Nach erfolgreichem Test wird die feste Vormerkung durch verdeckte Gebote und Konkurrenz ersetzt.
+- Freie Grundstücke werden zunächst gegen den KI-Konkurrenten „Konsortium Orion“ versteigert.
+- Das Mindestgebot beträgt 25 Credits und pro Runde kann höchstens ein verdecktes Gebot abgegeben werden.
+- Die Credits werden bei Gebotsabgabe reserviert und beim Zurücknehmen oder bei einer Niederlage vollständig erstattet.
+- Das höhere Gebot gewinnt; das Feld geht zu Beginn der folgenden Runde an den Gewinner.
+- Bei Gleichstand stoppt die Rundenausführung und es wird sofort ein höheres Stichgebot verlangt.
+- Orions vorläufige Gebotslogik dient nur dem Einzelspieler-Prototyp und wird später im Balancing überprüft.
 
 ### ✔ Markt
 
