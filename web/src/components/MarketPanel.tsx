@@ -1,18 +1,22 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
 } from 'react'
 import {
+  getOrionMarketRole,
+  getMarketTiming,
   getWarehousePrices,
   marketResourceTypes,
+  moveMarketOffer,
   type MarketCounterparty,
   type MarketDirection,
   type MarketResource,
+  type MarketRole,
 } from '../game'
 import './MarketPanel.css'
 
-type MarketRole = 'neutral' | 'buyer' | 'seller'
 type MarketStage =
   | 'declaration'
   | 'auction'
@@ -37,30 +41,16 @@ type MarketPanelProps = {
 }
 
 const movementMilliseconds = 300
+const orionDecisionMilliseconds = 1200
 const orionTradeLimit = 4
 const slowTradeMilliseconds = 1000
 const mediumTradeMilliseconds = 650
 const fastTradeMilliseconds = 350
 
-function getMarketTiming(roundPlayed: number) {
-  if (roundPlayed <= 3) {
-    return {
-      declarationSeconds: 8,
-      auctionSeconds: 30,
-    }
-  }
-
-  if (roundPlayed <= 7) {
-    return {
-      declarationSeconds: 6,
-      auctionSeconds: 25,
-    }
-  }
-
-  return {
-    declarationSeconds: 5,
-    auctionSeconds: 20,
-  }
+const marketRoleLabels: Record<MarketRole, string> = {
+  neutral: 'setzt aus',
+  buyer: 'kauft',
+  seller: 'verkauft',
 }
 
 function clampPrice(
@@ -80,7 +70,38 @@ function pricePosition(
     ((price - minimumPrice) / (maximumPrice - minimumPrice)) *
     100
 
-  return `${8 + relativePosition * 0.84}%`
+  return `${22 + relativePosition * 0.56}%`
+}
+
+function declarationPosition(
+  participantRole: MarketRole | 'pending',
+) {
+  if (participantRole === 'seller') {
+    return '96%'
+  }
+
+  if (participantRole === 'buyer') {
+    return '4%'
+  }
+
+  return '50%'
+}
+
+function auctionAvatarPosition(
+  price: number,
+  minimumPrice: number,
+  maximumPrice: number,
+  participantRole: 'buyer' | 'seller',
+) {
+  const linePosition = pricePosition(
+    price,
+    minimumPrice,
+    maximumPrice,
+  )
+
+  return participantRole === 'seller'
+    ? `calc(${linePosition} + 28px)`
+    : `calc(${linePosition} - 28px)`
 }
 
 function tradeDelay(elapsedMilliseconds: number) {
@@ -118,18 +139,27 @@ function MarketPanel({
   const [stage, setStage] =
     useState<MarketStage>('declaration')
   const [role, setRole] = useState<MarketRole>('neutral')
+  const [orionRole, setOrionRole] = useState<
+    MarketRole | 'pending'
+  >('pending')
   const [secondsLeft, setSecondsLeft] = useState(
     declarationSeconds,
   )
   const [playerPrice, setPlayerPrice] = useState(
     referencePrice,
   )
+  const [playerOfferActive, setPlayerOfferActive] =
+    useState(false)
   const [orionPrice, setOrionPrice] = useState(
     referencePrice,
   )
   const [orionUnitsRemaining, setOrionUnitsRemaining] = useState(
     orionTradeLimit,
   )
+  const [orionResourceAmount, setOrionResourceAmount] = useState(
+    orionTradeLimit,
+  )
+  const [orionParked, setOrionParked] = useState(false)
   const [tradedUnits, setTradedUnits] = useState(0)
   const [lastTradePrice, setLastTradePrice] = useState<
     number | null
@@ -138,6 +168,27 @@ function MarketPanel({
     MarketCounterparty | null
   >(null)
   const nextPlayerMovementAt = useRef(0)
+
+  const chooseRole = useCallback((nextRole: MarketRole) => {
+    setRole(nextRole)
+    setOrionRole('pending')
+    setPlayerOfferActive(false)
+    setOrionParked(false)
+  }, [])
+
+  useEffect(() => {
+    if (stage !== 'declaration') {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      setOrionRole(
+        getOrionMarketRole(roundPlayed, resource, role),
+      )
+    }, orionDecisionMilliseconds)
+
+    return () => window.clearTimeout(timer)
+  }, [resource, role, roundPlayed, stage])
 
   useEffect(() => {
     if (stage !== 'declaration') {
@@ -150,6 +201,13 @@ function MarketPanel({
           return currentSeconds - 1
         }
 
+        const finalOrionRole = getOrionMarketRole(
+          roundPlayed,
+          resource,
+          role,
+        )
+        setOrionRole(finalOrionRole)
+
         if (role === 'neutral') {
           setStage('skipped')
           return 0
@@ -158,9 +216,12 @@ function MarketPanel({
         setPlayerPrice(
           role === 'seller' ? maximumPrice : minimumPrice,
         )
+        setPlayerOfferActive(false)
         setOrionPrice(
           role === 'seller' ? minimumPrice : maximumPrice,
         )
+        setOrionResourceAmount(orionTradeLimit)
+        setOrionParked(false)
         setStage('auction')
         return auctionSeconds
       })
@@ -171,7 +232,9 @@ function MarketPanel({
     auctionSeconds,
     maximumPrice,
     minimumPrice,
+    resource,
     role,
+    roundPlayed,
     stage,
   ])
 
@@ -207,7 +270,12 @@ function MarketPanel({
     return () => window.clearInterval(timer)
   }, [stage])
 
-  const orionActive = orionUnitsRemaining > 0
+  const orionParticipates =
+    orionRole !== 'pending' && orionRole !== 'neutral'
+  const orionActive =
+    orionParticipates && orionUnitsRemaining > 0
+  const orionRetreating =
+    orionParticipates && !orionActive && !orionParked
   const orionPriceLimit = clampPrice(
     role === 'seller' ? referencePrice + 1 : referencePrice - 1,
     minimumPrice,
@@ -254,21 +322,59 @@ function MarketPanel({
     stage,
   ])
 
+  useEffect(() => {
+    if (stage !== 'auction' || !orionRetreating) {
+      return
+    }
+
+    const exitPrice =
+      orionRole === 'seller' ? maximumPrice : minimumPrice
+    const timer = window.setTimeout(() => {
+      if (orionPrice === exitPrice) {
+        setOrionParked(true)
+        return
+      }
+
+      setOrionPrice((currentPrice) =>
+        clampPrice(
+          currentPrice + (orionRole === 'seller' ? 1 : -1),
+          minimumPrice,
+          maximumPrice,
+        ),
+      )
+    }, movementMilliseconds)
+
+    return () => window.clearTimeout(timer)
+  }, [
+    maximumPrice,
+    minimumPrice,
+    orionPrice,
+    orionRetreating,
+    orionRole,
+    stage,
+  ])
+
+  const orionGuidesPriceLine = orionActive || orionRetreating
   const orionLeadsBuyers =
-    orionActive && orionPrice >= warehousePrices.buyPrice
+    orionGuidesPriceLine &&
+    orionPrice >= warehousePrices.buyPrice
   const orionLeadsSellers =
-    orionActive &&
+    orionGuidesPriceLine &&
     (warehouseStock <= 0 ||
       orionPrice <= warehousePrices.sellPrice)
   const sellerPrice =
     role === 'seller'
-      ? playerPrice
+      ? playerOfferActive
+        ? playerPrice
+        : warehousePrices.sellPrice
       : orionLeadsSellers
         ? orionPrice
         : warehousePrices.sellPrice
   const buyerPrice =
     role === 'buyer'
-      ? playerPrice
+      ? playerOfferActive
+        ? playerPrice
+        : warehousePrices.buyPrice
       : orionLeadsBuyers
         ? orionPrice
         : warehousePrices.buyPrice
@@ -284,7 +390,9 @@ function MarketPanel({
   const pricesMeet = buyerPrice === sellerPrice
   const canTrade =
     stage === 'auction' &&
+    playerOfferActive &&
     pricesMeet &&
+    (activeCounterparty !== 'orion' || orionActive) &&
     (role === 'seller'
       ? resourceAmount > 0
       : credits >= tradePrice) &&
@@ -321,6 +429,13 @@ function MarketPanel({
           setOrionUnitsRemaining((currentUnits) =>
             Math.max(0, currentUnits - 1),
           )
+          setOrionResourceAmount((currentUnits) =>
+            Math.max(
+              0,
+              currentUnits +
+                (orionRole === 'buyer' ? 1 : -1),
+            ),
+          )
         }
         setTradedUnits((currentUnits) => currentUnits + 1)
         setLastTradePrice(tradePrice)
@@ -339,12 +454,17 @@ function MarketPanel({
     activeCounterparty,
     canTrade,
     onTrade,
+    orionRole,
     resource,
     role,
     tradePrice,
   ])
 
-  const changePlayerPrice = (difference: number) => {
+  const movePlayerOffer = useCallback((difference: number) => {
+    if (stage !== 'auction' || role === 'neutral') {
+      return
+    }
+
     const now = Date.now()
 
     if (now < nextPlayerMovementAt.current) {
@@ -353,60 +473,42 @@ function MarketPanel({
 
     nextPlayerMovementAt.current = now + movementMilliseconds
 
-    setPlayerPrice((currentPrice) => {
-      const nextPrice = clampPrice(
-        currentPrice + difference,
-        minimumPrice,
-        maximumPrice,
-      )
+    const nextOffer = moveMarketOffer(
+      role,
+      {
+        active: playerOfferActive,
+        price: playerPrice,
+      },
+      difference,
+      minimumPrice,
+      maximumPrice,
+      role === 'seller' ? buyerPrice : sellerPrice,
+    )
 
-      if (stage !== 'auction') {
-        return nextPrice
-      }
-
-      return role === 'seller'
-        ? Math.max(nextPrice, buyerPrice)
-        : Math.min(nextPrice, sellerPrice)
-    })
-  }
+    setPlayerOfferActive(nextOffer.active)
+    setPlayerPrice(nextOffer.price)
+  }, [
+    buyerPrice,
+    maximumPrice,
+    minimumPrice,
+    playerOfferActive,
+    playerPrice,
+    role,
+    sellerPrice,
+    stage,
+  ])
 
   useEffect(() => {
-    const moveWithKeyboard = (difference: number) => {
-      const now = Date.now()
-
-      if (now < nextPlayerMovementAt.current) {
-        return
-      }
-
-      nextPlayerMovementAt.current = now + movementMilliseconds
-
-      setPlayerPrice((currentPrice) => {
-        const nextPrice = clampPrice(
-          currentPrice + difference,
-          minimumPrice,
-          maximumPrice,
-        )
-
-        if (stage !== 'auction') {
-          return nextPrice
-        }
-
-        return role === 'seller'
-          ? Math.max(nextPrice, buyerPrice)
-          : Math.min(nextPrice, sellerPrice)
-      })
-    }
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (stage === 'declaration') {
         if (event.key === 'ArrowUp') {
           event.preventDefault()
-          setRole('seller')
+          chooseRole('seller')
         } else if (event.key === 'ArrowDown') {
           event.preventDefault()
-          setRole('buyer')
+          chooseRole('buyer')
         } else if (event.key === 'Escape') {
-          setRole('neutral')
+          chooseRole('neutral')
         }
         return
       }
@@ -414,10 +516,10 @@ function MarketPanel({
       if (stage === 'auction') {
         if (event.key === 'ArrowUp') {
           event.preventDefault()
-          moveWithKeyboard(1)
+          movePlayerOffer(1)
         } else if (event.key === 'ArrowDown') {
           event.preventDefault()
-          moveWithKeyboard(-1)
+          movePlayerOffer(-1)
         }
       }
     }
@@ -425,34 +527,94 @@ function MarketPanel({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [
-    buyerPrice,
-    maximumPrice,
-    minimumPrice,
-    role,
-    sellerPrice,
+    chooseRole,
+    movePlayerOffer,
     stage,
   ])
 
   const playerPosition =
     stage === 'declaration'
-      ? role === 'seller'
-        ? '85%'
-        : role === 'buyer'
-          ? '15%'
-          : '50%'
-      : pricePosition(playerPrice, minimumPrice, maximumPrice)
+      ? declarationPosition(role)
+      : !playerOfferActive
+        ? declarationPosition(role)
+      : auctionAvatarPosition(
+          playerPrice,
+          minimumPrice,
+          maximumPrice,
+          role === 'seller' ? 'seller' : 'buyer',
+        )
+  const orionPosition =
+    stage === 'declaration'
+      ? declarationPosition(orionRole)
+      : orionParked
+        ? declarationPosition(orionRole)
+        : auctionAvatarPosition(
+            orionPrice,
+            minimumPrice,
+            maximumPrice,
+            orionRole === 'seller' ? 'seller' : 'buyer',
+          )
+  const previewParticipants: Array<{
+    name: string
+    icon: string
+    className: string
+    role: MarketRole | 'pending'
+  }> = [
+    {
+      name: 'Nova',
+      icon: '👩‍🚀',
+      className: 'nova-avatar',
+      role:
+        orionRole === 'pending'
+          ? 'pending'
+          : role,
+    },
+    {
+      name: 'Vega',
+      icon: '🧑‍🚀',
+      className: 'vega-avatar',
+      role:
+        orionRole === 'pending' || role === 'neutral'
+          ? orionRole === 'pending'
+            ? 'pending'
+            : 'neutral'
+          : role === 'seller'
+            ? 'buyer'
+            : 'seller',
+    },
+  ]
   const sellerName =
     role === 'seller'
-      ? 'Du'
-      : activeCounterparty === 'orion'
+      ? playerOfferActive
+        ? 'Du'
+        : 'HQ-Lager'
+      : orionLeadsSellers
         ? 'Orion'
         : 'HQ-Lager'
   const buyerName =
     role === 'buyer'
-      ? 'Du'
-      : activeCounterparty === 'orion'
+      ? playerOfferActive
+        ? 'Du'
+        : 'HQ-Lager'
+      : orionLeadsBuyers
         ? 'Orion'
         : 'HQ-Lager'
+  const displayedSellerPrice =
+    stage === 'declaration'
+      ? warehousePrices.sellPrice
+      : sellerPrice
+  const displayedBuyerPrice =
+    stage === 'declaration'
+      ? warehousePrices.buyPrice
+      : buyerPrice
+  const displayedSellerName =
+    stage === 'declaration' ? 'HQ-Lager' : sellerName
+  const displayedBuyerName =
+    stage === 'declaration' ? 'HQ-Lager' : buyerName
+  const priceScale = Array.from(
+    { length: maximumPrice - minimumPrice + 1 },
+    (_, index) => maximumPrice - index,
+  )
   const timerMaximum =
     stage === 'declaration' ? declarationSeconds : auctionSeconds
   const timerProgress = Math.max(
@@ -465,7 +627,7 @@ function MarketPanel({
       <div className="market-heading">
         <div>
           <p className="eyebrow">
-            Marktphase nach Runde {roundPlayed}
+            Marktphase vor Abrechnung Runde {roundPlayed}
           </p>
           <h2>
             {resourceType.icon} {resourceType.auctionLabel}
@@ -551,126 +713,240 @@ function MarketPanel({
 
         <div>
           <span>Handelsverlauf</span>
-          {tradedUnits === 0 ? (
-            <strong>Noch kein Handel abgeschlossen</strong>
-          ) : (
-            <>
-              <strong
-                key={`trades-${tradedUnits}`}
-                className="market-live-value market-value-up"
-              >
-                {tradedUnits}{' '}
-                {tradedUnits === 1 ? 'Einheit' : 'Einheiten'}
-              </strong>
-              <small>
-                Zuletzt für {lastTradePrice} Credits mit{' '}
-                {lastTradePartner === 'warehouse'
-                  ? 'dem HQ-Lager'
-                  : 'Orion'}
-              </small>
-            </>
-          )}
+          <strong
+            key={`trades-${tradedUnits}`}
+            className={
+              tradedUnits > 0
+                ? 'market-live-value market-value-up'
+                : ''
+            }
+          >
+            {tradedUnits === 0
+              ? 'Noch kein Handel abgeschlossen'
+              : `${tradedUnits} ${
+                  tradedUnits === 1 ? 'Einheit' : 'Einheiten'
+                }`}
+          </strong>
+          <small
+            className={
+              tradedUnits === 0
+                ? 'market-context-placeholder'
+                : ''
+            }
+          >
+            {tradedUnits === 0
+              ? '\u00a0'
+              : `Zuletzt für ${lastTradePrice} Credits mit ${
+                  lastTradePartner === 'warehouse'
+                    ? 'dem HQ-Lager'
+                    : 'Orion'
+                }`}
+          </small>
         </div>
       </div>
 
-      <div className="market-content">
+      <div
+        className={`market-content market-content-${stage}`}
+      >
         <div className="market-arena">
-          <span className="market-zone sell-zone">
-            HQ VERKAUFT · {warehousePrices.sellPrice} Credits
-          </span>
+          <div
+            className="market-price-scale"
+            aria-label={`Preisskala von ${minimumPrice} bis ${maximumPrice} Credits`}
+          >
+            <strong className="market-price-scale-title">
+              Preis
+            </strong>
+            {priceScale.map((price) => (
+              <span
+                key={price}
+                className="market-price-tick"
+                style={{
+                  bottom: pricePosition(
+                    price,
+                    minimumPrice,
+                    maximumPrice,
+                  ),
+                }}
+              >
+                {price}
+              </span>
+            ))}
+          </div>
+
+          <div className="market-warehouse-gate warehouse-sell-gate">
+            <span>📦 HQ-LAGER</span>
+            <strong>KAUF VOM LAGER</strong>
+            <b>{warehousePrices.sellPrice} Credits</b>
+          </div>
           {stage === 'declaration' && (
             <span className="market-zone hold-zone">
               NICHT TEILNEHMEN
             </span>
           )}
-          <span className="market-zone buy-zone">
-            HQ KAUFT · {warehousePrices.buyPrice} Credits
-          </span>
+          <div className="market-warehouse-gate warehouse-buy-gate">
+            <span>📦 HQ-LAGER</span>
+            <strong>VERKAUF AN LAGER</strong>
+            <b>{warehousePrices.buyPrice} Credits</b>
+          </div>
 
-          {stage === 'auction' && (
+          {(stage === 'declaration' || stage === 'auction') && (
             <>
               <div
                 className={`market-price-line seller-price-line ${
-                  pricesMeet ? 'prices-touch' : ''
+                  stage === 'auction' && canTrade
+                    ? 'prices-touch'
+                    : ''
                 }`}
+                aria-label={`Niedrigster Verkaufspreis: ${displayedSellerName}, ${displayedSellerPrice} Credits`}
                 style={{
                   bottom: pricePosition(
-                    sellerPrice,
+                    displayedSellerPrice,
                     minimumPrice,
                     maximumPrice,
                   ),
                 }}
-              >
-                <span>
-                  Verkauf · {sellerName} · {sellerPrice}
-                </span>
-              </div>
+              />
               <div
                 className={`market-price-line buyer-price-line ${
-                  pricesMeet ? 'prices-touch' : ''
+                  stage === 'auction' && canTrade
+                    ? 'prices-touch'
+                    : ''
                 }`}
+                aria-label={`Höchstes Kaufgebot: ${displayedBuyerName}, ${displayedBuyerPrice} Credits`}
                 style={{
                   bottom: pricePosition(
-                    buyerPrice,
+                    displayedBuyerPrice,
                     minimumPrice,
                     maximumPrice,
                   ),
                 }}
-              >
-                <span>
-                  Kauf · {buyerName} · {buyerPrice}
-                </span>
-              </div>
+              />
             </>
           )}
 
-          <div
-            className="market-avatar player-avatar"
-            style={{ bottom: playerPosition }}
-          >
-            <span>🧑‍🚀</span>
-            <strong>Du</strong>
-            {stage === 'auction' && <b>{playerPrice}</b>}
-          </div>
-
-          {stage === 'auction' && orionActive && (
+          {(stage === 'declaration' || stage === 'auction') && (
             <div
-              className="market-avatar orion-avatar"
-              style={{
-                bottom: pricePosition(
-                  orionPrice,
-                  minimumPrice,
-                  maximumPrice,
-                ),
-              }}
+              className={`market-avatar player-avatar ${
+                stage === 'declaration'
+                  ? 'market-declaration-avatar'
+                  : ''
+              }`}
+              style={{ bottom: playerPosition }}
+            >
+              <span>🧑‍🚀</span>
+              <strong>Du</strong>
+              {stage === 'declaration' ? (
+                <b>{marketRoleLabels[role]}</b>
+              ) : (
+                <b
+                  key={`player-units-${resourceAmount}`}
+                  className={`market-avatar-quantity ${
+                    tradedUnits > 0
+                      ? role === 'buyer'
+                        ? 'market-value-up'
+                        : 'market-value-down'
+                      : ''
+                  }`}
+                >
+                  {resourceType.icon} {resourceAmount}
+                </b>
+              )}
+            </div>
+          )}
+
+          {(stage === 'declaration' ||
+            (stage === 'auction' && orionParticipates)) && (
+            <div
+              className={`market-avatar orion-avatar ${
+                stage === 'declaration'
+                  ? 'market-declaration-avatar'
+                  : orionRetreating
+                    ? 'market-avatar-retreating'
+                    : orionParked
+                      ? 'market-avatar-finished'
+                      : ''
+              }`}
+              style={{ bottom: orionPosition }}
+              aria-live="polite"
             >
               <span>🤖</span>
               <strong>Orion</strong>
-              <b>{orionPrice}</b>
+              {stage === 'declaration' ? (
+                <b>
+                  {orionRole === 'pending'
+                    ? 'entscheidet …'
+                    : marketRoleLabels[orionRole]}
+                </b>
+              ) : (
+                <b
+                  key={`orion-units-${orionResourceAmount}`}
+                  className={`market-avatar-quantity ${
+                    tradedUnits > 0 &&
+                    lastTradePartner === 'orion'
+                      ? orionRole === 'buyer'
+                        ? 'market-value-up'
+                        : 'market-value-down'
+                      : ''
+                  }`}
+                >
+                  {resourceType.icon} {orionResourceAmount}
+                </b>
+              )}
             </div>
           )}
 
-          {canTrade && (
-            <div
-              className="trade-indicator"
-              style={{
-                bottom: pricePosition(
-                  tradePrice,
-                  minimumPrice,
-                  maximumPrice,
-                ),
-              }}
-            >
-              1 Einheit ·{' '}
-              {activeCounterparty === 'warehouse'
-                ? 'HQ-Lager'
-                : 'Orion'}{' '}
-              · {tradePrice} Credits
-            </div>
-          )}
+          {previewParticipants.map((participant) => {
+            if (
+              stage !== 'declaration' &&
+              (stage !== 'auction' ||
+                participant.role === 'neutral' ||
+                participant.role === 'pending')
+            ) {
+              return null
+            }
+
+            const participantPosition =
+              stage === 'declaration'
+                ? declarationPosition(participant.role)
+                : auctionAvatarPosition(
+                    participant.role === 'seller'
+                      ? maximumPrice - 1
+                      : minimumPrice + 1,
+                    minimumPrice,
+                    maximumPrice,
+                    participant.role === 'seller'
+                      ? 'seller'
+                      : 'buyer',
+                  )
+
+            return (
+              <div
+                key={participant.name}
+                className={`market-avatar market-preview-avatar ${participant.className} ${
+                  stage === 'declaration'
+                    ? 'market-declaration-avatar'
+                    : ''
+                }`}
+                style={{ bottom: participantPosition }}
+              >
+                <span>{participant.icon}</span>
+                <strong>{participant.name}</strong>
+                <b>
+                  {stage === 'declaration'
+                    ? participant.role === 'pending'
+                      ? 'entscheidet …'
+                      : marketRoleLabels[participant.role]
+                    : 'wartet'}
+                </b>
+              </div>
+            )
+          })}
+
         </div>
 
-        <aside className="market-controls">
+        <aside
+          className={`market-controls market-controls-${stage}`}
+        >
           {stage === 'declaration' && (
             <>
               <p className="eyebrow">Positionierungsphase</p>
@@ -683,21 +959,21 @@ function MarketPanel({
               <button
                 className={role === 'seller' ? 'active' : ''}
                 type="button"
-                onClick={() => setRole('seller')}
+                onClick={() => chooseRole('seller')}
               >
                 ↑ Als Verkäufer starten
               </button>
               <button
                 className={role === 'neutral' ? 'active' : ''}
                 type="button"
-                onClick={() => setRole('neutral')}
+                onClick={() => chooseRole('neutral')}
               >
                 Nicht teilnehmen
               </button>
               <button
                 className={role === 'buyer' ? 'active' : ''}
                 type="button"
-                onClick={() => setRole('buyer')}
+                onClick={() => chooseRole('buyer')}
               >
                 ↓ Als Käufer starten
               </button>
@@ -705,46 +981,71 @@ function MarketPanel({
               <p className="market-key-hint">
                 Tastatur: ↑ verkaufen · ↓ kaufen · Esc aussetzen
               </p>
+              <p className="market-key-hint market-layout-hint">
+                Nova und Vega sind vorerst sichtbare Testspieler
+                für das Vierer-Layout.
+              </p>
             </>
           )}
 
           {stage === 'auction' && (
-            <>
-              <p className="eyebrow">Auktion läuft</p>
-              <h3>
-                Du bist {role === 'seller' ? 'Verkäufer' : 'Käufer'}
-              </h3>
-              <p>
-                {role === 'seller'
-                  ? 'Bewege dich nach unten, um deinen Verkaufspreis zu senken.'
-                  : 'Bewege dich nach oben, um dein Kaufgebot zu erhöhen.'}
-              </p>
+            <div
+              className="market-control-buttons"
+              aria-label="Marktsteuerung"
+            >
+                <button
+                  type="button"
+                  onClick={() => movePlayerOffer(1)}
+                  aria-label={
+                    role === 'buyer' && !playerOfferActive
+                      ? 'Markt betreten'
+                      : 'Preis erhöhen'
+                  }
+                >
+                  <span aria-hidden="true">
+                    ↑{' '}
+                    {role === 'buyer' && !playerOfferActive
+                      ? 'Markt'
+                      : 'Preis'}
+                  </span>
+                  <span aria-hidden="true">
+                    {role === 'buyer' && !playerOfferActive
+                      ? 'betreten'
+                      : 'erhöhen'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => movePlayerOffer(-1)}
+                  aria-label={
+                    role === 'seller' && !playerOfferActive
+                      ? 'Markt betreten'
+                      : 'Preis senken'
+                  }
+                >
+                  <span aria-hidden="true">
+                    ↓{' '}
+                    {role === 'seller' && !playerOfferActive
+                      ? 'Markt'
+                      : 'Preis'}
+                  </span>
+                  <span aria-hidden="true">
+                    {role === 'seller' && !playerOfferActive
+                      ? 'betreten'
+                      : 'senken'}
+                  </span>
+                </button>
+            </div>
+          )}
 
-              <button
-                type="button"
-                onClick={() => changePlayerPrice(1)}
-              >
-                ↑ Preis erhöhen
-              </button>
-              <button
-                type="button"
-                onClick={() => changePlayerPrice(-1)}
-              >
-                ↓ Preis senken
-              </button>
-
-              <p className="market-key-hint">
-                Pro Transaktion wird genau eine Einheit übertragen.
-                Du und Orion bewegen euch höchstens einen
-                Preisschritt je 0,3 Sekunden.
-              </p>
-
-              <p className="market-key-hint">
-                {orionActive
-                  ? `Orions Preisgrenze: ${orionPriceLimit} Credits · gewünschte Restmenge: ${orionUnitsRemaining}`
-                  : 'Orion hat seine gewünschte Menge gehandelt. Jetzt bleibt das HQ-Lager als Handelspartner.'}
-              </p>
-            </>
+          {stage === 'auction' && canTrade && (
+            <div className="trade-indicator" aria-live="polite">
+              1 Einheit ·{' '}
+              {activeCounterparty === 'warehouse'
+                ? 'HQ-Lager'
+                : 'Orion'}{' '}
+              · {tradePrice} Credits
+            </div>
           )}
 
           {stage === 'finished' && (
@@ -772,7 +1073,7 @@ function MarketPanel({
                       marketResourceTypes[nextResource]
                         .auctionLabel
                     }`
-                  : 'Weiter zur nächsten Runde'}
+                  : 'Weiter zur Rangliste'}
               </button>
             </>
           )}

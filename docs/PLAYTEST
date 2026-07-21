@@ -42,8 +42,12 @@
 
 ### 🔬 Erster Marktprototyp
 
-- Die erste Marktphase handelt nacheinander Nahrung, Energie und Erz gegen „Konsortium Orion“ und das HQ-Gesamtlager. Vor jeder Ressource wird die Rolle neu gewählt.
-- In Runde 1–3 stehen acht Sekunden für die Rollenwahl und 30 Sekunden für die Auktion zur Verfügung. Die Zeiten sinken später stufenweise auf sechs/25 und fünf/20 Sekunden.
+- Mit „Plan bestätigen & Markt starten“ werden Versorgung und Harvesteraufträge für die Runde festgeschrieben. Danach folgen Nahrung, Energie, Erz und Kristalle; erst nach dem Kristallmarkt werden Versorgung, Harvesterenergie, Produktion, Bauabschlüsse und Bevölkerung abgerechnet.
+- Käufe aus der Marktphase stehen bereits für die unmittelbar folgende Versorgung zur Verfügung. Die erst danach erzeugte Produktion kann dagegen frühestens im Markt der nächsten Runde verkauft werden.
+- Die erste Marktphase handelt nacheinander Nahrung, Energie, Erz und Kristalle gegen „Konsortium Orion“ und das HQ-Gesamtlager. Vor jeder Ressource wird die Rolle neu gewählt.
+- Während der Rollenwahl sind Spieler und Orion gleichzeitig sichtbar. Orion startet in der Mitte und bewegt sich nach 1,2 Sekunden zu Kaufen, Verkaufen oder Aussetzen; die angezeigte Wahl gilt für die folgende Auktion.
+- Nova und Vega werden als gekennzeichnete Layout-Testspieler angezeigt, damit Lesbarkeit und Platzbedarf mit vier Teilnehmern geprüft werden können. Sie handeln in dieser Zwischenstufe noch nicht.
+- In Runde 1 stehen acht Sekunden für die Rollenwahl und 30 Sekunden für die Auktion zur Verfügung. Runde 2 sinkt auf sechs/25 Sekunden. Ab Runde 3 bleiben die Zeiten dauerhaft bei fünf/20 Sekunden.
 - Wählt niemand Käufer oder Verkäufer, wird die Ressourcenauktion ohne zusätzliche Wartezeit übersprungen.
 - Eine horizontale Linie zeigt den niedrigsten Verkaufspreis, eine zweite das höchste Kaufgebot. Beide Linien können sich berühren, aber nicht kreuzen.
 - Bei Kontakt startet der Handel mit einer Einheit pro Sekunde und beschleunigt nach drei sowie sechs Sekunden ununterbrochenem Kontakt.
@@ -55,8 +59,22 @@
 - Ein Zeitbalken macht die verbleibende Auktionsdauer zusätzlich zur Sekundenanzeige sichtbar.
 - Während der Auktion werden allgemeiner Status und Rundenergebnis ausgeblendet. Sichtbar bleiben nur die gerade gehandelte Ressource, Credits, HQ-Bestand, Handelsverlauf und Preislinien.
 - Der Hinweis „Nicht teilnehmen“ ist nur während der Rollenwahl sichtbar und verschwindet beim Start der Auktion.
+- Das HQ-Lager steht oben und unten zwischen den wartenden Teilnehmern und dem eigentlichen Markt. Die beiden gemeinsamen Preislinien sind bereits während der Rollenwahl am jeweiligen HQ-Preis sichtbar. Verkäufer und Käufer warten zunächst einen Schritt hinter ihrem Lager. Der erste Schritt in Richtung Markt erreicht nur die Lagerlinie; erst der nächste Schritt verändert den Preis und schiebt die Linie in den Markt. Beim vollständigen Rückzug bleibt die Linie am Lager oder beim nächstbesten Angebot, während die Figur einen weiteren Schritt hinter das Lager geht. Die eigene aktive Linie bleibt unbeschriftet, weil Name und Preis bereits am Avatar stehen. Nach Auktionsende verschwinden alle Avatare.
+- Ein Teilnehmer mit erfüllter Wunschmenge, leerem Vorrat oder unzureichenden Credits beendet den Handel sofort, läuft aber sichtbar in einzelnen Preisschritten zur Lagerlinie und danach hinter sein Käufer- beziehungsweise Verkäuferlager zurück. Führte er die gemeinsame Preislinie, wandert sie währenddessen geschmeidig mit ihm zurück, kann aber keinen weiteren Handel mehr auslösen. Sie geht beim Erreichen an das nächstbeste aktive Angebot oder am Ende an das HQ-Lager über. Der Avatar darf nicht springen oder fliegen. „Fertig“ darf niemals als ruhender Avatar mitten im Marktplatz erscheinen, weil jede dort ruhende Figur ein aktives Angebot signalisiert.
+- Die Zustandsfolge lautet: unentschieden → hinter dem Lager parkend → Kontakt zur Lagerlinie → aktives Angebot beziehungsweise Warteschlange → Rückzug hinter das Lager. Nur aktive Angebote können eine Preislinie führen oder handeln.
+- Während der laufenden Auktion zeigt das seitliche Steuerfeld ausschließlich zwei gleich breite Pfeiltasten ohne gemeinsame Außenbox. Ihr Abstand ist symmetrisch und sie sind unabhängig von der Transfermeldung exakt auf der vertikalen Arenamitte verankert; beim Beginn oder Ende eines Handels dürfen sie keinen Pixel springen. Die Transfermeldung besitzt einen eigenen Platz darunter. Dauerhafte Erklärungen, Rollenüberschriften und KI-Statusmeldungen entfallen; die Positionierungsphase behält ihre Auswahlhilfe. Bei Rollen-, Preis- und Textwechseln darf kein sichtbarer Bestandteil des Marktes seine Grundposition verändern.
+- Die Marktphase nutzt eine breitere und höhere Arena als das Kolonie-Dashboard. Nur während der laufenden Auktion ist das schmale Pfeilfeld vertikal zentriert; Positionierungs- und Ergebnisphase besitzen eine ausreichend breite Textspalte ohne Überstand. Kompakte Lagerstationen stehen links, während vier feste, kollisionsfreie Laufspuren rechts daran vorbeiführen. Rollenbeschriftungen besitzen eine eigene volle Zeile und dürfen nicht abgeschnitten werden. Beide Bestpreislinien sind gleich stark und grün; beim Transfer pulsiert ihre verschmolzene Linie. Eine gut lesbar mit „Preis“ überschriebene feste Preisskala am rechten Rand ersetzt dynamische Preisfähnchen. Jeder Wert zeigt einen gleich langen Strich, der die senkrechte Skalenachse symmetrisch kreuzt. Handelsmeldungen stehen außerhalb der Arena und dürfen weder Figuren noch Lager verdecken. Spätere Grafik- und Animationsarbeiten dürfen die dokumentierten Marktregeln nicht verändern.
+- Während der Auktion zeigt jeder wirtschaftlich aktive Avatar statt seines Preises den aktuellen Ressourcenbestand. Beim Verkäufer zählt die Menge je Verkauf herunter, beim Käufer je Kauf hoch und pulsiert kurz. Orions sichtbarer Testbestand startet je Ressource bei vier Einheiten. Nova und Vega zeigen weiterhin „wartet“, solange sie noch keine echte Wirtschaftslogik besitzen. Auch „entscheidet …“ muss vollständig innerhalb eines Avatars lesbar bleiben.
 - Veränderte Bestände und Credits erhalten pro Einzelhandel einen kurzen grünen beziehungsweise roten Farbpuls. Vor dem ersten Abschluss steht ausgeschrieben „Noch kein Handel abgeschlossen“ statt des missverständlichen Zählers „Gehandelt: 0“.
+- Der Handelsverlauf reserviert seine zweizeilige Höhe bereits vor dem ersten Geschäft, damit die Arena beim Handel nicht nach unten springt.
 - Dauer, Lagerbestand, Preisabstand, Handelsgeschwindigkeit, Warteschlange und Orions Preisverhalten werden im Playtest überprüft.
+
+### 🔬 Ranglistenprototyp
+
+- Nach dem Kristallmarkt erfolgt zuerst die Rundenabrechnung und anschließend eine eigene Ranglistenansicht.
+- Sortiert wird nach Bevölkerung, Credits, Gesamtressourcen und Harvesterzahl. Die eigene Kolonie ist hervorgehoben.
+- Agima verwendet echte Werte. Orion, Nova und Vega verwenden bis zur vollständigen KI-Simulation reproduzierbare rundenabhängige Vergleichswerte.
+- Die Rangliste bleibt fünf Sekunden sichtbar. Ein Countdown zeigt die Restzeit; danach öffnet sich die nächste Planungsansicht automatisch und ohne Weiter-Button.
 
 ### ✔ Karte
 

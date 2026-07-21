@@ -199,16 +199,16 @@ Lagerausbau gehört nicht zu Version 1.
 
 ## Preisbewegung
 
-Vorläufige Werte für Nahrung, Energie und Erz:
+Vorläufige Werte für Nahrung, Energie, Erz und Kristalle:
 
-| Parameter | Nahrung | Energie | Erz |
-|---|---:|---:|---:|
-| Orientierungspreis zu Spielbeginn | 8 Credits | 8 Credits | 15 Credits |
-| HQ-Ankaufspreis | Orientierung −3 | Orientierung −3 | Orientierung −5 |
-| HQ-Verkaufspreis | Orientierung +3 | Orientierung +3 | Orientierung +5 |
-| HQ-Lagerbestand zu Spielbeginn | 20 | 20 | 20 |
-| minimale Orientierung | 3 Credits | 3 Credits | 5 Credits |
-| maximale Orientierung | 17 Credits | 17 Credits | 30 Credits |
+| Parameter | Nahrung | Energie | Erz | Kristalle |
+|---|---:|---:|---:|---:|
+| Orientierungspreis zu Spielbeginn | 8 Credits | 8 Credits | 15 Credits | 40 Credits |
+| HQ-Ankaufspreis | Orientierung −3 | Orientierung −3 | Orientierung −5 | Orientierung −10 |
+| HQ-Verkaufspreis | Orientierung +3 | Orientierung +3 | Orientierung +5 | Orientierung +10 |
+| HQ-Lagerbestand zu Spielbeginn | 20 | 20 | 20 | 10 |
+| minimale Orientierung | 3 Credits | 3 Credits | 5 Credits | 15 Credits |
+| maximale Orientierung | 17 Credits | 17 Credits | 30 Credits | 80 Credits |
 
 Der neue Orientierungspreis gilt ab der nächsten Runde.
 
@@ -228,6 +228,7 @@ Direkter Handel mit einer anderen Kolonie beeinflusst diesen Lagerwert nicht.
 | Parameter | Testwert |
 |---|---:|
 | maximaler Bewegungstakt für alle Teilnehmer | 1 Preisschritt je 0,3 Sekunden |
+| sichtbare Bedenkzeit von Orion | 1,2 Sekunden |
 | Menge je abgeschlossener Transaktion | 1 Einheit |
 | Orions Wunschmenge je Ressourcenauktion | 4 Einheiten |
 | Orions Höchstpreis als Käufer | Orientierungspreis +1 |
@@ -238,13 +239,15 @@ Direkter Handel mit einer anderen Kolonie beeinflusst diesen Lagerwert nicht.
 
 Bei mehreren passenden Partnern entscheidet zunächst die Ankunftsreihenfolge. Nach jeder einzeln übertragenen Einheit wird die Reihenfolge erneut ausgewertet.
 
+Im ersten KI-Prototyp wählt Orion nach kurzer sichtbarer Bedenkzeit die Gegenrolle des Spielers. Bei jeder vierten Kombination aus Runde und Ressource setzt Orion testweise aus; das HQ-Lager bleibt dann als Handelspartner verfügbar. Eine spätere KI-Version entscheidet anhand eigener Vorräte und Credits unabhängig.
+
 ## Marktzeiten
 
 | gespielte Runde | Positionierungszeit | Auktionszeit |
 |---:|---:|---:|
-| 1–3 | 8 Sekunden | 30 Sekunden |
-| 4–7 | 6 Sekunden | 25 Sekunden |
-| ab 8 | 5 Sekunden | 20 Sekunden |
+| 1 | 8 Sekunden | 30 Sekunden |
+| 2 | 6 Sekunden | 25 Sekunden |
+| ab 3 | 5 Sekunden | 20 Sekunden |
 
 Nimmt niemand an einem Ressourcenmarkt teil, entfällt die Auktionszeit vollständig.
 

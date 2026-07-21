@@ -2,10 +2,15 @@ import { describe, expect, it } from 'vitest'
 import {
   beginLandTieBreak,
   cancelLandBid,
+  completeRoundAfterMarket,
   completeResourceMarket,
   createInitialGameState,
+  createLeaderboardEntries,
   executeMarketTrade,
+  getMarketTiming,
   getNextMarketResource,
+  getOrionMarketRole,
+  moveMarketOffer,
   orderHarvesterBuild,
   placeLandBid,
   runRound,
@@ -19,10 +24,118 @@ const normalSupply = {
 }
 
 describe('Markthandel', () => {
+  it('lässt Verkäufer die Lagerlinie erst betreten und später wieder dahinter zurücktreten', () => {
+    const parkedOffer = {
+      active: false,
+      price: 11,
+    }
+    const lineContact = moveMarketOffer(
+      'seller',
+      parkedOffer,
+      -1,
+      5,
+      11,
+      5,
+    )
+    const marketOffer = moveMarketOffer(
+      'seller',
+      lineContact,
+      -1,
+      5,
+      11,
+      5,
+    )
+    const backAtWarehouse = moveMarketOffer(
+      'seller',
+      { active: true, price: 11 },
+      1,
+      5,
+      11,
+      5,
+    )
+
+    expect(lineContact).toEqual({ active: true, price: 11 })
+    expect(marketOffer).toEqual({ active: true, price: 10 })
+    expect(backAtWarehouse).toEqual({
+      active: false,
+      price: 11,
+    })
+  })
+
+  it('spiegelt Lagerkontakt und Rückzug für Käufer', () => {
+    const parkedOffer = {
+      active: false,
+      price: 5,
+    }
+    const lineContact = moveMarketOffer(
+      'buyer',
+      parkedOffer,
+      1,
+      5,
+      11,
+      11,
+    )
+    const marketOffer = moveMarketOffer(
+      'buyer',
+      lineContact,
+      1,
+      5,
+      11,
+      11,
+    )
+    const backAtWarehouse = moveMarketOffer(
+      'buyer',
+      { active: true, price: 5 },
+      -1,
+      5,
+      11,
+      11,
+    )
+
+    expect(lineContact).toEqual({ active: true, price: 5 })
+    expect(marketOffer).toEqual({ active: true, price: 6 })
+    expect(backAtWarehouse).toEqual({
+      active: false,
+      price: 5,
+    })
+  })
+
+  it('zeigt Orions tatsächliche Marktrolle bereits bei der Positionierung', () => {
+    expect(getOrionMarketRole(1, 'food', 'seller')).toBe(
+      'buyer',
+    )
+    expect(getOrionMarketRole(1, 'energy', 'buyer')).toBe(
+      'seller',
+    )
+    expect(getOrionMarketRole(2, 'ore', 'seller')).toBe(
+      'neutral',
+    )
+    expect(getOrionMarketRole(1, 'food', 'neutral')).toBe(
+      'neutral',
+    )
+  })
+
   it('führt Nahrung, Energie und Erz in der vorgesehenen Reihenfolge', () => {
     expect(getNextMarketResource('food')).toBe('energy')
     expect(getNextMarketResource('energy')).toBe('ore')
-    expect(getNextMarketResource('ore')).toBeNull()
+    expect(getNextMarketResource('ore')).toBe('crystals')
+    expect(getNextMarketResource('crystals')).toBeNull()
+  })
+
+  it('verkürzt den Markt in Runde zwei und ab Runde drei dauerhaft', () => {
+    expect(getMarketTiming(1)).toEqual({
+      declarationSeconds: 8,
+      auctionSeconds: 30,
+    })
+    expect(getMarketTiming(2)).toEqual({
+      declarationSeconds: 6,
+      auctionSeconds: 25,
+    })
+    expect(getMarketTiming(3)).toEqual({
+      declarationSeconds: 5,
+      auctionSeconds: 20,
+    })
+    expect(getMarketTiming(12)).toEqual(getMarketTiming(3))
   })
 
   it('kauft eine Einheit und bezahlt den Handelspreis', () => {
@@ -157,6 +270,101 @@ describe('Markthandel', () => {
     expect(tradedState.resources.ore).toBe(6)
     expect(tradedState.market.ore.warehouseStock).toBe(19)
     expect(nextState.market.ore.referencePrice).toBe(16)
+  })
+
+  it('handelt Kristalle als vierten Ressourcenmarkt', () => {
+    const tradedState = executeMarketTrade(
+      createInitialGameState(),
+      'crystals',
+      'buy',
+      50,
+      'warehouse',
+    )
+    const nextState = completeResourceMarket(
+      tradedState,
+      'crystals',
+    )
+
+    expect(tradedState.credits).toBe(50)
+    expect(tradedState.resources.crystals).toBe(1)
+    expect(tradedState.market.crystals.warehouseStock).toBe(9)
+    expect(nextState.market.crystals.referencePrice).toBe(41)
+  })
+
+  it('rechnet Marktkäufe vor Versorgung und Bevölkerung ab', () => {
+    const hungryState: GameState = {
+      ...createInitialGameState(),
+      resources: {
+        ...createInitialGameState().resources,
+        food: 0,
+      },
+    }
+    const firstPurchase = executeMarketTrade(
+      hungryState,
+      'food',
+      'buy',
+      11,
+      'warehouse',
+    )
+    const secondPurchase = executeMarketTrade(
+      firstPurchase,
+      'food',
+      'buy',
+      11,
+      'warehouse',
+    )
+    const stateAfterFoodMarket = completeResourceMarket(
+      secondPurchase,
+      'food',
+    )
+    const stateAfterEnergyMarket = completeResourceMarket(
+      stateAfterFoodMarket,
+      'energy',
+    )
+    const stateAfterOreMarket = completeResourceMarket(
+      stateAfterEnergyMarket,
+      'ore',
+    )
+    const result = completeRoundAfterMarket(
+      stateAfterOreMarket,
+      'crystals',
+      {},
+      normalSupply,
+    )
+
+    expect(
+      runRound(hungryState, {}, normalSupply).nextState
+        .population,
+    ).toBe(9)
+    expect(result.report.consumedFood).toBe(2)
+    expect(result.nextState.resources.food).toBe(0)
+    expect(result.nextState.population).toBe(11)
+  })
+})
+
+describe('Rangliste', () => {
+  it('zeigt echte Spielerwerte und sortiert Bevölkerung zuerst', () => {
+    const state: GameState = {
+      ...createInitialGameState(),
+      population: 15,
+      credits: 42,
+      resources: {
+        food: 3,
+        energy: 4,
+        ore: 5,
+        crystals: 6,
+      },
+    }
+    const entries = createLeaderboardEntries(state, 4, 2)
+    const player = entries.find((entry) => entry.isPlayer)
+
+    expect(player).toMatchObject({
+      population: 15,
+      credits: 42,
+      resources: 18,
+      harvesters: 4,
+    })
+    expect(entries[0].id).toBe('player')
   })
 })
 

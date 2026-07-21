@@ -1,11 +1,14 @@
 import { useCallback, useMemo, useState } from 'react'
 import HexMap from './components/HexMap'
+import LeaderboardPanel from './components/LeaderboardPanel'
 import MarketPanel from './components/MarketPanel'
 import {
   beginLandTieBreak,
   cancelLandBid,
   calculateSupplyPreview,
+  completeRoundAfterMarket,
   completeResourceMarket,
+  createLeaderboardEntries,
   createInitialGameState,
   executeMarketTrade,
   getNextMarketResource,
@@ -19,6 +22,7 @@ import {
   type MarketResource,
   type ProductionType,
   type RoundReport,
+  type SupplyPlan,
 } from './game'
 import './App.css'
 
@@ -32,6 +36,11 @@ const supplyLabels = [
 type ActiveMarket = {
   roundPlayed: number
   resource: MarketResource
+}
+
+type PendingRound = {
+  harvesters: HarvesterAssignments
+  supplyPlan: SupplyPlan
 }
 
 function App() {
@@ -50,8 +59,13 @@ function App() {
   const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
   const [activeMarket, setActiveMarket] =
     useState<ActiveMarket | null>(null)
+  const [pendingRound, setPendingRound] =
+    useState<PendingRound | null>(null)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   const freeHarvesters = freeHarvesterPool.length
+  const totalHarvesters =
+    freeHarvesters + Object.keys(harvesters).length
   const activeResourceMarket = activeMarket
     ? gameState.market[activeMarket.resource]
     : null
@@ -75,6 +89,17 @@ function App() {
     ],
   )
 
+  const leaderboardEntries = useMemo(
+    () =>
+      createLeaderboardEntries(
+        gameState,
+        totalHarvesters,
+        lastReport?.roundPlayed ??
+          Math.max(1, gameState.round - 1),
+      ),
+    [gameState, lastReport?.roundPlayed, totalHarvesters],
+  )
+
   const startNewGame = () => {
     setGameState(createInitialGameState())
     setHarvesters({})
@@ -83,6 +108,8 @@ function App() {
     setFoodSupplyLevel(2)
     setEnergySupplyLevel(2)
     setActiveMarket(null)
+    setPendingRound(null)
+    setShowLeaderboard(false)
     setGameStarted(true)
   }
 
@@ -250,28 +277,54 @@ function App() {
 
   const completeMarketResource = useCallback(
     (resource: MarketResource) => {
-    setGameState((currentState) =>
-        completeResourceMarket(currentState, resource),
-    )
-      setActiveMarket((currentMarket) => {
-        if (
-          !currentMarket ||
-          currentMarket.resource !== resource
-        ) {
-          return currentMarket
-        }
+      if (
+        !activeMarket ||
+        activeMarket.resource !== resource
+      ) {
+        return
+      }
 
-        const nextResource = getNextMarketResource(resource)
+      const nextResource = getNextMarketResource(resource)
 
-        return nextResource
-          ? {
-              ...currentMarket,
-              resource: nextResource,
-            }
-          : null
-      })
+      if (nextResource) {
+        setGameState((currentState) =>
+          completeResourceMarket(currentState, resource),
+        )
+        setActiveMarket({
+          ...activeMarket,
+          resource: nextResource,
+        })
+        return
+      }
+
+      if (!pendingRound) {
+        return
+      }
+
+      const completedRound = completeRoundAfterMarket(
+        gameState,
+        resource,
+        pendingRound.harvesters,
+        pendingRound.supplyPlan,
+      )
+
+      setGameState(completedRound.nextState)
+      setHarvesters(completedRound.nextHarvesters)
+      if (completedRound.report.completedHarvesters > 0) {
+        setFreeHarvesterPool((currentPool) => [
+          ...currentPool,
+          ...Array.from(
+            { length: completedRound.report.completedHarvesters },
+            () => ({}),
+          ),
+        ])
+      }
+      setLastReport(completedRound.report)
+      setPendingRound(null)
+      setActiveMarket(null)
+      setShowLeaderboard(true)
     },
-    [],
+    [activeMarket, gameState, pendingRound],
   )
 
   const executeRound = () => {
@@ -281,27 +334,34 @@ function App() {
       return
     }
 
-    setGameState(plannedRound.nextState)
-    setHarvesters(plannedRound.nextHarvesters)
-    if (plannedRound.report.completedHarvesters > 0) {
-      setFreeHarvesterPool((currentPool) => [
-        ...currentPool,
-        ...Array.from(
-          { length: plannedRound.report.completedHarvesters },
-          () => ({}),
-        ),
-      ])
-    }
-    setLastReport(plannedRound.report)
+    const roundPlayed = gameState.round
+
+    setPendingRound({
+      harvesters: { ...harvesters },
+      supplyPlan: {
+        foodLevel: foodSupplyLevel,
+        energyLevel: energySupplyLevel,
+      },
+    })
+    setLastReport(null)
+    setShowLeaderboard(false)
     setActiveMarket({
-      roundPlayed: plannedRound.report.roundPlayed,
+      roundPlayed,
       resource: 'food',
     })
   }
 
+  const continueAfterLeaderboard = useCallback(() => {
+    setShowLeaderboard(false)
+  }, [])
+
   if (gameStarted) {
     return (
-      <main className="game-screen">
+      <main
+        className={`game-screen ${
+          activeMarket !== null ? 'market-screen' : ''
+        }`}
+      >
         <header className="game-header">
           <div>
             <span className="eyebrow">E.L.U.M.</span>
@@ -310,12 +370,14 @@ function App() {
 
           <div className="round-badge">
             {activeMarket !== null
-              ? `Markt nach Runde ${activeMarket.roundPlayed}`
-              : `Runde ${gameState.round}`}
+              ? `Markt · Runde ${activeMarket.roundPlayed}`
+              : showLeaderboard && lastReport
+                ? `Zwischenstand · Runde ${lastReport.roundPlayed}`
+                : `Runde ${gameState.round}`}
           </div>
         </header>
 
-        {activeMarket === null && (
+        {activeMarket === null && !showLeaderboard && (
           <section className="status-panel">
             <h2>Status</h2>
 
@@ -369,6 +431,13 @@ function App() {
             )}
             onTrade={tradeMarketResource}
             onComplete={completeMarketResource}
+          />
+        ) : showLeaderboard && lastReport ? (
+          <LeaderboardPanel
+            roundPlayed={lastReport.roundPlayed}
+            nextRound={gameState.round}
+            entries={leaderboardEntries}
+            onContinue={continueAfterLeaderboard}
           />
         ) : (
           <>
@@ -487,8 +556,9 @@ function App() {
             </div>
 
             <p className="supply-preview-note">
-              Diese Vorschau entspricht der nächsten
-              Rundenabrechnung.
+              Vorschau vor dem Markt. Käufe und Verkäufe werden
+              bei der anschließenden Rundenabrechnung
+              berücksichtigt.
             </p>
 
             {supplyPreview.hasShortage && (
@@ -523,20 +593,21 @@ function App() {
                 type="button"
                 onClick={executeRound}
               >
-                Runde ausführen
+                Plan bestätigen &amp; Markt starten
               </button>
 
               <p>
-                Gewählt: {foodSupplyLevel} Nahrung und{' '}
-                {energySupplyLevel} Energie je zehn Einwohner.
-                Jeder produzierende oder umzurüstende Harvester
-                benötigt zusätzlich eine Energie.
+                Nach dem Markt werden Versorgung,
+                Harvesterenergie, Produktion und Bevölkerung
+                abgerechnet. Gewählt: {foodSupplyLevel} Nahrung
+                und {energySupplyLevel} Energie je zehn
+                Einwohner.
               </p>
             </section>
           </>
         )}
 
-        {activeMarket === null && lastReport && (
+        {activeMarket === null && !showLeaderboard && lastReport && (
           <section className="round-report">
             <p className="eyebrow">
               Abrechnung Runde {lastReport.roundPlayed}

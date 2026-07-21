@@ -10,6 +10,12 @@ export type Resources = {
 export type MarketResource = keyof Resources
 export type MarketDirection = 'buy' | 'sell'
 export type MarketCounterparty = 'orion' | 'warehouse'
+export type MarketRole = 'neutral' | 'buyer' | 'seller'
+
+export type MarketOffer = {
+  active: boolean
+  price: number
+}
 
 export type ResourceMarketState = {
   referencePrice: number
@@ -112,6 +118,22 @@ export type RoundReport = {
   completedHarvesters: number
 }
 
+export type LeaderboardEntry = {
+  id: 'player' | 'orion' | 'nova' | 'vega'
+  name: string
+  icon: string
+  population: number
+  credits: number
+  resources: number
+  harvesters: number
+  isPlayer: boolean
+}
+
+export type MarketTiming = {
+  declarationSeconds: number
+  auctionSeconds: number
+}
+
 export const LAND_MINIMUM_BID = 25
 export const HARVESTER_CREDIT_COST = 30
 export const HARVESTER_ORE_COST = 3
@@ -127,7 +149,164 @@ export const playableMarketResources: MarketResource[] = [
   'food',
   'energy',
   'ore',
+  'crystals',
 ]
+
+const marketResourceOrder: Record<MarketResource, number> = {
+  food: 0,
+  energy: 1,
+  ore: 2,
+  crystals: 3,
+}
+
+export function getOrionMarketRole(
+  roundPlayed: number,
+  resource: MarketResource,
+  playerRole: MarketRole,
+): MarketRole {
+  if (playerRole === 'neutral') {
+    return 'neutral'
+  }
+
+  const orionSitsOut =
+    (roundPlayed + marketResourceOrder[resource]) % 4 === 0
+
+  if (orionSitsOut) {
+    return 'neutral'
+  }
+
+  return playerRole === 'seller' ? 'buyer' : 'seller'
+}
+
+export function getMarketTiming(
+  roundPlayed: number,
+): MarketTiming {
+  if (roundPlayed <= 1) {
+    return {
+      declarationSeconds: 8,
+      auctionSeconds: 30,
+    }
+  }
+
+  if (roundPlayed === 2) {
+    return {
+      declarationSeconds: 6,
+      auctionSeconds: 25,
+    }
+  }
+
+  return {
+    declarationSeconds: 5,
+    auctionSeconds: 20,
+  }
+}
+
+export function createLeaderboardEntries(
+  currentState: GameState,
+  playerHarvesterCount: number,
+  completedRound: number,
+): LeaderboardEntry[] {
+  const playerResources = Object.values(
+    currentState.resources,
+  ).reduce((total, amount) => total + amount, 0)
+  const round = Math.max(1, completedRound)
+
+  const entries: LeaderboardEntry[] = [
+    {
+      id: 'player',
+      name: 'Kolonie Agima',
+      icon: '🧑‍🚀',
+      population: currentState.population,
+      credits: currentState.credits,
+      resources: playerResources,
+      harvesters: playerHarvesterCount,
+      isPlayer: true,
+    },
+    {
+      id: 'orion',
+      name: 'Konsortium Orion',
+      icon: '🤖',
+      population: 10 + Math.ceil(round * 0.8),
+      credits: 96 + round * 8,
+      resources: 22 + round * 2,
+      harvesters: 2 + Math.floor(round / 3),
+      isPlayer: false,
+    },
+    {
+      id: 'nova',
+      name: 'Kolonie Nova',
+      icon: '👩‍🚀',
+      population: 9 + Math.ceil(round * 0.75),
+      credits: 112 + round * 5,
+      resources: 24 + round,
+      harvesters: 2 + Math.floor(round / 4),
+      isPlayer: false,
+    },
+    {
+      id: 'vega',
+      name: 'Kolonie Vega',
+      icon: '🧑‍🚀',
+      population: 11 + Math.floor(round * 0.6),
+      credits: 84 + round * 7,
+      resources: 20 + round * 3,
+      harvesters: 3 + Math.floor(round / 5),
+      isPlayer: false,
+    },
+  ]
+
+  return entries.sort(
+    (first, second) =>
+      second.population - first.population ||
+      second.credits - first.credits ||
+      second.resources - first.resources ||
+      second.harvesters - first.harvesters ||
+      first.name.localeCompare(second.name),
+  )
+}
+
+export function moveMarketOffer(
+  role: Exclude<MarketRole, 'neutral'>,
+  offer: MarketOffer,
+  difference: number,
+  minimumPrice: number,
+  maximumPrice: number,
+  opposingPrice: number,
+): MarketOffer {
+  const movesIntoMarket =
+    role === 'seller' ? difference < 0 : difference > 0
+
+  if (!offer.active) {
+    return movesIntoMarket
+      ? { ...offer, active: true }
+      : offer
+  }
+
+  const movesBehindWarehouse =
+    role === 'seller'
+      ? offer.price >= maximumPrice && difference > 0
+      : offer.price <= minimumPrice && difference < 0
+
+  if (movesBehindWarehouse) {
+    return {
+      active: false,
+      price:
+        role === 'seller' ? maximumPrice : minimumPrice,
+    }
+  }
+
+  const nextPrice = Math.min(
+    maximumPrice,
+    Math.max(minimumPrice, offer.price + difference),
+  )
+
+  return {
+    active: true,
+    price:
+      role === 'seller'
+        ? Math.max(nextPrice, opposingPrice)
+        : Math.min(nextPrice, opposingPrice),
+  }
+}
 
 export const marketResourceTypes: Record<
   MarketResource,
@@ -437,6 +616,20 @@ export function completeResourceMarket(
       },
     },
   }
+}
+
+export function completeRoundAfterMarket(
+  currentState: GameState,
+  finalMarketResource: MarketResource,
+  harvesters: HarvesterAssignments,
+  supplyPlan: SupplyPlan,
+) {
+  const stateAfterMarket = completeResourceMarket(
+    currentState,
+    finalMarketResource,
+  )
+
+  return runRound(stateAfterMarket, harvesters, supplyPlan)
 }
 
 function createRivalBid(tile: Tile, minimumBid: number) {

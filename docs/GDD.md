@@ -78,13 +78,21 @@ Alle Spieler planen gleichzeitig und verdeckt:
 
 Das Grundstück wird erst zu Beginn der nächsten Runde übertragen.
 
-## 4. Harvester einsetzen
+## 4. Markt
+
+Die Ressourcen werden nacheinander in einer gemeinsamen, interaktiven Echtzeit-Marktphase gehandelt.
+
+Der Markt findet vor der Versorgung und Produktion derselben Runde statt. Dadurch können Spieler fehlende Nahrung oder Energie noch kaufen und Überschüsse verkaufen, bevor die festgelegte Versorgung und die Harvester abgerechnet werden.
+
+Die Planung ist mit dem Start der Marktphase verbindlich. Neu produzierte Ressourcen stehen deshalb erst im Markt der folgenden Runde zum Verkauf bereit.
+
+## 5. Harvester einsetzen
 
 Alle freien Harvester werden auf bereits eigene, unbestrittene Grundstücke gesetzt.
 
 Neu eingesetzte Harvester können bereits in derselben Runde produzieren.
 
-## 5. Energiezuweisung
+## 6. Energiezuweisung
 
 Zuerst wird die für die Kolonie beziehungsweise das HQ vorgesehene Energie reserviert.
 
@@ -92,23 +100,21 @@ Anschließend werden die Harvester mit Energie versorgt. Jeder aktive Harvester 
 
 Reicht die verbleibende Energie nicht für alle Harvester, werden einzelne Harvester automatisch nach der festgelegten Prioritätsregel deaktiviert.
 
-## 6. Produktion
+## 7. Produktion
 
 Alle mit Energie versorgten Harvester produzieren gleichzeitig. Normal arbeitende Harvester produzieren den vollen Ertrag. Harvester in Umrüstung produzieren in der Übergangsrunde die neue Ressource mit halbem Ertrag. Harvester, die nach einer Versetzung auf einem neuen Feld eingerichtet werden, produzieren in der Übergangsrunde nichts.
 
-## 7. Versorgung und Bevölkerungsentwicklung
+## 8. Versorgung und Bevölkerungsentwicklung
 
 Die zuvor festgelegten Mengen an Nahrung und Energie werden der Bevölkerung zugeteilt.
 
 Abhängig von der Versorgung wächst die Bevölkerung, stagniert oder schrumpft.
 
-## 8. Markt
-
-Die Ressourcen werden nacheinander in einer gemeinsamen, interaktiven Echtzeit-Marktphase gehandelt.
-
 ## 9. Rundenende
 
+- Versorgung, Harvesterenergie, Produktion, Bauabschlüsse und Bevölkerungsentwicklung werden nach dem letzten Ressourcenmarkt gemeinsam abgerechnet.
 - Markt- und Lagerwerte werden aktualisiert.
+- Nach der Abrechnung wird eine gemeinsame Kolonie-Rangliste eingeblendet.
 - Prüfung auf Spielende.
 
 Falls das Spiel nicht beendet ist, beginnt die nächste Runde.
@@ -363,7 +369,7 @@ Mit wachsender Bevölkerung entwickelt sich auch das Hauptquartier optisch weite
 
 # 11. Markt
 
-Die Marktphase findet einmal pro Runde statt.
+Die Marktphase findet einmal pro Runde nach der verbindlichen Planung, aber vor Versorgung und Produktion statt. Marktgeschäfte verändern die Vorräte sofort und fließen dadurch noch in die anschließende Rundenabrechnung ein. Die Produktion dieser Abrechnung steht dagegen erst in der folgenden Marktphase zur Verfügung.
 
 Jede Ressource wird nacheinander gehandelt:
 
@@ -372,7 +378,7 @@ Jede Ressource wird nacheinander gehandelt:
 3. ⛏ Erz
 4. 💎 Kristalle
 
-Vor dem Handel mit einer Ressource entscheidet jeder Spieler, ob er kaufen, verkaufen oder nicht teilnehmen möchte.
+Vor dem Handel mit einer Ressource entscheidet jeder Spieler, ob er kaufen, verkaufen oder nicht teilnehmen möchte. Alle Teilnehmer sind dabei als Avatare im Markt sichtbar und bewegen sich nach ihrer Entscheidung in den Käufer-, Verkäufer- oder neutralen Bereich.
 
 Eine Bewegung nach oben meldet den Spieler als Verkäufer, eine Bewegung nach unten als Käufer und die Mittelposition als nicht teilnehmend. Bis zum Ablauf der Positionierungszeit darf die Auswahl geändert werden; danach ist die Rolle für diese Ressourcenauktion festgelegt. In frühen Runden steht mehr Entscheidungszeit zur Verfügung als in späteren Runden.
 
@@ -394,7 +400,45 @@ Die Auktionsdauer wird im Spielverlauf kürzer. Neue Spieler erhalten dadurch in
 
 Während der Auktion zeigt die Oberfläche nur unmittelbar relevante Informationen: den eigenen Bestand der gehandelten Ressource, die eigenen Credits, den Bestand des HQ-Gesamtlager, die ausgeführten Geschäfte sowie die Preislinien. Die allgemeine Statusübersicht und das vorherige Rundenergebnis werden währenddessen ausgeblendet. Der neutrale Bereich „Nicht teilnehmen“ dient nur der Rollenwahl und verschwindet mit Beginn der Auktion. Steigende Werte werden bei einer Transaktion kurz grün, sinkende Werte kurz rot hervorgehoben.
 
-Die erste technische Ausbaustufe bildet nacheinander den Nahrungs-, Energie- und Erzmarkt gegen den KI-Konkurrenten „Konsortium Orion“ und das HQ-Gesamtlager ab. Vor jeder Ressource wird die Rolle neu gewählt. Kristalle und weitere Spieler werden anschließend auf demselben Marktprinzip ergänzt.
+Das HQ-Gesamtlager bildet den oberen und unteren Abschluss der Preisarena. Es gibt insgesamt genau zwei gemeinsame Marktlinien: Die rote Linie zeigt den niedrigsten Verkaufspreis, die blaue Linie das höchste Kaufgebot. Beide Linien sind bereits während der Rollenwahl sichtbar und liegen beim jeweiligen HQ-Preis. Wer sich als Verkäufer oder Käufer einordnet, wartet zunächst einen Schritt hinter dem entsprechenden Lager und hat noch kein aktives Angebot. Mit dem ersten Schritt in Richtung Markt läuft der Teilnehmer am Lager vorbei und erreicht die Lagerlinie, ohne deren Preis zu verändern. Erst weitere Schritte schieben die Linie mit festem Abstand vor dem Avatar in den Markt. Beim Rückzug folgt sie bis zum HQ-Preis. Ein zusätzlicher Schritt führt den Teilnehmer wieder hinter das Lager, während die Linie am Lager oder beim nächstbesten aktiven Angebot stehen bleibt. Verkäufer stehen oberhalb der roten Linie und Käufer unterhalb der blauen Linie. Die Lagergrafik liegt damit stets zwischen einer wartenden Figur und der zugehörigen Linie und bleibt unverdeckt. Die eigene Linie trägt keine zusätzliche Textplakette, da Name und Preis bereits am Avatar stehen. Marktteilnehmer, die ihre gewünschte Handelsmenge erreicht haben, ziehen ihr aktives Angebot sichtbar zurück. Nach Ende der Auktion wird die Arena vollständig geleert.
+
+## Teilnehmerzustände und Rückzug
+
+Ein Avatar besitzt während jeder Ressourcenauktion genau einen der folgenden Zustände:
+
+1. **Unentschieden:** Der Teilnehmer steht während der Rollenwahl im neutralen Bereich.
+2. **Parkend:** Nach der Wahl steht ein Verkäufer hinter dem oberen, ein Käufer hinter dem unteren Lager. Er nimmt noch nicht am Preiswettbewerb teil.
+3. **An der Lagerlinie:** Der erste Schritt in den Markt stellt den Kontakt zur gemeinsamen Linie her, verändert den HQ-Preis aber noch nicht.
+4. **Aktiv:** Weitere Schritte verbessern oder verschlechtern das Angebot und verschieben gegebenenfalls die gemeinsame Linie.
+5. **Wartend:** Ein passendes Geschäft wird bereits von einem früher eingetroffenen Teilnehmer ausgeführt. Wartende Teilnehmer bleiben beweglich und können ihr Angebot zurückziehen.
+6. **Ausgeschieden:** Der Teilnehmer befindet sich wieder hinter seinem Lager und ist kein aktives Angebot mehr.
+
+Wer freiwillig nicht weiter handeln möchte, seine gewünschte Menge erreicht hat, keine verkaufbare Einheit mehr besitzt oder nicht genügend Credits für eine weitere Einheit hat, zieht sich sichtbar und schrittweise auf seiner Marktseite zurück. Ab diesem Moment ist sein Angebot für neue Geschäfte sofort inaktiv. War er der führende Anbieter seiner Marktseite, bleibt die gemeinsame Preislinie während des Rückwegs sichtbar an seinem Avatar und wandert Preisschritt für Preisschritt mit. Sie wird dabei nur noch als Rückzugsanimation gezeigt und kann keinen Handel mehr auslösen. Trifft die Linie auf ein besseres weiterhin aktives Angebot, übernimmt dieses die Linie; andernfalls führt der zurücklaufende Teilnehmer sie bis zum HQ-Preis. Anschließend macht der Avatar den letzten Schritt hinter das Lager und die Linie bleibt dort zurück. Auch ein durch Ressourcen- oder Geldmangel erzwungener Rückzug wird nicht als Sprung oder Flug dargestellt. Eine Figur darf nach dem Ausscheiden niemals mit der Kennzeichnung „fertig“ mitten in der Preisarena stehen bleiben: Jeder ruhende Avatar in der Arena signalisiert ein weiterhin verfügbares Angebot.
+
+Während der laufenden Auktion enthält das seitliche Steuerfeld nur die beiden Pfeiltasten. Dauerhafte Erklärungen, Rollenüberschriften und KI-Statusmeldungen entfallen dort; Marktfiguren, Preislinien und Schaltflächen vermitteln den aktuellen Zustand. Die ausführlichere Hilfestellung bleibt auf die Positionierungsphase und ein späteres einmaliges Einführungstutorial begrenzt. Die beiden gleich breiten Schaltflächen stehen ohne zusätzliche gemeinsame Umrandung mit identischem Abstand untereinander und sind unabhängig vom restlichen Inhalt exakt auf der vertikalen Arenamitte verankert. Eine erscheinende oder verschwindende Transfermeldung besitzt einen eigenen Platz darunter und darf die Tasten niemals verschieben. Textwechsel, Preisänderungen und Handelsmeldungen dürfen weder die Arena noch die Pfeiltasten oder nachfolgende Elemente verschieben. Beide Schaltflächen behalten während einer Auktion Position und Höhe.
+
+Die Auktionsarena ist die visuelle Hauptbühne der Marktphase und darf breiter als das normale Kolonie-Dashboard sein. Nur während der laufenden Auktion wird das Steuerfeld auf die schmalen, vertikal zentrierten und zweizeiligen Pfeiltasten reduziert. Positionierungs- und Ergebnisphase behalten eine breitere Textspalte, damit kein Hinweis über seinen Bereich hinausragt. Die Lager werden als kompakte Stationen am linken Rand dargestellt. Rechts davon verlaufen vier feste, ausreichend breite Laufspuren für die Teilnehmer. Rollenangaben erhalten in jedem Avatar eine eigene volle Textzeile, sodass weder Beschriftungen abgeschnitten werden noch Avatare untereinander oder mit Lagergrafiken kollidieren. Beide Bestpreislinien besitzen dieselbe Stärke und dieselbe grüne Grundfarbe. Treffen sie für einen Handel zusammen, pulsiert die verschmolzene Linie als unmittelbares Transfersignal. Eine gut lesbar mit „Preis“ überschriebene feste Preisskala am rechten Arenarand ersetzt die kleinen dynamischen Preisfähnchen an den Linien. Jeder Skalenwert besitzt einen gleich langen horizontalen Strich, der symmetrisch nach links und rechts über die senkrechte Skalenachse reicht. Vorübergehende Handelsmeldungen erscheinen außerhalb der Arena und verdecken niemals Figuren. Spätere Figuren, Animationen, Effekte und Grafiken verändern nur die Präsentation. Zustände, Preisgrenzen, Bestpreisführung, Linienübergabe, Handelsreihenfolge und Einzeltransaktionen bleiben davon unabhängig und werden nicht neu definiert.
+
+Die gemeinsame Preislinie gehört nicht dauerhaft einem Teilnehmer. Im normalen Handel zeigt sie das beste aktuell aktive Angebot einer Marktseite. Während eines sichtbaren Rückzugs darf sie vorübergehend noch am bisherigen Linienführer hängen, ohne dass sein Angebot weiter handelbar ist. Zieht sich der führende Teilnehmer zurück, übernimmt das nächstbeste aktive Angebot die Linie, sobald es erreicht wird. Gibt es keinen weiteren Teilnehmer, führt der Rückweg die Linie bis zum entsprechenden HQ-Lagerpreis.
+
+Die Preisskala übernimmt die Anzeige der aktuellen Angebotshöhe. Deshalb zeigt ein Avatar während der Auktion keinen Preis, sondern seinen aktuellen Bestand der gehandelten Ressource. Beim Verkäufer sinkt diese Zahl pro Verkauf um eine Einheit, beim Käufer steigt sie pro Kauf um eine Einheit; die Anzeige aktualisiert sich unmittelbar und erhält einen kurzen Farbpuls. In der ersten technischen Marktstufe beginnt Orions sichtbarer Bestand je Ressourcenauktion bei vier Einheiten. Nova und Vega besitzen als reine Layout-Testfiguren noch keinen simulierten Bestand und bleiben mit „wartet“ gekennzeichnet.
+
+Die erste technische Ausbaustufe bildet nacheinander den Nahrungs-, Energie-, Erz- und Kristallmarkt gegen den KI-Konkurrenten „Konsortium Orion“ und das HQ-Gesamtlager ab. Vor jeder Ressource wird die Rolle neu gewählt. Orion beginnt sichtbar im neutralen Bereich und zeigt seine Entscheidung nach kurzer Bedenkzeit durch eine Bewegung an. Seine angezeigte Rolle gilt anschließend tatsächlich für die Auktion. Weitere Spieler werden anschließend auf demselben Marktprinzip ergänzt.
+
+Für die Erprobung des Vierer-Layouts werden Nova und Vega zunächst als sichtbare Testspieler eingeblendet. Sie zeigen Rollen und Platzbedarf, greifen in dieser Zwischenstufe aber noch nicht in Vorräte, Credits oder die Handelswarteschlange ein.
+
+## Zwischenstand nach der Marktphase
+
+Nach dem Kristallmarkt wird die Runde vollständig abgerechnet. Anschließend sehen alle Spieler vor Beginn der nächsten Planung denselben Zwischenstand. Die Rangliste vergleicht in dieser Reihenfolge:
+
+1. Bevölkerung
+2. Credits
+3. Gesamtzahl der eingelagerten Ressourcen
+4. Anzahl der eigenen Harvester
+
+Die Reihenfolge entspricht zugleich der vorläufigen Rangfolge bei Gleichstand: Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits, Ressourcen und Harvester. Die eigene Kolonie wird deutlich hervorgehoben. Der Zwischenstand bleibt genau fünf Sekunden sichtbar und wechselt danach ohne Bestätigung automatisch in die nächste Planungsrunde. Diese feste, gemeinsame Anzeigedauer dient später im Mehrspielermodus zugleich als synchroner Übergang für alle Teilnehmer.
+
+In der aktuellen Einzelspieler-Ausbaustufe stammen nur die Werte von Agima aus dem echten Spielzustand; Orion, Nova und Vega erhalten reproduzierbare, rundenabhängige Vergleichswerte. Sobald vollständige KI-Kolonien simuliert werden, ersetzen deren echte Zustände diese Platzhalter, ohne Aufbau und Sortierung der Rangliste zu verändern.
 
 ## Direkter Handel
 
