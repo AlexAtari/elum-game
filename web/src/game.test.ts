@@ -19,9 +19,10 @@ const normalSupply = {
 }
 
 describe('Markthandel', () => {
-  it('führt Nahrung und Energie in der vorgesehenen Reihenfolge', () => {
+  it('führt Nahrung, Energie und Erz in der vorgesehenen Reihenfolge', () => {
     expect(getNextMarketResource('food')).toBe('energy')
-    expect(getNextMarketResource('energy')).toBeNull()
+    expect(getNextMarketResource('energy')).toBe('ore')
+    expect(getNextMarketResource('ore')).toBeNull()
   })
 
   it('kauft eine Einheit und bezahlt den Handelspreis', () => {
@@ -137,6 +138,25 @@ describe('Markthandel', () => {
     expect(tradedState.resources.energy).toBe(11)
     expect(tradedState.market.energy.warehouseStock).toBe(19)
     expect(nextState.market.energy.referencePrice).toBe(9)
+  })
+
+  it('wendet die Erzpreise und Lagerlogik auf Erz an', () => {
+    const tradedState = executeMarketTrade(
+      createInitialGameState(),
+      'ore',
+      'buy',
+      20,
+      'warehouse',
+    )
+    const nextState = completeResourceMarket(
+      tradedState,
+      'ore',
+    )
+
+    expect(tradedState.credits).toBe(80)
+    expect(tradedState.resources.ore).toBe(6)
+    expect(tradedState.market.ore.warehouseStock).toBe(19)
+    expect(nextState.market.ore.referencePrice).toBe(16)
   })
 })
 

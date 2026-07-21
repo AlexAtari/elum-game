@@ -126,6 +126,7 @@ export const MARKET_PRICES: Record<MarketResource, number> = {
 export const playableMarketResources: MarketResource[] = [
   'food',
   'energy',
+  'ore',
 ]
 
 export const marketResourceTypes: Record<

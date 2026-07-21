@@ -42,7 +42,7 @@
 
 ### 🔬 Erster Marktprototyp
 
-- Die erste Marktphase handelt nacheinander Nahrung und Energie gegen „Konsortium Orion“ und das HQ-Gesamtlager. Vor jeder Ressource wird die Rolle neu gewählt.
+- Die erste Marktphase handelt nacheinander Nahrung, Energie und Erz gegen „Konsortium Orion“ und das HQ-Gesamtlager. Vor jeder Ressource wird die Rolle neu gewählt.
 - In Runde 1–3 stehen acht Sekunden für die Rollenwahl und 30 Sekunden für die Auktion zur Verfügung. Die Zeiten sinken später stufenweise auf sechs/25 und fünf/20 Sekunden.
 - Wählt niemand Käufer oder Verkäufer, wird die Ressourcenauktion ohne zusätzliche Wartezeit übersprungen.
 - Eine horizontale Linie zeigt den niedrigsten Verkaufspreis, eine zweite das höchste Kaufgebot. Beide Linien können sich berühren, aber nicht kreuzen.
@@ -50,7 +50,7 @@
 - Nach jeder einzelnen Einheit wird geprüft, welcher passende Handelspartner als Nächstes an der Reihe ist; bei Gleichstand gilt die Ankunftsreihenfolge.
 - Spieler und KI bewegen sich höchstens einen Preisschritt je 0,3 Sekunden. Orion darf einen fliehenden Spieler nicht durch höhere Geschwindigkeit einholen.
 - Orion handelt zunächst höchstens vier Einheiten und verfolgt nur bis zu seiner persönlichen Preisgrenze.
-- Das HQ kauft Nahrung und Energie drei Credits unter und verkauft sie drei Credits über dem jeweiligen Orientierungspreis.
+- Das HQ kauft Nahrung und Energie drei Credits sowie Erz fünf Credits unter dem Orientierungspreis und verkauft sie mit demselben Abstand darüber.
 - Nettoverkäufe an das HQ senken den Orientierungspreis der nächsten Runde; Nettokäufe aus dem HQ erhöhen ihn.
 - Ein Zeitbalken macht die verbleibende Auktionsdauer zusätzlich zur Sekundenanzeige sichtbar.
 - Während der Auktion werden allgemeiner Status und Rundenergebnis ausgeblendet. Sichtbar bleiben nur die gerade gehandelte Ressource, Credits, HQ-Bestand, Handelsverlauf und Preislinien.

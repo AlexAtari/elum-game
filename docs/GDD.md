@@ -394,7 +394,7 @@ Die Auktionsdauer wird im Spielverlauf kürzer. Neue Spieler erhalten dadurch in
 
 Während der Auktion zeigt die Oberfläche nur unmittelbar relevante Informationen: den eigenen Bestand der gehandelten Ressource, die eigenen Credits, den Bestand des HQ-Gesamtlager, die ausgeführten Geschäfte sowie die Preislinien. Die allgemeine Statusübersicht und das vorherige Rundenergebnis werden währenddessen ausgeblendet. Der neutrale Bereich „Nicht teilnehmen“ dient nur der Rollenwahl und verschwindet mit Beginn der Auktion. Steigende Werte werden bei einer Transaktion kurz grün, sinkende Werte kurz rot hervorgehoben.
 
-Die erste technische Ausbaustufe bildet den Nahrungs- und anschließend den Energiemarkt gegen den KI-Konkurrenten „Konsortium Orion“ und das HQ-Gesamtlager ab. Vor jeder Ressource wird die Rolle neu gewählt. Erz, Kristalle und weitere Spieler werden anschließend auf demselben Marktprinzip ergänzt.
+Die erste technische Ausbaustufe bildet nacheinander den Nahrungs-, Energie- und Erzmarkt gegen den KI-Konkurrenten „Konsortium Orion“ und das HQ-Gesamtlager ab. Vor jeder Ressource wird die Rolle neu gewählt. Kristalle und weitere Spieler werden anschließend auf demselben Marktprinzip ergänzt.
 
 ## Direkter Handel
 
