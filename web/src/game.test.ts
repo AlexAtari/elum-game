@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  cancelLandPurchase,
   createInitialGameState,
+  reserveLandPurchase,
   runRound,
   type GameState,
   type HarvesterAssignments,
@@ -10,6 +12,47 @@ const normalSupply = {
   foodLevel: 2,
   energyLevel: 2,
 }
+
+describe('Grundstückserwerb', () => {
+  it('reserviert den Kaufpreis und merkt ein freies Feld vor', () => {
+    const state = reserveLandPurchase(
+      createInitialGameState(),
+      'C',
+    )
+
+    expect(state.credits).toBe(75)
+    expect(state.pendingLandPurchaseId).toBe('C')
+    expect(state.ownedTileIds).toEqual(['A', 'B'])
+  })
+
+  it('erstattet beim Abbrechen den reservierten Kaufpreis', () => {
+    const reservedState = reserveLandPurchase(
+      createInitialGameState(),
+      'C',
+    )
+    const state = cancelLandPurchase(reservedState)
+
+    expect(state.credits).toBe(100)
+    expect(state.pendingLandPurchaseId).toBeNull()
+  })
+
+  it('überträgt das vorgemerkte Feld zu Beginn der nächsten Runde', () => {
+    const state = reserveLandPurchase(
+      createInitialGameState(),
+      'C',
+    )
+    const result = runRound(state, {}, normalSupply)
+
+    expect(result.nextState.credits).toBe(75)
+    expect(result.nextState.ownedTileIds).toEqual([
+      'A',
+      'B',
+      'C',
+    ])
+    expect(result.nextState.pendingLandPurchaseId).toBeNull()
+    expect(result.report.acquiredTileId).toBe('C')
+  })
+})
 
 describe('Versorgung und Bevölkerung', () => {
   it('verbraucht die geplante Versorgung und erhöht die Bevölkerung', () => {

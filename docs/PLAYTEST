@@ -23,6 +23,14 @@
 - Bei Energiemangel pausiert der Vorgang.
 - Energiebedarf und Produktionsdrosselung werden später im Balancing überprüft.
 
+### 🔬 Grundstückserwerb
+
+- Als technische Vorstufe zur Auktion kostet ein freies Grundstück zunächst fest 25 Credits.
+- Pro Runde kann höchstens ein Grundstück vorgemerkt werden.
+- Die Credits werden bei der Vormerkung reserviert und beim Abbrechen vollständig erstattet.
+- Das Grundstück geht zu Beginn der folgenden Runde in den Besitz des Spielers über.
+- Nach erfolgreichem Test wird die feste Vormerkung durch verdeckte Gebote und Konkurrenz ersetzt.
+
 ### ✔ Markt
 
 - M.U.L.E.-Marktmechanik wird grundsätzlich übernommen.

@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import HexMap from './components/HexMap'
 import {
+  cancelLandPurchase,
   calculateSupplyPreview,
   createInitialGameState,
+  reserveLandPurchase,
   runRound,
   type FreeHarvester,
   type HarvesterAssignments,
@@ -192,6 +194,16 @@ function App() {
     }
   }
 
+  const buyLand = (tileId: string) => {
+    setGameState((currentState) =>
+      reserveLandPurchase(currentState, tileId),
+    )
+  }
+
+  const cancelLandOrder = () => {
+    setGameState(cancelLandPurchase)
+  }
+
   const executeRound = () => {
     setGameState(plannedRound.nextState)
     setHarvesters(plannedRound.nextHarvesters)
@@ -250,8 +262,15 @@ function App() {
 
         <HexMap
           population={gameState.population}
+          credits={gameState.credits}
+          ownedTileIds={gameState.ownedTileIds}
+          pendingLandPurchaseId={
+            gameState.pendingLandPurchaseId
+          }
           freeHarvesters={freeHarvesters}
           harvesters={harvesters}
+          onBuyLand={buyLand}
+          onCancelLandOrder={cancelLandOrder}
           onAssignHarvester={assignHarvester}
           onChangeHarvesterProduction={changeHarvesterProduction}
           onRemoveHarvester={removeHarvester}
@@ -457,6 +476,13 @@ function App() {
                 Einrichtung/Umrüstung wegen Energiemangels
                 pausiert:{' '}
                 {lastReport.pausedRetoolingIds.join(', ')}
+              </p>
+            )}
+
+            {lastReport.acquiredTileId && (
+              <p className="report-success">
+                Grundstück übernommen: Feld{' '}
+                {lastReport.acquiredTileId}
               </p>
             )}
 

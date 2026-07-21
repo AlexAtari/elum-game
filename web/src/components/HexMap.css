@@ -65,6 +65,11 @@
   stroke: rgba(121, 221, 185, 0.75);
 }
 
+.hex-tile.pending polygon {
+  fill: rgba(116, 82, 31, 0.72);
+  stroke: rgba(255, 199, 102, 0.85);
+}
+
 .hex-tile.hq polygon {
   fill: rgba(48, 82, 148, 0.9);
   stroke: rgba(139, 177, 255, 0.85);
@@ -86,6 +91,14 @@
 .hex-owner-label {
   pointer-events: none;
   fill: #79ddb9;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.hex-pending-label {
+  pointer-events: none;
+  fill: #ffd28a;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -145,6 +158,48 @@
   cursor: not-allowed;
   color: #778196;
   background: rgba(255, 255, 255, 0.08);
+}
+
+.land-purchase-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid rgba(255, 199, 102, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 174, 66, 0.08);
+}
+
+.land-purchase-status span {
+  color: #aeb8cb;
+  font-size: 0.85rem;
+}
+
+.land-purchase-status strong {
+  color: #ffd28a;
+}
+
+.land-purchase-status p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.cancel-land-button {
+  margin-top: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 199, 102, 0.35);
+  border-radius: 10px;
+  color: #ffd28a;
+  background: rgba(255, 174, 66, 0.08);
+  font: inherit;
+  font-weight: 700;
+}
+
+.cancel-land-button:hover {
+  border-color: rgba(255, 199, 102, 0.7);
+  background: rgba(255, 174, 66, 0.14);
 }
 
 @media (max-width: 820px) {

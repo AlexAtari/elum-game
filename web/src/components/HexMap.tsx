@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  LAND_PRICE,
   productionTypes,
   tiles,
   type HarvesterAssignments,
@@ -9,8 +10,13 @@ import './HexMap.css'
 
 type HexMapProps = {
   population: number
+  credits: number
+  ownedTileIds: string[]
+  pendingLandPurchaseId: string | null
   freeHarvesters: number
   harvesters: HarvesterAssignments
+  onBuyLand: (tileId: string) => void
+  onCancelLandOrder: () => void
   onAssignHarvester: (
     tileId: string,
     production: ProductionType,
@@ -38,8 +44,13 @@ function formatStars(value = 0) {
 
 function HexMap({
   population,
+  credits,
+  ownedTileIds,
+  pendingLandPurchaseId,
   freeHarvesters,
   harvesters,
+  onBuyLand,
+  onCancelLandOrder,
   onAssignHarvester,
   onChangeHarvesterProduction,
   onRemoveHarvester,
@@ -53,6 +64,11 @@ function HexMap({
 
   const selectedHarvester = harvesters[selectedTile.id]
   const selectedProduction = selectedHarvester?.production
+  const selectedIsPlayerOwned = ownedTileIds.includes(
+    selectedTile.id,
+  )
+  const selectedIsPendingPurchase =
+    pendingLandPurchaseId === selectedTile.id
 
   const selectTile = (tileId: string) => {
     setSelectedId(tileId)
@@ -61,7 +77,7 @@ function HexMap({
 
   const assignHarvester = (production: ProductionType) => {
     if (
-      selectedTile.owner !== 'player' ||
+      !selectedIsPlayerOwned ||
       freeHarvesters <= 0 ||
       selectedProduction
     ) {
@@ -104,13 +120,24 @@ function HexMap({
             const isSelected = tile.id === selectedId
             const harvester = harvesters[tile.id]
             const production = harvester?.production
+            const isPlayerOwned = ownedTileIds.includes(tile.id)
+            const isPendingPurchase =
+              pendingLandPurchaseId === tile.id
+            const ownershipClass =
+              tile.owner === 'hq'
+                ? 'hq'
+                : isPlayerOwned
+                  ? 'player'
+                  : isPendingPurchase
+                    ? 'pending'
+                    : 'free'
 
             return (
               <g
                 key={tile.id}
                 className={[
                   'hex-tile',
-                  tile.owner,
+                  ownershipClass,
                   isSelected ? 'selected' : '',
                 ].join(' ')}
                 role="button"
@@ -138,7 +165,7 @@ function HexMap({
                   {tile.id}
                 </text>
 
-                {tile.owner === 'player' && !production && (
+                {isPlayerOwned && !production && (
                   <text
                     className="hex-owner-label"
                     x={tile.x}
@@ -146,6 +173,17 @@ function HexMap({
                     textAnchor="middle"
                   >
                     DEIN FELD
+                  </text>
+                )}
+
+                {isPendingPurchase && (
+                  <text
+                    className="hex-pending-label"
+                    x={tile.x}
+                    y={tile.y + 32}
+                    textAnchor="middle"
+                  >
+                    VORGEMERKT
                   </text>
                 )}
 
@@ -195,8 +233,10 @@ function HexMap({
           ) : (
             <>
               <p className="eyebrow">
-                {selectedTile.owner === 'player'
+                {selectedIsPlayerOwned
                   ? 'Eigenes Grundstück'
+                  : selectedIsPendingPurchase
+                    ? 'Übernahme vorgemerkt'
                   : 'Freies Grundstück'}
               </p>
 
@@ -217,7 +257,7 @@ function HexMap({
                 <strong>{formatStars(selectedTile.ore)}</strong>
               </div>
 
-              {selectedTile.owner === 'player' &&
+              {selectedIsPlayerOwned &&
                 selectedHarvester && (
                   <div className="harvester-status">
                     {selectedHarvester.pendingProduction ? (
@@ -288,7 +328,7 @@ function HexMap({
                   </div>
                 )}
 
-              {selectedTile.owner === 'player' &&
+              {selectedIsPlayerOwned &&
                 selectedHarvester &&
                 isChoosingProduction && (
                   <div className="production-picker">
@@ -330,7 +370,7 @@ function HexMap({
                   </div>
                 )}
 
-              {selectedTile.owner === 'player' &&
+              {selectedIsPlayerOwned &&
                 !selectedProduction &&
                 !selectedHarvester &&
                 !isChoosingProduction && (
@@ -348,7 +388,7 @@ function HexMap({
                   </button>
                 )}
 
-              {selectedTile.owner === 'player' &&
+              {selectedIsPlayerOwned &&
                 !selectedProduction &&
                 !selectedHarvester &&
                 isChoosingProduction && (
@@ -391,13 +431,46 @@ function HexMap({
                   </div>
                 )}
 
-              {selectedTile.owner === 'free' && (
+              {selectedTile.owner === 'free' &&
+                !selectedIsPlayerOwned &&
+                selectedIsPendingPurchase && (
+                  <div className="land-purchase-status">
+                    <span>📝 Grundstück vorgemerkt</span>
+                    <strong>
+                      {LAND_PRICE} Credits reserviert
+                    </strong>
+                    <p>
+                      Die Übernahme erfolgt zu Beginn der nächsten
+                      Runde.
+                    </p>
+
+                    <button
+                      className="cancel-land-button"
+                      type="button"
+                      onClick={onCancelLandOrder}
+                    >
+                      Vormerkung zurücknehmen
+                    </button>
+                  </div>
+                )}
+
+              {selectedTile.owner === 'free' &&
+                !selectedIsPlayerOwned &&
+                !selectedIsPendingPurchase && (
                 <button
                   className="field-button"
                   type="button"
-                  disabled
+                  disabled={
+                    credits < LAND_PRICE ||
+                    pendingLandPurchaseId !== null
+                  }
+                  onClick={() => onBuyLand(selectedTile.id)}
                 >
-                  Noch nicht im Besitz
+                  {credits < LAND_PRICE
+                    ? 'Nicht genügend Credits'
+                    : pendingLandPurchaseId
+                      ? 'Bereits ein Grundstück vorgemerkt'
+                      : `Für ${LAND_PRICE} Credits vormerken`}
                 </button>
               )}
             </>

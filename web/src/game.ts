@@ -12,6 +12,8 @@ export type GameState = {
   population: number
   credits: number
   resources: Resources
+  ownedTileIds: string[]
+  pendingLandPurchaseId: string | null
 }
 
 export type TileOwner = 'hq' | 'player' | 'free'
@@ -67,7 +69,10 @@ export type RoundReport = {
   inactiveHarvesterIds: string[]
   completedRetoolingIds: string[]
   pausedRetoolingIds: string[]
+  acquiredTileId: string | null
 }
+
+export const LAND_PRICE = 25
 
 export const productionTypes: Record<
   ProductionType,
@@ -157,6 +162,45 @@ export function createInitialGameState(): GameState {
       ore: 5,
       crystals: 0,
     },
+    ownedTileIds: ['A', 'B'],
+    pendingLandPurchaseId: null,
+  }
+}
+
+export function reserveLandPurchase(
+  currentState: GameState,
+  tileId: string,
+): GameState {
+  const tile = tiles.find((candidate) => candidate.id === tileId)
+
+  if (
+    !tile ||
+    tile.owner !== 'free' ||
+    currentState.ownedTileIds.includes(tileId) ||
+    currentState.pendingLandPurchaseId !== null ||
+    currentState.credits < LAND_PRICE
+  ) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    credits: currentState.credits - LAND_PRICE,
+    pendingLandPurchaseId: tileId,
+  }
+}
+
+export function cancelLandPurchase(
+  currentState: GameState,
+): GameState {
+  if (currentState.pendingLandPurchaseId === null) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    credits: currentState.credits + LAND_PRICE,
+    pendingLandPurchaseId: null,
   }
 }
 
@@ -431,6 +475,13 @@ export function runRound(
       ore: currentState.resources.ore + produced.ore,
       crystals: currentState.resources.crystals,
     },
+    ownedTileIds: currentState.pendingLandPurchaseId
+      ? [
+          ...currentState.ownedTileIds,
+          currentState.pendingLandPurchaseId,
+        ]
+      : currentState.ownedTileIds,
+    pendingLandPurchaseId: null,
   }
 
   return {
@@ -446,6 +497,7 @@ export function runRound(
       inactiveHarvesterIds,
       completedRetoolingIds,
       pausedRetoolingIds,
+      acquiredTileId: currentState.pendingLandPurchaseId,
     },
   }
 }
