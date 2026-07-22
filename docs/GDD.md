@@ -68,23 +68,29 @@ Alle Spieler planen gleichzeitig und verdeckt:
 - freie Harvester einsetzen
 - Produktionsart bestehender Harvester ändern
 - Nahrung und Energie für die Bevölkerung zuteilen
-- Marktteilnahme für die einzelnen Ressourcen festlegen
+- bei Bedarf eine Ressourcenauktion initiieren und daran teilnehmen
 
 ## 3. Grundstücksauktionen
 
 - Alle Gebote werden gleichzeitig aufgedeckt.
 - Der Höchstbietende gewinnt.
-- Gleichstände werden unmittelbar über eine Stichauktion entschieden.
+- Gleichstände werden unmittelbar in einer grafischen Stichauktion entschieden. Eine fünfsekündige Ankündigung nennt vorher das Feld, die Beteiligten und den Startpreis.
+- Der Startpreis beträgt das bisherige Gleichstandsgebot plus einen Credit. Nach dem Countdown läuft die eigentliche Auktion zehn Sekunden.
+- Die beteiligten Spieler starten unterhalb des Preisbalkens. Der erste Schritt nach oben aktiviert das Mindestgebot; weitere Schritte verändern das Gebot in Ein-Credit-Schritten.
+- Der zuerst erreichte Preis führt. Das bloße Erreichen desselben Preises übernimmt die Führung nicht; dafür ist ein um einen Credit höheres Gebot nötig.
+- Der Führende darf den Balken wieder nach unten ziehen. Er bleibt am Gebot des nächsten Spielers hängen, der dadurch die Führung übernimmt. Am Startpreis bleibt ein bereits aktiviertes Mindestgebot bestehen.
+- Der aktuell führende Spieler blinkt beziehungsweise pulsiert deutlich.
+- Gebote sind durch die verfügbaren Credits begrenzt. Aktiviert niemand den Startpreis, bleibt das Feld frei.
 
 Das Grundstück wird erst zu Beginn der nächsten Runde übertragen.
 
-## 4. Markt
+## 4. Freiwillige Ressourcenauktionen
 
-Die Ressourcen werden nacheinander in einer gemeinsamen, interaktiven Echtzeit-Marktphase gehandelt.
+Während der Planungsphase darf ein Spieler bei Bedarf eine interaktive Echtzeitauktion für Nahrung, Energie, Erz oder Kristalle initiieren. Jede Ressource kann global nur einmal pro Runde aufgerufen werden. Nach dem Start erhalten alle Spieler zehn Sekunden, um sich als Käufer, Verkäufer oder nicht teilnehmend einzuordnen.
 
-Der Markt findet vor der Versorgung und Produktion derselben Runde statt. Dadurch können Spieler fehlende Nahrung oder Energie noch kaufen und Überschüsse verkaufen, bevor die festgelegte Versorgung und die Harvester abgerechnet werden.
+Nach der einzelnen Auktion kehren alle Spieler in die Planungsphase zurück. Die übrigen Ressourcen starten nicht automatisch. Nicht initiierte Auktionen entfallen, sobald die Runde ausgeführt wird.
 
-Die Planung ist mit dem Start der Marktphase verbindlich. Neu produzierte Ressourcen stehen deshalb erst im Markt der folgenden Runde zum Verkauf bereit.
+Marktgeschäfte verändern Vorräte und Credits sofort. Dadurch können Spieler fehlende Nahrung oder Energie noch kaufen, bevor sie die Runde ausführen. Neu produzierte Ressourcen stehen dagegen erst in der folgenden Planungsphase für eine Auktion zur Verfügung.
 
 ## 5. Harvester einsetzen
 
@@ -187,7 +193,7 @@ Neue Grundstücke können ausschließlich ersteigert werden, wenn sie an mindest
 
 Freie Grundstücke werden über eine verdeckte Auktion vergeben.
 
-Bei identischen Höchstgeboten findet sofort eine Stichauktion zwischen den beteiligten Spielern statt.
+Bei identischen Höchstgeboten findet nach einer fünfsekündigen Ankündigung eine grafische Stichauktion zwischen den beteiligten Spielern statt. Der Startpreis liegt einen Credit über dem Gleichstandsgebot. Alle Beteiligten stehen zunächst darunter und können den gemeinsamen Bestgebotsbalken in Ein-Credit-Schritten nach oben schieben oder wieder zurückziehen. Wer einen Preis zuerst erreicht, behält bei einem späteren Gleichstand die Führung. Zieht sich der Führende bis zu einem wartenden Spieler zurück, bleibt der Balken dort hängen und die Führung wechselt. Der Führende wird durch einen Blinkeffekt hervorgehoben. Nach zehn Sekunden gewinnt er zu seinem angezeigten Gebot; ohne aktiviertes Mindestgebot bleibt das Feld frei.
 
 Die Gewinner erhalten das Grundstück zu Beginn der nächsten Runde.
 
@@ -369,20 +375,20 @@ Mit wachsender Bevölkerung entwickelt sich auch das Hauptquartier optisch weite
 
 # 11. Markt
 
-Die Marktphase findet einmal pro Runde nach der verbindlichen Planung, aber vor Versorgung und Produktion statt. Marktgeschäfte verändern die Vorräte sofort und fließen dadurch noch in die anschließende Rundenabrechnung ein. Die Produktion dieser Abrechnung steht dagegen erst in der folgenden Marktphase zur Verfügung.
+Ressourcenauktionen sind freiwillige Aktionen innerhalb der Planungsphase. Jeder Spieler darf eine noch verfügbare Auktion initiieren; global kann jede Ressource jedoch nur einmal pro Runde aufgerufen werden. Das verhindert wiederholte Märkte für dieselbe Ware und hält die Rundendauer kalkulierbar. Das Auktionsrecht gilt mit dem Aufruf als verbraucht, auch wenn anschließend niemand teilnimmt.
 
-Jede Ressource wird nacheinander gehandelt:
+Die frei wählbaren Ressourcenmärkte sind:
 
 1. 🌾 Nahrung
 2. ⚡ Energie
 3. ⛏ Erz
 4. 💎 Kristalle
 
-Vor dem Handel mit einer Ressource entscheidet jeder Spieler, ob er kaufen, verkaufen oder nicht teilnehmen möchte. Alle Teilnehmer sind dabei als Avatare im Markt sichtbar und bewegen sich nach ihrer Entscheidung in den Käufer-, Verkäufer- oder neutralen Bereich.
+Nach dem Aufruf wird die Planungsansicht durch eine Einladung ersetzt. Vor dem Handel mit der Ressource hat jeder Spieler genau zehn Sekunden Zeit, um zu entscheiden, ob er kaufen, verkaufen oder nicht teilnehmen möchte. Alle Teilnehmer sind dabei als Avatare im Markt sichtbar und bewegen sich nach ihrer Entscheidung in den Käufer-, Verkäufer- oder neutralen Bereich.
 
 Eine Bewegung nach oben meldet den Spieler als Verkäufer, eine Bewegung nach unten als Käufer und die Mittelposition als nicht teilnehmend. Bis zum Ablauf der Positionierungszeit darf die Auswahl geändert werden; danach ist die Rolle für diese Ressourcenauktion festgelegt. In frühen Runden steht mehr Entscheidungszeit zur Verfügung als in späteren Runden.
 
-Meldet sich kein Spieler als Käufer oder Verkäufer, wird die Ressourcenauktion vollständig übersprungen.
+Meldet sich kein Spieler als Käufer oder Verkäufer, wird die Ressourcenauktion vollständig übersprungen. Nach einer abgeschlossenen oder übersprungenen Auktion kehrt das Spiel in dieselbe Planungsphase zurück. Die Rundenabrechnung beginnt ausschließlich über „Runde ausführen“ und startet keine automatische Marktfolge.
 
 Käufer und Verkäufer handeln gleichzeitig auf einem gemeinsamen Markt.
 
@@ -423,13 +429,13 @@ Die gemeinsame Preislinie gehört nicht dauerhaft einem Teilnehmer. Im normalen 
 
 Die Preisskala übernimmt die Anzeige der aktuellen Angebotshöhe. Deshalb zeigt ein Avatar während der Auktion keinen Preis, sondern seinen aktuellen Bestand der gehandelten Ressource. Beim Verkäufer sinkt diese Zahl pro Verkauf um eine Einheit, beim Käufer steigt sie pro Kauf um eine Einheit; die Anzeige aktualisiert sich unmittelbar und erhält einen kurzen Farbpuls. In der ersten technischen Marktstufe beginnt Orions sichtbarer Bestand je Ressourcenauktion bei vier Einheiten. Nova und Vega besitzen als reine Layout-Testfiguren noch keinen simulierten Bestand und bleiben mit „wartet“ gekennzeichnet.
 
-Die erste technische Ausbaustufe bildet nacheinander den Nahrungs-, Energie-, Erz- und Kristallmarkt gegen den KI-Konkurrenten „Konsortium Orion“ und das HQ-Gesamtlager ab. Vor jeder Ressource wird die Rolle neu gewählt. Orion beginnt sichtbar im neutralen Bereich und zeigt seine Entscheidung nach kurzer Bedenkzeit durch eine Bewegung an. Seine angezeigte Rolle gilt anschließend tatsächlich für die Auktion. Weitere Spieler werden anschließend auf demselben Marktprinzip ergänzt.
+Die erste technische Ausbaustufe bildet frei initiierbare Nahrungs-, Energie-, Erz- und Kristallauktionen gegen den KI-Konkurrenten „Konsortium Orion“ und das HQ-Gesamtlager ab. Vor jeder einzelnen Auktion wird die Rolle neu gewählt. Orion beginnt sichtbar im neutralen Bereich und zeigt seine Entscheidung nach kurzer Bedenkzeit durch eine Bewegung an. Seine angezeigte Rolle gilt anschließend tatsächlich für die Auktion. Weitere Spieler werden anschließend auf demselben Marktprinzip ergänzt.
 
 Für die Erprobung des Vierer-Layouts werden Nova und Vega zunächst als sichtbare Testspieler eingeblendet. Sie zeigen Rollen und Platzbedarf, greifen in dieser Zwischenstufe aber noch nicht in Vorräte, Credits oder die Handelswarteschlange ein.
 
-## Zwischenstand nach der Marktphase
+## Zwischenstand nach der Rundenabrechnung
 
-Nach dem Kristallmarkt wird die Runde vollständig abgerechnet. Anschließend sehen alle Spieler vor Beginn der nächsten Planung denselben Zwischenstand. Die Rangliste vergleicht in dieser Reihenfolge:
+Nach „Runde ausführen“ wird die Runde vollständig abgerechnet. Anschließend sehen alle Spieler vor Beginn der nächsten Planung denselben Zwischenstand. Die Rangliste vergleicht in dieser Reihenfolge:
 
 1. Bevölkerung
 2. Credits
@@ -438,7 +444,7 @@ Nach dem Kristallmarkt wird die Runde vollständig abgerechnet. Anschließend se
 
 Die Reihenfolge entspricht zugleich der vorläufigen Rangfolge bei Gleichstand: Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits, Ressourcen und Harvester. Die eigene Kolonie wird deutlich hervorgehoben. Der Zwischenstand bleibt genau fünf Sekunden sichtbar und wechselt danach ohne Bestätigung automatisch in die nächste Planungsrunde. Diese feste, gemeinsame Anzeigedauer dient später im Mehrspielermodus zugleich als synchroner Übergang für alle Teilnehmer.
 
-In der aktuellen Einzelspieler-Ausbaustufe stammen nur die Werte von Agima aus dem echten Spielzustand; Orion, Nova und Vega erhalten reproduzierbare, rundenabhängige Vergleichswerte. Sobald vollständige KI-Kolonien simuliert werden, ersetzen deren echte Zustände diese Platzhalter, ohne Aufbau und Sortierung der Rangliste zu verändern.
+Alle vier Ranglistenplätze stammen aus dauerhaft gespeicherten Koloniezuständen. Orion, Nova und Vega besitzen jeweils eine eigene Bevölkerung, Credits, Ressourcenbestände und Harvesterzahl. In der ersten KI-Ausbaustufe werden ihre Versorgung und Produktion mit einer einfachen deterministischen Rundenroutine abgerechnet. Dadurch reagieren ihre Ranglistenwerte auf ihren tatsächlichen Vorrat und nicht mehr auf reine Anzeigeformeln. Grundstückserwerb, Harvesterbau und die vollständige Teilnahme der KI-Kolonien am Markt werden in den folgenden Ausbaustufen an denselben Zustand angeschlossen.
 
 ## Direkter Handel
 

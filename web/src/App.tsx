@@ -1,22 +1,25 @@
 import { useCallback, useMemo, useState } from 'react'
 import HexMap from './components/HexMap'
+import LandTieAuctionPanel from './components/LandTieAuctionPanel'
 import LeaderboardPanel from './components/LeaderboardPanel'
+import MarketLauncher from './components/MarketLauncher'
 import MarketPanel from './components/MarketPanel'
 import {
   beginLandTieBreak,
   cancelLandBid,
   calculateSupplyPreview,
-  completeRoundAfterMarket,
   completeResourceMarket,
   createLeaderboardEntries,
   createInitialGameState,
   executeMarketTrade,
-  getNextMarketResource,
+  initiateResourceMarket,
   orderHarvesterBuild,
   placeLandBid,
+  resolveLandTieBreak,
   runRound,
   type FreeHarvester,
   type HarvesterAssignments,
+  type LandTieBidState,
   type MarketCounterparty,
   type MarketDirection,
   type MarketResource,
@@ -94,10 +97,8 @@ function App() {
       createLeaderboardEntries(
         gameState,
         totalHarvesters,
-        lastReport?.roundPlayed ??
-          Math.max(1, gameState.round - 1),
       ),
-    [gameState, lastReport?.roundPlayed, totalHarvesters],
+    [gameState, totalHarvesters],
   )
 
   const startNewGame = () => {
@@ -275,39 +276,8 @@ function App() {
     [],
   )
 
-  const completeMarketResource = useCallback(
-    (resource: MarketResource) => {
-      if (
-        !activeMarket ||
-        activeMarket.resource !== resource
-      ) {
-        return
-      }
-
-      const nextResource = getNextMarketResource(resource)
-
-      if (nextResource) {
-        setGameState((currentState) =>
-          completeResourceMarket(currentState, resource),
-        )
-        setActiveMarket({
-          ...activeMarket,
-          resource: nextResource,
-        })
-        return
-      }
-
-      if (!pendingRound) {
-        return
-      }
-
-      const completedRound = completeRoundAfterMarket(
-        gameState,
-        resource,
-        pendingRound.harvesters,
-        pendingRound.supplyPlan,
-      )
-
+  const applyCompletedRound = useCallback(
+    (completedRound: ReturnType<typeof runRound>) => {
       setGameState(completedRound.nextState)
       setHarvesters(completedRound.nextHarvesters)
       if (completedRound.report.completedHarvesters > 0) {
@@ -324,31 +294,83 @@ function App() {
       setActiveMarket(null)
       setShowLeaderboard(true)
     },
-    [activeMarket, gameState, pendingRound],
+    [],
+  )
+
+  const initiateMarket = useCallback(
+    (resource: MarketResource) => {
+      if (
+        activeMarket !== null ||
+        gameState.initiatedMarketResources.includes(resource)
+      ) {
+        return
+      }
+
+      setGameState((currentState) =>
+        initiateResourceMarket(currentState, resource),
+      )
+      setActiveMarket({
+        roundPlayed: gameState.round,
+        resource,
+      })
+    },
+    [activeMarket, gameState.initiatedMarketResources, gameState.round],
+  )
+
+  const completeMarketResource = useCallback(
+    (resource: MarketResource) => {
+      if (
+        !activeMarket ||
+        activeMarket.resource !== resource
+      ) {
+        return
+      }
+
+      setGameState((currentState) =>
+        completeResourceMarket(currentState, resource),
+      )
+      setActiveMarket(null)
+    },
+    [activeMarket],
+  )
+
+  const completeLandTieAuction = useCallback(
+    (bids: LandTieBidState) => {
+      if (!pendingRound) {
+        return
+      }
+
+      const resolvedState = resolveLandTieBreak(gameState, bids)
+      const completedRound = runRound(
+        resolvedState,
+        pendingRound.harvesters,
+        pendingRound.supplyPlan,
+      )
+
+      applyCompletedRound(completedRound)
+    },
+    [applyCompletedRound, gameState, pendingRound],
   )
 
   const executeRound = () => {
-    if (plannedRound.report.landAuction?.outcome === 'tie') {
-      setGameState(beginLandTieBreak)
-      setLastReport(null)
-      return
-    }
-
-    const roundPlayed = gameState.round
-
-    setPendingRound({
+    const roundPlan: PendingRound = {
       harvesters: { ...harvesters },
       supplyPlan: {
         foodLevel: foodSupplyLevel,
         energyLevel: energySupplyLevel,
       },
-    })
+    }
+
+    setPendingRound(roundPlan)
     setLastReport(null)
     setShowLeaderboard(false)
-    setActiveMarket({
-      roundPlayed,
-      resource: 'food',
-    })
+
+    if (plannedRound.report.landAuction?.outcome === 'tie') {
+      setGameState(beginLandTieBreak)
+      return
+    }
+
+    applyCompletedRound(plannedRound)
   }
 
   const continueAfterLeaderboard = useCallback(() => {
@@ -359,7 +381,9 @@ function App() {
     return (
       <main
         className={`game-screen ${
-          activeMarket !== null ? 'market-screen' : ''
+          activeMarket !== null || gameState.landAuctionTie !== null
+            ? 'market-screen'
+            : ''
         }`}
       >
         <header className="game-header">
@@ -369,7 +393,9 @@ function App() {
           </div>
 
           <div className="round-badge">
-            {activeMarket !== null
+            {gameState.landAuctionTie !== null
+              ? `Stichauktion · Runde ${gameState.round}`
+              : activeMarket !== null
               ? `Markt · Runde ${activeMarket.roundPlayed}`
               : showLeaderboard && lastReport
                 ? `Zwischenstand · Runde ${lastReport.roundPlayed}`
@@ -377,7 +403,9 @@ function App() {
           </div>
         </header>
 
-        {activeMarket === null && !showLeaderboard && (
+        {activeMarket === null &&
+          gameState.landAuctionTie === null &&
+          !showLeaderboard && (
           <section className="status-panel">
             <h2>Status</h2>
 
@@ -415,7 +443,15 @@ function App() {
           </section>
         )}
 
-        {activeMarket !== null && activeResourceMarket ? (
+        {gameState.landAuctionTie !== null ? (
+          <LandTieAuctionPanel
+            key={`${gameState.round}-${gameState.landAuctionTie.tileId}`}
+            tie={gameState.landAuctionTie}
+            credits={gameState.credits}
+            orionCredits={gameState.rivals.orion.credits}
+            onComplete={completeLandTieAuction}
+          />
+        ) : activeMarket !== null && activeResourceMarket ? (
           <MarketPanel
             key={`${activeMarket.roundPlayed}-${activeMarket.resource}`}
             roundPlayed={activeMarket.roundPlayed}
@@ -426,9 +462,10 @@ function App() {
             credits={gameState.credits}
             referencePrice={activeResourceMarket.referencePrice}
             warehouseStock={activeResourceMarket.warehouseStock}
-            nextResource={getNextMarketResource(
-              activeMarket.resource,
-            )}
+            nextResource={null}
+            invitationSeconds={10}
+            initiatorName="Agima"
+            completionLabel="Zurück zur Planung"
             onTrade={tradeMarketResource}
             onComplete={completeMarketResource}
           />
@@ -462,6 +499,13 @@ function App() {
                 changeHarvesterProduction
               }
               onRemoveHarvester={removeHarvester}
+            />
+
+            <MarketLauncher
+              initiatedResources={
+                gameState.initiatedMarketResources
+              }
+              onInitiate={initiateMarket}
             />
 
             <section className="supply-panel">
@@ -556,9 +600,8 @@ function App() {
             </div>
 
             <p className="supply-preview-note">
-              Vorschau vor dem Markt. Käufe und Verkäufe werden
-              bei der anschließenden Rundenabrechnung
-              berücksichtigt.
+              Vorschau vor der Rundenabrechnung. Bereits
+              abgeschlossene Marktgeschäfte sind enthalten.
             </p>
 
             {supplyPreview.hasShortage && (
@@ -593,21 +636,24 @@ function App() {
                 type="button"
                 onClick={executeRound}
               >
-                Plan bestätigen &amp; Markt starten
+                Runde ausführen
               </button>
 
               <p>
-                Nach dem Markt werden Versorgung,
-                Harvesterenergie, Produktion und Bevölkerung
-                abgerechnet. Gewählt: {foodSupplyLevel} Nahrung
-                und {energySupplyLevel} Energie je zehn
+                Die Runde wird jetzt ohne automatische
+                Marktphase abgerechnet. Starte gewünschte
+                Auktionen vorher. Gewählt: {foodSupplyLevel}{' '}
+                Nahrung und {energySupplyLevel} Energie je zehn
                 Einwohner.
               </p>
             </section>
           </>
         )}
 
-        {activeMarket === null && !showLeaderboard && lastReport && (
+        {activeMarket === null &&
+          gameState.landAuctionTie === null &&
+          !showLeaderboard &&
+          lastReport && (
           <section className="round-report">
             <p className="eyebrow">
               Abrechnung Runde {lastReport.roundPlayed}

@@ -3,7 +3,7 @@
 
 **Version:** 0.2
 **Status:** Draft  
-**Last Updated:** 2026-07-21
+**Last Updated:** 2026-07-22
 
 ---
 
@@ -62,6 +62,18 @@ Grundsatz:
 | Marktauftrag abgeben | 0 AP |
 
 Für Version 0.1 können Grundstücke nicht verkauft werden.
+
+## Grundstücks-Stichauktion
+
+| Parameter | Vorläufiger Wert |
+|---|---:|
+| Ankündigungszeit | 5 Sekunden |
+| Dauer | 10 Sekunden |
+| Gebotsschritt | 1 Credit |
+| Eingabesperre zwischen Schritten | 0,3 Sekunden |
+| Orions Schrittintervall | 1,1 Sekunden |
+
+Bei identischen verdeckten Höchstgeboten werden die reservierten Credits zunächst wieder freigegeben. Der Startpreis der Stichauktion beträgt Gleichstandsgebot plus einen Credit. In der grafischen Stichauktion darf kein Teilnehmer oberhalb seiner verfügbaren Credits bieten. Wer einen Preis zuerst erreicht, bleibt bei einem anschließenden Gleichstand in Führung; die Führung wechselt erst bei einem höheren Gebot oder wenn der Führende seinen Balken bewusst bis zu einem wartenden Spieler zurückzieht. Ein abgegebenes Gebot kann nicht unter den Startpreis gesenkt werden. Der Führende wird durch einen pulsierenden Blinkeffekt sichtbar gemacht. Aktiviert niemand den Startpreis, bleibt das Feld frei. Der Gewinner bezahlt sein tatsächliches Schlussgebot.
 
 ---
 
@@ -243,13 +255,27 @@ Im ersten KI-Prototyp wählt Orion nach kurzer sichtbarer Bedenkzeit die Gegenro
 
 ## Marktzeiten
 
-| gespielte Runde | Positionierungszeit | Auktionszeit |
+| gespielte Runde | Einladungs- und Positionierungszeit | Auktionszeit |
 |---:|---:|---:|
-| 1 | 8 Sekunden | 30 Sekunden |
-| 2 | 6 Sekunden | 25 Sekunden |
-| ab 3 | 5 Sekunden | 20 Sekunden |
+| 1 | 10 Sekunden | 30 Sekunden |
+| 2 | 10 Sekunden | 25 Sekunden |
+| ab 3 | 10 Sekunden | 20 Sekunden |
 
 Nimmt niemand an einem Ressourcenmarkt teil, entfällt die Auktionszeit vollständig.
+
+Jede Ressource kann pro Runde global genau einmal initiiert werden. Das Recht wird bereits beim Aufruf verbraucht und zu Beginn der nächsten Runde für alle vier Ressourcen erneuert.
+
+## Vorläufige KI-Kolonien
+
+Orion, Nova und Vega besitzen eigene gespeicherte Koloniezustände. Ihre erste technische Rundenroutine verwendet dieselbe Normalversorgung wie Agima und produziert pro Harvester drei Einheiten nach einem festen, koloniespezifischen Produktionszyklus.
+
+| Kolonie | Produktionszyklus |
+|---|---|
+| Orion | Nahrung → Energie → Erz |
+| Nova | Nahrung → Energie → Nahrung → Erz |
+| Vega | Energie → Erz → Nahrung → Erz |
+
+Die Routine ist bewusst deterministisch, damit Playtests wiederholbar bleiben. Credits, Harvesterzahl und Grundstücke verändern sich in dieser Stufe noch nicht automatisch. Diese Werte werden erst durch die folgenden KI-Aktionen und die Anbindung an Markt und Grundstücksauktion verändert.
 
 ---
 

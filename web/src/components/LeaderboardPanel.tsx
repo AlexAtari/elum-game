@@ -108,8 +108,8 @@ function LeaderboardPanel({
 
       <div className="leaderboard-footer">
         <p>
-          Die Werte der drei KI-Kolonien sind in diesem
-          Prototyp noch simulierte Vergleichswerte.
+          Die KI-Kolonien besitzen eigene Vorräte und entwickeln
+          sich mit jeder Rundenabrechnung weiter.
         </p>
         <div className="leaderboard-countdown" aria-live="polite">
           <div>

@@ -7,59 +7,14 @@
 }
 
 .market-heading {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  gap: 0 20px;
 }
 
 .market-heading h2 {
   margin: 6px 0 0;
-}
-
-.market-timer {
-  min-width: 68px;
-  padding: 12px 16px;
-  border: 1px solid rgba(121, 221, 185, 0.35);
-  border-radius: 999px;
-  color: #79ddb9;
-  text-align: center;
-  font-size: 1.15rem;
-  font-weight: 800;
-}
-
-.market-time-track {
-  margin-top: 18px;
-}
-
-.market-time-label {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 7px;
-  color: #aeb8cb;
-  font-size: 0.82rem;
-}
-
-.market-time-label strong {
-  color: #e9edf7;
-}
-
-.market-time-bar {
-  height: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 999px;
-  background: rgba(3, 8, 18, 0.82);
-}
-
-.market-time-bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #79ddb9, #f0c96d);
-  box-shadow: 0 0 14px rgba(121, 221, 185, 0.32);
-  transition: width 900ms linear;
 }
 
 .market-summary {
@@ -202,56 +157,6 @@
       rgba(255, 255, 255, 0.06) 10%
     ),
     rgba(4, 10, 21, 0.72);
-}
-
-.market-price-scale {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 6;
-  width: 48px;
-  border-left: 1px solid rgba(121, 221, 185, 0.22);
-  background: rgba(4, 10, 21, 0.7);
-  pointer-events: none;
-}
-
-.market-price-scale-title {
-  position: absolute;
-  top: 14px;
-  right: 0;
-  left: 0;
-  color: #b9f3df;
-  text-align: center;
-  font-size: 0.7rem;
-  letter-spacing: 0;
-}
-
-.market-price-tick {
-  position: absolute;
-  right: 0;
-  display: block;
-  width: 100%;
-  height: 18px;
-  padding-right: 8px;
-  color: #b9f3df;
-  transform: translateY(50%);
-  text-align: right;
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 18px;
-}
-
-.market-price-tick::before {
-  position: absolute;
-  top: 50%;
-  left: -9px;
-  width: 18px;
-  height: 2px;
-  content: '';
-  background: #79ddb9;
-  transform: translateY(-50%);
-  box-shadow: 0 0 7px rgba(121, 221, 185, 0.45);
 }
 
 .market-zone {

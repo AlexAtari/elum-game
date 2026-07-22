@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  advanceRivalColonies,
   beginLandTieBreak,
   cancelLandBid,
   completeRoundAfterMarket,
@@ -10,9 +11,13 @@ import {
   getMarketTiming,
   getNextMarketResource,
   getOrionMarketRole,
+  initiateResourceMarket,
+  lowerLandTieBid,
   moveMarketOffer,
   orderHarvesterBuild,
   placeLandBid,
+  raiseLandTieBid,
+  resolveLandTieBreak,
   runRound,
   type GameState,
   type HarvesterAssignments,
@@ -136,6 +141,48 @@ describe('Markthandel', () => {
       auctionSeconds: 20,
     })
     expect(getMarketTiming(12)).toEqual(getMarketTiming(3))
+  })
+
+  it('erlaubt jede Ressourcenauktion nur einmal pro Runde', () => {
+    const initialState = createInitialGameState()
+    const afterFoodAuction = initiateResourceMarket(
+      initialState,
+      'food',
+    )
+    const duplicateAttempt = initiateResourceMarket(
+      afterFoodAuction,
+      'food',
+    )
+    const afterEnergyAuction = initiateResourceMarket(
+      afterFoodAuction,
+      'energy',
+    )
+
+    expect(afterFoodAuction.initiatedMarketResources).toEqual([
+      'food',
+    ])
+    expect(duplicateAttempt).toBe(afterFoodAuction)
+    expect(afterEnergyAuction.initiatedMarketResources).toEqual([
+      'food',
+      'energy',
+    ])
+  })
+
+  it('gibt alle Auktionsrechte zu Beginn der nächsten Runde frei', () => {
+    let state = createInitialGameState()
+
+    for (const resource of [
+      'food',
+      'energy',
+      'ore',
+      'crystals',
+    ] as const) {
+      state = initiateResourceMarket(state, resource)
+    }
+
+    const nextState = runRound(state, {}, normalSupply).nextState
+
+    expect(nextState.initiatedMarketResources).toEqual([])
   })
 
   it('kauft eine Einheit und bezahlt den Handelspreis', () => {
@@ -343,7 +390,7 @@ describe('Markthandel', () => {
 })
 
 describe('Rangliste', () => {
-  it('zeigt echte Spielerwerte und sortiert Bevölkerung zuerst', () => {
+  it('zeigt echte Koloniewerte und sortiert Bevölkerung zuerst', () => {
     const state: GameState = {
       ...createInitialGameState(),
       population: 15,
@@ -354,9 +401,25 @@ describe('Rangliste', () => {
         ore: 5,
         crystals: 6,
       },
+      rivals: {
+        ...createInitialGameState().rivals,
+        orion: {
+          ...createInitialGameState().rivals.orion,
+          population: 14,
+          credits: 31,
+          resources: {
+            food: 1,
+            energy: 2,
+            ore: 3,
+            crystals: 4,
+          },
+          harvesters: 5,
+        },
+      },
     }
-    const entries = createLeaderboardEntries(state, 4, 2)
+    const entries = createLeaderboardEntries(state, 4)
     const player = entries.find((entry) => entry.isPlayer)
+    const orion = entries.find((entry) => entry.id === 'orion')
 
     expect(player).toMatchObject({
       population: 15,
@@ -364,7 +427,60 @@ describe('Rangliste', () => {
       resources: 18,
       harvesters: 4,
     })
+    expect(orion).toMatchObject({
+      population: 14,
+      credits: 31,
+      resources: 10,
+      harvesters: 5,
+    })
     expect(entries[0].id).toBe('player')
+  })
+
+  it('entwickelt die gespeicherten KI-Kolonien pro Runde weiter', () => {
+    const initialRivals = createInitialGameState().rivals
+    const nextRivals = advanceRivalColonies(initialRivals, 1)
+
+    expect(nextRivals.orion).toMatchObject({
+      population: 11,
+      credits: 96,
+      harvesters: 2,
+      resources: {
+        food: 9,
+        energy: 9,
+        ore: 6,
+        crystals: 0,
+      },
+    })
+    expect(nextRivals.orion).not.toBe(initialRivals.orion)
+  })
+
+  it('lässt eine unversorgte KI-Bevölkerung schrumpfen', () => {
+    const initialRivals = createInitialGameState().rivals
+    const nextRivals = advanceRivalColonies(
+      {
+        ...initialRivals,
+        orion: {
+          ...initialRivals.orion,
+          resources: {
+            ...initialRivals.orion.resources,
+            food: 0,
+          },
+        },
+      },
+      1,
+    )
+
+    expect(nextRivals.orion.population).toBe(9)
+    expect(nextRivals.orion.resources.food).toBe(3)
+  })
+
+  it('rechnet die KI-Kolonien mit der Spielerunde genau einmal ab', () => {
+    const state = createInitialGameState()
+    const result = runRound(state, {}, normalSupply)
+
+    expect(result.nextState.rivals.orion.population).toBe(11)
+    expect(result.nextState.rivals.nova.population).toBe(10)
+    expect(result.nextState.rivals.vega.population).toBe(12)
   })
 })
 
@@ -473,7 +589,7 @@ describe('Grundstücksauktion', () => {
     expect(result.report.landAuction?.outcome).toBe('lost')
   })
 
-  it('fordert bei Gleichstand ein höheres Stichgebot', () => {
+  it('startet bei Gleichstand eine grafische Stichauktion', () => {
     const state = placeLandBid(
       createInitialGameState(),
       'C',
@@ -489,17 +605,226 @@ describe('Grundstücksauktion', () => {
       tiedBid: 30,
       minimumBid: 31,
     })
+  })
 
-    const newBidState = placeLandBid(
-      tieState,
-      'C',
-      35,
-      34,
+  it('lässt bei gleichem Preis den zuerst Führenden vorne', () => {
+    const start = {
+      playerBid: 30,
+      orionBid: 30,
+      leader: null,
+    } as const
+    const playerLeads = raiseLandTieBid(
+      start,
+      'player',
+      100,
     )
-    const result = runRound(newBidState, {}, normalSupply)
+    const orionDrawsLevel = raiseLandTieBid(
+      playerLeads,
+      'orion',
+      100,
+    )
+    const orionOvertakes = raiseLandTieBid(
+      orionDrawsLevel,
+      'orion',
+      100,
+    )
+
+    expect(playerLeads).toEqual({
+      playerBid: 31,
+      orionBid: 30,
+      leader: 'player',
+    })
+    expect(orionDrawsLevel).toEqual({
+      playerBid: 31,
+      orionBid: 31,
+      leader: 'player',
+    })
+    expect(orionOvertakes).toEqual({
+      playerBid: 31,
+      orionBid: 32,
+      leader: 'orion',
+    })
+  })
+
+  it('verhindert Gebote oberhalb der verfügbaren Credits', () => {
+    const bids = {
+      playerBid: 30,
+      orionBid: 30,
+      leader: null,
+    } as const
+
+    expect(raiseLandTieBid(bids, 'player', 30)).toBe(bids)
+  })
+
+  it('nimmt den Bestgebotsbalken bis zum nächsten Spieler zurück', () => {
+    const playerStillLeads = lowerLandTieBid(
+      {
+        playerBid: 34,
+        orionBid: 32,
+        leader: 'player',
+      },
+      'player',
+      31,
+    )
+    const orionTakesLine = lowerLandTieBid(
+      {
+        playerBid: 33,
+        orionBid: 32,
+        leader: 'player',
+      },
+      'player',
+      31,
+    )
+
+    expect(playerStillLeads).toEqual({
+      playerBid: 33,
+      orionBid: 32,
+      leader: 'player',
+    })
+    expect(orionTakesLine).toEqual({
+      playerBid: 32,
+      orionBid: 32,
+      leader: 'orion',
+    })
+  })
+
+  it('senkt ein abgegebenes Gebot nicht unter den Startpreis', () => {
+    const bids = {
+      playerBid: 31,
+      orionBid: 30,
+      leader: 'player',
+    } as const
+
+    expect(lowerLandTieBid(bids, 'player', 31)).toBe(bids)
+  })
+
+  it('gibt den Balken beim Rückzug am Startpreis an einen wartenden Spieler ab', () => {
+    const bids = lowerLandTieBid(
+      {
+        playerBid: 31,
+        orionBid: 31,
+        leader: 'player',
+      },
+      'player',
+      31,
+    )
+
+    expect(bids).toEqual({
+      playerBid: 31,
+      orionBid: 31,
+      leader: 'orion',
+    })
+  })
+
+  it('reserviert das Siegergebot der grafischen Stichauktion', () => {
+    const state = beginLandTieBreak(
+      placeLandBid(
+        createInitialGameState(),
+        'C',
+        30,
+        30,
+      ),
+    )
+    const resolvedState = resolveLandTieBreak(state, {
+      playerBid: 31,
+      orionBid: 30,
+      leader: 'player',
+    })
+
+    expect(resolvedState.credits).toBe(69)
+    expect(resolvedState.landAuctionTie).toBeNull()
+    expect(resolvedState.pendingLandBid).toEqual({
+      tileId: 'C',
+      amount: 31,
+      rivalBid: 30,
+      reservedCredits: 31,
+      tieWinner: 'player',
+    })
+
+    const result = runRound(resolvedState, {}, normalSupply)
 
     expect(result.report.landAuction?.outcome).toBe('won')
     expect(result.nextState.ownedTileIds).toContain('C')
+    expect(result.nextState.credits).toBe(69)
+  })
+
+  it('löst eine nicht bezahlbare Stichauktion ohne Sackgasse auf', () => {
+    const poorState: GameState = {
+      ...createInitialGameState(),
+      credits: 30,
+    }
+    const tieState = beginLandTieBreak(
+      placeLandBid(poorState, 'C', 30, 30),
+    )
+    const resolvedState = resolveLandTieBreak(tieState, {
+      playerBid: 30,
+      orionBid: 31,
+      leader: 'orion',
+    })
+
+    expect(resolvedState.credits).toBe(30)
+    expect(resolvedState.landAuctionTie).toBeNull()
+    expect(resolvedState.pendingLandBid).toEqual({
+      tileId: 'C',
+      amount: 30,
+      rivalBid: 31,
+      reservedCredits: 0,
+      tieWinner: 'orion',
+    })
+
+    const result = runRound(resolvedState, {}, normalSupply)
+
+    expect(result.report.landAuction?.outcome).toBe('lost')
+    expect(result.nextState.credits).toBe(30)
+    expect(result.nextState.opponentTileIds).toContain('C')
+    expect(result.nextState.rivals.orion.credits).toBe(65)
+  })
+
+  it('vergibt das Feld bei gleichem Schlussgebot an den zuerst Führenden', () => {
+    const state = beginLandTieBreak(
+      placeLandBid(
+        createInitialGameState(),
+        'C',
+        30,
+        30,
+      ),
+    )
+    const resolvedState = resolveLandTieBreak(state, {
+      playerBid: 31,
+      orionBid: 31,
+      leader: 'player',
+    })
+    const result = runRound(resolvedState, {}, normalSupply)
+
+    expect(result.report.landAuction).toEqual({
+      tileId: 'C',
+      playerBid: 31,
+      rivalBid: 31,
+      outcome: 'won',
+    })
+    expect(result.nextState.ownedTileIds).toContain('C')
+  })
+
+  it('lässt das Feld frei, wenn niemand das Gebot erhöht', () => {
+    const state = beginLandTieBreak(
+      placeLandBid(
+        createInitialGameState(),
+        'C',
+        30,
+        30,
+      ),
+    )
+    const resolvedState = resolveLandTieBreak(state, {
+      playerBid: 30,
+      orionBid: 30,
+      leader: null,
+    })
+
+    expect(resolvedState.credits).toBe(100)
+    expect(resolvedState.landAuctionTie).toBeNull()
+    expect(resolvedState.pendingLandBid).toBeNull()
+    expect(resolvedState.ownedTileIds).not.toContain('C')
+    expect(resolvedState.opponentTileIds).not.toContain('C')
   })
 })
 

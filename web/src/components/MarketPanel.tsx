@@ -15,6 +15,8 @@ import {
   type MarketResource,
   type MarketRole,
 } from '../game'
+import AuctionPriceScale from './AuctionPriceScale'
+import AuctionTimer from './AuctionTimer'
 import './MarketPanel.css'
 
 type MarketStage =
@@ -31,6 +33,9 @@ type MarketPanelProps = {
   referencePrice: number
   warehouseStock: number
   nextResource: MarketResource | null
+  invitationSeconds?: number
+  completionLabel?: string
+  initiatorName?: string
   onTrade: (
     resource: MarketResource,
     direction: MarketDirection,
@@ -124,11 +129,16 @@ function MarketPanel({
   referencePrice,
   warehouseStock,
   nextResource,
+  invitationSeconds,
+  completionLabel,
+  initiatorName,
   onTrade,
   onComplete,
 }: MarketPanelProps) {
-  const { declarationSeconds, auctionSeconds } =
-    getMarketTiming(roundPlayed)
+  const marketTiming = getMarketTiming(roundPlayed)
+  const declarationSeconds =
+    invitationSeconds ?? marketTiming.declarationSeconds
+  const auctionSeconds = marketTiming.auctionSeconds
   const resourceType = marketResourceTypes[resource]
   const warehousePrices = getWarehousePrices(
     resource,
@@ -611,53 +621,33 @@ function MarketPanel({
     stage === 'declaration' ? 'HQ-Lager' : sellerName
   const displayedBuyerName =
     stage === 'declaration' ? 'HQ-Lager' : buyerName
-  const priceScale = Array.from(
-    { length: maximumPrice - minimumPrice + 1 },
-    (_, index) => maximumPrice - index,
-  )
   const timerMaximum =
     stage === 'declaration' ? declarationSeconds : auctionSeconds
-  const timerProgress = Math.max(
-    0,
-    (secondsLeft / timerMaximum) * 100,
-  )
 
   return (
     <section className="market-panel">
       <div className="market-heading">
         <div>
           <p className="eyebrow">
-            Marktphase vor Abrechnung Runde {roundPlayed}
+            {stage === 'declaration' && initiatorName
+              ? `Auktionseinladung von ${initiatorName}`
+              : `Marktphase in Runde ${roundPlayed}`}
           </p>
           <h2>
             {resourceType.icon} {resourceType.auctionLabel}
           </h2>
         </div>
 
-        <div className="market-timer" aria-live="polite">
-          {secondsLeft}s
-        </div>
-      </div>
-
-      <div className="market-time-track">
-        <div className="market-time-label">
-          <span>
-            {stage === 'declaration'
+        <AuctionTimer
+          secondsLeft={secondsLeft}
+          totalSeconds={timerMaximum}
+          label={
+            stage === 'declaration'
               ? 'Restzeit Positionierung'
-              : 'Restzeit Auktion'}
-          </span>
-          <strong>{secondsLeft} Sekunden</strong>
-        </div>
-        <div
-          className="market-time-bar"
-          role="progressbar"
-          aria-label="Verbleibende Marktzeit"
-          aria-valuemin={0}
-          aria-valuemax={timerMaximum}
-          aria-valuenow={secondsLeft}
-        >
-          <span style={{ width: `${timerProgress}%` }} />
-        </div>
+              : 'Restzeit Auktion'
+          }
+          ariaLabel="Verbleibende Marktzeit"
+        />
       </div>
 
       <div className="market-summary">
@@ -749,29 +739,18 @@ function MarketPanel({
         className={`market-content market-content-${stage}`}
       >
         <div className="market-arena">
-          <div
-            className="market-price-scale"
-            aria-label={`Preisskala von ${minimumPrice} bis ${maximumPrice} Credits`}
-          >
-            <strong className="market-price-scale-title">
-              Preis
-            </strong>
-            {priceScale.map((price) => (
-              <span
-                key={price}
-                className="market-price-tick"
-                style={{
-                  bottom: pricePosition(
-                    price,
-                    minimumPrice,
-                    maximumPrice,
-                  ),
-                }}
-              >
-                {price}
-              </span>
-            ))}
-          </div>
+          <AuctionPriceScale
+            minimum={minimumPrice}
+            maximum={maximumPrice}
+            positionForPrice={(price) =>
+              pricePosition(
+                price,
+                minimumPrice,
+                maximumPrice,
+              )
+            }
+            ariaLabel={`Preisskala von ${minimumPrice} bis ${maximumPrice} Credits`}
+          />
 
           <div className="market-warehouse-gate warehouse-sell-gate">
             <span>📦 HQ-LAGER</span>
@@ -952,6 +931,9 @@ function MarketPanel({
               <p className="eyebrow">Positionierungsphase</p>
               <h3>Wie möchtest du teilnehmen?</h3>
               <p>
+                {initiatorName
+                  ? `${initiatorName} hat diese Auktion gestartet. `
+                  : ''}
                 Entscheide dich vor Ablauf der Zeit. Du kannst die
                 Position bis dahin jederzeit wechseln.
               </p>
@@ -1068,12 +1050,12 @@ function MarketPanel({
                 type="button"
                 onClick={() => onComplete(resource)}
               >
-                {nextResource
+                {completionLabel ?? (nextResource
                   ? `Weiter zur ${
                       marketResourceTypes[nextResource]
                         .auctionLabel
                     }`
-                  : 'Weiter zur Rangliste'}
+                  : 'Weiter zur Rangliste')}
               </button>
             </>
           )}

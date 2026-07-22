@@ -28,6 +28,20 @@ export type MarketState = Record<
   ResourceMarketState
 >
 
+export type RivalId = 'orion' | 'nova' | 'vega'
+
+export type RivalColonyState = {
+  id: RivalId
+  name: string
+  icon: string
+  population: number
+  credits: number
+  resources: Resources
+  harvesters: number
+}
+
+export type RivalColonies = Record<RivalId, RivalColonyState>
+
 export type GameState = {
   round: number
   population: number
@@ -38,7 +52,9 @@ export type GameState = {
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
   harvestersInConstruction: number
+  initiatedMarketResources: MarketResource[]
   market: MarketState
+  rivals: RivalColonies
 }
 
 export type LandBid = {
@@ -46,12 +62,22 @@ export type LandBid = {
   amount: number
   rivalBid: number
   tieMinimum?: number
+  reservedCredits?: number
+  tieWinner?: LandTieBidder
 }
 
 export type LandAuctionTie = {
   tileId: string
   tiedBid: number
   minimumBid: number
+}
+
+export type LandTieBidder = 'player' | 'orion'
+
+export type LandTieBidState = {
+  playerBid: number
+  orionBid: number
+  leader: LandTieBidder | null
 }
 
 export type LandAuctionResult = {
@@ -201,15 +227,20 @@ export function getMarketTiming(
   }
 }
 
+function getResourceTotal(resources: Resources) {
+  return Object.values(resources).reduce(
+    (total, amount) => total + amount,
+    0,
+  )
+}
+
 export function createLeaderboardEntries(
   currentState: GameState,
   playerHarvesterCount: number,
-  completedRound: number,
 ): LeaderboardEntry[] {
   const playerResources = Object.values(
     currentState.resources,
   ).reduce((total, amount) => total + amount, 0)
-  const round = Math.max(1, completedRound)
 
   const entries: LeaderboardEntry[] = [
     {
@@ -222,36 +253,16 @@ export function createLeaderboardEntries(
       harvesters: playerHarvesterCount,
       isPlayer: true,
     },
-    {
-      id: 'orion',
-      name: 'Konsortium Orion',
-      icon: '🤖',
-      population: 10 + Math.ceil(round * 0.8),
-      credits: 96 + round * 8,
-      resources: 22 + round * 2,
-      harvesters: 2 + Math.floor(round / 3),
+    ...Object.values(currentState.rivals).map((rival) => ({
+      id: rival.id,
+      name: rival.name,
+      icon: rival.icon,
+      population: rival.population,
+      credits: rival.credits,
+      resources: getResourceTotal(rival.resources),
+      harvesters: rival.harvesters,
       isPlayer: false,
-    },
-    {
-      id: 'nova',
-      name: 'Kolonie Nova',
-      icon: '👩‍🚀',
-      population: 9 + Math.ceil(round * 0.75),
-      credits: 112 + round * 5,
-      resources: 24 + round,
-      harvesters: 2 + Math.floor(round / 4),
-      isPlayer: false,
-    },
-    {
-      id: 'vega',
-      name: 'Kolonie Vega',
-      icon: '🧑‍🚀',
-      population: 11 + Math.floor(round * 0.6),
-      credits: 84 + round * 7,
-      resources: 20 + round * 3,
-      harvesters: 3 + Math.floor(round / 5),
-      isPlayer: false,
-    },
+    })),
   ]
 
   return entries.sort(
@@ -262,6 +273,91 @@ export function createLeaderboardEntries(
       second.harvesters - first.harvesters ||
       first.name.localeCompare(second.name),
   )
+}
+
+const rivalProductionCycles: Record<
+  RivalId,
+  ProductionType[]
+> = {
+  orion: ['food', 'energy', 'ore'],
+  nova: ['food', 'energy', 'food', 'ore'],
+  vega: ['energy', 'ore', 'food', 'ore'],
+}
+
+function getRivalProduction(
+  rival: RivalColonyState,
+  roundPlayed: number,
+): Record<ProductionType, number> {
+  const production = {
+    food: 0,
+    energy: 0,
+    ore: 0,
+  }
+  const cycle = rivalProductionCycles[rival.id]
+
+  for (let index = 0; index < rival.harvesters; index += 1) {
+    const productionType =
+      cycle[(roundPlayed - 1 + index) % cycle.length]
+
+    production[productionType] += 3
+  }
+
+  return production
+}
+
+export function advanceRivalColonies(
+  rivals: RivalColonies,
+  roundPlayed: number,
+): RivalColonies {
+  return Object.fromEntries(
+    Object.entries(rivals).map(([id, rival]) => {
+      const populationGroups = Math.ceil(rival.population / 10)
+      const plannedFood = populationGroups * 2
+      const plannedEnergy = populationGroups * 2
+      const consumedFood = Math.min(
+        rival.resources.food,
+        plannedFood,
+      )
+      const consumedEnergy = Math.min(
+        rival.resources.energy,
+        plannedEnergy,
+      )
+      const production = getRivalProduction(rival, roundPlayed)
+      const hasNormalSupply =
+        consumedFood === plannedFood &&
+        consumedEnergy === plannedEnergy
+      const hasNoSupply =
+        consumedFood === 0 || consumedEnergy === 0
+      const populationChange = hasNormalSupply
+        ? 1
+        : hasNoSupply
+          ? -1
+          : 0
+
+      return [
+        id,
+        {
+          ...rival,
+          population: Math.max(
+            1,
+            rival.population + populationChange,
+          ),
+          resources: {
+            food:
+              rival.resources.food -
+              consumedFood +
+              production.food,
+            energy:
+              rival.resources.energy -
+              consumedEnergy +
+              production.energy,
+            ore: rival.resources.ore + production.ore,
+            crystals: rival.resources.crystals,
+          },
+        },
+      ]
+    }),
+  ) as RivalColonies
 }
 
 export function moveMarketOffer(
@@ -447,6 +543,7 @@ export function createInitialGameState(): GameState {
     pendingLandBid: null,
     landAuctionTie: null,
     harvestersInConstruction: 0,
+    initiatedMarketResources: [],
     market: {
       food: {
         referencePrice: MARKET_PRICES.food,
@@ -467,6 +564,50 @@ export function createInitialGameState(): GameState {
         referencePrice: MARKET_PRICES.crystals,
         warehouseStock: 10,
         netWarehouseFlow: 0,
+      },
+    },
+    rivals: {
+      orion: {
+        id: 'orion',
+        name: 'Konsortium Orion',
+        icon: '🤖',
+        population: 10,
+        credits: 96,
+        resources: {
+          food: 8,
+          energy: 8,
+          ore: 6,
+          crystals: 0,
+        },
+        harvesters: 2,
+      },
+      nova: {
+        id: 'nova',
+        name: 'Kolonie Nova',
+        icon: '👩‍🚀',
+        population: 9,
+        credits: 112,
+        resources: {
+          food: 9,
+          energy: 8,
+          ore: 7,
+          crystals: 0,
+        },
+        harvesters: 2,
+      },
+      vega: {
+        id: 'vega',
+        name: 'Kolonie Vega',
+        icon: '🧑‍🚀',
+        population: 11,
+        credits: 84,
+        resources: {
+          food: 6,
+          energy: 7,
+          ore: 7,
+          crystals: 0,
+        },
+        harvesters: 3,
       },
     },
   }
@@ -561,6 +702,23 @@ export function executeMarketTrade(
             },
           }
         : currentState.market,
+  }
+}
+
+export function initiateResourceMarket(
+  currentState: GameState,
+  resource: MarketResource,
+): GameState {
+  if (currentState.initiatedMarketResources.includes(resource)) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    initiatedMarketResources: [
+      ...currentState.initiatedMarketResources,
+      resource,
+    ],
   }
 }
 
@@ -698,7 +856,9 @@ export function cancelLandBid(
 
   return {
     ...currentState,
-    credits: currentState.credits + bid.amount,
+    credits:
+      currentState.credits +
+      (bid.reservedCredits ?? bid.amount),
     pendingLandBid: null,
     landAuctionTie: bid.tieMinimum
       ? {
@@ -721,13 +881,149 @@ export function beginLandTieBreak(
 
   return {
     ...currentState,
-    credits: currentState.credits + bid.amount,
+    credits:
+      currentState.credits +
+      (bid.reservedCredits ?? bid.amount),
     pendingLandBid: null,
     landAuctionTie: {
       tileId: bid.tileId,
       tiedBid: bid.amount,
       minimumBid: bid.amount + 1,
     },
+  }
+}
+
+export function raiseLandTieBid(
+  currentBids: LandTieBidState,
+  bidder: LandTieBidder,
+  creditLimit: number,
+): LandTieBidState {
+  const ownBid =
+    bidder === 'player'
+      ? currentBids.playerBid
+      : currentBids.orionBid
+  const opposingBid =
+    bidder === 'player'
+      ? currentBids.orionBid
+      : currentBids.playerBid
+  const nextBid = ownBid + 1
+
+  if (nextBid > creditLimit) {
+    return currentBids
+  }
+
+  return {
+    ...currentBids,
+    playerBid:
+      bidder === 'player' ? nextBid : currentBids.playerBid,
+    orionBid:
+      bidder === 'orion' ? nextBid : currentBids.orionBid,
+    leader:
+      nextBid > opposingBid
+        ? bidder
+        : currentBids.leader ?? bidder,
+  }
+}
+
+export function lowerLandTieBid(
+  currentBids: LandTieBidState,
+  bidder: LandTieBidder,
+  minimumBid: number,
+): LandTieBidState {
+  const ownBid =
+    bidder === 'player'
+      ? currentBids.playerBid
+      : currentBids.orionBid
+
+  if (ownBid < minimumBid) {
+    return currentBids
+  }
+  const opposingBid =
+    bidder === 'player'
+      ? currentBids.orionBid
+      : currentBids.playerBid
+  const opposingBidder: LandTieBidder =
+    bidder === 'player' ? 'orion' : 'player'
+
+  if (ownBid === minimumBid) {
+    if (
+      currentBids.leader === bidder &&
+      opposingBid >= minimumBid
+    ) {
+      return {
+        ...currentBids,
+        leader: opposingBidder,
+      }
+    }
+
+    return currentBids
+  }
+
+  const nextBid = ownBid - 1
+  const leader =
+    currentBids.leader === bidder && nextBid <= opposingBid
+      ? opposingBidder
+      : currentBids.leader
+
+  return {
+    ...currentBids,
+    playerBid:
+      bidder === 'player' ? nextBid : currentBids.playerBid,
+    orionBid:
+      bidder === 'orion' ? nextBid : currentBids.orionBid,
+    leader,
+  }
+}
+
+export function resolveLandTieBreak(
+  currentState: GameState,
+  bids: LandTieBidState,
+): GameState {
+  const tie = currentState.landAuctionTie
+
+  if (!tie) {
+    return currentState
+  }
+
+  if (bids.leader === null) {
+    return {
+      ...currentState,
+      landAuctionTie: null,
+    }
+  }
+
+  if (
+    bids.leader === 'player' &&
+    (bids.playerBid < bids.orionBid ||
+      bids.playerBid < tie.minimumBid ||
+      currentState.credits < bids.playerBid)
+  ) {
+    return currentState
+  }
+
+  if (
+    bids.leader === 'orion' &&
+    (bids.orionBid < bids.playerBid ||
+      bids.orionBid < tie.minimumBid)
+  ) {
+    return currentState
+  }
+
+  const playerWon = bids.leader === 'player'
+
+  return {
+    ...currentState,
+    credits: playerWon
+      ? currentState.credits - bids.playerBid
+      : currentState.credits,
+    pendingLandBid: {
+      tileId: tie.tileId,
+      amount: bids.playerBid,
+      rivalBid: bids.orionBid,
+      reservedCredits: playerWon ? bids.playerBid : 0,
+      tieWinner: bids.leader,
+    },
+    landAuctionTie: null,
   }
 }
 
@@ -989,7 +1285,11 @@ export function runRound(
         playerBid: landBid.amount,
         rivalBid: landBid.rivalBid,
         outcome:
-          landBid.amount > landBid.rivalBid
+          landBid.tieWinner === 'player'
+            ? 'won'
+            : landBid.tieWinner === 'orion'
+              ? 'lost'
+              : landBid.amount > landBid.rivalBid
             ? 'won'
             : landBid.amount < landBid.rivalBid
               ? 'lost'
@@ -1000,6 +1300,22 @@ export function runRound(
   const playerWonLand = landAuction?.outcome === 'won'
   const rivalWonLand = landAuction?.outcome === 'lost'
   const tiedLandAuction = landAuction?.outcome === 'tie'
+  const advancedRivals = advanceRivalColonies(
+    currentState.rivals,
+    currentState.round,
+  )
+  const rivalsAfterLandAuction = rivalWonLand
+    ? {
+        ...advancedRivals,
+        orion: {
+          ...advancedRivals.orion,
+          credits: Math.max(
+            0,
+            advancedRivals.orion.credits - landBid!.rivalBid,
+          ),
+        },
+      }
+    : advancedRivals
 
   const nextState: GameState = {
     round: currentState.round + 1,
@@ -1009,7 +1325,9 @@ export function runRound(
     ),
     credits:
       currentState.credits +
-      (landBid && !playerWonLand ? landBid.amount : 0),
+      (landBid && !playerWonLand
+        ? (landBid.reservedCredits ?? landBid.amount)
+        : 0),
     resources: {
       food:
         currentState.resources.food -
@@ -1041,7 +1359,9 @@ export function runRound(
         }
       : null,
     harvestersInConstruction: 0,
+    initiatedMarketResources: [],
     market: currentState.market,
+    rivals: rivalsAfterLandAuction,
   }
 
   return {

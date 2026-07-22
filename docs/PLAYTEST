@@ -31,7 +31,10 @@
 - Das Mindestgebot beträgt 25 Credits und pro Runde kann höchstens ein verdecktes Gebot abgegeben werden.
 - Die Credits werden bei Gebotsabgabe reserviert und beim Zurücknehmen oder bei einer Niederlage vollständig erstattet.
 - Das höhere Gebot gewinnt; das Feld geht zu Beginn der folgenden Runde an den Gewinner.
-- Bei Gleichstand stoppt die Rundenausführung und es wird sofort ein höheres Stichgebot verlangt.
+- Bei Gleichstand kündigt ein fünfsekündiger Countdown Feld, Beteiligte und Startpreis an. Danach startet die zehnsekündige grafische Stichauktion beim Gleichstandsgebot plus einem Credit.
+- Der erste Schritt nach oben aktiviert das Mindestgebot. Die Beteiligten können den gemeinsamen Balken anschließend in Ein-Credit-Schritten erhöhen oder wieder senken; der zuerst erreichte Preis führt und der Führende blinkt sichtbar.
+- Ein später gleichziehender Spieler übernimmt die Führung nicht. Er muss den bisherigen Führenden um mindestens einen Credit überbieten. Zieht sich der Führende dagegen bewusst bis zu einem wartenden Spieler zurück, übernimmt dieser den Balken.
+- Niemand kann oberhalb seiner verfügbaren Credits oder unterhalb des aktivierten Startpreises bieten. Aktiviert niemand den Startpreis, bleibt das Feld frei und die Runde läuft automatisch weiter.
 - Orions vorläufige Gebotslogik dient nur dem Einzelspieler-Prototyp und wird später im Balancing überprüft.
 
 ### ✔ Markt
@@ -42,12 +45,14 @@
 
 ### 🔬 Erster Marktprototyp
 
-- Mit „Plan bestätigen & Markt starten“ werden Versorgung und Harvesteraufträge für die Runde festgeschrieben. Danach folgen Nahrung, Energie, Erz und Kristalle; erst nach dem Kristallmarkt werden Versorgung, Harvesterenergie, Produktion, Bauabschlüsse und Bevölkerung abgerechnet.
-- Käufe aus der Marktphase stehen bereits für die unmittelbar folgende Versorgung zur Verfügung. Die erst danach erzeugte Produktion kann dagegen frühestens im Markt der nächsten Runde verkauft werden.
-- Die erste Marktphase handelt nacheinander Nahrung, Energie, Erz und Kristalle gegen „Konsortium Orion“ und das HQ-Gesamtlager. Vor jeder Ressource wird die Rolle neu gewählt.
+- Nahrung, Energie, Erz und Kristalle besitzen in der Planungsansicht jeweils einen eigenen Knopf „Auktion initiieren“. Jede Ressource kann global genau einmal pro Runde aufgerufen werden; danach zeigt ihr Knopf „In dieser Runde durchgeführt“ und bleibt bis zur nächsten Runde gesperrt.
+- Nach dem Aufruf erhalten alle Spieler zehn Sekunden für Käufer, Verkäufer oder Nichtteilnahme. Danach läuft ausschließlich die gewählte Ressourcenauktion. Anschließend kehrt das Spiel in dieselbe Planungsphase zurück; es startet weder die nächste Ressource noch automatisch die Rundenabrechnung.
+- Mit „Runde ausführen“ werden Versorgung, Harvesterenergie, Produktion, Bauabschlüsse, Grundstücke und Bevölkerung ohne automatische Marktphase abgerechnet. Nicht genutzte Auktionsrechte verfallen und werden in der nächsten Runde erneuert.
+- Bereits ausgeführte Käufe stehen für die Versorgung derselben Runde zur Verfügung. Die erst bei „Runde ausführen“ erzeugte Produktion kann dagegen frühestens in der nächsten Runde verkauft werden.
+- Die Ressourcenauktionen handeln gegen „Konsortium Orion“ und das HQ-Gesamtlager. Vor jeder einzeln initiierten Ressource wird die Rolle neu gewählt.
 - Während der Rollenwahl sind Spieler und Orion gleichzeitig sichtbar. Orion startet in der Mitte und bewegt sich nach 1,2 Sekunden zu Kaufen, Verkaufen oder Aussetzen; die angezeigte Wahl gilt für die folgende Auktion.
 - Nova und Vega werden als gekennzeichnete Layout-Testspieler angezeigt, damit Lesbarkeit und Platzbedarf mit vier Teilnehmern geprüft werden können. Sie handeln in dieser Zwischenstufe noch nicht.
-- In Runde 1 stehen acht Sekunden für die Rollenwahl und 30 Sekunden für die Auktion zur Verfügung. Runde 2 sinkt auf sechs/25 Sekunden. Ab Runde 3 bleiben die Zeiten dauerhaft bei fünf/20 Sekunden.
+- In jeder Runde stehen zehn Sekunden für die Einladung und Rollenwahl zur Verfügung. Die eigentliche Auktion dauert in Runde 1 30 Sekunden, in Runde 2 25 Sekunden und ab Runde 3 dauerhaft 20 Sekunden.
 - Wählt niemand Käufer oder Verkäufer, wird die Ressourcenauktion ohne zusätzliche Wartezeit übersprungen.
 - Eine horizontale Linie zeigt den niedrigsten Verkaufspreis, eine zweite das höchste Kaufgebot. Beide Linien können sich berühren, aber nicht kreuzen.
 - Bei Kontakt startet der Handel mit einer Einheit pro Sekunde und beschleunigt nach drei sowie sechs Sekunden ununterbrochenem Kontakt.
@@ -71,9 +76,9 @@
 
 ### 🔬 Ranglistenprototyp
 
-- Nach dem Kristallmarkt erfolgt zuerst die Rundenabrechnung und anschließend eine eigene Ranglistenansicht.
+- Nach „Runde ausführen“ erfolgt die Rundenabrechnung und anschließend eine eigene Ranglistenansicht.
 - Sortiert wird nach Bevölkerung, Credits, Gesamtressourcen und Harvesterzahl. Die eigene Kolonie ist hervorgehoben.
-- Agima verwendet echte Werte. Orion, Nova und Vega verwenden bis zur vollständigen KI-Simulation reproduzierbare rundenabhängige Vergleichswerte.
+- Agima, Orion, Nova und Vega verwenden dauerhaft gespeicherte Koloniewerte. Die KI-Kolonien versorgen ihre Bevölkerung und produzieren mit einer einfachen, reproduzierbaren Rundenroutine. Marktentscheidungen, Grundstückskäufe und Harvesterbau werden anschließend ergänzt.
 - Die Rangliste bleibt fünf Sekunden sichtbar. Ein Countdown zeigt die Restzeit; danach öffnet sich die nächste Planungsansicht automatisch und ohne Weiter-Button.
 
 ### ✔ Karte
