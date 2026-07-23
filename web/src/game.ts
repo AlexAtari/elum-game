@@ -127,8 +127,8 @@ export type TileOwner = 'hq' | 'player' | 'free'
 
 export type Tile = {
   id: string
-  x: number
-  y: number
+  q: number
+  r: number
   owner: TileOwner
   food?: number
   energy?: number
@@ -924,64 +924,112 @@ export const productionTypes: Record<
   },
 }
 
-export const tiles: Tile[] = [
-  { id: 'HQ', x: 350, y: 250, owner: 'hq' },
+const MAP_RADIUS = 4
 
-  {
-    id: 'A',
-    x: 350,
-    y: 106,
-    owner: 'player',
-    food: 4,
-    energy: 2,
-    ore: 4,
-  },
-  {
-    id: 'B',
-    x: 475,
-    y: 178,
-    owner: 'player',
-    food: 3,
-    energy: 4,
-    ore: 2,
-  },
-  {
-    id: 'C',
-    x: 475,
-    y: 322,
-    owner: 'free',
-    food: 2,
-    energy: 5,
-    ore: 1,
-  },
-  {
-    id: 'D',
-    x: 350,
-    y: 394,
-    owner: 'free',
-    food: 1,
-    energy: 3,
-    ore: 5,
-  },
-  {
-    id: 'E',
-    x: 225,
-    y: 322,
-    owner: 'free',
-    food: 5,
-    energy: 2,
-    ore: 2,
-  },
-  {
-    id: 'F',
-    x: 225,
-    y: 178,
-    owner: 'free',
-    food: 2,
-    energy: 3,
-    ore: 4,
-  },
+const firstRingRatings: Array<
+  Pick<Tile, 'food' | 'energy' | 'ore'>
+> = [
+  { food: 4, energy: 2, ore: 4 },
+  { food: 3, energy: 4, ore: 2 },
+  { food: 2, energy: 5, ore: 1 },
+  { food: 1, energy: 3, ore: 5 },
+  { food: 5, energy: 2, ore: 2 },
+  { food: 2, energy: 3, ore: 4 },
 ]
+
+const clockwiseHexDirections = [
+  { q: 1, r: 0 },
+  { q: 0, r: 1 },
+  { q: -1, r: 1 },
+  { q: -1, r: 0 },
+  { q: 0, r: -1 },
+  { q: 1, r: -1 },
+]
+
+function createTileId(index: number) {
+  let remainingIndex = index
+  let id = ''
+
+  do {
+    id =
+      String.fromCharCode(65 + (remainingIndex % 26)) + id
+    remainingIndex = Math.floor(remainingIndex / 26) - 1
+  } while (remainingIndex >= 0)
+
+  return id
+}
+
+function getGeneratedRating(
+  q: number,
+  r: number,
+  resourceOffset: number,
+) {
+  const value = Math.abs(
+    q * (3 + resourceOffset) +
+      r * (5 - resourceOffset) +
+      q * r * (resourceOffset + 1) +
+      resourceOffset * 7,
+  )
+
+  return (value % 5) + 1
+}
+
+function createMapTiles(radius: number): Tile[] {
+  const generatedTiles: Tile[] = [
+    { id: 'HQ', q: 0, r: 0, owner: 'hq' },
+  ]
+  let tileIndex = 0
+
+  for (
+    let ringRadius = 1;
+    ringRadius <= radius;
+    ringRadius += 1
+  ) {
+    let q = 0
+    let r = -ringRadius
+
+    clockwiseHexDirections.forEach((direction) => {
+      for (let step = 0; step < ringRadius; step += 1) {
+        const preservedRatings =
+          ringRadius === 1
+            ? firstRingRatings[tileIndex]
+            : undefined
+
+        generatedTiles.push({
+          id: createTileId(tileIndex),
+          q,
+          r,
+          owner: tileIndex < 2 ? 'player' : 'free',
+          food:
+            preservedRatings?.food ??
+            getGeneratedRating(q, r, 0),
+          energy:
+            preservedRatings?.energy ??
+            getGeneratedRating(q, r, 1),
+          ore:
+            preservedRatings?.ore ??
+            getGeneratedRating(q, r, 2),
+        })
+
+        tileIndex += 1
+        q += direction.q
+        r += direction.r
+      }
+    })
+  }
+
+  return generatedTiles
+}
+
+export const tiles: Tile[] = createMapTiles(MAP_RADIUS)
+
+export function getHexDistanceFromHq(tile: Tile) {
+  return (
+    Math.abs(tile.q) +
+    Math.abs(tile.r) +
+    Math.abs(tile.q + tile.r)
+  ) / 2
+}
 
 export function createInitialGameState(): GameState {
   return {
@@ -1497,13 +1545,7 @@ function getRating(tile: Tile, production: ProductionType) {
 }
 
 function getDistanceFromHq(tile: Tile) {
-  const hq = tiles.find((candidate) => candidate.owner === 'hq')
-
-  if (!hq) {
-    return 0
-  }
-
-  return Math.hypot(tile.x - hq.x, tile.y - hq.y)
+  return getHexDistanceFromHq(tile)
 }
 
 const deactivationPriority: Record<ProductionType, number> = {

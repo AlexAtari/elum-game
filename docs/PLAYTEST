@@ -119,3 +119,22 @@
 
 - Balancing erfolgt möglichst über Kartendesign statt über zusätzliche Regeln.
 - Nebel des Krieges bleibt spielerabhängig.
+- Der technische Prototyp zeigt ein HQ und 60 Grundstücke in vier
+  Hexringen. Die bisherigen Startfelder A bis F behalten Lage und
+  Ressourcenwerte.
+- Auf Desktop prüfen: Karte ziehen, mit dem Mausrad zoomen, ein Feld
+  nach einer Kamerabewegung auswählen und mit „HQ“ zurücksetzen.
+- Auf Smartphone und Tablet prüfen: Ein-Finger-Verschieben,
+  Zwei-Finger-Zoom und die mindestens 44 Pixel großen
+  Plus-/Minus-/HQ-Schaltflächen.
+- Eine Kamerabewegung darf kein Grundstück auswählen. Umgekehrt muss
+  ein kurzes Antippen weiterhin zuverlässig die Detailansicht öffnen.
+- Die vollständige Karte darf größer als der sichtbare Ausschnitt
+  sein; der Spieler muss jeden Randbereich ohne Seiten-Scrollen der
+  App erreichen können.
+- Auswahlkontur und grüne Hover-Kontur müssen an allen sechs Kanten
+  gleich dick und vollständig sichtbar sein, auch wenn das Feld von
+  sechs Nachbarn umgeben ist.
+- Die vorläufige Geländeschicht muss Nahrung, Energie und Erz
+  unterscheidbar andeuten, darf Besitzsfarben, Feldnamen und
+  Produktionssymbole aber nicht überdecken.

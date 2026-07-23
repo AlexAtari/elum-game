@@ -13,6 +13,7 @@ import {
   getEventScale,
   getGlobalEventAmount,
   getHarvesterCreditCost,
+  getHexDistanceFromHq,
   getLocalEventAmount,
   getMarketTiming,
   getNextMarketResource,
@@ -35,6 +36,7 @@ import {
   runRound,
   selectGlobalEvent,
   selectLocalEvent,
+  tiles,
   type GameState,
   type HarvesterAssignments,
 } from './game'
@@ -43,6 +45,66 @@ const normalSupply = {
   foodLevel: 2,
   energyLevel: 2,
 }
+
+describe('Hexkarte', () => {
+  it('erzeugt ein HQ und 60 eindeutige Spielfelder', () => {
+    expect(tiles).toHaveLength(61)
+    expect(tiles[0]).toMatchObject({
+      id: 'HQ',
+      q: 0,
+      r: 0,
+      owner: 'hq',
+    })
+    expect(new Set(tiles.map((tile) => tile.id)).size).toBe(61)
+    expect(
+      new Set(tiles.map((tile) => `${tile.q}:${tile.r}`)).size,
+    ).toBe(61)
+  })
+
+  it('behält die sechs bisherigen Startfelder im ersten Ring', () => {
+    expect(
+      tiles.slice(1, 7).map(({ id, q, r }) => ({
+        id,
+        q,
+        r,
+      })),
+    ).toEqual([
+      { id: 'A', q: 0, r: -1 },
+      { id: 'B', q: 1, r: -1 },
+      { id: 'C', q: 1, r: 0 },
+      { id: 'D', q: 0, r: 1 },
+      { id: 'E', q: -1, r: 1 },
+      { id: 'F', q: -1, r: 0 },
+    ])
+    expect(tiles[1]).toMatchObject({
+      id: 'A',
+      food: 4,
+      energy: 2,
+      ore: 4,
+    })
+    expect(tiles[2]).toMatchObject({
+      id: 'B',
+      food: 3,
+      energy: 4,
+      ore: 2,
+    })
+  })
+
+  it('verteilt alle Felder auf höchstens vier Hexringe', () => {
+    expect(
+      Math.max(...tiles.map(getHexDistanceFromHq)),
+    ).toBe(4)
+    expect(
+      tiles.every(
+        (tile) =>
+          tile.owner === 'hq' ||
+          ([tile.food, tile.energy, tile.ore] as number[]).every(
+            (rating) => rating >= 1 && rating <= 5,
+          ),
+      ),
+    ).toBe(true)
+  })
+})
 
 describe('Ereignisse', () => {
   it('löst in Runde eins noch keine Ereignisse aus', () => {

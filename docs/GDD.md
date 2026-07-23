@@ -146,6 +146,7 @@ Im zentralen HQ- und Marktgebiet verwaltet jeder Spieler einen eigenen Koloniebe
 Eigenschaften:
 
 - zentrales HQ- und Marktgebiet in der Kartenmitte
+- technische Darstellung über axiale Hexkoordinaten
 - jeder Spieler startet mit zwei automatisch zugewiesenen Startgrundstücken
 - faire, symmetrisch erzeugte Startsektoren
 - leichte Zufallsvariationen innerhalb der einzelnen Sektoren
@@ -156,6 +157,23 @@ Eigenschaften:
 - Besonderheiten nach dem Kauf sichtbar
 
 Der Kartengenerator soll dafür sorgen, dass alle Spieler statistisch gleichwertige Startbedingungen erhalten.
+
+Der Kartenprototyp verwendet zunächst die Vier-Spieler-Größe mit
+einem HQ und 60 Grundstücken in vier vollständigen Hexringen. Die
+Karte liegt in einem verschieb- und zoombaren Ausschnitt. Mausziehen
+und Mausrad werden auf Desktop-Geräten unterstützt; auf Smartphones
+und Tablets gelten Ziehen und Zwei-Finger-Zoom. Feste Schaltflächen
+für Vergrößern, Verkleinern und Zentrieren bilden die barrierearme
+Alternative zu den Gesten. Auswahl und Detailansicht eines Feldes
+bleiben von der Kameraposition unabhängig.
+
+Eine vorläufige, pro Feld erzeugte Geländeschicht orientiert sich an
+der jeweils stärksten Eignung: fruchtbare Vegetation steht für
+Nahrung, leuchtende Strukturen für Energie und felsige Flächen für
+Erz. Diese Schicht ist von Besitz-, Auswahl- und Hover-Konturen
+getrennt. Sie kann deshalb in einer späteren Grafikphase durch
+hochwertige Texturen oder Animationen ersetzt werden, ohne
+Kartenkoordinaten oder Spielregeln zu verändern.
 
 Die Startfelder jedes Spielers sind bewusst so gestaltet, dass mehrere sinnvolle Eröffnungsstrategien möglich sind.
 

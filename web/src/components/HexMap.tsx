@@ -1,4 +1,9 @@
-import { useState } from 'react'
+import {
+  useRef,
+  useState,
+  type PointerEvent,
+  type WheelEvent,
+} from 'react'
 import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
@@ -41,6 +46,34 @@ type HexMapProps = {
   onRemoveHarvester: (tileId: string) => void
 }
 
+type Point = {
+  x: number
+  y: number
+}
+
+type MapCamera = Point & {
+  zoom: number
+}
+
+type MapGesture = {
+  mode: 'pan' | 'pinch'
+  camera: MapCamera
+  midpoint: Point
+  distance: number
+}
+
+const HEX_RADIUS = 58
+const MAP_VIEW_WIDTH = 900
+const MAP_VIEW_HEIGHT = 640
+const MIN_MAP_ZOOM = 0.62
+const MAX_MAP_ZOOM = 1.8
+const MAP_PAN_LIMIT = 700
+const INITIAL_MAP_CAMERA: MapCamera = {
+  x: 0,
+  y: 0,
+  zoom: 0.68,
+}
+
 function createHexPoints(x: number, y: number, radius: number) {
   return Array.from({ length: 6 }, (_, index) => {
     const angle = (60 * index * Math.PI) / 180
@@ -49,6 +82,51 @@ function createHexPoints(x: number, y: number, radius: number) {
       y + radius * Math.sin(angle)
     }`
   }).join(' ')
+}
+
+function axialToPixel(q: number, r: number) {
+  return {
+    x: HEX_RADIUS * 1.5 * q,
+    y: HEX_RADIUS * Math.sqrt(3) * (r + q / 2),
+  }
+}
+
+function clamp(value: number, minimum: number, maximum: number) {
+  return Math.min(maximum, Math.max(minimum, value))
+}
+
+function getDistance(first: Point, second: Point) {
+  return Math.hypot(
+    first.x - second.x,
+    first.y - second.y,
+  )
+}
+
+function getMidpoint(first: Point, second: Point) {
+  return {
+    x: (first.x + second.x) / 2,
+    y: (first.y + second.y) / 2,
+  }
+}
+
+function getTerrainClass(
+  tile: (typeof tiles)[number],
+) {
+  if (tile.owner === 'hq') {
+    return 'terrain-hq terrain-strength-5'
+  }
+
+  const dominantResource = [
+    { resource: 'food', rating: tile.food ?? 0 },
+    { resource: 'energy', rating: tile.energy ?? 0 },
+    { resource: 'ore', rating: tile.ore ?? 0 },
+  ].reduce((strongest, resource) =>
+    resource.rating > strongest.rating
+      ? resource
+      : strongest,
+  )
+
+  return `terrain-${dominantResource.resource} terrain-strength-${dominantResource.rating}`
 }
 
 function formatStars(value = 0) {
@@ -82,9 +160,28 @@ function HexMap({
   const [isChoosingProduction, setIsChoosingProduction] =
     useState(false)
   const [bidAmount, setBidAmount] = useState(LAND_MINIMUM_BID)
+  const [cameraState, setCameraState] =
+    useState<MapCamera>(INITIAL_MAP_CAMERA)
+  const [hoveredId, setHoveredId] = useState<string | null>(
+    null,
+  )
+  const cameraRef = useRef(cameraState)
+  const pointerPositions = useRef(new Map<number, Point>())
+  const gesture = useRef<MapGesture | null>(null)
+  const didMoveMap = useRef(false)
 
   const selectedTile =
     tiles.find((tile) => tile.id === selectedId) ?? tiles[0]!
+  const hoveredTile = tiles.find(
+    (tile) => tile.id === hoveredId,
+  )
+  const hoveredPosition = hoveredTile
+    ? axialToPixel(hoveredTile.q, hoveredTile.r)
+    : null
+  const selectedPosition = axialToPixel(
+    selectedTile.q,
+    selectedTile.r,
+  )
 
   const selectedHarvester = harvesters[selectedTile.id]
   const selectedProduction = selectedHarvester?.production
@@ -110,7 +207,215 @@ function HexMap({
     credits >= harvesterCreditCost &&
     ore >= HARVESTER_ORE_COST
 
+  const updateCamera = (camera: MapCamera) => {
+    const nextCamera = {
+      x: clamp(camera.x, -MAP_PAN_LIMIT, MAP_PAN_LIMIT),
+      y: clamp(camera.y, -MAP_PAN_LIMIT, MAP_PAN_LIMIT),
+      zoom: clamp(camera.zoom, MIN_MAP_ZOOM, MAX_MAP_ZOOM),
+    }
+
+    cameraRef.current = nextCamera
+    setCameraState(nextCamera)
+  }
+
+  const clientToMapPoint = (
+    element: SVGSVGElement,
+    clientX: number,
+    clientY: number,
+  ) => {
+    const screenMatrix = element.getScreenCTM()
+
+    if (!screenMatrix) {
+      return { x: 0, y: 0 }
+    }
+
+    const point = element.createSVGPoint()
+    point.x = clientX
+    point.y = clientY
+
+    const mapPoint = point.matrixTransform(
+      screenMatrix.inverse(),
+    )
+
+    return { x: mapPoint.x, y: mapPoint.y }
+  }
+
+  const zoomAtPoint = (point: Point, zoomFactor: number) => {
+    const currentCamera = cameraRef.current
+    const nextZoom = clamp(
+      currentCamera.zoom * zoomFactor,
+      MIN_MAP_ZOOM,
+      MAX_MAP_ZOOM,
+    )
+    const scaleDifference = nextZoom / currentCamera.zoom
+
+    updateCamera({
+      x:
+        point.x -
+        scaleDifference * (point.x - currentCamera.x),
+      y:
+        point.y -
+        scaleDifference * (point.y - currentCamera.y),
+      zoom: nextZoom,
+    })
+  }
+
+  const handlePointerDown = (
+    event: PointerEvent<SVGSVGElement>,
+  ) => {
+    event.currentTarget.setPointerCapture(event.pointerId)
+
+    const point = clientToMapPoint(
+      event.currentTarget,
+      event.clientX,
+      event.clientY,
+    )
+
+    if (pointerPositions.current.size === 0) {
+      didMoveMap.current = false
+    }
+
+    pointerPositions.current.set(event.pointerId, point)
+    const points = [...pointerPositions.current.values()]
+
+    if (points.length >= 2) {
+      gesture.current = {
+        mode: 'pinch',
+        camera: cameraRef.current,
+        midpoint: getMidpoint(points[0]!, points[1]!),
+        distance: getDistance(points[0]!, points[1]!),
+      }
+      didMoveMap.current = true
+      return
+    }
+
+    gesture.current = {
+      mode: 'pan',
+      camera: cameraRef.current,
+      midpoint: point,
+      distance: 0,
+    }
+  }
+
+  const handlePointerMove = (
+    event: PointerEvent<SVGSVGElement>,
+  ) => {
+    if (!pointerPositions.current.has(event.pointerId)) {
+      return
+    }
+
+    const point = clientToMapPoint(
+      event.currentTarget,
+      event.clientX,
+      event.clientY,
+    )
+    pointerPositions.current.set(event.pointerId, point)
+
+    const currentGesture = gesture.current
+    const points = [...pointerPositions.current.values()]
+
+    if (!currentGesture) {
+      return
+    }
+
+    if (points.length >= 2) {
+      const midpoint = getMidpoint(points[0]!, points[1]!)
+      const distance = getDistance(points[0]!, points[1]!)
+      const zoomFactor =
+        currentGesture.distance > 0
+          ? distance / currentGesture.distance
+          : 1
+      const nextZoom = clamp(
+        currentGesture.camera.zoom * zoomFactor,
+        MIN_MAP_ZOOM,
+        MAX_MAP_ZOOM,
+      )
+      const effectiveScale =
+        nextZoom / currentGesture.camera.zoom
+
+      updateCamera({
+        x:
+          midpoint.x -
+          effectiveScale *
+            (currentGesture.midpoint.x -
+              currentGesture.camera.x),
+        y:
+          midpoint.y -
+          effectiveScale *
+            (currentGesture.midpoint.y -
+              currentGesture.camera.y),
+        zoom: nextZoom,
+      })
+      didMoveMap.current = true
+      return
+    }
+
+    if (currentGesture.mode === 'pan' && points[0]) {
+      const distanceMoved = getDistance(
+        points[0],
+        currentGesture.midpoint,
+      )
+
+      if (distanceMoved > 4) {
+        didMoveMap.current = true
+      }
+
+      updateCamera({
+        x:
+          currentGesture.camera.x +
+          points[0].x -
+          currentGesture.midpoint.x,
+        y:
+          currentGesture.camera.y +
+          points[0].y -
+          currentGesture.midpoint.y,
+        zoom: currentGesture.camera.zoom,
+      })
+    }
+  }
+
+  const handlePointerEnd = (
+    event: PointerEvent<SVGSVGElement>,
+  ) => {
+    pointerPositions.current.delete(event.pointerId)
+
+    if (
+      event.currentTarget.hasPointerCapture(event.pointerId)
+    ) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    const remainingPoint = [
+      ...pointerPositions.current.values(),
+    ][0]
+
+    gesture.current = remainingPoint
+      ? {
+          mode: 'pan',
+          camera: cameraRef.current,
+          midpoint: remainingPoint,
+          distance: 0,
+        }
+      : null
+  }
+
+  const handleWheel = (event: WheelEvent<SVGSVGElement>) => {
+    event.preventDefault()
+    const point = clientToMapPoint(
+      event.currentTarget,
+      event.clientX,
+      event.clientY,
+    )
+
+    zoomAtPoint(point, event.deltaY < 0 ? 1.12 : 0.89)
+  }
+
   const selectTile = (tileId: string) => {
+    if (didMoveMap.current) {
+      didMoveMap.current = false
+      return
+    }
+
     setSelectedId(tileId)
     setIsChoosingProduction(false)
     setBidAmount(
@@ -152,121 +457,302 @@ function HexMap({
           <h2>Koloniegebiet</h2>
         </div>
 
-        <span className="map-hint">Feld auswählen</span>
+        <div className="map-heading-meta">
+          <strong>{tiles.length - 1} Felder</strong>
+          <span className="map-hint">
+            Ziehen · Scrollen oder Pinch zum Zoomen
+          </span>
+        </div>
       </div>
 
       <div className="map-layout">
-        <svg
-          className="hex-map"
-          viewBox="0 0 700 500"
-          aria-label="Hexkarte der Kolonie"
-        >
-          {tiles.map((tile) => {
-            const isSelected = tile.id === selectedId
-            const harvester = harvesters[tile.id]
-            const production = harvester?.production
-            const isPlayerOwned = ownedTileIds.includes(tile.id)
-            const isOpponentOwned = opponentTileIds.includes(
-              tile.id,
-            )
-            const hasPendingBid = pendingLandBid?.tileId === tile.id
-            const hasAuctionTie = landAuctionTie?.tileId === tile.id
-            const ownershipClass =
-              tile.owner === 'hq'
-                ? 'hq'
-                : isPlayerOwned
-                  ? 'player'
-                  : isOpponentOwned
-                    ? 'opponent'
-                    : hasPendingBid || hasAuctionTie
-                    ? 'pending'
-                    : 'free'
+        <div className="hex-map-viewport">
+          <div
+            className="map-controls"
+            aria-label="Kartensteuerung"
+          >
+            <button
+              type="button"
+              aria-label="Karte vergrößern"
+              onClick={() => zoomAtPoint({ x: 0, y: 0 }, 1.2)}
+            >
+              +
+            </button>
+            <button
+              type="button"
+              aria-label="Karte verkleinern"
+              onClick={() => zoomAtPoint({ x: 0, y: 0 }, 0.8)}
+            >
+              −
+            </button>
+            <button
+              className="map-center-button"
+              type="button"
+              onClick={() => updateCamera(INITIAL_MAP_CAMERA)}
+            >
+              HQ
+            </button>
+          </div>
 
-            return (
-              <g
-                key={tile.id}
-                className={[
-                  'hex-tile',
-                  ownershipClass,
-                  isSelected ? 'selected' : '',
-                ].join(' ')}
-                role="button"
-                tabIndex={0}
-                onClick={() => selectTile(tile.id)}
-                onKeyDown={(event) => {
-                  if (
-                    event.key === 'Enter' ||
-                    event.key === ' '
-                  ) {
-                    selectTile(tile.id)
-                  }
-                }}
+          <svg
+            className="hex-map"
+            viewBox={`${-MAP_VIEW_WIDTH / 2} ${
+              -MAP_VIEW_HEIGHT / 2
+            } ${MAP_VIEW_WIDTH} ${MAP_VIEW_HEIGHT}`}
+            aria-label="Bewegbare Hexkarte der Kolonie"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerEnd}
+            onPointerCancel={handlePointerEnd}
+            onWheel={handleWheel}
+          >
+            <defs>
+              <pattern
+                id="terrain-food"
+                width="30"
+                height="30"
+                patternUnits="userSpaceOnUse"
               >
-                <polygon
-                  points={createHexPoints(tile.x, tile.y, 83)}
+                <rect width="30" height="30" fill="#174839" />
+                <path
+                  d="M3 29 Q7 15 15 4 M13 30 Q18 17 27 8"
+                  fill="none"
+                  stroke="#59b889"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  opacity="0.7"
                 />
+                <circle
+                  cx="22"
+                  cy="23"
+                  r="3"
+                  fill="#8fd39a"
+                  opacity="0.55"
+                />
+              </pattern>
 
-                <text
-                  className="hex-label"
-                  x={tile.x}
-                  y={tile.y + 7}
-                  textAnchor="middle"
-                >
-                  {tile.id}
-                </text>
+              <pattern
+                id="terrain-energy"
+                width="32"
+                height="32"
+                patternUnits="userSpaceOnUse"
+              >
+                <rect width="32" height="32" fill="#4b4720" />
+                <path
+                  d="M19 1 9 15h8l-5 16 12-19h-8z"
+                  fill="#e6c75c"
+                  opacity="0.55"
+                />
+                <path
+                  d="M0 27 32 5"
+                  stroke="#8fcbca"
+                  strokeWidth="2"
+                  opacity="0.35"
+                />
+              </pattern>
 
-                {isPlayerOwned && !production && (
-                  <text
-                    className="hex-owner-label"
-                    x={tile.x}
-                    y={tile.y + 32}
-                    textAnchor="middle"
-                  >
-                    DEIN FELD
-                  </text>
-                )}
+              <pattern
+                id="terrain-ore"
+                width="34"
+                height="30"
+                patternUnits="userSpaceOnUse"
+              >
+                <rect width="34" height="30" fill="#403c3a" />
+                <path
+                  d="m1 28 8-13 7 8 6-16 11 21z"
+                  fill="#73665d"
+                  stroke="#a08c78"
+                  strokeWidth="1.5"
+                  opacity="0.78"
+                />
+                <circle
+                  cx="8"
+                  cy="7"
+                  r="3"
+                  fill="#b9a184"
+                  opacity="0.5"
+                />
+              </pattern>
 
-                {isOpponentOwned && (
-                  <text
-                    className="hex-opponent-label"
-                    x={tile.x}
-                    y={tile.y + 32}
-                    textAnchor="middle"
-                  >
-                    ORION
-                  </text>
-                )}
+              <radialGradient id="terrain-hq">
+                <stop offset="0" stopColor="#638bd9" />
+                <stop offset="1" stopColor="#24477f" />
+              </radialGradient>
+            </defs>
 
-                {(hasPendingBid || hasAuctionTie) && (
-                  <text
-                    className="hex-pending-label"
-                    x={tile.x}
-                    y={tile.y + 32}
-                    textAnchor="middle"
-                  >
-                    {hasAuctionTie ? 'STICHAUKTION' : 'GEBOT'}
-                  </text>
-                )}
+            <g
+              transform={`translate(${cameraState.x} ${cameraState.y}) scale(${cameraState.zoom})`}
+            >
+              {tiles.map((tile) => {
+                const position = axialToPixel(tile.q, tile.r)
+                const polygonPoints = createHexPoints(
+                  position.x,
+                  position.y,
+                  HEX_RADIUS,
+                )
+                const isSelected = tile.id === selectedId
+                const harvester = harvesters[tile.id]
+                const production = harvester?.production
+                const isPlayerOwned = ownedTileIds.includes(tile.id)
+                const isOpponentOwned = opponentTileIds.includes(
+                  tile.id,
+                )
+                const hasPendingBid =
+                  pendingLandBid?.tileId === tile.id
+                const hasAuctionTie =
+                  landAuctionTie?.tileId === tile.id
+                const ownershipClass =
+                  tile.owner === 'hq'
+                    ? 'hq'
+                    : isPlayerOwned
+                      ? 'player'
+                      : isOpponentOwned
+                        ? 'opponent'
+                        : hasPendingBid || hasAuctionTie
+                          ? 'pending'
+                          : 'free'
 
-                {harvester && (
-                  <text
-                    className="hex-production-label"
-                    x={tile.x}
-                    y={tile.y + 38}
-                    textAnchor="middle"
-                  >
-                    {harvester.pendingProduction ? '🔧' : '🚜'}{' '}
-                    {
-                      productionTypes[
-                        harvester.pendingProduction ?? production!
-                      ].icon
+                return (
+                  <g
+                    key={tile.id}
+                    className={[
+                      'hex-tile',
+                      ownershipClass,
+                      isSelected ? 'selected' : '',
+                    ].join(' ')}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => selectTile(tile.id)}
+                    onPointerEnter={() => setHoveredId(tile.id)}
+                    onPointerLeave={() =>
+                      setHoveredId((currentId) =>
+                        currentId === tile.id
+                          ? null
+                          : currentId,
+                      )
                     }
-                  </text>
+                    onFocus={() => setHoveredId(tile.id)}
+                    onBlur={() =>
+                      setHoveredId((currentId) =>
+                        currentId === tile.id
+                          ? null
+                          : currentId,
+                      )
+                    }
+                    onKeyDown={(event) => {
+                      if (
+                        event.key === 'Enter' ||
+                        event.key === ' '
+                      ) {
+                        selectTile(tile.id)
+                      }
+                    }}
+                  >
+                    <polygon
+                      className={`hex-landscape ${getTerrainClass(
+                        tile,
+                      )}`}
+                      points={polygonPoints}
+                    />
+                    <polygon
+                      className="hex-border"
+                      points={polygonPoints}
+                    />
+
+                    <text
+                      className="hex-label"
+                      x={position.x}
+                      y={position.y + 5}
+                      textAnchor="middle"
+                    >
+                      {tile.id}
+                    </text>
+
+                    {isPlayerOwned && !production && (
+                      <text
+                        className="hex-owner-label"
+                        x={position.x}
+                        y={position.y + 23}
+                        textAnchor="middle"
+                      >
+                        DEIN FELD
+                      </text>
+                    )}
+
+                    {isOpponentOwned && (
+                      <text
+                        className="hex-opponent-label"
+                        x={position.x}
+                        y={position.y + 23}
+                        textAnchor="middle"
+                      >
+                        ORION
+                      </text>
+                    )}
+
+                    {(hasPendingBid || hasAuctionTie) && (
+                      <text
+                        className="hex-pending-label"
+                        x={position.x}
+                        y={position.y + 23}
+                        textAnchor="middle"
+                      >
+                        {hasAuctionTie
+                          ? 'STICHAUKTION'
+                          : 'GEBOT'}
+                      </text>
+                    )}
+
+                    {harvester && (
+                      <text
+                        className="hex-production-label"
+                        x={position.x}
+                        y={position.y + 28}
+                        textAnchor="middle"
+                      >
+                        {harvester.pendingProduction
+                          ? '🔧'
+                          : '🚜'}{' '}
+                        {
+                          productionTypes[
+                            harvester.pendingProduction ??
+                              production!
+                          ].icon
+                        }
+                      </text>
+                    )}
+                  </g>
+                )
+              })}
+
+              {hoveredTile &&
+                hoveredPosition &&
+                hoveredTile.id !== selectedTile.id && (
+                  <polygon
+                    className="hex-interaction-outline is-hovered"
+                    points={createHexPoints(
+                      hoveredPosition.x,
+                      hoveredPosition.y,
+                      HEX_RADIUS - 1.5,
+                    )}
+                  />
                 )}
-              </g>
-            )
-          })}
-        </svg>
+
+              <polygon
+                className="hex-interaction-outline is-selected"
+                points={createHexPoints(
+                  selectedPosition.x,
+                  selectedPosition.y,
+                  HEX_RADIUS - 1.5,
+                )}
+              />
+            </g>
+          </svg>
+
+          <span className="map-gesture-hint">
+            Karte verschieben und zoomen
+          </span>
+        </div>
 
         <aside className="tile-details">
           {selectedTile.owner === 'hq' ? (

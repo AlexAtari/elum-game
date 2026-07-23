@@ -287,6 +287,11 @@ Die Routine ist bewusst deterministisch, damit Playtests wiederholbar bleiben. C
 | 3 | 49 Hexfelder |
 | 4 | 61 Hexfelder |
 
+Der aktuelle Kartenprototyp nutzt unabhängig von der noch simulierten
+Spielerzahl bereits die Vier-Spieler-Fläche mit 61 Feldern. Dadurch
+können Übersicht, Touch-Bedienung, Expansion und spätere
+Mehrspieler-Startsektoren früh getestet werden.
+
 Startregion:
 
 - HQ plus vier sichtbare Nachbarfelder
