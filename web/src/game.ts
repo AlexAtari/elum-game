@@ -203,6 +203,8 @@ export const HARVESTER_CREDIT_COST = 30
 export const HARVESTER_ORE_COST = 3
 export const GLOBAL_EVENT_CHANCE = 0.4
 export const LOCAL_EVENT_CHANCE = 0.5
+export const GAME_ROUND_LIMIT = 15
+export const EVENT_SCALE_INTERVAL = 6
 
 export const globalEventIds: GlobalEventId[] = [
   'fertile-season',
@@ -306,7 +308,16 @@ const localEventBaseAmounts: Partial<
 }
 
 export function getEventScale(round: number): number {
-  return 2 ** Math.floor(Math.max(0, round - 1) / 10)
+  return (
+    2 **
+    Math.floor(
+      Math.max(0, round - 1) / EVENT_SCALE_INTERVAL,
+    )
+  )
+}
+
+export function isGameFinished(roundPlayed: number): boolean {
+  return roundPlayed >= GAME_ROUND_LIMIT
 }
 
 export function getGlobalEventAmount(

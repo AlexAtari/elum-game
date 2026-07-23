@@ -7,6 +7,7 @@ export const en = {
   'app.marketRound': 'Market · Round {{round}}',
   'app.tieAuctionRound': 'Tie auction · Round {{round}}',
   'app.leaderboardRound': 'Standings · Round {{round}}',
+  'app.finalResult': 'Final standings',
   'app.briefingRound': 'Round start · Round {{round}}',
   'app.backToStart': 'Back to start',
 
@@ -57,6 +58,33 @@ export const en = {
     'Orion receives plot {{tile}} for {{rivalBid}} credits. Your bid of {{playerBid}} credits was refunded.',
   'round.completedHarvesters':
     'New harvesters completed: {{amount}}',
+
+  'leaderboard.interimEyebrow':
+    'Standings after round {{round}}',
+  'leaderboard.finalEyebrow':
+    'Final standings after round {{round}}',
+  'leaderboard.title': 'Colony standings',
+  'leaderboard.finalTitle': 'Final colony standings',
+  'leaderboard.criteria':
+    'Population ranks first. Ties are decided by credits, resources and harvesters.',
+  'leaderboard.rank': 'Rank',
+  'leaderboard.colony': 'Colony',
+  'leaderboard.resources': 'Resources',
+  'leaderboard.harvesters': 'Harvesters',
+  'leaderboard.firstPlace': 'First place',
+  'leaderboard.you': 'You',
+  'leaderboard.aiNote':
+    'AI colonies maintain their own stocks and develop with every round settlement.',
+  'leaderboard.revealing': 'Revealing standings',
+  'leaderboard.nextRound':
+    'Round {{round}} starts automatically',
+  'leaderboard.progressLabel': 'Time until the next round',
+  'leaderboard.winner': 'Winning colony',
+  'leaderboard.winnerSummary':
+    '{{population}} population · {{credits}} credits · {{resources}} resources · {{harvesters}} harvesters',
+  'leaderboard.playerResult':
+    'Your colony finishes in place {{rank}} of {{total}}.',
+  'leaderboard.newGame': 'New game',
 
   'briefing.eyebrow': 'Start of round {{round}}',
   'briefing.title': 'Events & your colony',

@@ -5,6 +5,7 @@ export const de = {
   'app.marketRound': 'Markt · Runde {{round}}',
   'app.tieAuctionRound': 'Stichauktion · Runde {{round}}',
   'app.leaderboardRound': 'Zwischenstand · Runde {{round}}',
+  'app.finalResult': 'Endstand',
   'app.briefingRound': 'Rundenstart · Runde {{round}}',
   'app.backToStart': 'Zurück zum Start',
 
@@ -55,6 +56,32 @@ export const de = {
     'Orion erhält Feld {{tile}} für {{rivalBid}} Credits. Dein Gebot von {{playerBid}} Credits wurde erstattet.',
   'round.completedHarvesters':
     'Neue Harvester fertiggestellt: {{amount}}',
+
+  'leaderboard.interimEyebrow':
+    'Zwischenstand nach Runde {{round}}',
+  'leaderboard.finalEyebrow': 'Endstand nach Runde {{round}}',
+  'leaderboard.title': 'Kolonie-Rangliste',
+  'leaderboard.finalTitle': 'Abschlussrangliste',
+  'leaderboard.criteria':
+    'Entscheidend ist zuerst die Bevölkerung. Bei Gleichstand folgen Credits, Ressourcen und Harvester.',
+  'leaderboard.rank': 'Rang',
+  'leaderboard.colony': 'Kolonie',
+  'leaderboard.resources': 'Ressourcen',
+  'leaderboard.harvesters': 'Harvester',
+  'leaderboard.firstPlace': 'Erster Platz',
+  'leaderboard.you': 'Du',
+  'leaderboard.aiNote':
+    'Die KI-Kolonien besitzen eigene Vorräte und entwickeln sich mit jeder Rundenabrechnung weiter.',
+  'leaderboard.revealing': 'Rangliste wird aufgedeckt',
+  'leaderboard.nextRound':
+    'Runde {{round}} startet automatisch',
+  'leaderboard.progressLabel': 'Zeit bis zur nächsten Runde',
+  'leaderboard.winner': 'Siegerkolonie',
+  'leaderboard.winnerSummary':
+    '{{population}} Einwohner · {{credits}} Credits · {{resources}} Ressourcen · {{harvesters}} Harvester',
+  'leaderboard.playerResult':
+    'Deine Kolonie beendet die Partie auf Platz {{rank}} von {{total}}.',
+  'leaderboard.newGame': 'Neue Partie',
 
   'briefing.eyebrow': 'Beginn Runde {{round}}',
   'briefing.title': 'Ereignisse & deine Kolonie',

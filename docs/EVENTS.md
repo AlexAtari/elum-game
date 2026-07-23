@@ -58,7 +58,7 @@ Er bleibt sichtbar, bis der Spieler die neue Runde bewusst beginnt.
 
 ## Ereignispool
 
-| Art | Ereignis | Grundwirkung in Runde 1–10 |
+| Art | Ereignis | Grundwirkung in Runde 1–6 |
 |---|---|---|
 | positiv | Fruchtbare Saison | +1 Nahrung pro aktivem Nahrungsharvester |
 | positiv | Klarer Himmel | +1 Energie pro aktivem Energieharvester |
@@ -102,7 +102,7 @@ produzierende Harvester unterliegen derselben globalen Lage.
 
 ## Ereignispool des Prototyps
 
-| Art | Ereignis | Grundwirkung in Runde 1–10 |
+| Art | Ereignis | Grundwirkung in Runde 1–6 |
 |---|---|---|
 | positiv | Vergessenes Vorratslager | +3 Nahrung |
 | positiv | Geladene Energiezellen | +3 Energie |
@@ -126,19 +126,22 @@ negativen Ereignissen.
 
 ## Skalierung nach Runden
 
-Alle Zahlenwirkungen verdoppeln sich nach jeweils zehn Runden:
+Alle Zahlenwirkungen verdoppeln sich nach jeweils sechs Runden:
 
 | Runden | Faktor |
 |---|---:|
-| 1–10 | ×1 |
-| 11–20 | ×2 |
-| 21–30 | ×4 |
-| 31–40 | ×8 |
+| 1–6 | ×1 |
+| 7–12 | ×2 |
+| 13–18 | ×4 |
+| 19–24 | ×8 |
 
 Die Reihe wird entsprechend fortgesetzt. Die Regel gilt für Gewinne,
 Verluste, Produktionsmodifikatoren, Rabatte und die Anzahl
 ausfallender Harvester. Ein Ressourcenverlust endet immer bei null;
 ein Harvesterpreis endet bei null Credits.
+
+In der Standardpartie mit 15 Runden erreicht die Skalierung damit in
+den Schlussrunden 13–15 den Faktor ×4.
 
 Reine Aktionssperren besitzen keine Anzahl und werden deshalb nicht
 skaliert. Sie gelten nur für die aktive Runde.
@@ -195,7 +198,7 @@ vorher geschlossen werden. Sie darf Auktionen nicht überlagern.
   und übersichtlich?
 - Ist die Verzögerung lokaler Ereignisse während der Planung
   überraschend, ohne Eingaben zu stören?
-- Ist die Verdopplung ab Runde 11 spürbar, ohne den Spielverlauf zu
+- Ist die Verdopplung ab Runde 7 spürbar, ohne den Spielverlauf zu
   stark zu kippen?
 - Bleiben Aktionssperren interessant, obwohl sie nicht skalieren?
 - Sind sechs positive und neun negative Ereignisse im Zufallspool

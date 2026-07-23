@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { LeaderboardEntry } from '../game'
+import { useI18n } from '../i18n/I18nContext'
 import './LeaderboardPanel.css'
 
 const leaderboardRevealStepSeconds = 1
@@ -9,15 +10,20 @@ type LeaderboardPanelProps = {
   roundPlayed: number
   nextRound: number
   entries: LeaderboardEntry[]
+  isFinal: boolean
   onContinue: () => void
+  onRestart: () => void
 }
 
 function LeaderboardPanel({
   roundPlayed,
   nextRound,
   entries,
+  isFinal,
   onContinue,
+  onRestart,
 }: LeaderboardPanelProps) {
+  const { number, t } = useI18n()
   const initialVisibleEntries = Math.min(entries.length, 1)
   const revealSeconds = Math.max(
     0,
@@ -37,6 +43,9 @@ function LeaderboardPanel({
     ...entries.map((entry) => entry.population),
     1,
   )
+  const winner = entries[0]
+  const playerRank =
+    entries.findIndex((entry) => entry.isPlayer) + 1
 
   useEffect(() => {
     const revealCountdown = window.setInterval(() => {
@@ -49,37 +58,58 @@ function LeaderboardPanel({
         return currentVisibleEntries + 1
       })
     }, leaderboardRevealStepSeconds * 1000)
-    const countdown = window.setInterval(() => {
-      setSecondsLeft((currentSeconds) =>
-        Math.max(0, currentSeconds - 1),
-      )
-    }, 1000)
-    const automaticContinue = window.setTimeout(
-      onContinue,
-      leaderboardDisplaySeconds * 1000,
-    )
+    const countdown = isFinal
+      ? null
+      : window.setInterval(() => {
+          setSecondsLeft((currentSeconds) =>
+            Math.max(0, currentSeconds - 1),
+          )
+        }, 1000)
+    const automaticContinue = isFinal
+      ? null
+      : window.setTimeout(
+          onContinue,
+          leaderboardDisplaySeconds * 1000,
+        )
 
     return () => {
       window.clearInterval(revealCountdown)
-      window.clearInterval(countdown)
-      window.clearTimeout(automaticContinue)
+      if (countdown !== null) {
+        window.clearInterval(countdown)
+      }
+      if (automaticContinue !== null) {
+        window.clearTimeout(automaticContinue)
+      }
     }
-  }, [entries.length, leaderboardDisplaySeconds, onContinue])
+  }, [
+    entries.length,
+    isFinal,
+    leaderboardDisplaySeconds,
+    onContinue,
+  ])
 
   return (
     <section className="leaderboard-panel">
       <div className="leaderboard-heading">
         <div>
           <p className="eyebrow">
-            Zwischenstand nach Runde {roundPlayed}
+            {t(
+              isFinal
+                ? 'leaderboard.finalEyebrow'
+                : 'leaderboard.interimEyebrow',
+              { round: roundPlayed },
+            )}
           </p>
-          <h2>Kolonie-Rangliste</h2>
+          <h2>
+            {t(
+              isFinal
+                ? 'leaderboard.finalTitle'
+                : 'leaderboard.title',
+            )}
+          </h2>
         </div>
 
-        <p>
-          Entscheidend ist zuerst die Bevölkerung. Bei
-          Gleichstand folgen Credits, Ressourcen und Harvester.
-        </p>
+        <p>{t('leaderboard.criteria')}</p>
       </div>
 
       <div className="leaderboard-scroll">
@@ -88,12 +118,24 @@ function LeaderboardPanel({
             className="leaderboard-row leaderboard-header-row"
             role="row"
           >
-            <span role="columnheader">Rang</span>
-            <span role="columnheader">Kolonie</span>
-            <span role="columnheader">👥 Bevölkerung</span>
-            <span role="columnheader">💰 Credits</span>
-            <span role="columnheader">📦 Ressourcen</span>
-            <span role="columnheader">🚜 Harvester</span>
+            <span role="columnheader">
+              {t('leaderboard.rank')}
+            </span>
+            <span role="columnheader">
+              {t('leaderboard.colony')}
+            </span>
+            <span role="columnheader">
+              👥 {t('resource.population')}
+            </span>
+            <span role="columnheader">
+              💰 {t('resource.credits')}
+            </span>
+            <span role="columnheader">
+              📦 {t('leaderboard.resources')}
+            </span>
+            <span role="columnheader">
+              🚜 {t('leaderboard.harvesters')}
+            </span>
           </div>
 
           {entries.map((entry, index) => {
@@ -123,7 +165,7 @@ function LeaderboardPanel({
                   {index === 0 && (
                     <span
                       className="leaderboard-crown"
-                      aria-label="Erster Platz"
+                      aria-label={t('leaderboard.firstPlace')}
                     >
                       👑
                     </span>
@@ -132,12 +174,22 @@ function LeaderboardPanel({
                 <div className="leaderboard-colony" role="cell">
                   <span aria-hidden="true">{entry.icon}</span>
                   <strong>{entry.name}</strong>
-                  {entry.isPlayer && <small>Du</small>}
+                  {entry.isPlayer && (
+                    <small>{t('leaderboard.you')}</small>
+                  )}
                 </div>
-                <strong role="cell">{entry.population}</strong>
-                <strong role="cell">{entry.credits}</strong>
-                <strong role="cell">{entry.resources}</strong>
-                <strong role="cell">{entry.harvesters}</strong>
+                <strong role="cell">
+                  {number(entry.population)}
+                </strong>
+                <strong role="cell">
+                  {number(entry.credits)}
+                </strong>
+                <strong role="cell">
+                  {number(entry.resources)}
+                </strong>
+                <strong role="cell">
+                  {number(entry.harvesters)}
+                </strong>
                 <span
                   className="leaderboard-population-bar"
                   style={{
@@ -154,36 +206,83 @@ function LeaderboardPanel({
       </div>
 
       <div className="leaderboard-footer">
-        <p>
-          Die KI-Kolonien besitzen eigene Vorräte und entwickeln
-          sich mit jeder Rundenabrechnung weiter.
-        </p>
-        <div className="leaderboard-countdown" aria-live="polite">
-          <div>
-            <span>
-              {leaderboardComplete
-                ? `Runde ${nextRound} startet automatisch`
-                : 'Rangliste wird aufgedeckt'}
-            </span>
-            <strong>{secondsLeft}s</strong>
-          </div>
-          <div
-            className="leaderboard-countdown-track"
-            role="progressbar"
-            aria-label="Zeit bis zur nächsten Runde"
-            aria-valuemin={0}
-            aria-valuemax={leaderboardDisplaySeconds}
-            aria-valuenow={secondsLeft}
-          >
-            <span
-              style={{
-                width: `${
-                  (secondsLeft / leaderboardDisplaySeconds) * 100
-                }%`,
-              }}
-            />
-          </div>
-        </div>
+        {isFinal ? (
+          leaderboardComplete && winner ? (
+            <div
+              className="leaderboard-final-summary"
+              aria-live="polite"
+            >
+              <div>
+                <span>{t('leaderboard.winner')}</span>
+                <strong>
+                  <span aria-hidden="true">👑 {winner.icon}</span>{' '}
+                  {winner.name}
+                </strong>
+                <p>
+                  {t('leaderboard.winnerSummary', {
+                    population: number(winner.population),
+                    credits: number(winner.credits),
+                    resources: number(winner.resources),
+                    harvesters: number(winner.harvesters),
+                  })}
+                </p>
+                <small>
+                  {t('leaderboard.playerResult', {
+                    rank: playerRank,
+                    total: entries.length,
+                  })}
+                </small>
+              </div>
+              <button
+                className="leaderboard-restart-button"
+                type="button"
+                onClick={onRestart}
+              >
+                {t('leaderboard.newGame')}
+              </button>
+            </div>
+          ) : (
+            <p className="leaderboard-reveal-status">
+              {t('leaderboard.revealing')}
+            </p>
+          )
+        ) : (
+          <>
+            <p>{t('leaderboard.aiNote')}</p>
+            <div
+              className="leaderboard-countdown"
+              aria-live="polite"
+            >
+              <div>
+                <span>
+                  {leaderboardComplete
+                    ? t('leaderboard.nextRound', {
+                        round: nextRound,
+                      })
+                    : t('leaderboard.revealing')}
+                </span>
+                <strong>{secondsLeft}s</strong>
+              </div>
+              <div
+                className="leaderboard-countdown-track"
+                role="progressbar"
+                aria-label={t('leaderboard.progressLabel')}
+                aria-valuemin={0}
+                aria-valuemax={leaderboardDisplaySeconds}
+                aria-valuenow={secondsLeft}
+              >
+                <span
+                  style={{
+                    width: `${
+                      (secondsLeft / leaderboardDisplaySeconds) *
+                      100
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </section>
   )

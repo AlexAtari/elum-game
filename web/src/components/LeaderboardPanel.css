@@ -198,6 +198,68 @@
   transition: width 1s linear;
 }
 
+.leaderboard-final-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 28px;
+  padding: 20px;
+  border: 1px solid rgba(240, 201, 109, 0.35);
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(240, 201, 109, 0.12),
+    rgba(121, 221, 185, 0.08)
+  );
+}
+
+.leaderboard-final-summary > div {
+  display: grid;
+  gap: 5px;
+}
+
+.leaderboard-final-summary > div > span {
+  color: #f0c96d;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.leaderboard-final-summary > div > strong {
+  font-size: 1.35rem;
+}
+
+.leaderboard-final-summary p,
+.leaderboard-final-summary small {
+  margin: 0;
+  color: #aeb8cb;
+}
+
+.leaderboard-restart-button {
+  min-width: 170px;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 12px;
+  color: #07110d;
+  background: #79ddb9;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.leaderboard-restart-button:hover {
+  background: #91e8c9;
+}
+
+.leaderboard-reveal-status {
+  width: 100%;
+  margin: 0;
+  color: #aeb8cb;
+  text-align: center;
+}
+
 @media (max-width: 760px) {
   .leaderboard-panel {
     padding: 20px;
@@ -211,5 +273,10 @@
 
   .leaderboard-countdown {
     width: 100%;
+  }
+
+  .leaderboard-final-summary {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

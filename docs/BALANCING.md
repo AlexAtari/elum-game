@@ -299,25 +299,20 @@ Expansion ist nur über Felder möglich, die an eigenes Land oder das HQ angrenz
 
 ---
 
-# 12. Spielende und Vermögen
+# 12. Spielende
 
-Vorläufige Wertung:
+Die Standardpartie endet nach **15 vollständig abgerechneten
+Runden**.
 
-| Bestandteil | Wert |
-|---|---:|
-| Credits | 1:1 |
-| Grundstück | ursprünglicher Kaufpreis |
-| Harvester | 20 Credits |
-| gelagerte Ressource | aktueller Marktpreis |
-| Einwohner | 1 Credit je Einwohner |
-
-Der Spieler mit dem höchsten Gesamtvermögen gewinnt.
-
-Bei Gleichstand entscheidet:
+Die Rangfolge wird lexikografisch ermittelt:
 
 1. höhere Bevölkerung
-2. mehr Grundstücke
-3. mehr Credits
+2. mehr Credits
+3. höhere Summe aller gelagerten Ressourcen
+4. mehr Harvester
+
+Die Rangliste nach Runde 15 ist die Abschlussrangliste. Danach beginnt
+keine Runde 16.
 
 ---
 
@@ -348,8 +343,8 @@ Bei Gleichstand entscheidet:
 - Lokale Ereignisse: vorläufig 50 % pro Runde ab Runde 2, ohne
   Sperrrunde; aufeinanderfolgende Ereignisse sind ausdrücklich erlaubt
 - Je Ereignispool 15 Einträge: sechs positive und neun negative
-- Zahlenwirkungen verdoppeln sich nach jeweils zehn Runden:
-  Runde 1–10 ×1, 11–20 ×2, 21–30 ×4 und so weiter
+- Zahlenwirkungen verdoppeln sich nach jeweils sechs Runden:
+  Runde 1–6 ×1, 7–12 ×2, 13–18 ×4 und so weiter
 - Aktionssperren skalieren nicht und enden mit der Rundenabrechnung
 - Ressourcen und Credits fallen durch Ereignisse niemals unter null;
   Harvester-Rabatte senken den Preis niemals unter null

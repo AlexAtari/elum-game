@@ -21,6 +21,7 @@ import {
   createLeaderboardEntries,
   createInitialGameState,
   executeMarketTrade,
+  isGameFinished,
   getHarvesterCreditCost,
   initiateResourceMarket,
   isHarvesterBuildBlocked,
@@ -108,6 +109,9 @@ function App() {
   const activeResourceMarket = activeMarket
     ? gameState.market[activeMarket.resource]
     : null
+  const gameFinished =
+    lastReport !== null &&
+    isGameFinished(lastReport.roundPlayed)
 
   const supplyPreview = calculateSupplyPreview(gameState, {
     foodLevel: foodSupplyLevel,
@@ -517,9 +521,11 @@ function App() {
                   round: activeMarket.roundPlayed,
                 })
               : showLeaderboard && lastReport
-                ? t('app.leaderboardRound', {
-                    round: lastReport.roundPlayed,
-                  })
+                ? gameFinished
+                  ? t('app.finalResult')
+                  : t('app.leaderboardRound', {
+                      round: lastReport.roundPlayed,
+                    })
                 : showRoundBriefing
                   ? t('app.briefingRound', {
                       round: gameState.round,
@@ -617,7 +623,9 @@ function App() {
             roundPlayed={lastReport.roundPlayed}
             nextRound={gameState.round}
             entries={leaderboardEntries}
+            isFinal={gameFinished}
             onContinue={continueAfterLeaderboard}
+            onRestart={startNewGame}
           />
         ) : showRoundBriefing && lastReport ? (
           <RoundBriefingPanel

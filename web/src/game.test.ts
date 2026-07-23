@@ -18,6 +18,7 @@ import {
   getNextMarketResource,
   getOrionMarketRole,
   initiateResourceMarket,
+  isGameFinished,
   isHarvesterBuildBlocked,
   isHarvesterRelocationBlocked,
   isHarvesterRetoolingBlocked,
@@ -70,15 +71,15 @@ describe('Ereignisse', () => {
     expect(new Set(localEventIds).size).toBe(15)
   })
 
-  it('verdoppelt Mengenwirkungen nach jeweils zehn Runden', () => {
+  it('verdoppelt Mengenwirkungen nach jeweils sechs Runden', () => {
     expect(getEventScale(1)).toBe(1)
-    expect(getEventScale(10)).toBe(1)
-    expect(getEventScale(11)).toBe(2)
-    expect(getEventScale(20)).toBe(2)
-    expect(getEventScale(21)).toBe(4)
-    expect(getGlobalEventAmount('colonial-grant', 21)).toBe(60)
-    expect(getLocalEventAmount('food-cache', 21)).toBe(12)
-    expect(getLocalEventAmount('labor-strike', 21)).toBeNull()
+    expect(getEventScale(6)).toBe(1)
+    expect(getEventScale(7)).toBe(2)
+    expect(getEventScale(12)).toBe(2)
+    expect(getEventScale(13)).toBe(4)
+    expect(getGlobalEventAmount('colonial-grant', 13)).toBe(60)
+    expect(getLocalEventAmount('food-cache', 13)).toBe(12)
+    expect(getLocalEventAmount('labor-strike', 13)).toBeNull()
   })
 
   it('wendet lokale Gewinne und Verluste sofort an', () => {
@@ -109,43 +110,43 @@ describe('Ereignisse', () => {
   })
 
   it('skaliert lokale Mengenereignisse mit der aktuellen Runde', () => {
-    const roundElevenState = {
+    const roundSevenState = {
       ...createInitialGameState(),
-      round: 11,
+      round: 7,
     }
-    const roundTwentyOneState = {
+    const roundThirteenState = {
       ...createInitialGameState(),
-      round: 21,
+      round: 13,
     }
 
     expect(
-      applyLocalEvent(roundElevenState, 'ore-cache').resources.ore,
+      applyLocalEvent(roundSevenState, 'ore-cache').resources.ore,
     ).toBe(9)
     expect(
-      applyLocalEvent(roundTwentyOneState, 'new-settlers')
+      applyLocalEvent(roundThirteenState, 'new-settlers')
         .population,
     ).toBe(14)
   })
 
   it('wendet globale Zuschüsse und Kristallstörungen auf alle Kolonien an', () => {
-    const roundElevenState = {
+    const roundSevenState = {
       ...createInitialGameState(),
-      round: 11,
+      round: 7,
       resources: {
         ...createInitialGameState().resources,
         crystals: 1,
       },
     }
     const withGrant = activateGlobalEvent(
-      roundElevenState,
+      roundSevenState,
       'colonial-grant',
     )
     const withCrystals = activateGlobalEvent(
-      roundElevenState,
+      roundSevenState,
       'crystal-rain',
     )
     const afterDisruption = activateGlobalEvent(
-      roundElevenState,
+      roundSevenState,
       'crystal-disruption',
     )
 
@@ -160,23 +161,23 @@ describe('Ereignisse', () => {
   })
 
   it('verbilligt Harvester skaliert und niemals unter null Credits', () => {
-    const roundElevenState = activateGlobalEvent(
+    const roundSevenState = activateGlobalEvent(
       {
         ...createInitialGameState(),
-        round: 11,
+        round: 7,
       },
       'technological-breakthrough',
     )
-    const roundTwentyOneState = activateGlobalEvent(
+    const roundThirteenState = activateGlobalEvent(
       {
         ...createInitialGameState(),
-        round: 21,
+        round: 13,
       },
       'technological-breakthrough',
     )
 
-    expect(getHarvesterCreditCost(roundElevenState)).toBe(10)
-    expect(getHarvesterCreditCost(roundTwentyOneState)).toBe(0)
+    expect(getHarvesterCreditCost(roundSevenState)).toBe(10)
+    expect(getHarvesterCreditCost(roundThirteenState)).toBe(0)
   })
 
   it('blockiert die vorgesehenen Aktionen für genau die aktive Runde', () => {
@@ -239,7 +240,7 @@ describe('Ereignisse', () => {
     const state = applyLocalEvent(
       {
         ...createInitialGameState(),
-        round: 11,
+        round: 7,
       },
       'harvester-breakdown',
     )
@@ -272,7 +273,7 @@ describe('Ereignisse', () => {
     expect(result.nextState.rivals.orion.resources.food).toBe(10)
   })
 
-  it('skaliert globale Produktionsmodifikatoren ab Runde elf', () => {
+  it('skaliert globale Produktionsmodifikatoren ab Runde sieben', () => {
     const harvesters: HarvesterAssignments = {
       A: {
         production: 'food',
@@ -282,13 +283,21 @@ describe('Ereignisse', () => {
     const eventState = activateGlobalEvent(
       {
         ...createInitialGameState(),
-        round: 11,
+        round: 7,
       },
       'fertile-season',
     )
     const result = runRound(eventState, harvesters, normalSupply)
 
     expect(result.report.produced.food).toBe(6)
+  })
+})
+
+describe('Spielende', () => {
+  it('beendet die Standardpartie nach Runde 15', () => {
+    expect(isGameFinished(14)).toBe(false)
+    expect(isGameFinished(15)).toBe(true)
+    expect(isGameFinished(16)).toBe(true)
   })
 })
 

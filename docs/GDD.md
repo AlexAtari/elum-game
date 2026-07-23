@@ -37,7 +37,7 @@ Während der gesamten Entwicklung gelten folgende Grundsätze:
 
 # 3. Spielziel
 
-Eine Partie dauert etwa **15–20 Runden**.
+Eine Standardpartie dauert **15 Runden**.
 
 Nach der letzten Runde gewinnt der Spieler mit der **größten Bevölkerung**.
 
@@ -45,7 +45,8 @@ Die Bevölkerung ist der wichtigste Indikator für den Erfolg einer Kolonie.
 
 Alle anderen Spielmechaniken dienen letztlich dazu, das Wachstum der Kolonie zu fördern.
 
-Bei Gleichstand entscheiden weitere Kriterien (z. B. Credits oder Gesamtwert der Kolonie). Die genaue Reihenfolge wird später im Balancing definiert.
+Bei Gleichstand entscheiden Credits, anschließend die Summe aller
+Ressourcen und zuletzt die Anzahl der Harvester.
 
 ---
 
@@ -125,9 +126,12 @@ Abhängig von der Versorgung wächst die Bevölkerung, stagniert oder schrumpft.
 - Versorgung, Harvesterenergie, Produktion, Bauabschlüsse und Bevölkerungsentwicklung werden nach dem letzten Ressourcenmarkt gemeinsam abgerechnet.
 - Markt- und Lagerwerte werden aktualisiert.
 - Nach der Abrechnung wird eine gemeinsame Kolonie-Rangliste eingeblendet.
-- Nach der Rangliste folgt der Bericht „Ereignisse & deine Kolonie“
-  als Einstieg in die neue Runde.
 - Prüfung auf Spielende.
+- Nach Runde 15 wird die Rangliste zur Abschlussrangliste. Sie nennt
+  den Sieger und den eigenen Schlussrang; eine neue Partie kann von
+  dort direkt gestartet werden.
+- In allen früheren Runden folgt der Bericht „Ereignisse & deine
+  Kolonie“ als Einstieg in die neue Runde.
 
 Falls das Spiel nicht beendet ist, beginnt die nächste Runde.
 
@@ -450,7 +454,18 @@ Nach „Runde ausführen“ wird die Runde vollständig abgerechnet. Anschließe
 3. Gesamtzahl der eingelagerten Ressourcen
 4. Anzahl der eigenen Harvester
 
-Die Reihenfolge entspricht zugleich der vorläufigen Rangfolge bei Gleichstand: Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits, Ressourcen und Harvester. Die eigene Kolonie wird deutlich hervorgehoben. Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Der Erstplatzierte erhält zusätzlich ein kleines Kronensymbol. Sobald alle Plätze sichtbar sind, bleibt die vollständige Rangliste weitere drei Sekunden stehen und wechselt danach ohne Bestätigung in den Rundenbericht der nächsten Runde. Dieser gemeinsame Ablauf dient später im Mehrspielermodus zugleich als synchroner Übergang für alle Teilnehmer.
+Die Reihenfolge entspricht zugleich der Rangfolge bei Gleichstand:
+Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits,
+Ressourcen und Harvester. Die eigene Kolonie wird deutlich
+hervorgehoben. Die Plätze werden vom letzten bis zum ersten Rang im
+Abstand von jeweils einer Sekunde aufgedeckt. Der Erstplatzierte erhält
+zusätzlich ein kleines Kronensymbol. Sobald alle Plätze sichtbar sind,
+bleibt die vollständige Rangliste weitere drei Sekunden stehen und
+wechselt danach ohne Bestätigung in den Rundenbericht der nächsten
+Runde. Nach Runde 15 entfällt dieser automatische Wechsel; die
+Abschlussrangliste bleibt bis zum Start einer neuen Partie sichtbar.
+Dieser gemeinsame Ablauf dient später im Mehrspielermodus zugleich als
+synchroner Übergang für alle Teilnehmer.
 
 ## Bericht zum Beginn der neuen Runde
 
@@ -566,8 +581,8 @@ Harvester für die Abrechnung ausfallen lassen. Das ursprünglich
 vorgeschlagene lokale Ereignis Nr. 8 bleibt bewusst außen vor.
 
 Zahlenwirkungen skalieren mit der Spieldauer. Sie gelten in Runde
-1–10 einfach, in Runde 11–20 doppelt, in Runde 21–30 vierfach und
-verdoppeln sich danach alle zehn Runden erneut. Aktionssperren werden
+1–6 einfach, in Runde 7–12 doppelt, in Runde 13–18 vierfach und
+verdoppeln sich danach alle sechs Runden erneut. Aktionssperren werden
 nicht skaliert und gelten stets nur für eine Runde.
 
 Globale und lokale Ereignisse werden getrennt ausgewürfelt. Daher
@@ -583,22 +598,21 @@ Strategische Entscheidungen bleiben wichtiger als Glück.
 
 Eine Partie endet nach einer festgelegten Rundenzahl.
 
-Standard:
-
-15–20 Runden
-(exakte Rundenzahl wird später im Balancing festgelegt)
+Standard: **15 Runden**
 
 Gewonnen hat der Spieler mit der größten Bevölkerung.
 
-Bei Gleichstand entscheiden weitere Kriterien.
-
-Die Reihenfolge wird später festgelegt.
-
-Mögliche Tie-Breaker:
+Bei Gleichstand entscheiden:
 
 1. Credits
-2. Gesamtwert der Kolonie
-3. übrige Ressourcen
+2. Summe aller gelagerten Ressourcen
+3. Anzahl der Harvester
+
+Nach der Abrechnung von Runde 15 wird die bekannte Rangliste vom
+letzten bis zum ersten Platz aufgedeckt. Sie bleibt anschließend als
+Abschlussrangliste stehen, zeigt Sieger und eigenen Schlussrang und
+bietet den Start einer neuen Partie an. Es wird keine Runde 16
+eröffnet.
 
 ---
 
