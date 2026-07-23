@@ -1,0 +1,130 @@
+.round-briefing-panel {
+  margin-top: 20px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(14, 21, 38, 0.9);
+}
+
+.round-briefing-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.round-briefing-heading h2 {
+  margin: 8px 0 0;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+}
+
+.round-briefing-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.6fr);
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.round-briefing-event,
+.round-briefing-colony {
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.round-briefing-event {
+  background:
+    radial-gradient(circle at 80% 10%, rgba(240, 201, 109, 0.15), transparent 38%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.round-briefing-event-icon {
+  display: block;
+  margin-top: 26px;
+  font-size: 2.8rem;
+}
+
+.round-briefing-event h3,
+.round-briefing-colony h3 {
+  margin: 12px 0 8px;
+  font-size: 1.4rem;
+}
+
+.round-briefing-event > p:last-child {
+  margin-bottom: 0;
+  color: #b9c2d5;
+  line-height: 1.6;
+}
+
+.round-briefing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.round-briefing-grid > div {
+  display: flex;
+  min-height: 82px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.round-briefing-grid span {
+  color: #8995aa;
+  font-size: 0.83rem;
+}
+
+.round-briefing-grid strong {
+  line-height: 1.4;
+}
+
+.round-briefing-grid small {
+  color: #79ddb9;
+  font-size: 0.8em;
+}
+
+.round-briefing-warning {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #ffd07a;
+  background: rgba(255, 177, 72, 0.12);
+  font-size: 0.86rem;
+}
+
+.round-briefing-button {
+  margin-top: 20px;
+  padding: 14px 22px;
+  cursor: pointer;
+  border: 0;
+  border-radius: 12px;
+  color: #07110d;
+  background: #79ddb9;
+  font: inherit;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .round-briefing-panel {
+    padding: 20px;
+  }
+
+  .round-briefing-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .round-briefing-layout,
+  .round-briefing-grid {
+    grid-template-columns: 1fr;
+  }
+}

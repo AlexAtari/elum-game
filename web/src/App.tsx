@@ -1,10 +1,19 @@
-import { useCallback, useMemo, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import HexMap from './components/HexMap'
 import LandTieAuctionPanel from './components/LandTieAuctionPanel'
 import LeaderboardPanel from './components/LeaderboardPanel'
+import LocalEventNotice from './components/LocalEventNotice'
 import MarketLauncher from './components/MarketLauncher'
 import MarketPanel from './components/MarketPanel'
+import RoundBriefingPanel from './components/RoundBriefingPanel'
 import {
+  activateGlobalEvent,
+  applyLocalEvent,
   beginLandTieBreak,
   cancelLandBid,
   calculateSupplyPreview,
@@ -12,12 +21,21 @@ import {
   createLeaderboardEntries,
   createInitialGameState,
   executeMarketTrade,
+  getHarvesterCreditCost,
   initiateResourceMarket,
+  isHarvesterBuildBlocked,
+  isHarvesterRelocationBlocked,
+  isHarvesterRetoolingBlocked,
+  isLandBidBlocked,
+  isMarketInitiationBlocked,
   orderHarvesterBuild,
   placeLandBid,
   resolveLandTieBreak,
   runRound,
+  selectGlobalEvent,
+  selectLocalEvent,
   type FreeHarvester,
+  type LocalEventId,
   type HarvesterAssignments,
   type LandTieBidState,
   type MarketCounterparty,
@@ -67,10 +85,26 @@ function App() {
   const [pendingRound, setPendingRound] =
     useState<PendingRound | null>(null)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [showRoundBriefing, setShowRoundBriefing] =
+    useState(false)
+  const [pendingLocalEvent, setPendingLocalEvent] =
+    useState<LocalEventId | null>(null)
+  const [activeLocalEvent, setActiveLocalEvent] =
+    useState<LocalEventId | null>(null)
 
   const freeHarvesters = freeHarvesterPool.length
   const totalHarvesters =
     freeHarvesters + Object.keys(harvesters).length
+  const harvesterCreditCost = getHarvesterCreditCost(gameState)
+  const marketInitiationBlocked =
+    isMarketInitiationBlocked(gameState)
+  const landBidBlocked = isLandBidBlocked(gameState)
+  const harvesterBuildBlocked =
+    isHarvesterBuildBlocked(gameState)
+  const harvesterRetoolingBlocked =
+    isHarvesterRetoolingBlocked(gameState)
+  const harvesterRelocationBlocked =
+    isHarvesterRelocationBlocked(gameState)
   const activeResourceMarket = activeMarket
     ? gameState.market[activeMarket.resource]
     : null
@@ -113,8 +147,43 @@ function App() {
     setActiveMarket(null)
     setPendingRound(null)
     setShowLeaderboard(false)
+    setShowRoundBriefing(false)
+    setPendingLocalEvent(null)
+    setActiveLocalEvent(null)
     setGameStarted(true)
   }
+
+  useEffect(() => {
+    if (
+      !gameStarted ||
+      pendingLocalEvent === null ||
+      showLeaderboard ||
+      showRoundBriefing ||
+      activeMarket !== null ||
+      gameState.landAuctionTie !== null
+    ) {
+      return
+    }
+
+    const delayMilliseconds =
+      2000 + Math.floor(Math.random() * 4000)
+    const localEventTimer = window.setTimeout(() => {
+      setGameState((currentState) =>
+        applyLocalEvent(currentState, pendingLocalEvent),
+      )
+      setActiveLocalEvent(pendingLocalEvent)
+      setPendingLocalEvent(null)
+    }, delayMilliseconds)
+
+    return () => window.clearTimeout(localEventTimer)
+  }, [
+    activeMarket,
+    gameStarted,
+    gameState.landAuctionTie,
+    pendingLocalEvent,
+    showLeaderboard,
+    showRoundBriefing,
+  ])
 
   const assignHarvester = (
     tileId: string,
@@ -135,6 +204,13 @@ function App() {
       freeHarvesterPool[selectedHarvesterIndex]
 
     if (!selectedHarvester) {
+      return
+    }
+
+    if (
+      selectedHarvester.previousProduction !== undefined &&
+      harvesterRelocationBlocked
+    ) {
       return
     }
 
@@ -165,6 +241,10 @@ function App() {
     tileId: string,
     production: ProductionType,
   ) => {
+    if (harvesterRetoolingBlocked) {
+      return
+    }
+
     setHarvesters((currentHarvesters) => {
       const currentAssignment = currentHarvesters[tileId]
 
@@ -217,6 +297,10 @@ function App() {
     const currentAssignment = harvesters[tileId]
 
     if (!currentAssignment) {
+      return
+    }
+
+    if (!currentAssignment.isNew && harvesterRelocationBlocked) {
       return
     }
 
@@ -294,6 +378,9 @@ function App() {
       setLastReport(completedRound.report)
       setPendingRound(null)
       setActiveMarket(null)
+      setPendingLocalEvent(null)
+      setActiveLocalEvent(null)
+      setShowRoundBriefing(false)
       setShowLeaderboard(true)
     },
     [],
@@ -303,6 +390,7 @@ function App() {
     (resource: MarketResource) => {
       if (
         activeMarket !== null ||
+        marketInitiationBlocked ||
         gameState.initiatedMarketResources.includes(resource)
       ) {
         return
@@ -315,8 +403,14 @@ function App() {
         roundPlayed: gameState.round,
         resource,
       })
+      setActiveLocalEvent(null)
     },
-    [activeMarket, gameState.initiatedMarketResources, gameState.round],
+    [
+      activeMarket,
+      gameState.initiatedMarketResources,
+      gameState.round,
+      marketInitiationBlocked,
+    ],
   )
 
   const completeMarketResource = useCallback(
@@ -366,6 +460,9 @@ function App() {
     setPendingRound(roundPlan)
     setLastReport(null)
     setShowLeaderboard(false)
+    setShowRoundBriefing(false)
+    setPendingLocalEvent(null)
+    setActiveLocalEvent(null)
 
     if (plannedRound.report.landAuction?.outcome === 'tie') {
       setGameState(beginLandTieBreak)
@@ -376,7 +473,23 @@ function App() {
   }
 
   const continueAfterLeaderboard = useCallback(() => {
+    const globalEvent = selectGlobalEvent(gameState.round)
+    const localEvent = selectLocalEvent(gameState.round)
+
+    setGameState((currentState) =>
+      activateGlobalEvent(currentState, globalEvent),
+    )
+    setPendingLocalEvent(localEvent)
     setShowLeaderboard(false)
+    setShowRoundBriefing(true)
+  }, [gameState.round])
+
+  const continueAfterBriefing = useCallback(() => {
+    setShowRoundBriefing(false)
+  }, [])
+
+  const dismissLocalEvent = useCallback(() => {
+    setActiveLocalEvent(null)
   }, [])
 
   if (gameStarted) {
@@ -407,13 +520,18 @@ function App() {
                 ? t('app.leaderboardRound', {
                     round: lastReport.roundPlayed,
                   })
+                : showRoundBriefing
+                  ? t('app.briefingRound', {
+                      round: gameState.round,
+                    })
                 : t('app.round', { round: gameState.round })}
           </div>
         </header>
 
         {activeMarket === null &&
           gameState.landAuctionTie === null &&
-          !showLeaderboard && (
+          !showLeaderboard &&
+          !showRoundBriefing && (
           <section className="status-panel">
             <h2>{t('app.status')}</h2>
 
@@ -501,6 +619,14 @@ function App() {
             entries={leaderboardEntries}
             onContinue={continueAfterLeaderboard}
           />
+        ) : showRoundBriefing && lastReport ? (
+          <RoundBriefingPanel
+            round={gameState.round}
+            population={gameState.population}
+            report={lastReport}
+            globalEvent={gameState.activeGlobalEvent}
+            onContinue={continueAfterBriefing}
+          />
         ) : (
           <>
             <HexMap
@@ -516,6 +642,11 @@ function App() {
                 gameState.harvestersInConstruction
               }
               harvesters={harvesters}
+              harvesterCreditCost={harvesterCreditCost}
+              isHarvesterBuildBlocked={harvesterBuildBlocked}
+              isLandBidBlocked={landBidBlocked}
+              isRetoolingBlocked={harvesterRetoolingBlocked}
+              isRelocationBlocked={harvesterRelocationBlocked}
               onBuildHarvester={buildHarvester}
               onPlaceLandBid={submitLandBid}
               onCancelLandOrder={cancelLandOrder}
@@ -530,6 +661,7 @@ function App() {
               initiatedResources={
                 gameState.initiatedMarketResources
               }
+              isBlocked={marketInitiationBlocked}
               onInitiate={initiateMarket}
             />
 
@@ -680,107 +812,17 @@ function App() {
           </>
         )}
 
-        {activeMarket === null &&
+        {activeLocalEvent !== null &&
+          activeMarket === null &&
           gameState.landAuctionTie === null &&
           !showLeaderboard &&
-          lastReport && (
-          <section className="round-report">
-            <p className="eyebrow">
-              {t('round.calculation', {
-                round: lastReport.roundPlayed,
-              })}
-            </p>
-
-            <h2>{t('round.result')}</h2>
-
-            <div className="report-grid">
-              <div className="report-item">
-                <span>{t('supply.production')}</span>
-                <strong>
-                  🌾 {lastReport.produced.food} · ⚡{' '}
-                  {lastReport.produced.energy} · ⛏{' '}
-                  {lastReport.produced.ore}
-                </strong>
-              </div>
-
-              <div className="report-item">
-                <span>{t('supply.supply')}</span>
-                <strong>
-                  🌾 {lastReport.consumedFood} · ⚡{' '}
-                  {lastReport.consumedEnergyByHq}
-                </strong>
-              </div>
-
-              <div className="report-item">
-                <span>{t('supply.harvesterEnergy')}</span>
-                <strong>
-                  ⚡ {lastReport.consumedEnergyByHarvesters}
-                </strong>
-              </div>
-
-              <div className="report-item">
-                <span>{t('round.population')}</span>
-                <strong>
-                  {lastReport.populationChange > 0 ? '+' : ''}
-                  {lastReport.populationChange}
-                </strong>
-              </div>
-            </div>
-
-            {lastReport.inactiveHarvesterIds.length > 0 && (
-              <p className="report-warning">
-                {t('round.inactiveHarvesters', {
-                  ids: lastReport.inactiveHarvesterIds.join(', '),
-                })}
-              </p>
-            )}
-
-            {lastReport.completedRetoolingIds.length > 0 && (
-              <p className="report-success">
-                {t('round.completedRetooling', {
-                  ids: lastReport.completedRetoolingIds.join(', '),
-                })}
-              </p>
-            )}
-
-            {lastReport.pausedRetoolingIds.length > 0 && (
-              <p className="report-warning">
-                {t('round.pausedRetooling', {
-                  ids: lastReport.pausedRetoolingIds.join(', '),
-                })}
-              </p>
-            )}
-
-            {lastReport.landAuction?.outcome === 'won' && (
-              <p className="report-success">
-                {t('round.landWon', {
-                  tile: lastReport.landAuction.tileId,
-                  playerBid: lastReport.landAuction.playerBid,
-                  rivalBid: lastReport.landAuction.rivalBid,
-                })}
-              </p>
-            )}
-
-            {lastReport.landAuction?.outcome === 'lost' && (
-              <p className="report-warning">
-                {t('round.landLost', {
-                  tile: lastReport.landAuction.tileId,
-                  playerBid: lastReport.landAuction.playerBid,
-                  rivalBid: lastReport.landAuction.rivalBid,
-                })}
-              </p>
-            )}
-
-            {lastReport.completedHarvesters > 0 && (
-              <p className="report-success">
-                {t('round.completedHarvesters', {
-                  amount: lastReport.completedHarvesters,
-                })}
-              </p>
-            )}
-
-          </section>
-        )}
+          !showRoundBriefing && (
+            <LocalEventNotice
+              event={activeLocalEvent}
+              round={gameState.round}
+              onDismiss={dismissLocalEvent}
+            />
+          )}
 
         <button
           className="secondary-button"

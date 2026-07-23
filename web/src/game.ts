@@ -12,6 +12,40 @@ export type MarketDirection = 'buy' | 'sell'
 export type MarketCounterparty = 'orion' | 'warehouse'
 export type MarketRole = 'neutral' | 'buyer' | 'seller'
 
+export type GlobalEventId =
+  | 'fertile-season'
+  | 'clear-skies'
+  | 'rich-ore-vein'
+  | 'crystal-rain'
+  | 'colonial-grant'
+  | 'technological-breakthrough'
+  | 'drought'
+  | 'solar-storm'
+  | 'unstable-mines'
+  | 'crystal-disruption'
+  | 'trade-blockade'
+  | 'surveying-stop'
+  | 'supply-chain-disruption'
+  | 'ion-fog'
+  | 'planetary-quake'
+
+export type LocalEventId =
+  | 'food-cache'
+  | 'energy-cache'
+  | 'ore-cache'
+  | 'crystal-fragment'
+  | 'credit-grant'
+  | 'new-settlers'
+  | 'spoiled-food'
+  | 'energy-leak'
+  | 'ore-theft'
+  | 'credit-fraud'
+  | 'harvester-breakdown'
+  | 'labor-strike'
+  | 'communications-outage'
+  | 'land-registry-error'
+  | 'wrong-spare-parts'
+
 export type MarketOffer = {
   active: boolean
   price: number
@@ -53,6 +87,8 @@ export type GameState = {
   landAuctionTie: LandAuctionTie | null
   harvestersInConstruction: number
   initiatedMarketResources: MarketResource[]
+  activeGlobalEvent: GlobalEventId | null
+  activeLocalEvent: LocalEventId | null
   market: MarketState
   rivals: RivalColonies
 }
@@ -142,6 +178,7 @@ export type RoundReport = {
   pausedRetoolingIds: string[]
   landAuction: LandAuctionResult | null
   completedHarvesters: number
+  globalEvent: GlobalEventId | null
 }
 
 export type LeaderboardEntry = {
@@ -164,6 +201,372 @@ export type MarketTiming = {
 export const LAND_MINIMUM_BID = 25
 export const HARVESTER_CREDIT_COST = 30
 export const HARVESTER_ORE_COST = 3
+export const GLOBAL_EVENT_CHANCE = 0.4
+export const LOCAL_EVENT_CHANCE = 0.5
+
+export const globalEventIds: GlobalEventId[] = [
+  'fertile-season',
+  'clear-skies',
+  'rich-ore-vein',
+  'crystal-rain',
+  'colonial-grant',
+  'technological-breakthrough',
+  'drought',
+  'solar-storm',
+  'unstable-mines',
+  'crystal-disruption',
+  'trade-blockade',
+  'surveying-stop',
+  'supply-chain-disruption',
+  'ion-fog',
+  'planetary-quake',
+]
+
+export const localEventIds: LocalEventId[] = [
+  'food-cache',
+  'energy-cache',
+  'ore-cache',
+  'crystal-fragment',
+  'credit-grant',
+  'new-settlers',
+  'spoiled-food',
+  'energy-leak',
+  'ore-theft',
+  'credit-fraud',
+  'harvester-breakdown',
+  'labor-strike',
+  'communications-outage',
+  'land-registry-error',
+  'wrong-spare-parts',
+]
+
+const globalProductionModifiers: Partial<Record<
+  GlobalEventId,
+  {
+    production: ProductionType
+    difference: number
+  }
+>> = {
+  'fertile-season': {
+    production: 'food',
+    difference: 1,
+  },
+  drought: {
+    production: 'food',
+    difference: -1,
+  },
+  'clear-skies': {
+    production: 'energy',
+    difference: 1,
+  },
+  'solar-storm': {
+    production: 'energy',
+    difference: -1,
+  },
+  'rich-ore-vein': {
+    production: 'ore',
+    difference: 1,
+  },
+  'unstable-mines': {
+    production: 'ore',
+    difference: -1,
+  },
+}
+
+const globalEventBaseAmounts: Partial<
+  Record<GlobalEventId, number>
+> = {
+  'fertile-season': 1,
+  'clear-skies': 1,
+  'rich-ore-vein': 1,
+  'crystal-rain': 1,
+  'colonial-grant': 15,
+  'technological-breakthrough': 10,
+  drought: 1,
+  'solar-storm': 1,
+  'unstable-mines': 1,
+  'crystal-disruption': 1,
+  'planetary-quake': 1,
+}
+
+const localEventBaseAmounts: Partial<
+  Record<LocalEventId, number>
+> = {
+  'food-cache': 3,
+  'energy-cache': 3,
+  'ore-cache': 2,
+  'crystal-fragment': 1,
+  'credit-grant': 15,
+  'new-settlers': 1,
+  'spoiled-food': 2,
+  'energy-leak': 2,
+  'ore-theft': 2,
+  'credit-fraud': 10,
+  'harvester-breakdown': 1,
+}
+
+export function getEventScale(round: number): number {
+  return 2 ** Math.floor(Math.max(0, round - 1) / 10)
+}
+
+export function getGlobalEventAmount(
+  event: GlobalEventId,
+  round: number,
+): number | null {
+  const baseAmount = globalEventBaseAmounts[event]
+
+  return baseAmount === undefined
+    ? null
+    : baseAmount * getEventScale(round)
+}
+
+export function getLocalEventAmount(
+  event: LocalEventId,
+  round: number,
+): number | null {
+  const baseAmount = localEventBaseAmounts[event]
+
+  return baseAmount === undefined
+    ? null
+    : baseAmount * getEventScale(round)
+}
+
+function selectEvent<T>(
+  eventIds: T[],
+  chance: number,
+  round: number,
+  chanceRoll: number,
+  selectionRoll: number,
+): T | null {
+  if (round < 2 || chanceRoll >= chance) {
+    return null
+  }
+
+  const selectedIndex = Math.min(
+    eventIds.length - 1,
+    Math.floor(Math.max(0, selectionRoll) * eventIds.length),
+  )
+
+  return eventIds[selectedIndex]
+}
+
+export function selectGlobalEvent(
+  round: number,
+  chanceRoll: number = Math.random(),
+  selectionRoll: number = Math.random(),
+): GlobalEventId | null {
+  return selectEvent(
+    globalEventIds,
+    GLOBAL_EVENT_CHANCE,
+    round,
+    chanceRoll,
+    selectionRoll,
+  )
+}
+
+export function selectLocalEvent(
+  round: number,
+  chanceRoll: number = Math.random(),
+  selectionRoll: number = Math.random(),
+): LocalEventId | null {
+  return selectEvent(
+    localEventIds,
+    LOCAL_EVENT_CHANCE,
+    round,
+    chanceRoll,
+    selectionRoll,
+  )
+}
+
+export function activateGlobalEvent(
+  currentState: GameState,
+  event: GlobalEventId | null,
+): GameState {
+  const amount =
+    event === null
+      ? null
+      : getGlobalEventAmount(event, currentState.round)
+  const creditsDifference =
+    event === 'colonial-grant' ? amount ?? 0 : 0
+  const crystalDifference =
+    event === 'crystal-rain'
+      ? amount ?? 0
+      : event === 'crystal-disruption'
+        ? -(amount ?? 0)
+        : 0
+
+  return {
+    ...currentState,
+    activeGlobalEvent: event,
+    credits: currentState.credits + creditsDifference,
+    resources: {
+      ...currentState.resources,
+      crystals: Math.max(
+        0,
+        currentState.resources.crystals + crystalDifference,
+      ),
+    },
+    rivals: Object.fromEntries(
+      Object.entries(currentState.rivals).map(([id, rival]) => [
+        id,
+        {
+          ...rival,
+          credits: rival.credits + creditsDifference,
+          resources: {
+            ...rival.resources,
+            crystals: Math.max(
+              0,
+              rival.resources.crystals + crystalDifference,
+            ),
+          },
+        },
+      ]),
+    ) as RivalColonies,
+  }
+}
+
+export function applyLocalEvent(
+  currentState: GameState,
+  event: LocalEventId,
+): GameState {
+  const amount =
+    getLocalEventAmount(event, currentState.round) ?? 0
+  const nextState: GameState = {
+    ...currentState,
+    activeLocalEvent: event,
+    resources: {
+      ...currentState.resources,
+    },
+  }
+
+  switch (event) {
+    case 'food-cache':
+      nextState.resources.food += amount
+      break
+    case 'energy-cache':
+      nextState.resources.energy += amount
+      break
+    case 'ore-cache':
+      nextState.resources.ore += amount
+      break
+    case 'crystal-fragment':
+      nextState.resources.crystals += amount
+      break
+    case 'credit-grant':
+      nextState.credits += amount
+      break
+    case 'new-settlers':
+      nextState.population += amount
+      break
+    case 'spoiled-food':
+      nextState.resources.food = Math.max(
+        0,
+        nextState.resources.food - amount,
+      )
+      break
+    case 'energy-leak':
+      nextState.resources.energy = Math.max(
+        0,
+        nextState.resources.energy - amount,
+      )
+      break
+    case 'ore-theft':
+      nextState.resources.ore = Math.max(
+        0,
+        nextState.resources.ore - amount,
+      )
+      break
+    case 'credit-fraud':
+      nextState.credits = Math.max(0, nextState.credits - amount)
+      break
+    case 'harvester-breakdown':
+    case 'labor-strike':
+    case 'communications-outage':
+    case 'land-registry-error':
+    case 'wrong-spare-parts':
+      break
+  }
+
+  return nextState
+}
+
+export function getGlobalProductionModifier(
+  event: GlobalEventId | null,
+  production: ProductionType,
+  round: number = 1,
+): number {
+  if (!event) {
+    return 0
+  }
+
+  const modifier = globalProductionModifiers[event]
+
+  return modifier?.production === production
+    ? modifier.difference * getEventScale(round)
+    : 0
+}
+
+export function getHarvesterCreditCost(
+  currentState: GameState,
+): number {
+  if (
+    currentState.activeGlobalEvent !==
+    'technological-breakthrough'
+  ) {
+    return HARVESTER_CREDIT_COST
+  }
+
+  const discount =
+    getGlobalEventAmount(
+      'technological-breakthrough',
+      currentState.round,
+    ) ?? 0
+
+  return Math.max(0, HARVESTER_CREDIT_COST - discount)
+}
+
+export function isMarketInitiationBlocked(
+  currentState: GameState,
+): boolean {
+  return (
+    currentState.activeGlobalEvent === 'trade-blockade' ||
+    currentState.activeLocalEvent === 'communications-outage'
+  )
+}
+
+export function isLandBidBlocked(
+  currentState: GameState,
+): boolean {
+  return (
+    currentState.activeGlobalEvent === 'surveying-stop' ||
+    currentState.activeLocalEvent === 'land-registry-error'
+  )
+}
+
+export function isHarvesterBuildBlocked(
+  currentState: GameState,
+): boolean {
+  return (
+    currentState.activeGlobalEvent ===
+      'supply-chain-disruption' ||
+    currentState.activeLocalEvent === 'labor-strike'
+  )
+}
+
+export function isHarvesterRetoolingBlocked(
+  currentState: GameState,
+): boolean {
+  return (
+    currentState.activeGlobalEvent === 'ion-fog' ||
+    currentState.activeLocalEvent === 'wrong-spare-parts'
+  )
+}
+
+export function isHarvesterRelocationBlocked(
+  currentState: GameState,
+): boolean {
+  return currentState.activeGlobalEvent === 'ion-fog'
+}
 
 export const MARKET_PRICES: Record<MarketResource, number> = {
   food: 8,
@@ -291,6 +694,7 @@ const rivalProductionCycles: Record<
 function getRivalProduction(
   rival: RivalColonyState,
   roundPlayed: number,
+  globalEvent: GlobalEventId | null = null,
 ): Record<ProductionType, number> {
   const production = {
     food: 0,
@@ -298,12 +702,28 @@ function getRivalProduction(
     ore: 0,
   }
   const cycle = rivalProductionCycles[rival.id]
+  const quakeFailures =
+    globalEvent === 'planetary-quake'
+      ? getGlobalEventAmount(globalEvent, roundPlayed) ?? 0
+      : 0
+  const producingHarvesters = Math.max(
+    0,
+    rival.harvesters - quakeFailures,
+  )
 
-  for (let index = 0; index < rival.harvesters; index += 1) {
+  for (let index = 0; index < producingHarvesters; index += 1) {
     const productionType =
       cycle[(roundPlayed - 1 + index) % cycle.length]
 
-    production[productionType] += 3
+    production[productionType] += Math.max(
+      0,
+      3 +
+        getGlobalProductionModifier(
+          globalEvent,
+          productionType,
+          roundPlayed,
+        ),
+    )
   }
 
   return production
@@ -312,6 +732,7 @@ function getRivalProduction(
 export function advanceRivalColonies(
   rivals: RivalColonies,
   roundPlayed: number,
+  globalEvent: GlobalEventId | null = null,
 ): RivalColonies {
   return Object.fromEntries(
     Object.entries(rivals).map(([id, rival]) => {
@@ -326,7 +747,11 @@ export function advanceRivalColonies(
         rival.resources.energy,
         plannedEnergy,
       )
-      const production = getRivalProduction(rival, roundPlayed)
+      const production = getRivalProduction(
+        rival,
+        roundPlayed,
+        globalEvent,
+      )
       const hasNormalSupply =
         consumedFood === plannedFood &&
         consumedEnergy === plannedEnergy
@@ -564,6 +989,8 @@ export function createInitialGameState(): GameState {
     landAuctionTie: null,
     harvestersInConstruction: 0,
     initiatedMarketResources: [],
+    activeGlobalEvent: null,
+    activeLocalEvent: null,
     market: {
       food: {
         referencePrice: MARKET_PRICES.food,
@@ -636,8 +1063,11 @@ export function createInitialGameState(): GameState {
 export function orderHarvesterBuild(
   currentState: GameState,
 ): GameState {
+  const creditCost = getHarvesterCreditCost(currentState)
+
   if (
-    currentState.credits < HARVESTER_CREDIT_COST ||
+    isHarvesterBuildBlocked(currentState) ||
+    currentState.credits < creditCost ||
     currentState.resources.ore < HARVESTER_ORE_COST
   ) {
     return currentState
@@ -645,7 +1075,7 @@ export function orderHarvesterBuild(
 
   return {
     ...currentState,
-    credits: currentState.credits - HARVESTER_CREDIT_COST,
+    credits: currentState.credits - creditCost,
     resources: {
       ...currentState.resources,
       ore: currentState.resources.ore - HARVESTER_ORE_COST,
@@ -729,7 +1159,10 @@ export function initiateResourceMarket(
   currentState: GameState,
   resource: MarketResource,
 ): GameState {
-  if (currentState.initiatedMarketResources.includes(resource)) {
+  if (
+    isMarketInitiationBlocked(currentState) ||
+    currentState.initiatedMarketResources.includes(resource)
+  ) {
     return currentState
   }
 
@@ -838,6 +1271,7 @@ export function placeLandBid(
       : LAND_MINIMUM_BID
 
   if (
+    isLandBidBlocked(currentState) ||
     !tile ||
     tile.owner !== 'free' ||
     currentState.ownedTileIds.includes(tileId) ||
@@ -1228,9 +1662,33 @@ export function runRound(
     },
   )
 
-  const inactiveTaskIds = deactivationOrder
+  const energyInactiveTaskIds = deactivationOrder
     .slice(0, amountToDeactivate)
     .map((task) => task.id)
+  const energyInactiveTaskSet = new Set(energyInactiveTaskIds)
+  const globalFailures =
+    currentState.activeGlobalEvent === 'planetary-quake'
+      ? getGlobalEventAmount(
+          currentState.activeGlobalEvent,
+          currentState.round,
+        ) ?? 0
+      : 0
+  const localFailures =
+    currentState.activeLocalEvent === 'harvester-breakdown'
+      ? getLocalEventAmount(
+          currentState.activeLocalEvent,
+          currentState.round,
+        ) ?? 0
+      : 0
+  const forcedInactiveTaskIds = harvesterTasks
+    .filter((task) => !energyInactiveTaskSet.has(task.id))
+    .sort((first, second) => first.randomOrder - second.randomOrder)
+    .slice(0, globalFailures + localFailures)
+    .map((task) => task.id)
+  const inactiveTaskIds = [
+    ...energyInactiveTaskIds,
+    ...forcedInactiveTaskIds,
+  ]
 
   const inactiveTaskSet = new Set(inactiveTaskIds)
 
@@ -1265,7 +1723,15 @@ export function runRound(
   }
 
   for (const task of activeProductionTasks) {
-    produced[task.production] += task.rating
+    produced[task.production] += Math.max(
+      0,
+      task.rating +
+        getGlobalProductionModifier(
+          currentState.activeGlobalEvent,
+          task.production,
+          currentState.round,
+        ),
+    )
   }
 
   const consumedEnergyByHarvesters = activeTasks.length
@@ -1323,6 +1789,7 @@ export function runRound(
   const advancedRivals = advanceRivalColonies(
     currentState.rivals,
     currentState.round,
+    currentState.activeGlobalEvent,
   )
   const rivalsAfterLandAuction = rivalWonLand
     ? {
@@ -1380,6 +1847,8 @@ export function runRound(
       : null,
     harvestersInConstruction: 0,
     initiatedMarketResources: [],
+    activeGlobalEvent: null,
+    activeLocalEvent: null,
     market: currentState.market,
     rivals: rivalsAfterLandAuction,
   }
@@ -1400,6 +1869,7 @@ export function runRound(
       landAuction,
       completedHarvesters:
         currentState.harvestersInConstruction,
+      globalEvent: currentState.activeGlobalEvent,
     },
   }
 }

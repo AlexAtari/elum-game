@@ -81,7 +81,39 @@
 - Nach „Runde ausführen“ erfolgt die Rundenabrechnung und anschließend eine eigene Ranglistenansicht.
 - Sortiert wird nach Bevölkerung, Credits, Gesamtressourcen und Harvesterzahl. Die eigene Kolonie ist hervorgehoben.
 - Agima, Orion, Nova und Vega verwenden dauerhaft gespeicherte Koloniewerte. Die KI-Kolonien versorgen ihre Bevölkerung und produzieren mit einer einfachen, reproduzierbaren Rundenroutine. Marktentscheidungen, Grundstückskäufe und Harvesterbau werden anschließend ergänzt.
-- Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Platz 1 erhält ein kleines Kronensymbol. Die vollständige Rangliste bleibt danach drei Sekunden sichtbar; ein Countdown zeigt die Restzeit bis zum automatischen Wechsel in die nächste Planungsansicht.
+- Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Platz 1 erhält ein kleines Kronensymbol. Die vollständige Rangliste bleibt danach drei Sekunden sichtbar; ein Countdown zeigt die Restzeit bis zum automatischen Wechsel in den Rundenbericht der nächsten Runde.
+
+### 🔬 Rundenbericht und Ereignisse
+
+- Nach der Rangliste folgt „Ereignisse & deine Kolonie“. Die Ansicht
+  zeigt zuerst die globale Lage der neuen Runde und daneben gruppiert
+  Produktion, Bevölkerung, Land, neue Harvester und Warnungen aus der
+  abgeschlossenen Runde.
+- Der Bericht bleibt ohne Zeitlimit sichtbar. Erst mit „Runde jetzt
+  beginnen“ startet die normale Planung.
+- Globale Ereignisse treten ab Runde 2 unabhängig mit 40 %
+  Wahrscheinlichkeit auf und gelten für Spieler und KI-Kolonien.
+- Lokale Ereignisse treten ab Runde 2 unabhängig mit 50 %
+  Wahrscheinlichkeit auf. Sie dürfen in direkt aufeinanderfolgenden
+  Runden geschehen.
+- Ein lokales Ereignis wird nicht im Bericht angekündigt. Es erscheint
+  nach zwei bis sechs Sekunden während der Planung, verändert den
+  betroffenen Vorrat sofort und verschwindet nach sechs Sekunden.
+- Prüfen: Rangliste → Rundenbericht → Planung. Prüfen: globale
+  Produktionsvorschau stimmt mit der Abrechnung überein. Prüfen:
+  lokale Ereignisse überlagern keine Auktion und kein Vorrat wird
+  negativ.
+- Je Pool müssen sechs positive und neun negative Ereignisse
+  erreichbar sein; lokales Ereignis Nr. 8 darf nicht vorkommen.
+- In Runde 10/11 und 20/21 prüfen, dass alle Zahlenwirkungen von
+  ×1 auf ×2 beziehungsweise von ×2 auf ×4 wechseln.
+- Bei Handelsblockade oder Kommunikationsausfall bleiben alle
+  Marktknöpfe gesperrt. Vermessungsstopp und Landregisterfehler
+  sperren Landgebote. Lieferkettenstörung und Arbeitsstreik sperren
+  den Harvesterbau. Ionennebel sperrt Umrüstung und Versetzung,
+  falsche Ersatzteile nur die Umrüstung.
+- Bei planetarischem Beben und Harvesterstörung prüfen, dass die
+  angezeigte Anzahl Harvester in der Abrechnung tatsächlich ausfällt.
 
 ### ✔ Karte
 

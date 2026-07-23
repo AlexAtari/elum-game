@@ -344,6 +344,17 @@ Bei Gleichstand entscheidet:
 - genaue Kartenverteilung
 - Wahrscheinlichkeit von Kristallvorkommen
 - Häufigkeit und Stärke von Ereignissen
+- Globale Ereignisse: vorläufig 40 % pro Runde ab Runde 2
+- Lokale Ereignisse: vorläufig 50 % pro Runde ab Runde 2, ohne
+  Sperrrunde; aufeinanderfolgende Ereignisse sind ausdrücklich erlaubt
+- Je Ereignispool 15 Einträge: sechs positive und neun negative
+- Zahlenwirkungen verdoppeln sich nach jeweils zehn Runden:
+  Runde 1–10 ×1, 11–20 ×2, 21–30 ×4 und so weiter
+- Aktionssperren skalieren nicht und enden mit der Rundenabrechnung
+- Ressourcen und Credits fallen durch Ereignisse niemals unter null;
+  Harvester-Rabatte senken den Preis niemals unter null
+- Rundenbericht: bleibt bis zur Bestätigung sichtbar; lokale Einblendung nach
+  zwei bis sechs Sekunden und für sechs Sekunden sichtbar
 - Kosten für beschädigte Harvester
 - endgültige Vermögensgewichtung
 - Koloniestufen und technologische Boni

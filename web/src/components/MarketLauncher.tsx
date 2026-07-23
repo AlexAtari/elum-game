@@ -7,11 +7,13 @@ import './MarketLauncher.css'
 
 type MarketLauncherProps = {
   initiatedResources: MarketResource[]
+  isBlocked: boolean
   onInitiate: (resource: MarketResource) => void
 }
 
 function MarketLauncher({
   initiatedResources,
+  isBlocked,
   onInitiate,
 }: MarketLauncherProps) {
   return (
@@ -29,10 +31,9 @@ function MarketLauncher({
       </div>
 
       <p className="market-launcher-copy">
-        Starte bei Bedarf eine Auktion. Alle Spieler erhalten
-        zehn Sekunden, um sich als Käufer, Verkäufer oder
-        Zuschauer einzuordnen. Jede Ressource kann pro Runde
-        genau einmal aufgerufen werden.
+        {isBlocked
+          ? 'Ein Ereignis verhindert in dieser Runde das Starten von Ressourcenauktionen.'
+          : 'Starte bei Bedarf eine Auktion. Alle Spieler erhalten zehn Sekunden, um sich als Käufer, Verkäufer oder Zuschauer einzuordnen. Jede Ressource kann pro Runde genau einmal aufgerufen werden.'}
       </p>
 
       <div className="market-launcher-grid">
@@ -46,7 +47,7 @@ function MarketLauncher({
               key={resource}
               className={wasInitiated ? 'used' : ''}
               type="button"
-              disabled={wasInitiated}
+              disabled={wasInitiated || isBlocked}
               onClick={() => onInitiate(resource)}
             >
               <span>
@@ -55,6 +56,8 @@ function MarketLauncher({
               <small>
                 {wasInitiated
                   ? 'In dieser Runde durchgeführt'
+                  : isBlocked
+                    ? 'Durch Ereignis gesperrt'
                   : 'Auktion initiieren'}
               </small>
             </button>

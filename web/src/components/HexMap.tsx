@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import {
-  HARVESTER_CREDIT_COST,
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
   productionTypes,
@@ -23,6 +22,11 @@ type HexMapProps = {
   freeHarvesters: number
   harvestersInConstruction: number
   harvesters: HarvesterAssignments
+  harvesterCreditCost: number
+  isHarvesterBuildBlocked: boolean
+  isLandBidBlocked: boolean
+  isRetoolingBlocked: boolean
+  isRelocationBlocked: boolean
   onBuildHarvester: () => void
   onPlaceLandBid: (tileId: string, amount: number) => void
   onCancelLandOrder: () => void
@@ -62,6 +66,11 @@ function HexMap({
   freeHarvesters,
   harvestersInConstruction,
   harvesters,
+  harvesterCreditCost,
+  isHarvesterBuildBlocked,
+  isLandBidBlocked,
+  isRetoolingBlocked,
+  isRelocationBlocked,
   onBuildHarvester,
   onPlaceLandBid,
   onCancelLandOrder,
@@ -97,7 +106,8 @@ function HexMap({
     selectedAuctionTie?.minimumBid ?? LAND_MINIMUM_BID
   const effectiveBidAmount = Math.max(bidAmount, minimumBid)
   const canBuildHarvester =
-    credits >= HARVESTER_CREDIT_COST &&
+    !isHarvesterBuildBlocked &&
+    credits >= harvesterCreditCost &&
     ore >= HARVESTER_ORE_COST
 
   const selectTile = (tileId: string) => {
@@ -291,13 +301,15 @@ function HexMap({
                 disabled={!canBuildHarvester}
                 onClick={onBuildHarvester}
               >
-                {canBuildHarvester
-                  ? 'Harvester bauen'
-                  : 'Ressourcen reichen nicht'}
+                {isHarvesterBuildBlocked
+                  ? 'Harvesterbau gesperrt'
+                  : canBuildHarvester
+                    ? 'Harvester bauen'
+                    : 'Ressourcen reichen nicht'}
               </button>
 
               <p className="build-cost">
-                Kosten: {HARVESTER_CREDIT_COST} Credits +{' '}
+                Kosten: {harvesterCreditCost} Credits +{' '}
                 {HARVESTER_ORE_COST} Erz. Fertig zu Beginn der
                 nächsten Runde.
               </p>
@@ -388,19 +400,29 @@ function HexMap({
                     <button
                       className="change-production-button"
                       type="button"
+                      disabled={isRetoolingBlocked}
                       onClick={() => setIsChoosingProduction(true)}
                     >
-                      Produktion ändern
+                      {isRetoolingBlocked
+                        ? 'Umrüstung gesperrt'
+                        : 'Produktion ändern'}
                     </button>
 
                     <button
                       className="remove-harvester-button"
                       type="button"
+                      disabled={
+                        !selectedHarvester.isNew &&
+                        isRelocationBlocked
+                      }
                       onClick={() =>
                         onRemoveHarvester(selectedTile.id)
                       }
                     >
-                      Harvester entfernen
+                      {!selectedHarvester.isNew &&
+                      isRelocationBlocked
+                        ? 'Versetzung gesperrt'
+                        : 'Harvester entfernen'}
                     </button>
                   </div>
                 )}
@@ -582,7 +604,9 @@ function HexMap({
                       max={Math.max(minimumBid, credits)}
                       step="1"
                       value={effectiveBidAmount}
-                      disabled={credits < minimumBid}
+                      disabled={
+                        isLandBidBlocked || credits < minimumBid
+                      }
                       onChange={(event) =>
                         setBidAmount(Number(event.target.value))
                       }
@@ -591,7 +615,9 @@ function HexMap({
                     <button
                       className="field-button"
                       type="button"
-                      disabled={credits < minimumBid}
+                      disabled={
+                        isLandBidBlocked || credits < minimumBid
+                      }
                       onClick={() =>
                         onPlaceLandBid(
                           selectedTile.id,
@@ -599,7 +625,9 @@ function HexMap({
                         )
                       }
                     >
-                      {credits < minimumBid
+                      {isLandBidBlocked
+                        ? 'Grundstückserwerb gesperrt'
+                        : credits < minimumBid
                         ? 'Nicht genügend Credits'
                         : selectedAuctionTie
                           ? 'Stichgebot abgeben'

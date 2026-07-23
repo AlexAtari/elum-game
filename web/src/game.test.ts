@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  activateGlobalEvent,
   advanceRivalColonies,
+  applyLocalEvent,
   beginLandTieBreak,
   cancelLandBid,
   completeRoundAfterMarket,
@@ -8,10 +10,21 @@ import {
   createInitialGameState,
   createLeaderboardEntries,
   executeMarketTrade,
+  getEventScale,
+  getGlobalEventAmount,
+  getHarvesterCreditCost,
+  getLocalEventAmount,
   getMarketTiming,
   getNextMarketResource,
   getOrionMarketRole,
   initiateResourceMarket,
+  isHarvesterBuildBlocked,
+  isHarvesterRelocationBlocked,
+  isHarvesterRetoolingBlocked,
+  isLandBidBlocked,
+  isMarketInitiationBlocked,
+  globalEventIds,
+  localEventIds,
   lowerLandTieBid,
   moveMarketOffer,
   orderHarvesterBuild,
@@ -19,6 +32,8 @@ import {
   raiseLandTieBid,
   resolveLandTieBreak,
   runRound,
+  selectGlobalEvent,
+  selectLocalEvent,
   type GameState,
   type HarvesterAssignments,
 } from './game'
@@ -27,6 +42,255 @@ const normalSupply = {
   foodLevel: 2,
   energyLevel: 2,
 }
+
+describe('Ereignisse', () => {
+  it('löst in Runde eins noch keine Ereignisse aus', () => {
+    expect(selectGlobalEvent(1, 0, 0)).toBeNull()
+    expect(selectLocalEvent(1, 0, 0)).toBeNull()
+  })
+
+  it('wählt globale und lokale Ereignisse mit getrennten Wahrscheinlichkeiten', () => {
+    expect(selectGlobalEvent(2, 0.39, 0)).toBe(
+      'fertile-season',
+    )
+    expect(selectGlobalEvent(2, 0.4, 0)).toBeNull()
+    expect(selectLocalEvent(2, 0.49, 0)).toBe('food-cache')
+    expect(selectLocalEvent(2, 0.5, 0)).toBeNull()
+  })
+
+  it('erlaubt dasselbe lokale Ereignis in zwei aufeinanderfolgenden Runden', () => {
+    expect(selectLocalEvent(2, 0.2, 0.15)).toBe('ore-cache')
+    expect(selectLocalEvent(3, 0.2, 0.15)).toBe('ore-cache')
+  })
+
+  it('enthält je 15 globale und lokale Ereignisse', () => {
+    expect(globalEventIds).toHaveLength(15)
+    expect(localEventIds).toHaveLength(15)
+    expect(new Set(globalEventIds).size).toBe(15)
+    expect(new Set(localEventIds).size).toBe(15)
+  })
+
+  it('verdoppelt Mengenwirkungen nach jeweils zehn Runden', () => {
+    expect(getEventScale(1)).toBe(1)
+    expect(getEventScale(10)).toBe(1)
+    expect(getEventScale(11)).toBe(2)
+    expect(getEventScale(20)).toBe(2)
+    expect(getEventScale(21)).toBe(4)
+    expect(getGlobalEventAmount('colonial-grant', 21)).toBe(60)
+    expect(getLocalEventAmount('food-cache', 21)).toBe(12)
+    expect(getLocalEventAmount('labor-strike', 21)).toBeNull()
+  })
+
+  it('wendet lokale Gewinne und Verluste sofort an', () => {
+    const initialState = {
+      ...createInitialGameState(),
+      resources: {
+        ...createInitialGameState().resources,
+        food: 1,
+        energy: 1,
+      },
+    }
+    const withCredits = applyLocalEvent(
+      initialState,
+      'credit-grant',
+    )
+    const afterFoodLoss = applyLocalEvent(
+      withCredits,
+      'spoiled-food',
+    )
+    const afterEnergyLoss = applyLocalEvent(
+      afterFoodLoss,
+      'energy-leak',
+    )
+
+    expect(withCredits.credits).toBe(115)
+    expect(afterFoodLoss.resources.food).toBe(0)
+    expect(afterEnergyLoss.resources.energy).toBe(0)
+  })
+
+  it('skaliert lokale Mengenereignisse mit der aktuellen Runde', () => {
+    const roundElevenState = {
+      ...createInitialGameState(),
+      round: 11,
+    }
+    const roundTwentyOneState = {
+      ...createInitialGameState(),
+      round: 21,
+    }
+
+    expect(
+      applyLocalEvent(roundElevenState, 'ore-cache').resources.ore,
+    ).toBe(9)
+    expect(
+      applyLocalEvent(roundTwentyOneState, 'new-settlers')
+        .population,
+    ).toBe(14)
+  })
+
+  it('wendet globale Zuschüsse und Kristallstörungen auf alle Kolonien an', () => {
+    const roundElevenState = {
+      ...createInitialGameState(),
+      round: 11,
+      resources: {
+        ...createInitialGameState().resources,
+        crystals: 1,
+      },
+    }
+    const withGrant = activateGlobalEvent(
+      roundElevenState,
+      'colonial-grant',
+    )
+    const withCrystals = activateGlobalEvent(
+      roundElevenState,
+      'crystal-rain',
+    )
+    const afterDisruption = activateGlobalEvent(
+      roundElevenState,
+      'crystal-disruption',
+    )
+
+    expect(withGrant.credits).toBe(130)
+    expect(withGrant.rivals.orion.credits).toBe(126)
+    expect(withCrystals.resources.crystals).toBe(3)
+    expect(withCrystals.rivals.orion.resources.crystals).toBe(2)
+    expect(afterDisruption.resources.crystals).toBe(0)
+    expect(afterDisruption.rivals.orion.resources.crystals).toBe(
+      0,
+    )
+  })
+
+  it('verbilligt Harvester skaliert und niemals unter null Credits', () => {
+    const roundElevenState = activateGlobalEvent(
+      {
+        ...createInitialGameState(),
+        round: 11,
+      },
+      'technological-breakthrough',
+    )
+    const roundTwentyOneState = activateGlobalEvent(
+      {
+        ...createInitialGameState(),
+        round: 21,
+      },
+      'technological-breakthrough',
+    )
+
+    expect(getHarvesterCreditCost(roundElevenState)).toBe(10)
+    expect(getHarvesterCreditCost(roundTwentyOneState)).toBe(0)
+  })
+
+  it('blockiert die vorgesehenen Aktionen für genau die aktive Runde', () => {
+    const globalState = {
+      ...createInitialGameState(),
+      activeGlobalEvent: 'ion-fog' as const,
+    }
+    const localState = {
+      ...createInitialGameState(),
+      activeLocalEvent: 'communications-outage' as const,
+    }
+
+    expect(isHarvesterRetoolingBlocked(globalState)).toBe(true)
+    expect(isHarvesterRelocationBlocked(globalState)).toBe(true)
+    expect(isMarketInitiationBlocked(localState)).toBe(true)
+    expect(initiateResourceMarket(localState, 'food')).toBe(
+      localState,
+    )
+    expect(
+      isLandBidBlocked({
+        ...localState,
+        activeLocalEvent: 'land-registry-error',
+      }),
+    ).toBe(true)
+    expect(
+      isHarvesterBuildBlocked({
+        ...globalState,
+        activeGlobalEvent: 'supply-chain-disruption',
+      }),
+    ).toBe(true)
+
+    const landBlockedState = {
+      ...createInitialGameState(),
+      activeLocalEvent: 'land-registry-error' as const,
+    }
+    const buildBlockedState = {
+      ...createInitialGameState(),
+      activeLocalEvent: 'labor-strike' as const,
+    }
+
+    expect(placeLandBid(landBlockedState, 'C', 25)).toBe(
+      landBlockedState,
+    )
+    expect(orderHarvesterBuild(buildBlockedState)).toBe(
+      buildBlockedState,
+    )
+  })
+
+  it('legt bei Störung die skalierte Anzahl Harvester still', () => {
+    const harvesters: HarvesterAssignments = {
+      A: {
+        production: 'food',
+        isNew: false,
+      },
+      B: {
+        production: 'energy',
+        isNew: false,
+      },
+    }
+    const state = applyLocalEvent(
+      {
+        ...createInitialGameState(),
+        round: 11,
+      },
+      'harvester-breakdown',
+    )
+    const result = runRound(state, harvesters, normalSupply)
+
+    expect(result.report.inactiveHarvesterIds).toHaveLength(2)
+    expect(result.report.produced).toEqual({
+      food: 0,
+      energy: 0,
+      ore: 0,
+    })
+  })
+
+  it('verändert globale Produktion für Spieler und KI in derselben Runde', () => {
+    const harvesters: HarvesterAssignments = {
+      A: {
+        production: 'food',
+        isNew: false,
+      },
+    }
+    const eventState = activateGlobalEvent(
+      createInitialGameState(),
+      'fertile-season',
+    )
+    const result = runRound(eventState, harvesters, normalSupply)
+
+    expect(result.report.produced.food).toBe(5)
+    expect(result.report.globalEvent).toBe('fertile-season')
+    expect(result.nextState.activeGlobalEvent).toBeNull()
+    expect(result.nextState.rivals.orion.resources.food).toBe(10)
+  })
+
+  it('skaliert globale Produktionsmodifikatoren ab Runde elf', () => {
+    const harvesters: HarvesterAssignments = {
+      A: {
+        production: 'food',
+        isNew: false,
+      },
+    }
+    const eventState = activateGlobalEvent(
+      {
+        ...createInitialGameState(),
+        round: 11,
+      },
+      'fertile-season',
+    )
+    const result = runRound(eventState, harvesters, normalSupply)
+
+    expect(result.report.produced.food).toBe(6)
+  })
+})
 
 describe('Markthandel', () => {
   it('lässt Verkäufer die Lagerlinie erst betreten und später wieder dahinter zurücktreten', () => {

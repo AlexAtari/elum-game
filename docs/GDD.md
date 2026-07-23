@@ -57,7 +57,11 @@ Jede Runde besteht aus folgenden Phasen:
 
 - Grundstücke aus der letzten Auktion wechseln den Besitzer.
 - Fertig gebaute Harvester werden als freie Harvester verfügbar.
-- Ereignisse werden aktiviert.
+- Nach der Rangliste eröffnet ein gruppierter Bericht die neue Runde.
+- Der Bericht zeigt die Ergebnisse der eigenen Kolonie aus der
+  abgeschlossenen Runde sowie die globale Lage der neuen Runde.
+- Ein mögliches lokales Ereignis wird erst später während der
+  Planungsphase sichtbar.
 
 ## 2. Planungsphase
 
@@ -121,6 +125,8 @@ Abhängig von der Versorgung wächst die Bevölkerung, stagniert oder schrumpft.
 - Versorgung, Harvesterenergie, Produktion, Bauabschlüsse und Bevölkerungsentwicklung werden nach dem letzten Ressourcenmarkt gemeinsam abgerechnet.
 - Markt- und Lagerwerte werden aktualisiert.
 - Nach der Abrechnung wird eine gemeinsame Kolonie-Rangliste eingeblendet.
+- Nach der Rangliste folgt der Bericht „Ereignisse & deine Kolonie“
+  als Einstieg in die neue Runde.
 - Prüfung auf Spielende.
 
 Falls das Spiel nicht beendet ist, beginnt die nächste Runde.
@@ -444,7 +450,26 @@ Nach „Runde ausführen“ wird die Runde vollständig abgerechnet. Anschließe
 3. Gesamtzahl der eingelagerten Ressourcen
 4. Anzahl der eigenen Harvester
 
-Die Reihenfolge entspricht zugleich der vorläufigen Rangfolge bei Gleichstand: Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits, Ressourcen und Harvester. Die eigene Kolonie wird deutlich hervorgehoben. Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Der Erstplatzierte erhält zusätzlich ein kleines Kronensymbol. Sobald alle Plätze sichtbar sind, bleibt die vollständige Rangliste weitere drei Sekunden stehen und wechselt danach ohne Bestätigung automatisch in die nächste Planungsrunde. Dieser gemeinsame Ablauf dient später im Mehrspielermodus zugleich als synchroner Übergang für alle Teilnehmer.
+Die Reihenfolge entspricht zugleich der vorläufigen Rangfolge bei Gleichstand: Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits, Ressourcen und Harvester. Die eigene Kolonie wird deutlich hervorgehoben. Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Der Erstplatzierte erhält zusätzlich ein kleines Kronensymbol. Sobald alle Plätze sichtbar sind, bleibt die vollständige Rangliste weitere drei Sekunden stehen und wechselt danach ohne Bestätigung in den Rundenbericht der nächsten Runde. Dieser gemeinsame Ablauf dient später im Mehrspielermodus zugleich als synchroner Übergang für alle Teilnehmer.
+
+## Bericht zum Beginn der neuen Runde
+
+Nach der Rangliste erscheint „Ereignisse & deine Kolonie“. Die
+Rangliste ist damit der Abschluss der alten Runde, während der Bericht
+den Einstieg in die neue Runde bildet.
+
+Der Bericht gruppiert zwei Informationsbereiche:
+
+- **Globale Lage:** das für die neue Runde aktive globale Ereignis oder
+  ruhige Bedingungen
+- **Deine Kolonie:** Produktion der letzten Runde,
+  Bevölkerungsentwicklung, Landgewinn oder -verlust,
+  fertiggestellte Harvester sowie betriebliche Warnungen
+
+Die Ansicht bleibt sichtbar, bis der Spieler die neue Runde bewusst
+beginnt. Lokale Ereignisse werden dort nicht
+vorweggenommen, sondern überraschend während der anschließenden
+Planung eingeblendet.
 
 Alle vier Ranglistenplätze stammen aus dauerhaft gespeicherten Koloniezuständen. Orion, Nova und Vega besitzen jeweils eine eigene Bevölkerung, Credits, Ressourcenbestände und Harvesterzahl. In der ersten KI-Ausbaustufe werden ihre Versorgung und Produktion mit einer einfachen deterministischen Rundenroutine abgerechnet. Dadurch reagieren ihre Ranglistenwerte auf ihren tatsächlichen Vorrat und nicht mehr auf reine Anzeigeformeln. Grundstückserwerb, Harvesterbau und die vollständige Teilnahme der KI-Kolonien am Markt werden in den folgenden Ausbaustufen an denselben Zustand angeschlossen.
 
@@ -506,27 +531,47 @@ Es gibt zwei Arten von Ereignissen.
 
 ## Globale Ereignisse
 
-Betreffen alle Spieler.
+Globale Ereignisse betreffen alle Kolonien nach derselben Regel. In
+Runde 1 gibt es noch kein globales Ereignis. Ab Runde 2 wird es für
+jede Runde unabhängig mit einer vorläufigen Wahrscheinlichkeit von
+40 % bestimmt und im Rundenbericht angekündigt.
 
-Beispiele:
+Der globale Pool umfasst 15 Ereignisse: sechs positive und neun
+negative. Er enthält Produktionsboni und -verluste für Nahrung,
+Energie und Erz, Kristall- und Creditänderungen, einen Rabatt auf
+Harvesterbau, einzelne Harvester-Ausfälle sowie einrundige Sperren
+für Markt, Grundstücke, Harvesterbau und Harvesterbewegungen.
 
-- Solarsturm
-- Rekordernte
-- Wirtschaftsboom
-- Energiekrise
+Die Produktion kann dabei nicht unter null fallen. Dasselbe globale
+Ereignis darf später erneut und auch in direkt aufeinanderfolgenden
+Runden auftreten.
 
 ---
 
 ## Lokale Ereignisse
 
-Betreffen einzelne Grundstücke oder Spieler.
+Lokale Ereignisse betreffen zunächst nur die eigene Kolonie. Ab Runde
+2 wird in jeder Runde unabhängig mit einer Wahrscheinlichkeit von
+50 % eines gewählt. Das entspricht langfristig ungefähr einem lokalen
+Ereignis alle zwei Runden. Es gibt bewusst keine Pause zwischen zwei
+Ereignissen; aufeinanderfolgende Treffer sind erlaubt.
 
-Beispiele:
+Ein ausgewähltes lokales Ereignis tritt nach kurzer zufälliger
+Verzögerung während der normalen Planungsphase auf. Der lokale Pool
+umfasst ebenfalls 15 Ereignisse: sechs positive und neun negative.
+Er verändert Ressourcen, Credits oder Bevölkerung sofort oder
+blockiert für die verbleibende Runde Markt, Grundstücksgebote,
+Harvesterbau oder Umrüstung. Eine Harvesterstörung kann aktive
+Harvester für die Abrechnung ausfallen lassen. Das ursprünglich
+vorgeschlagene lokale Ereignis Nr. 8 bleibt bewusst außen vor.
 
-- Erdbeben
-- neue Kristallader
-- besonders fruchtbarer Boden
-- beschädigter Harvester
+Zahlenwirkungen skalieren mit der Spieldauer. Sie gelten in Runde
+1–10 einfach, in Runde 11–20 doppelt, in Runde 21–30 vierfach und
+verdoppeln sich danach alle zehn Runden erneut. Aktionssperren werden
+nicht skaliert und gelten stets nur für eine Runde.
+
+Globale und lokale Ereignisse werden getrennt ausgewürfelt. Daher
+können in derselben Runde beide, eines oder keines auftreten.
 
 Ereignisse sollen Abwechslung schaffen, ohne den Spielverlauf zufällig zu entscheiden.
 
