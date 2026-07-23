@@ -208,6 +208,21 @@ Versteckte Formeln werden vermieden.
 
 ---
 
+## 15. Sprache ist Darstellung, nicht Spielregel
+
+Spielzustände und Berechnungen verwenden sprachneutrale Kennungen
+und Werte. Sichtbare Texte werden zentral über
+Übersetzungsschlüssel verwaltet.
+
+Deutsch bleibt zunächst die Standardsprache. Weitere Sprachen
+dürfen aktiviert werden, sobald alle Spielansichten vollständig
+übersetzt und auf kleinen Bildschirmen geprüft sind.
+
+Die technische Umsetzung und die Regeln für neue Texte stehen in
+`docs/I18N.md`.
+
+---
+
 # Was E.L.U.M. bewusst NICHT sein soll
 
 - keine Wirtschaftssimulation

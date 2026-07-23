@@ -27,13 +27,14 @@ import {
   type RoundReport,
   type SupplyPlan,
 } from './game'
+import { useI18n } from './i18n/I18nContext'
 import './App.css'
 
-const supplyLabels = [
-  'Keine Versorgung',
-  'Mindestversorgung',
-  'Normalversorgung',
-  'Überversorgung',
+const supplyLabelKeys = [
+  'supply.none',
+  'supply.minimum',
+  'supply.normal',
+  'supply.extra',
 ] as const
 
 type ActiveMarket = {
@@ -47,6 +48,7 @@ type PendingRound = {
 }
 
 function App() {
+  const { number, t } = useI18n()
   const [gameStarted, setGameStarted] = useState(false)
   const [gameState, setGameState] = useState(
     createInitialGameState,
@@ -389,17 +391,23 @@ function App() {
         <header className="game-header">
           <div>
             <span className="eyebrow">E.L.U.M.</span>
-            <h1>Kolonie Agima</h1>
+            <h1>{t('app.colonyName')}</h1>
           </div>
 
           <div className="round-badge">
             {gameState.landAuctionTie !== null
-              ? `Stichauktion · Runde ${gameState.round}`
+              ? t('app.tieAuctionRound', {
+                  round: gameState.round,
+                })
               : activeMarket !== null
-              ? `Markt · Runde ${activeMarket.roundPlayed}`
+              ? t('app.marketRound', {
+                  round: activeMarket.roundPlayed,
+                })
               : showLeaderboard && lastReport
-                ? `Zwischenstand · Runde ${lastReport.roundPlayed}`
-                : `Runde ${gameState.round}`}
+                ? t('app.leaderboardRound', {
+                    round: lastReport.roundPlayed,
+                  })
+                : t('app.round', { round: gameState.round })}
           </div>
         </header>
 
@@ -407,37 +415,41 @@ function App() {
           gameState.landAuctionTie === null &&
           !showLeaderboard && (
           <section className="status-panel">
-            <h2>Status</h2>
+            <h2>{t('app.status')}</h2>
 
             <div className="status-grid">
               <div className="status-item">
-                <span>👥 Bevölkerung</span>
-                <strong>{gameState.population}</strong>
+                <span>👥 {t('resource.population')}</span>
+                <strong>{number(gameState.population)}</strong>
               </div>
 
               <div className="status-item">
-                <span>💰 Credits</span>
-                <strong>{gameState.credits}</strong>
+                <span>💰 {t('resource.credits')}</span>
+                <strong>{number(gameState.credits)}</strong>
               </div>
 
               <div className="status-item">
-                <span>🌾 Nahrung</span>
-                <strong>{gameState.resources.food}</strong>
+                <span>🌾 {t('resource.food')}</span>
+                <strong>{number(gameState.resources.food)}</strong>
               </div>
 
               <div className="status-item">
-                <span>⚡ Energie</span>
-                <strong>{gameState.resources.energy}</strong>
+                <span>⚡ {t('resource.energy')}</span>
+                <strong>
+                  {number(gameState.resources.energy)}
+                </strong>
               </div>
 
               <div className="status-item">
-                <span>⛏ Erz</span>
-                <strong>{gameState.resources.ore}</strong>
+                <span>⛏ {t('resource.ore')}</span>
+                <strong>{number(gameState.resources.ore)}</strong>
               </div>
 
               <div className="status-item">
-                <span>💎 Kristalle</span>
-                <strong>{gameState.resources.crystals}</strong>
+                <span>💎 {t('resource.crystals')}</span>
+                <strong>
+                  {number(gameState.resources.crystals)}
+                </strong>
               </div>
             </div>
           </section>
@@ -478,7 +490,7 @@ function App() {
             }}
             nextResource={null}
             initiatorName="Agima"
-            completionLabel="Zurück zur Planung"
+            completionLabel={t('market.backToPlanning')}
             onTrade={tradeMarketResource}
             onComplete={completeMarketResource}
           />
@@ -522,12 +534,13 @@ function App() {
             />
 
             <section className="supply-panel">
-          <h2>Versorgung planen</h2>
+          <h2>{t('supply.plan')}</h2>
 
           <label htmlFor="food-supply">
-            🌾 Nahrung für Bevölkerung:{' '}
+            🌾 {t('supply.foodForPopulation')}{' '}
             <strong>
-              {foodSupplyLevel} – {supplyLabels[foodSupplyLevel]}
+              {foodSupplyLevel} –{' '}
+              {t(supplyLabelKeys[foodSupplyLevel])}
             </strong>
           </label>
 
@@ -544,9 +557,10 @@ function App() {
           />
 
           <label htmlFor="energy-supply">
-            ⚡ Energie für Bevölkerung:{' '}
+            ⚡ {t('supply.energyForPopulation')}{' '}
             <strong>
-              {energySupplyLevel} – {supplyLabels[energySupplyLevel]}
+              {energySupplyLevel} –{' '}
+              {t(supplyLabelKeys[energySupplyLevel])}
             </strong>
           </label>
 
@@ -564,12 +578,14 @@ function App() {
 
           <div className="supply-preview">
             <p className="eyebrow">
-              Vorschau Runde {gameState.round}
+              {t('supply.previewRound', {
+                round: gameState.round,
+              })}
             </p>
 
             <div className="supply-preview-grid">
               <div className="supply-preview-item">
-                <span>Versorgung</span>
+                <span>{t('supply.supply')}</span>
                 <strong>
                   🌾 {supplyPreview.consumedFood}/
                   {supplyPreview.plannedFood} · ⚡{' '}
@@ -579,14 +595,14 @@ function App() {
               </div>
 
               <div className="supply-preview-item">
-                <span>Harvesterenergie</span>
+                <span>{t('supply.harvesterEnergy')}</span>
                 <strong>
                   ⚡ {plannedRound.report.consumedEnergyByHarvesters}
                 </strong>
               </div>
 
               <div className="supply-preview-item">
-                <span>Produktion</span>
+                <span>{t('supply.production')}</span>
                 <strong>
                   🌾 {plannedRound.report.produced.food} · ⚡{' '}
                   {plannedRound.report.produced.energy} · ⛏{' '}
@@ -595,7 +611,7 @@ function App() {
               </div>
 
               <div className="supply-preview-item">
-                <span>Danach im Vorrat</span>
+                <span>{t('supply.stockAfterRound')}</span>
                 <strong>
                   🌾 {plannedRound.nextState.resources.food} · ⚡{' '}
                   {plannedRound.nextState.resources.energy} · ⛏{' '}
@@ -604,7 +620,7 @@ function App() {
               </div>
 
               <div className="supply-preview-item">
-                <span>Erwartete Bevölkerung</span>
+                <span>{t('supply.expectedPopulation')}</span>
                 <strong>
                   {gameState.population} →{' '}
                   {plannedRound.nextState.population}
@@ -613,31 +629,33 @@ function App() {
             </div>
 
             <p className="supply-preview-note">
-              Vorschau vor der Rundenabrechnung. Bereits
-              abgeschlossene Marktgeschäfte sind enthalten.
+              {t('supply.previewNote')}
             </p>
 
             {supplyPreview.hasShortage && (
               <p className="supply-warning">
-                ⚠️ Die Vorräte reichen nicht für die gewählte
-                Versorgung.
+                {t('supply.shortage')}
               </p>
             )}
 
             {plannedRound.report.inactiveHarvesterIds.length >
               0 && (
               <p className="supply-warning">
-                ⚠️ Wegen Energiemangels würden deaktiviert:{' '}
-                {plannedRound.report.inactiveHarvesterIds.join(
-                  ', ',
-                )}
+                {t('supply.inactiveHarvesters', {
+                  ids: plannedRound.report.inactiveHarvesterIds.join(
+                    ', ',
+                  ),
+                })}
               </p>
             )}
 
             {plannedRound.report.pausedRetoolingIds.length > 0 && (
               <p className="supply-warning">
-                ⚠️ Einrichtung/Umrüstung würde pausieren:{' '}
-                {plannedRound.report.pausedRetoolingIds.join(', ')}
+                {t('supply.pausedRetooling', {
+                  ids: plannedRound.report.pausedRetoolingIds.join(
+                    ', ',
+                  ),
+                })}
               </p>
             )}
           </div>
@@ -649,15 +667,14 @@ function App() {
                 type="button"
                 onClick={executeRound}
               >
-                Runde ausführen
+                {t('round.execute')}
               </button>
 
               <p>
-                Die Runde wird jetzt ohne automatische
-                Marktphase abgerechnet. Starte gewünschte
-                Auktionen vorher. Gewählt: {foodSupplyLevel}{' '}
-                Nahrung und {energySupplyLevel} Energie je zehn
-                Einwohner.
+                {t('round.executeHint', {
+                  food: foodSupplyLevel,
+                  energy: energySupplyLevel,
+                })}
               </p>
             </section>
           </>
@@ -669,14 +686,16 @@ function App() {
           lastReport && (
           <section className="round-report">
             <p className="eyebrow">
-              Abrechnung Runde {lastReport.roundPlayed}
+              {t('round.calculation', {
+                round: lastReport.roundPlayed,
+              })}
             </p>
 
-            <h2>Rundenergebnis</h2>
+            <h2>{t('round.result')}</h2>
 
             <div className="report-grid">
               <div className="report-item">
-                <span>Produktion</span>
+                <span>{t('supply.production')}</span>
                 <strong>
                   🌾 {lastReport.produced.food} · ⚡{' '}
                   {lastReport.produced.energy} · ⛏{' '}
@@ -685,7 +704,7 @@ function App() {
               </div>
 
               <div className="report-item">
-                <span>Versorgung</span>
+                <span>{t('supply.supply')}</span>
                 <strong>
                   🌾 {lastReport.consumedFood} · ⚡{' '}
                   {lastReport.consumedEnergyByHq}
@@ -693,14 +712,14 @@ function App() {
               </div>
 
               <div className="report-item">
-                <span>Harvesterenergie</span>
+                <span>{t('supply.harvesterEnergy')}</span>
                 <strong>
                   ⚡ {lastReport.consumedEnergyByHarvesters}
                 </strong>
               </div>
 
               <div className="report-item">
-                <span>Bevölkerung</span>
+                <span>{t('round.population')}</span>
                 <strong>
                   {lastReport.populationChange > 0 ? '+' : ''}
                   {lastReport.populationChange}
@@ -710,49 +729,53 @@ function App() {
 
             {lastReport.inactiveHarvesterIds.length > 0 && (
               <p className="report-warning">
-                Wegen Energiemangels deaktiviert:{' '}
-                {lastReport.inactiveHarvesterIds.join(', ')}
+                {t('round.inactiveHarvesters', {
+                  ids: lastReport.inactiveHarvesterIds.join(', '),
+                })}
               </p>
             )}
 
             {lastReport.completedRetoolingIds.length > 0 && (
               <p className="report-success">
-                Einrichtung/Umrüstung abgeschlossen:{' '}
-                {lastReport.completedRetoolingIds.join(', ')}
+                {t('round.completedRetooling', {
+                  ids: lastReport.completedRetoolingIds.join(', '),
+                })}
               </p>
             )}
 
             {lastReport.pausedRetoolingIds.length > 0 && (
               <p className="report-warning">
-                Einrichtung/Umrüstung wegen Energiemangels
-                pausiert:{' '}
-                {lastReport.pausedRetoolingIds.join(', ')}
+                {t('round.pausedRetooling', {
+                  ids: lastReport.pausedRetoolingIds.join(', '),
+                })}
               </p>
             )}
 
             {lastReport.landAuction?.outcome === 'won' && (
               <p className="report-success">
-                Auktion gewonnen: Feld{' '}
-                {lastReport.landAuction.tileId} für{' '}
-                {lastReport.landAuction.playerBid} Credits. Orion
-                bot {lastReport.landAuction.rivalBid} Credits.
+                {t('round.landWon', {
+                  tile: lastReport.landAuction.tileId,
+                  playerBid: lastReport.landAuction.playerBid,
+                  rivalBid: lastReport.landAuction.rivalBid,
+                })}
               </p>
             )}
 
             {lastReport.landAuction?.outcome === 'lost' && (
               <p className="report-warning">
-                Orion erhält Feld {lastReport.landAuction.tileId}
-                {' '}für {lastReport.landAuction.rivalBid} Credits.
-                Dein Gebot von{' '}
-                {lastReport.landAuction.playerBid} Credits wurde
-                erstattet.
+                {t('round.landLost', {
+                  tile: lastReport.landAuction.tileId,
+                  playerBid: lastReport.landAuction.playerBid,
+                  rivalBid: lastReport.landAuction.rivalBid,
+                })}
               </p>
             )}
 
             {lastReport.completedHarvesters > 0 && (
               <p className="report-success">
-                Neue Harvester fertiggestellt:{' '}
-                {lastReport.completedHarvesters}
+                {t('round.completedHarvesters', {
+                  amount: lastReport.completedHarvesters,
+                })}
               </p>
             )}
 
@@ -764,7 +787,7 @@ function App() {
           type="button"
           onClick={() => setGameStarted(false)}
         >
-          Zurück zum Start
+          {t('app.backToStart')}
         </button>
       </main>
     )
@@ -774,13 +797,13 @@ function App() {
     <main className="start-screen">
       <div className="start-card">
         <p className="eyebrow">
-          Exploration · Logistics · Utilization · Mining
+          {t('start.tagline')}
         </p>
 
         <h1>E.L.U.M.</h1>
 
         <p className="subtitle">
-          Errichte auf Agima die erfolgreichste Kolonie.
+          {t('start.subtitle')}
         </p>
 
         <button
@@ -788,10 +811,10 @@ function App() {
           type="button"
           onClick={startNewGame}
         >
-          Neue Kolonie
+          {t('start.newColony')}
         </button>
 
-        <p className="version">Prototype 0.2</p>
+        <p className="version">{t('start.version')}</p>
       </div>
     </main>
   )
