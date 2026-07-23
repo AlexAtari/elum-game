@@ -46,13 +46,14 @@
 ### 🔬 Erster Marktprototyp
 
 - Nahrung, Energie, Erz und Kristalle besitzen in der Planungsansicht jeweils einen eigenen Knopf „Auktion initiieren“. Jede Ressource kann global genau einmal pro Runde aufgerufen werden; danach zeigt ihr Knopf „In dieser Runde durchgeführt“ und bleibt bis zur nächsten Runde gesperrt.
-- Nach dem Aufruf erhalten alle Spieler zehn Sekunden für Käufer, Verkäufer oder Nichtteilnahme. Danach läuft ausschließlich die gewählte Ressourcenauktion. Anschließend kehrt das Spiel in dieselbe Planungsphase zurück; es startet weder die nächste Ressource noch automatisch die Rundenabrechnung.
+- Nach dem Aufruf erscheint zunächst eine Auktionsankündigung. Sie dauert in Runde 1 fünf Sekunden, in Runde 2 vier Sekunden und ab Runde 3 drei Sekunden. Danach erhalten alle Spieler fünf Sekunden für Käufer, Verkäufer oder Nichtteilnahme. Anschließend läuft ausschließlich die gewählte Ressourcenauktion und das Spiel kehrt danach in dieselbe Planungsphase zurück; es startet weder die nächste Ressource noch automatisch die Rundenabrechnung.
+- Die Ankündigung zeigt Ressource, Initiator, die aktuellen Bestände dieser Ressource bei Agima, Orion, Nova und Vega, die eigenen Credits sowie den Hinweis auf die folgende Rollenwahl. Andere Ressourcen, Bevölkerung und Harvester bleiben ausgeblendet.
 - Mit „Runde ausführen“ werden Versorgung, Harvesterenergie, Produktion, Bauabschlüsse, Grundstücke und Bevölkerung ohne automatische Marktphase abgerechnet. Nicht genutzte Auktionsrechte verfallen und werden in der nächsten Runde erneuert.
 - Bereits ausgeführte Käufe stehen für die Versorgung derselben Runde zur Verfügung. Die erst bei „Runde ausführen“ erzeugte Produktion kann dagegen frühestens in der nächsten Runde verkauft werden.
 - Die Ressourcenauktionen handeln gegen „Konsortium Orion“ und das HQ-Gesamtlager. Vor jeder einzeln initiierten Ressource wird die Rolle neu gewählt.
 - Während der Rollenwahl sind Spieler und Orion gleichzeitig sichtbar. Orion startet in der Mitte und bewegt sich nach 1,2 Sekunden zu Kaufen, Verkaufen oder Aussetzen; die angezeigte Wahl gilt für die folgende Auktion.
 - Nova und Vega werden als gekennzeichnete Layout-Testspieler angezeigt, damit Lesbarkeit und Platzbedarf mit vier Teilnehmern geprüft werden können. Sie handeln in dieser Zwischenstufe noch nicht.
-- In jeder Runde stehen zehn Sekunden für die Einladung und Rollenwahl zur Verfügung. Die eigentliche Auktion dauert in Runde 1 30 Sekunden, in Runde 2 25 Sekunden und ab Runde 3 dauerhaft 20 Sekunden.
+- Die Rollenwahl dauert in jeder Runde fünf Sekunden. Die eigentliche Auktion dauert in Runde 1 30 Sekunden, in Runde 2 25 Sekunden und ab Runde 3 dauerhaft 20 Sekunden.
 - Wählt niemand Käufer oder Verkäufer, wird die Ressourcenauktion ohne zusätzliche Wartezeit übersprungen.
 - Eine horizontale Linie zeigt den niedrigsten Verkaufspreis, eine zweite das höchste Kaufgebot. Beide Linien können sich berühren, aber nicht kreuzen.
 - Bei Kontakt startet der Handel mit einer Einheit pro Sekunde und beschleunigt nach drei sowie sechs Sekunden ununterbrochenem Kontakt.
@@ -71,6 +72,7 @@
 - Die Marktphase nutzt eine breitere und höhere Arena als das Kolonie-Dashboard. Nur während der laufenden Auktion ist das schmale Pfeilfeld vertikal zentriert; Positionierungs- und Ergebnisphase besitzen eine ausreichend breite Textspalte ohne Überstand. Kompakte Lagerstationen stehen links, während vier feste, kollisionsfreie Laufspuren rechts daran vorbeiführen. Rollenbeschriftungen besitzen eine eigene volle Zeile und dürfen nicht abgeschnitten werden. Beide Bestpreislinien sind gleich stark und grün; beim Transfer pulsiert ihre verschmolzene Linie. Eine gut lesbar mit „Preis“ überschriebene feste Preisskala am rechten Rand ersetzt dynamische Preisfähnchen. Jeder Wert zeigt einen gleich langen Strich, der die senkrechte Skalenachse symmetrisch kreuzt. Handelsmeldungen stehen außerhalb der Arena und dürfen weder Figuren noch Lager verdecken. Spätere Grafik- und Animationsarbeiten dürfen die dokumentierten Marktregeln nicht verändern.
 - Während der Auktion zeigt jeder wirtschaftlich aktive Avatar statt seines Preises den aktuellen Ressourcenbestand. Beim Verkäufer zählt die Menge je Verkauf herunter, beim Käufer je Kauf hoch und pulsiert kurz. Orions sichtbarer Testbestand startet je Ressource bei vier Einheiten. Nova und Vega zeigen weiterhin „wartet“, solange sie noch keine echte Wirtschaftslogik besitzen. Auch „entscheidet …“ muss vollständig innerhalb eines Avatars lesbar bleiben.
 - Veränderte Bestände und Credits erhalten pro Einzelhandel einen kurzen grünen beziehungsweise roten Farbpuls. Vor dem ersten Abschluss steht ausgeschrieben „Noch kein Handel abgeschlossen“ statt des missverständlichen Zählers „Gehandelt: 0“.
+- Kaufgebote sind auf die verfügbaren Credits begrenzt. Reicht das Guthaben nicht für das günstigste aktuelle Verkaufsangebot, nennt ein fester Warnhinweis den Angebotspreis und den fehlenden Betrag. Nach einem Kauf wird ein nicht mehr bezahlbares Gebot automatisch zurückgenommen; die Pfeiltasten behalten dabei ihre Position.
 - Der Handelsverlauf reserviert seine zweizeilige Höhe bereits vor dem ersten Geschäft, damit die Arena beim Handel nicht nach unten springt.
 - Dauer, Lagerbestand, Preisabstand, Handelsgeschwindigkeit, Warteschlange und Orions Preisverhalten werden im Playtest überprüft.
 
@@ -79,7 +81,7 @@
 - Nach „Runde ausführen“ erfolgt die Rundenabrechnung und anschließend eine eigene Ranglistenansicht.
 - Sortiert wird nach Bevölkerung, Credits, Gesamtressourcen und Harvesterzahl. Die eigene Kolonie ist hervorgehoben.
 - Agima, Orion, Nova und Vega verwenden dauerhaft gespeicherte Koloniewerte. Die KI-Kolonien versorgen ihre Bevölkerung und produzieren mit einer einfachen, reproduzierbaren Rundenroutine. Marktentscheidungen, Grundstückskäufe und Harvesterbau werden anschließend ergänzt.
-- Die Rangliste bleibt fünf Sekunden sichtbar. Ein Countdown zeigt die Restzeit; danach öffnet sich die nächste Planungsansicht automatisch und ohne Weiter-Button.
+- Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Platz 1 erhält ein kleines Kronensymbol. Die vollständige Rangliste bleibt danach drei Sekunden sichtbar; ein Countdown zeigt die Restzeit bis zum automatischen Wechsel in die nächste Planungsansicht.
 
 ### ✔ Karte
 

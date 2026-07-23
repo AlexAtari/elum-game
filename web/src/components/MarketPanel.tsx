@@ -20,6 +20,7 @@ import AuctionTimer from './AuctionTimer'
 import './MarketPanel.css'
 
 type MarketStage =
+  | 'introduction'
   | 'declaration'
   | 'auction'
   | 'finished'
@@ -32,6 +33,11 @@ type MarketPanelProps = {
   credits: number
   referencePrice: number
   warehouseStock: number
+  rivalResourceAmounts: {
+    orion: number
+    nova: number
+    vega: number
+  }
   nextResource: MarketResource | null
   invitationSeconds?: number
   completionLabel?: string
@@ -128,6 +134,7 @@ function MarketPanel({
   credits,
   referencePrice,
   warehouseStock,
+  rivalResourceAmounts,
   nextResource,
   invitationSeconds,
   completionLabel,
@@ -136,6 +143,8 @@ function MarketPanel({
   onComplete,
 }: MarketPanelProps) {
   const marketTiming = getMarketTiming(roundPlayed)
+  const introductionSeconds =
+    marketTiming.introductionSeconds
   const declarationSeconds =
     invitationSeconds ?? marketTiming.declarationSeconds
   const auctionSeconds = marketTiming.auctionSeconds
@@ -147,13 +156,13 @@ function MarketPanel({
   const minimumPrice = warehousePrices.buyPrice
   const maximumPrice = warehousePrices.sellPrice
   const [stage, setStage] =
-    useState<MarketStage>('declaration')
+    useState<MarketStage>('introduction')
   const [role, setRole] = useState<MarketRole>('neutral')
   const [orionRole, setOrionRole] = useState<
     MarketRole | 'pending'
   >('pending')
   const [secondsLeft, setSecondsLeft] = useState(
-    declarationSeconds,
+    introductionSeconds,
   )
   const [playerPrice, setPlayerPrice] = useState(
     referencePrice,
@@ -185,6 +194,27 @@ function MarketPanel({
     setPlayerOfferActive(false)
     setOrionParked(false)
   }, [])
+
+  useEffect(() => {
+    if (stage !== 'introduction') {
+      return
+    }
+
+    const timer = window.setTimeout(
+      () => {
+        if (secondsLeft > 0) {
+          setSecondsLeft(secondsLeft - 1)
+          return
+        }
+
+        setStage('declaration')
+        setSecondsLeft(declarationSeconds)
+      },
+      secondsLeft === 0 ? 300 : 1000,
+    )
+
+    return () => window.clearTimeout(timer)
+  }, [declarationSeconds, secondsLeft, stage])
 
   useEffect(() => {
     if (stage !== 'declaration') {
@@ -398,6 +428,16 @@ function MarketPanel({
         : 'warehouse'
   const tradePrice = sellerPrice
   const pricesMeet = buyerPrice === sellerPrice
+  const buyerShortfall =
+    stage === 'auction' && role === 'buyer'
+      ? Math.max(0, sellerPrice - credits)
+      : 0
+  const buyerCannotEnterMarket =
+    role === 'buyer' && credits < minimumPrice
+  const buyerReachedCreditLimit =
+    role === 'buyer' &&
+    playerOfferActive &&
+    playerPrice >= credits
   const canTrade =
     stage === 'auction' &&
     playerOfferActive &&
@@ -435,6 +475,16 @@ function MarketPanel({
           tradePrice,
           activeCounterparty,
         )
+        if (role === 'buyer') {
+          const creditsAfterTrade = credits - tradePrice
+
+          if (creditsAfterTrade < minimumPrice) {
+            setPlayerOfferActive(false)
+            setPlayerPrice(minimumPrice)
+          } else if (playerPrice > creditsAfterTrade) {
+            setPlayerPrice(creditsAfterTrade)
+          }
+        }
         if (activeCounterparty === 'orion') {
           setOrionUnitsRemaining((currentUnits) =>
             Math.max(0, currentUnits - 1),
@@ -463,8 +513,11 @@ function MarketPanel({
   }, [
     activeCounterparty,
     canTrade,
+    credits,
+    minimumPrice,
     onTrade,
     orionRole,
+    playerPrice,
     resource,
     role,
     tradePrice,
@@ -493,12 +546,14 @@ function MarketPanel({
       minimumPrice,
       maximumPrice,
       role === 'seller' ? buyerPrice : sellerPrice,
+      credits,
     )
 
     setPlayerOfferActive(nextOffer.active)
     setPlayerPrice(nextOffer.price)
   }, [
     buyerPrice,
+    credits,
     maximumPrice,
     minimumPrice,
     playerOfferActive,
@@ -622,14 +677,42 @@ function MarketPanel({
   const displayedBuyerName =
     stage === 'declaration' ? 'HQ-Lager' : buyerName
   const timerMaximum =
-    stage === 'declaration' ? declarationSeconds : auctionSeconds
+    stage === 'introduction'
+      ? introductionSeconds
+      : stage === 'declaration'
+        ? declarationSeconds
+        : auctionSeconds
+  const introductionParticipants = [
+    {
+      name: 'Du',
+      icon: '🧑‍🚀',
+      amount: resourceAmount,
+    },
+    {
+      name: 'Orion',
+      icon: '🤖',
+      amount: rivalResourceAmounts.orion,
+    },
+    {
+      name: 'Nova',
+      icon: '👩‍🚀',
+      amount: rivalResourceAmounts.nova,
+    },
+    {
+      name: 'Vega',
+      icon: '🧑‍🚀',
+      amount: rivalResourceAmounts.vega,
+    },
+  ]
 
   return (
     <section className="market-panel">
       <div className="market-heading">
         <div>
           <p className="eyebrow">
-            {stage === 'declaration' && initiatorName
+            {stage === 'introduction'
+              ? 'Auktion angekündigt'
+              : stage === 'declaration' && initiatorName
               ? `Auktionseinladung von ${initiatorName}`
               : `Marktphase in Runde ${roundPlayed}`}
           </p>
@@ -642,8 +725,10 @@ function MarketPanel({
           secondsLeft={secondsLeft}
           totalSeconds={timerMaximum}
           label={
-            stage === 'declaration'
-              ? 'Restzeit Positionierung'
+            stage === 'introduction'
+              ? 'Start der Rollenwahl'
+              : stage === 'declaration'
+              ? 'Restzeit Rollenwahl'
               : 'Restzeit Auktion'
           }
           ariaLabel="Verbleibende Marktzeit"
@@ -751,6 +836,43 @@ function MarketPanel({
             }
             ariaLabel={`Preisskala von ${minimumPrice} bis ${maximumPrice} Credits`}
           />
+
+          {stage === 'introduction' && (
+            <div
+              className="market-introduction"
+              role="status"
+              aria-live="polite"
+            >
+              <p className="eyebrow">Ressourcenauktion</p>
+              <h3>
+                {resourceType.icon} {resourceType.auctionLabel}
+              </h3>
+              <p>
+                {initiatorName ?? 'Ein Spieler'} hat die Auktion
+                gestartet.
+              </p>
+
+              <div className="market-introduction-roster">
+                {introductionParticipants.map((participant) => (
+                  <div key={participant.name}>
+                    <span>{participant.icon}</span>
+                    <strong>{participant.name}</strong>
+                    <b>
+                      {resourceType.icon} {participant.amount}
+                    </b>
+                  </div>
+                ))}
+              </div>
+
+              <strong className="market-introduction-countdown">
+                Beginn in {secondsLeft}
+              </strong>
+              <small>
+                Bereitmachen: Gleich Käufer, Verkäufer oder nicht
+                teilnehmen wählen.
+              </small>
+            </div>
+          )}
 
           <div className="market-warehouse-gate warehouse-sell-gate">
             <span>📦 HQ-LAGER</span>
@@ -926,6 +1048,16 @@ function MarketPanel({
         <aside
           className={`market-controls market-controls-${stage}`}
         >
+          {stage === 'introduction' && (
+            <div className="market-introduction-ready">
+              <p className="eyebrow">Bereitmachen</p>
+              <strong>{secondsLeft}</strong>
+              <small>
+                Danach hast du fünf Sekunden für deine Rollenwahl.
+              </small>
+            </div>
+          )}
+
           {stage === 'declaration' && (
             <>
               <p className="eyebrow">Positionierungsphase</p>
@@ -978,6 +1110,10 @@ function MarketPanel({
                 <button
                   type="button"
                   onClick={() => movePlayerOffer(1)}
+                  disabled={
+                    buyerCannotEnterMarket ||
+                    buyerReachedCreditLimit
+                  }
                   aria-label={
                     role === 'buyer' && !playerOfferActive
                       ? 'Markt betreten'
@@ -1027,6 +1163,19 @@ function MarketPanel({
                 ? 'HQ-Lager'
                 : 'Orion'}{' '}
               · {tradePrice} Credits
+            </div>
+          )}
+
+          {stage === 'auction' && buyerShortfall > 0 && (
+            <div
+              className="market-affordability-warning"
+              aria-live="polite"
+            >
+              <strong>Nicht genügend Credits</strong>
+              <span>
+                Günstigstes Angebot: {sellerPrice} · Dir fehlen{' '}
+                {buyerShortfall}
+              </span>
             </div>
           )}
 

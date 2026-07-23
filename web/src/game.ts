@@ -156,6 +156,7 @@ export type LeaderboardEntry = {
 }
 
 export type MarketTiming = {
+  introductionSeconds: number
   declarationSeconds: number
   auctionSeconds: number
 }
@@ -209,19 +210,22 @@ export function getMarketTiming(
 ): MarketTiming {
   if (roundPlayed <= 1) {
     return {
-      declarationSeconds: 8,
+      introductionSeconds: 5,
+      declarationSeconds: 5,
       auctionSeconds: 30,
     }
   }
 
   if (roundPlayed === 2) {
     return {
-      declarationSeconds: 6,
+      introductionSeconds: 4,
+      declarationSeconds: 5,
       auctionSeconds: 25,
     }
   }
 
   return {
+    introductionSeconds: 3,
     declarationSeconds: 5,
     auctionSeconds: 20,
   }
@@ -367,11 +371,20 @@ export function moveMarketOffer(
   minimumPrice: number,
   maximumPrice: number,
   opposingPrice: number,
+  buyerCreditLimit: number = maximumPrice,
 ): MarketOffer {
   const movesIntoMarket =
     role === 'seller' ? difference < 0 : difference > 0
 
   if (!offer.active) {
+    if (
+      role === 'buyer' &&
+      movesIntoMarket &&
+      buyerCreditLimit < minimumPrice
+    ) {
+      return offer
+    }
+
     return movesIntoMarket
       ? { ...offer, active: true }
       : offer
@@ -390,8 +403,15 @@ export function moveMarketOffer(
     }
   }
 
+  const effectiveMaximumPrice =
+    role === 'buyer'
+      ? Math.min(
+          maximumPrice,
+          Math.max(minimumPrice, buyerCreditLimit),
+        )
+      : maximumPrice
   const nextPrice = Math.min(
-    maximumPrice,
+    effectiveMaximumPrice,
     Math.max(minimumPrice, offer.price + difference),
   )
 

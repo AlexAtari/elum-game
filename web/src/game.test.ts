@@ -105,6 +105,37 @@ describe('Markthandel', () => {
     })
   })
 
+  it('begrenzt ein Kaufgebot auf die verfügbaren Credits', () => {
+    const unaffordableEntry = {
+      active: false,
+      price: 10,
+    }
+
+    expect(
+      moveMarketOffer(
+        'buyer',
+        unaffordableEntry,
+        1,
+        10,
+        20,
+        14,
+        6,
+      ),
+    ).toBe(unaffordableEntry)
+
+    expect(
+      moveMarketOffer(
+        'buyer',
+        { active: true, price: 12 },
+        1,
+        10,
+        20,
+        14,
+        12,
+      ),
+    ).toEqual({ active: true, price: 12 })
+  })
+
   it('zeigt Orions tatsächliche Marktrolle bereits bei der Positionierung', () => {
     expect(getOrionMarketRole(1, 'food', 'seller')).toBe(
       'buyer',
@@ -129,14 +160,17 @@ describe('Markthandel', () => {
 
   it('verkürzt den Markt in Runde zwei und ab Runde drei dauerhaft', () => {
     expect(getMarketTiming(1)).toEqual({
-      declarationSeconds: 8,
+      introductionSeconds: 5,
+      declarationSeconds: 5,
       auctionSeconds: 30,
     })
     expect(getMarketTiming(2)).toEqual({
-      declarationSeconds: 6,
+      introductionSeconds: 4,
+      declarationSeconds: 5,
       auctionSeconds: 25,
     })
     expect(getMarketTiming(3)).toEqual({
+      introductionSeconds: 3,
       declarationSeconds: 5,
       auctionSeconds: 20,
     })

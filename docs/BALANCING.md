@@ -3,7 +3,7 @@
 
 **Version:** 0.2
 **Status:** Draft  
-**Last Updated:** 2026-07-22
+**Last Updated:** 2026-07-23
 
 ---
 
@@ -255,11 +255,11 @@ Im ersten KI-Prototyp wählt Orion nach kurzer sichtbarer Bedenkzeit die Gegenro
 
 ## Marktzeiten
 
-| gespielte Runde | Einladungs- und Positionierungszeit | Auktionszeit |
-|---:|---:|---:|
-| 1 | 10 Sekunden | 30 Sekunden |
-| 2 | 10 Sekunden | 25 Sekunden |
-| ab 3 | 10 Sekunden | 20 Sekunden |
+| gespielte Runde | Ankündigungszeit | Rollenwahl | Auktionszeit |
+|---:|---:|---:|---:|
+| 1 | 5 Sekunden | 5 Sekunden | 30 Sekunden |
+| 2 | 4 Sekunden | 5 Sekunden | 25 Sekunden |
+| ab 3 | 3 Sekunden | 5 Sekunden | 20 Sekunden |
 
 Nimmt niemand an einem Ressourcenmarkt teil, entfällt die Auktionszeit vollständig.
 

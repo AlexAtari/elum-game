@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import type { LeaderboardEntry } from '../game'
 import './LeaderboardPanel.css'
 
-const leaderboardDisplaySeconds = 5
+const leaderboardRevealStepSeconds = 1
+const completeLeaderboardSeconds = 3
 
 type LeaderboardPanelProps = {
   roundPlayed: number
@@ -17,15 +18,37 @@ function LeaderboardPanel({
   entries,
   onContinue,
 }: LeaderboardPanelProps) {
+  const initialVisibleEntries = Math.min(entries.length, 1)
+  const revealSeconds = Math.max(
+    0,
+    entries.length - initialVisibleEntries,
+  )
+  const leaderboardDisplaySeconds =
+    revealSeconds * leaderboardRevealStepSeconds +
+    completeLeaderboardSeconds
+  const [visibleEntries, setVisibleEntries] = useState(
+    initialVisibleEntries,
+  )
   const [secondsLeft, setSecondsLeft] = useState(
     leaderboardDisplaySeconds,
   )
+  const leaderboardComplete = visibleEntries >= entries.length
   const highestPopulation = Math.max(
     ...entries.map((entry) => entry.population),
     1,
   )
 
   useEffect(() => {
+    const revealCountdown = window.setInterval(() => {
+      setVisibleEntries((currentVisibleEntries) => {
+        if (currentVisibleEntries >= entries.length) {
+          window.clearInterval(revealCountdown)
+          return currentVisibleEntries
+        }
+
+        return currentVisibleEntries + 1
+      })
+    }, leaderboardRevealStepSeconds * 1000)
     const countdown = window.setInterval(() => {
       setSecondsLeft((currentSeconds) =>
         Math.max(0, currentSeconds - 1),
@@ -37,10 +60,11 @@ function LeaderboardPanel({
     )
 
     return () => {
+      window.clearInterval(revealCountdown)
       window.clearInterval(countdown)
       window.clearTimeout(automaticContinue)
     }
-  }, [onContinue])
+  }, [entries.length, leaderboardDisplaySeconds, onContinue])
 
   return (
     <section className="leaderboard-panel">
@@ -72,37 +96,60 @@ function LeaderboardPanel({
             <span role="columnheader">🚜 Harvester</span>
           </div>
 
-          {entries.map((entry, index) => (
-            <div
-              className={`leaderboard-row ${
-                entry.isPlayer ? 'leaderboard-player-row' : ''
-              } ${index === 0 ? 'leaderboard-leading-row' : ''}`}
-              key={entry.id}
-              role="row"
-            >
-              <strong className="leaderboard-rank" role="cell">
-                {index + 1}
-              </strong>
-              <div className="leaderboard-colony" role="cell">
-                <span aria-hidden="true">{entry.icon}</span>
-                <strong>{entry.name}</strong>
-                {entry.isPlayer && <small>Du</small>}
+          {entries.map((entry, index) => {
+            const entryIsVisible =
+              index >= entries.length - visibleEntries
+
+            return (
+              <div
+                className={`leaderboard-row ${
+                  entry.isPlayer ? 'leaderboard-player-row' : ''
+                } ${
+                  index === 0 ? 'leaderboard-leading-row' : ''
+                } ${
+                  entryIsVisible
+                    ? 'leaderboard-revealed-row'
+                    : 'leaderboard-hidden-row'
+                }`}
+                key={entry.id}
+                role="row"
+                aria-hidden={!entryIsVisible}
+              >
+                <strong
+                  className="leaderboard-rank"
+                  role="cell"
+                >
+                  {index + 1}
+                  {index === 0 && (
+                    <span
+                      className="leaderboard-crown"
+                      aria-label="Erster Platz"
+                    >
+                      👑
+                    </span>
+                  )}
+                </strong>
+                <div className="leaderboard-colony" role="cell">
+                  <span aria-hidden="true">{entry.icon}</span>
+                  <strong>{entry.name}</strong>
+                  {entry.isPlayer && <small>Du</small>}
+                </div>
+                <strong role="cell">{entry.population}</strong>
+                <strong role="cell">{entry.credits}</strong>
+                <strong role="cell">{entry.resources}</strong>
+                <strong role="cell">{entry.harvesters}</strong>
+                <span
+                  className="leaderboard-population-bar"
+                  style={{
+                    width: `${
+                      (entry.population / highestPopulation) * 100
+                    }%`,
+                  }}
+                  aria-hidden="true"
+                />
               </div>
-              <strong role="cell">{entry.population}</strong>
-              <strong role="cell">{entry.credits}</strong>
-              <strong role="cell">{entry.resources}</strong>
-              <strong role="cell">{entry.harvesters}</strong>
-              <span
-                className="leaderboard-population-bar"
-                style={{
-                  width: `${
-                    (entry.population / highestPopulation) * 100
-                  }%`,
-                }}
-                aria-hidden="true"
-              />
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
@@ -113,7 +160,11 @@ function LeaderboardPanel({
         </p>
         <div className="leaderboard-countdown" aria-live="polite">
           <div>
-            <span>Runde {nextRound} startet automatisch</span>
+            <span>
+              {leaderboardComplete
+                ? `Runde ${nextRound} startet automatisch`
+                : 'Rangliste wird aufgedeckt'}
+            </span>
             <strong>{secondsLeft}s</strong>
           </div>
           <div

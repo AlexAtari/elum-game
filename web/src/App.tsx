@@ -462,8 +462,21 @@ function App() {
             credits={gameState.credits}
             referencePrice={activeResourceMarket.referencePrice}
             warehouseStock={activeResourceMarket.warehouseStock}
+            rivalResourceAmounts={{
+              orion:
+                gameState.rivals.orion.resources[
+                  activeMarket.resource
+                ],
+              nova:
+                gameState.rivals.nova.resources[
+                  activeMarket.resource
+                ],
+              vega:
+                gameState.rivals.vega.resources[
+                  activeMarket.resource
+                ],
+            }}
             nextResource={null}
-            invitationSeconds={10}
             initiatorName="Agima"
             completionLabel="Zurück zur Planung"
             onTrade={tradeMarketResource}

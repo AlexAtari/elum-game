@@ -79,10 +79,43 @@
   box-shadow: 0 0 28px rgba(240, 201, 109, 0.08);
 }
 
+.leaderboard-hidden-row {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.leaderboard-revealed-row {
+  visibility: visible;
+  animation: reveal-leaderboard-entry 420ms ease both;
+}
+
+@keyframes reveal-leaderboard-entry {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .leaderboard-rank {
+  display: inline-flex;
   color: #f0c96d;
   font-size: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   text-align: center;
+}
+
+.leaderboard-crown {
+  font-size: 1rem;
+  line-height: 1;
+  transform: translateY(-8px) rotate(8deg);
 }
 
 .leaderboard-colony {

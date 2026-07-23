@@ -86,7 +86,7 @@ Das Grundstück wird erst zu Beginn der nächsten Runde übertragen.
 
 ## 4. Freiwillige Ressourcenauktionen
 
-Während der Planungsphase darf ein Spieler bei Bedarf eine interaktive Echtzeitauktion für Nahrung, Energie, Erz oder Kristalle initiieren. Jede Ressource kann global nur einmal pro Runde aufgerufen werden. Nach dem Start erhalten alle Spieler zehn Sekunden, um sich als Käufer, Verkäufer oder nicht teilnehmend einzuordnen.
+Während der Planungsphase darf ein Spieler bei Bedarf eine interaktive Echtzeitauktion für Nahrung, Energie, Erz oder Kristalle initiieren. Jede Ressource kann global nur einmal pro Runde aufgerufen werden. Nach einer kurzen Ankündigung erhalten alle Spieler fünf Sekunden, um sich als Käufer, Verkäufer oder nicht teilnehmend einzuordnen.
 
 Nach der einzelnen Auktion kehren alle Spieler in die Planungsphase zurück. Die übrigen Ressourcen starten nicht automatisch. Nicht initiierte Auktionen entfallen, sobald die Runde ausgeführt wird.
 
@@ -384,11 +384,13 @@ Die frei wählbaren Ressourcenmärkte sind:
 3. ⛏ Erz
 4. 💎 Kristalle
 
-Nach dem Aufruf wird die Planungsansicht durch eine Einladung ersetzt. Vor dem Handel mit der Ressource hat jeder Spieler genau zehn Sekunden Zeit, um zu entscheiden, ob er kaufen, verkaufen oder nicht teilnehmen möchte. Alle Teilnehmer sind dabei als Avatare im Markt sichtbar und bewegen sich nach ihrer Entscheidung in den Käufer-, Verkäufer- oder neutralen Bereich.
+Nach dem Aufruf wird die Planungsansicht zunächst durch eine kurze Auktionsankündigung ersetzt. Sie dauert in Runde 1 fünf Sekunden, in Runde 2 vier Sekunden und ab Runde 3 drei Sekunden. Angezeigt werden die aufgerufene Ressource, der Initiator, der aktuelle Bestand dieser Ressource bei allen vier Kolonien, die eigenen Credits sowie der Hinweis, sich auf Käufer, Verkäufer oder Nichtteilnahme vorzubereiten.
 
-Eine Bewegung nach oben meldet den Spieler als Verkäufer, eine Bewegung nach unten als Käufer und die Mittelposition als nicht teilnehmend. Bis zum Ablauf der Positionierungszeit darf die Auswahl geändert werden; danach ist die Rolle für diese Ressourcenauktion festgelegt. In frühen Runden steht mehr Entscheidungszeit zur Verfügung als in späteren Runden.
+Nach dem Ankündigungs-Countdown beginnt eine fünfsekündige Rollenwahl. Eine Bewegung nach oben meldet den Spieler als Verkäufer, eine Bewegung nach unten als Käufer und die Mittelposition als nicht teilnehmend. Bis zum Ablauf der Positionierungszeit darf die Auswahl geändert werden; danach ist die Rolle für diese Ressourcenauktion festgelegt.
 
 Meldet sich kein Spieler als Käufer oder Verkäufer, wird die Ressourcenauktion vollständig übersprungen. Nach einer abgeschlossenen oder übersprungenen Auktion kehrt das Spiel in dieselbe Planungsphase zurück. Die Rundenabrechnung beginnt ausschließlich über „Runde ausführen“ und startet keine automatische Marktfolge.
+
+Ein Käufer kann sein Gebot niemals über seine aktuell verfügbaren Credits erhöhen. Reicht sein Guthaben nicht für das günstigste aktive Verkaufsangebot, zeigt die Marktsteuerung dessen Preis und den fehlenden Betrag. Liegt bereits ein Kaufgebot im Markt und sinken die Credits durch eine Transaktion unter diesen Preis, wird das Gebot automatisch auf das neue bezahlbare Maximum zurückgenommen oder vollständig hinter das Lager gestellt.
 
 Käufer und Verkäufer handeln gleichzeitig auf einem gemeinsamen Markt.
 
@@ -442,7 +444,7 @@ Nach „Runde ausführen“ wird die Runde vollständig abgerechnet. Anschließe
 3. Gesamtzahl der eingelagerten Ressourcen
 4. Anzahl der eigenen Harvester
 
-Die Reihenfolge entspricht zugleich der vorläufigen Rangfolge bei Gleichstand: Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits, Ressourcen und Harvester. Die eigene Kolonie wird deutlich hervorgehoben. Der Zwischenstand bleibt genau fünf Sekunden sichtbar und wechselt danach ohne Bestätigung automatisch in die nächste Planungsrunde. Diese feste, gemeinsame Anzeigedauer dient später im Mehrspielermodus zugleich als synchroner Übergang für alle Teilnehmer.
+Die Reihenfolge entspricht zugleich der vorläufigen Rangfolge bei Gleichstand: Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits, Ressourcen und Harvester. Die eigene Kolonie wird deutlich hervorgehoben. Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Der Erstplatzierte erhält zusätzlich ein kleines Kronensymbol. Sobald alle Plätze sichtbar sind, bleibt die vollständige Rangliste weitere drei Sekunden stehen und wechselt danach ohne Bestätigung automatisch in die nächste Planungsrunde. Dieser gemeinsame Ablauf dient später im Mehrspielermodus zugleich als synchroner Übergang für alle Teilnehmer.
 
 Alle vier Ranglistenplätze stammen aus dauerhaft gespeicherten Koloniezuständen. Orion, Nova und Vega besitzen jeweils eine eigene Bevölkerung, Credits, Ressourcenbestände und Harvesterzahl. In der ersten KI-Ausbaustufe werden ihre Versorgung und Produktion mit einer einfachen deterministischen Rundenroutine abgerechnet. Dadurch reagieren ihre Ranglistenwerte auf ihren tatsächlichen Vorrat und nicht mehr auf reine Anzeigeformeln. Grundstückserwerb, Harvesterbau und die vollständige Teilnahme der KI-Kolonien am Markt werden in den folgenden Ausbaustufen an denselben Zustand angeschlossen.
 
