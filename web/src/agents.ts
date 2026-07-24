@@ -63,6 +63,20 @@ export type AgentSupplyPlan = {
   targetEnergyReserve: number
 }
 
+export type AgentEmergencyLevel =
+  | 'normal'
+  | 'warning'
+  | 'critical'
+
+export type AgentEmergencyAssessment = {
+  level: AgentEmergencyLevel
+  foodShortage: number
+  energyShortage: number
+  suspendInvestments: boolean
+  emergencyCashReserve: number
+}
+
+
 export type AgentProductionPriority = {
   resource: AgentProductionResource
   score: number
@@ -95,6 +109,7 @@ export type AgentLandDecision = {
 export type AgentPlan = {
   playerId: AgentPlayerId
   supply: AgentSupplyPlan
+  emergency: AgentEmergencyAssessment
   productionPriorities: AgentProductionPriority[]
   marketIntents: AgentMarketIntent[]
   harvester: AgentHarvesterDecision
@@ -223,6 +238,54 @@ function getTargetStock(
   return profile.crystalReserve
 }
 
+export function createAgentEmergencyAssessment(
+  context: AgentContext,
+  profile: AgentProfile = agentProfiles[context.colony.id],
+): AgentEmergencyAssessment {
+  const demand = getRoundDemand(context.colony.population)
+  const immediateFoodNeed = demand
+  const immediateEnergyNeed =
+    demand + getHarvesterEnergyDemand(context)
+  const targetFoodStock = Math.ceil(
+    immediateFoodNeed * profile.reserveRounds,
+  )
+  const targetEnergyStock = Math.ceil(
+    immediateEnergyNeed * profile.reserveRounds,
+  )
+  const foodShortage = Math.max(
+    0,
+    immediateFoodNeed - context.colony.resources.food,
+  )
+  const energyShortage = Math.max(
+    0,
+    immediateEnergyNeed - context.colony.resources.energy,
+  )
+  const isCritical =
+    foodShortage > 0 || energyShortage > 0
+  const isWarning =
+    context.colony.resources.food < targetFoodStock ||
+    context.colony.resources.energy < targetEnergyStock
+  const level: AgentEmergencyLevel = isCritical
+    ? 'critical'
+    : isWarning
+    ? 'warning'
+    : 'normal'
+  const emergencyCashReserve =
+    level === 'critical'
+      ? 0
+      : level === 'warning'
+      ? Math.floor(profile.cashReserve / 2)
+      : profile.cashReserve
+
+  return {
+    level,
+    foodShortage,
+    energyShortage,
+    suspendInvestments: level !== 'normal',
+    emergencyCashReserve,
+  }
+}
+
 function getUrgency(stock: number, target: number, immediateNeed: number) {
   if (target <= 0) {
     return 0
@@ -240,6 +303,7 @@ function createMarketIntent(
   context: AgentContext,
   profile: AgentProfile,
   demand: number,
+  emergency: AgentEmergencyAssessment,
 ): AgentMarketIntent {
   const stock = context.colony.resources[resource]
   const target = getTargetStock(resource, demand, profile, context)
@@ -251,11 +315,15 @@ function createMarketIntent(
   const urgency = getUrgency(stock, target, immediateNeed)
   const referencePrice = context.referencePrices[resource]
 
+  const cashReserve =
+    resource === 'food' || resource === 'energy'
+      ? emergency.emergencyCashReserve
+      : profile.cashReserve
   if (stock < target) {
     const affordableQuantity = Math.max(
       0,
       Math.floor(
-        (context.colony.credits - profile.cashReserve) /
+        (context.colony.credits - cashReserve) /
           Math.max(1, referencePrice),
       ),
     )
@@ -316,8 +384,11 @@ function createProductionPriorities(
     .map((resource) => {
       const stock = context.colony.resources[resource]
       const target = getTargetStock(resource, demand, profile, context)
-      const immediateNeed =
-        resource === 'food' || resource === 'energy' ? demand : 0
+      const immediateNeed = getImmediateNeed(
+        resource,
+        demand,
+        context,
+      )
       const urgency = getUrgency(stock, target, immediateNeed)
 
       return {
@@ -338,7 +409,12 @@ function decideHarvesterBuild(
   profile: AgentProfile,
   targetFoodReserve: number,
   targetEnergyReserve: number,
+  emergency: AgentEmergencyAssessment,
 ): AgentHarvesterDecision {
+  if (emergency.suspendInvestments) {
+    return { build: false, reason: 'unsafe-supply' }
+  }
+
   const build = context.legalActions?.harvesterBuild
   if (!build) {
     return { build: false, reason: 'unavailable' }
@@ -388,7 +464,12 @@ function scoreLandCandidate(
 function decideLandBid(
   context: AgentContext,
   profile: AgentProfile,
+  emergency: AgentEmergencyAssessment,
 ): AgentLandDecision | null {
+  if (emergency.suspendInvestments) {
+    return null
+  }
+
   const candidates = context.legalActions?.landCandidates ?? []
   const availableCredits = Math.max(
     0,
@@ -431,6 +512,7 @@ export function createAgentPlan(
   profile: AgentProfile = agentProfiles[context.colony.id],
 ): AgentPlan {
   const demand = getRoundDemand(context.colony.population)
+  const emergency = createAgentEmergencyAssessment(context, profile)
   const targetFoodReserve = Math.ceil(demand * profile.reserveRounds)
   const energyUnits =
     demand + getHarvesterEnergyDemand(context)
@@ -446,22 +528,24 @@ export function createAgentPlan(
       targetFoodReserve,
       targetEnergyReserve,
     },
+    emergency,
     productionPriorities: createProductionPriorities(
       context,
       profile,
       demand,
     ),
     marketIntents: marketResources.map((resource) =>
-      createMarketIntent(resource, context, profile, demand),
+      createMarketIntent(resource, context, profile, demand, emergency),
     ),
     harvester: decideHarvesterBuild(
       context,
       profile,
       targetFoodReserve,
       targetEnergyReserve,
+      emergency,
     ),
-    landBid: decideLandBid(context, profile),
-    targetCashReserve: profile.cashReserve,
+    landBid: decideLandBid(context, profile, emergency),
+    targetCashReserve: emergency.emergencyCashReserve,
   }
 }
 

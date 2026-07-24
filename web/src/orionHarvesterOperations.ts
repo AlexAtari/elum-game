@@ -101,6 +101,7 @@ export function planOrionHarvesterAssignments(
     referencePrices,
     legalActions: {
       harvesterBuild,
+      harvesterEnergyCost: 1,
     },
   })
   const priorityScores = Object.fromEntries(

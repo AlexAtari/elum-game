@@ -177,6 +177,7 @@ function MarketPanel({
           creditCost: HARVESTER_CREDIT_COST,
           oreCost: HARVESTER_ORE_COST,
         },
+        harvesterEnergyCost: 1,
       },
     },
     resource,
