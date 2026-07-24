@@ -608,7 +608,7 @@ function App() {
             credits={gameState.credits}
             referencePrice={activeResourceMarket.referencePrice}
             warehouseStock={activeResourceMarket.warehouseStock}
-        orion={gameState.rivals.orion}
+        rivals={gameState.rivals}
             rivalResourceAmounts={{
               orion:
                 gameState.rivals.orion.resources[

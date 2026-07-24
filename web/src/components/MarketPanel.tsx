@@ -1,4 +1,4 @@
-import { createComplementaryMarketDecision } from '../agents'
+import { createRivalMarketSelection } from '../rivalMarket'
 import {
   useCallback,
   useEffect,
@@ -7,9 +7,6 @@ import {
 } from 'react'
 import {
   getMarketTiming,
-  MARKET_PRICES,
-  HARVESTER_ORE_COST,
-  HARVESTER_CREDIT_COST,
   getWarehousePrices,
   marketResourceTypes,
   moveMarketOffer,
@@ -17,7 +14,8 @@ import {
   type MarketDirection,
   type MarketResource,
   type MarketRole,
-  type RivalColonyState,
+  type RivalColonies,
+  type RivalId,
 } from '../game'
 import AuctionPriceScale from './AuctionPriceScale'
 import AuctionTimer from './AuctionTimer'
@@ -37,7 +35,7 @@ type MarketPanelProps = {
   credits: number
   referencePrice: number
   warehouseStock: number
-  orion: RivalColonyState
+  rivals: RivalColonies
   rivalResourceAmounts: {
     orion: number
     nova: number
@@ -139,7 +137,7 @@ function MarketPanel({
   credits,
   referencePrice,
   warehouseStock,
-  orion,
+  rivals,
   rivalResourceAmounts,
   nextResource,
   invitationSeconds,
@@ -164,29 +162,40 @@ function MarketPanel({
   const [stage, setStage] =
     useState<MarketStage>('introduction')
   const [role, setRole] = useState<MarketRole>('neutral')
-  const orionDecision = createComplementaryMarketDecision(
-    {
-      round: roundPlayed,
-      colony: orion,
-      referencePrices: {
-        ...MARKET_PRICES,
-        [resource]: referencePrice,
-      },
-      legalActions: {
-        harvesterBuild: {
-          creditCost: HARVESTER_CREDIT_COST,
-          oreCost: HARVESTER_ORE_COST,
-        },
-        harvesterEnergyCost: 1,
-      },
-    },
+  const rivalMarketSelection =
+    createRivalMarketSelection(
+      rivals,
+      roundPlayed,
+      resource,
+      role,
+      referencePrice,
+    )
+  const plannedRivalId =
+    rivalMarketSelection.active?.rivalId ?? 'orion'
+  const neutralRivalDecision = {
     resource,
-    role,
-  )
-  const plannedOrionRole = orionDecision.role
+    role: 'neutral' as const,
+    quantity: 0,
+    limitPrice: referencePrice,
+    urgency: 0,
+  }
+  const plannedRivalDecision =
+    rivalMarketSelection.active?.decision ??
+    neutralRivalDecision
+  const [activeRivalId, setActiveRivalId] =
+    useState<RivalId>(plannedRivalId)
+  const activeRival = rivals[activeRivalId]
+  const activeRivalDecision =
+    rivalMarketSelection.participants.find(
+      (participant) =>
+        participant.rivalId === activeRivalId,
+    )?.decision ?? plannedRivalDecision
+  const orion = activeRival
+  const orionDecision = activeRivalDecision
+  const plannedOrionRole = plannedRivalDecision.role
   const plannedOrionUnits = Math.min(
     orionTradeLimit,
-    orionDecision.quantity,
+    plannedRivalDecision.quantity,
   )
   const [orionRole, setOrionRole] = useState<
     MarketRole | 'pending'
@@ -250,8 +259,9 @@ function MarketPanel({
     }
 
     const timer = window.setTimeout(() => {
+      setActiveRivalId(plannedRivalId)
       setOrionRole(plannedOrionRole)
-    setOrionUnitsRemaining(plannedOrionUnits)
+      setOrionUnitsRemaining(plannedOrionUnits)
     }, orionDecisionMilliseconds)
 
     return () => window.clearTimeout(timer)
@@ -268,8 +278,9 @@ function MarketPanel({
           return currentSeconds - 1
         }
 
+        setActiveRivalId(plannedRivalId)
         setOrionRole(plannedOrionRole)
-      setOrionUnitsRemaining(plannedOrionUnits)
+        setOrionUnitsRemaining(plannedOrionUnits)
 
         if (role === 'neutral') {
           setStage('skipped')
@@ -283,7 +294,9 @@ function MarketPanel({
         setOrionPrice(
           role === 'seller' ? minimumPrice : maximumPrice,
         )
-        setOrionResourceAmount(orion.resources[resource])
+        setOrionResourceAmount(
+        rivals[plannedRivalId].resources[resource],
+      )
         setOrionParked(false)
         setStage('auction')
         return auctionSeconds
@@ -444,11 +457,11 @@ function MarketPanel({
   const activeCounterparty: MarketCounterparty =
     role === 'seller'
       ? orionLeadsBuyers
-        ? 'orion'
-        : 'warehouse'
+        ? activeRivalId
+      : 'warehouse'
       : orionLeadsSellers
-        ? 'orion'
-        : 'warehouse'
+        ? activeRivalId
+      : 'warehouse'
   const tradePrice = sellerPrice
   const pricesMeet = buyerPrice === sellerPrice
   const buyerShortfall =
@@ -465,7 +478,7 @@ function MarketPanel({
     stage === 'auction' &&
     playerOfferActive &&
     pricesMeet &&
-    (activeCounterparty !== 'orion' || orionActive) &&
+    (activeCounterparty === 'warehouse' || orionActive) &&
     (role === 'seller'
       ? resourceAmount > 0
       : credits >= tradePrice) &&
@@ -508,7 +521,7 @@ function MarketPanel({
             setPlayerPrice(creditsAfterTrade)
           }
         }
-        if (activeCounterparty === 'orion') {
+        if (activeCounterparty !== 'warehouse') {
           setOrionUnitsRemaining((currentUnits) =>
             Math.max(0, currentUnits - 1),
           )
@@ -642,51 +655,42 @@ function MarketPanel({
             maximumPrice,
             orionRole === 'seller' ? 'seller' : 'buyer',
           )
-  const previewParticipants: Array<{
-    name: string
-    icon: string
-    className: string
-    role: MarketRole | 'pending'
-  }> = [
-    {
-      name: 'Nova',
-      icon: '👩‍🚀',
-      className: 'nova-avatar',
-      role:
-        orionRole === 'pending'
-          ? 'pending'
-          : role,
-    },
-    {
-      name: 'Vega',
-      icon: '🧑‍🚀',
-      className: 'vega-avatar',
-      role:
-        orionRole === 'pending' || role === 'neutral'
-          ? orionRole === 'pending'
-            ? 'pending'
-            : 'neutral'
-          : role === 'seller'
-            ? 'buyer'
-            : 'seller',
-    },
-  ]
+  const displayedActiveRivalId =
+    stage === 'declaration'
+      ? plannedRivalId
+      : activeRivalId
+  const previewParticipants =
+    rivalMarketSelection.participants
+      .filter(
+        (participant) =>
+          participant.rivalId !==
+          displayedActiveRivalId,
+      )
+      .map((participant) => ({
+        name: participant.name,
+        icon: participant.icon,
+        className: `${participant.rivalId}-avatar`,
+        role:
+          orionRole === 'pending'
+            ? ('pending' as const)
+            : participant.decision.role,
+      }))
   const sellerName =
     role === 'seller'
       ? playerOfferActive
         ? 'Du'
         : 'HQ-Lager'
       : orionLeadsSellers
-        ? 'Orion'
-        : 'HQ-Lager'
+        ? activeRival.name
+      : 'HQ-Lager'
   const buyerName =
     role === 'buyer'
       ? playerOfferActive
         ? 'Du'
         : 'HQ-Lager'
       : orionLeadsBuyers
-        ? 'Orion'
-        : 'HQ-Lager'
+        ? activeRival.name
+      : 'HQ-Lager'
   const displayedSellerPrice =
     stage === 'declaration'
       ? warehousePrices.sellPrice
@@ -835,9 +839,11 @@ function MarketPanel({
             {tradedUnits === 0
               ? '\u00a0'
               : `Zuletzt für ${lastTradePrice} Credits mit ${
-                  lastTradePartner === 'warehouse'
-                    ? 'dem HQ-Lager'
-                    : 'Orion'
+                  lastTradePartner === null
+              ? ''
+              : lastTradePartner === 'warehouse'
+              ? 'dem HQ-Lager'
+              : rivals[lastTradePartner].name
                 }`}
           </small>
         </div>
@@ -981,7 +987,7 @@ function MarketPanel({
           {(stage === 'declaration' ||
             (stage === 'auction' && orionParticipates)) && (
             <div
-              className={`market-avatar orion-avatar ${
+              className={`market-avatar ${activeRivalId}-avatar ${
                 stage === 'declaration'
                   ? 'market-declaration-avatar'
                   : orionRetreating
@@ -994,7 +1000,7 @@ function MarketPanel({
               aria-live="polite"
             >
               <span>🤖</span>
-              <strong>Orion</strong>
+              <strong>{activeRival.name}</strong>
               {stage === 'declaration' ? (
                 <b>
                   {orionRole === 'pending'
@@ -1006,7 +1012,7 @@ function MarketPanel({
                   key={`orion-units-${orionResourceAmount}`}
                   className={`market-avatar-quantity ${
                     tradedUnits > 0 &&
-                    lastTradePartner === 'orion'
+                    lastTradePartner === activeRivalId
                       ? orionRole === 'buyer'
                         ? 'market-value-up'
                         : 'market-value-down'
@@ -1119,8 +1125,7 @@ function MarketPanel({
                 Tastatur: ↑ verkaufen · ↓ kaufen · Esc aussetzen
               </p>
               <p className="market-key-hint market-layout-hint">
-                Nova und Vega sind vorerst sichtbare Testspieler
-                für das Vierer-Layout.
+                Alle Rivalen entscheiden anhand ihrer Vorräte und ihrer Wirtschaftsstrategie.
               </p>
             </>
           )}
@@ -1182,9 +1187,7 @@ function MarketPanel({
           {stage === 'auction' && canTrade && (
             <div className="trade-indicator" aria-live="polite">
               1 Einheit ·{' '}
-              {activeCounterparty === 'warehouse'
-                ? 'HQ-Lager'
-                : 'Orion'}{' '}
+              {activeCounterparty === 'warehouse' ? 'HQ-Lager' : rivals[activeCounterparty].name}{' '}
               · {tradePrice} Credits
             </div>
           )}

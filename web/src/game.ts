@@ -18,7 +18,7 @@ export type Resources = {
 
 export type MarketResource = keyof Resources
 export type MarketDirection = 'buy' | 'sell'
-export type MarketCounterparty = 'orion' | 'warehouse'
+export type MarketCounterparty = RivalId | 'warehouse'
 export type MarketRole = 'neutral' | 'buyer' | 'seller'
 
 export type GlobalEventId =
@@ -1305,7 +1305,7 @@ export function orderHarvesterBuild(
   }
 }
 
-export function executeMarketTrade(
+function executeLegacyMarketTrade(
   currentState: GameState,
   resource: MarketResource,
   direction: MarketDirection,
@@ -1374,6 +1374,90 @@ export function executeMarketTrade(
         : currentState.market,
   }
 }
+
+export function executeMarketTrade(
+  currentState: GameState,
+  resource: MarketResource,
+  direction: MarketDirection,
+  price: number,
+  counterparty: MarketCounterparty = 'orion',
+): GameState {
+  if (
+    counterparty === 'warehouse' ||
+    counterparty === 'orion'
+  ) {
+    return executeLegacyMarketTrade(
+      currentState,
+      resource,
+      direction,
+      price,
+      counterparty,
+    )
+  }
+
+  const rival = currentState.rivals[counterparty]
+
+  if (direction === 'buy') {
+    if (
+      currentState.credits < price ||
+      rival.resources[resource] < 1
+    ) {
+      return currentState
+    }
+
+    return {
+      ...currentState,
+      credits: currentState.credits - price,
+      resources: {
+        ...currentState.resources,
+        [resource]:
+          currentState.resources[resource] + 1,
+      },
+      rivals: {
+        ...currentState.rivals,
+        [counterparty]: {
+          ...rival,
+          credits: rival.credits + price,
+          resources: {
+            ...rival.resources,
+            [resource]:
+              rival.resources[resource] - 1,
+          },
+        },
+      },
+    }
+  }
+
+  if (
+    currentState.resources[resource] < 1 ||
+    rival.credits < price
+  ) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    credits: currentState.credits + price,
+    resources: {
+      ...currentState.resources,
+      [resource]:
+        currentState.resources[resource] - 1,
+    },
+    rivals: {
+      ...currentState.rivals,
+      [counterparty]: {
+        ...rival,
+        credits: rival.credits - price,
+        resources: {
+          ...rival.resources,
+          [resource]:
+            rival.resources[resource] + 1,
+        },
+      },
+    },
+  }
+}
+
 
 export function initiateResourceMarket(
   currentState: GameState,
