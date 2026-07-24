@@ -11,6 +11,7 @@ import LocalEventNotice from './components/LocalEventNotice'
 import MarketLauncher from './components/MarketLauncher'
 import MarketPanel from './components/MarketPanel'
 import RoundBriefingPanel from './components/RoundBriefingPanel'
+import { applyAutonomousOrionLandPurchase } from './orionAutonomousLand'
 import { placeStrategicOrionLandBid } from './orionLandBid'
 import {
   activateGlobalEvent,
@@ -461,19 +462,27 @@ function App() {
       },
     }
 
-    setPendingRound(roundPlan)
+    const stateWithOrionLand =
+    applyAutonomousOrionLandPurchase(gameState)
+  const completedRound = runRound(
+    stateWithOrionLand,
+    roundPlan.harvesters,
+    roundPlan.supplyPlan,
+  )
+
+  setPendingRound(roundPlan)
     setLastReport(null)
     setShowLeaderboard(false)
     setShowRoundBriefing(false)
     setPendingLocalEvent(null)
     setActiveLocalEvent(null)
 
-    if (plannedRound.report.landAuction?.outcome === 'tie') {
+    if (completedRound.report.landAuction?.outcome === 'tie') {
       setGameState(beginLandTieBreak)
       return
     }
 
-    applyCompletedRound(plannedRound)
+    applyCompletedRound(completedRound)
   }
 
   const continueAfterLeaderboard = useCallback(() => {

@@ -75,6 +75,8 @@ export type RivalColonyState = {
   resources: Resources
   harvesters: number
   harvestersInConstruction?: number
+  ownedTileIds?: string[]
+  lastLandPurchaseRound?: number
 }
 
 export type RivalColonies = Record<RivalId, RivalColonyState>
