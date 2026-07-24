@@ -3,7 +3,7 @@ import {
   useEffect,
   useMemo,
   useState,
-} from 'react'
+  } from 'react'
 import HexMap from './components/HexMap'
 import LandTieAuctionPanel from './components/LandTieAuctionPanel'
 import LeaderboardPanel from './components/LeaderboardPanel'
@@ -21,7 +21,6 @@ import {
   calculateSupplyPreview,
   completeResourceMarket,
   createLeaderboardEntries,
-  createInitialGameState,
   executeMarketTrade,
   isGameFinished,
   getHarvesterCreditCost,
@@ -46,6 +45,8 @@ import {
   type ProductionType,
   type RoundReport,
   type SupplyPlan,
+  STARTING_HARVESTERS,
+  createPlayableInitialGameState,
 } from './game'
 import { useI18n } from './i18n/I18nContext'
 import './App.css'
@@ -67,17 +68,25 @@ type PendingRound = {
   supplyPlan: SupplyPlan
 }
 
+
+function createStartingHarvesterPool(): FreeHarvester[] {
+  return Array.from(
+    { length: STARTING_HARVESTERS },
+    () => ({}),
+  )
+}
+
 function App() {
   const { number, t } = useI18n()
   const [gameStarted, setGameStarted] = useState(false)
   const [gameState, setGameState] = useState(
-    createInitialGameState,
+    createPlayableInitialGameState,
   )
   const [harvesters, setHarvesters] =
     useState<HarvesterAssignments>({})
-  const [freeHarvesterPool, setFreeHarvesterPool] = useState<
-    FreeHarvester[]
-  >([{}, {}])
+  const [freeHarvesterPool, setFreeHarvesterPool] = useState<FreeHarvester[]>(
+    createStartingHarvesterPool,
+  )
   const [lastReport, setLastReport] =
     useState<RoundReport | null>(null)
   const [foodSupplyLevel, setFoodSupplyLevel] = useState(2)
@@ -143,9 +152,9 @@ function App() {
   )
 
   const startNewGame = () => {
-    setGameState(createInitialGameState())
+    setGameState(createPlayableInitialGameState())
     setHarvesters({})
-    setFreeHarvesterPool([{}, {}])
+    setFreeHarvesterPool(createStartingHarvesterPool())
     setLastReport(null)
     setFoodSupplyLevel(2)
     setEnergySupplyLevel(2)

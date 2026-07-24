@@ -1280,6 +1280,35 @@ export function createInitialGameState(): GameState {
   }
 }
 
+export const STARTING_CREDITS = 150
+export const STARTING_HARVESTERS = 2
+
+export function createPlayableInitialGameState(): GameState {
+  const state = createInitialGameState()
+  const sharedResources = { ...state.resources }
+
+  return {
+    ...state,
+    credits: STARTING_CREDITS,
+    resources: { ...sharedResources },
+    rivals: Object.fromEntries(
+      Object.entries(state.rivals).map(
+        ([id, rival]) => [
+          id,
+          {
+            ...rival,
+            population: state.population,
+            credits: STARTING_CREDITS,
+            resources: { ...sharedResources },
+            harvesters: STARTING_HARVESTERS,
+          },
+        ],
+      ),
+    ) as RivalColonies,
+  }
+}
+
+
 export function orderHarvesterBuild(
   currentState: GameState,
 ): GameState {
