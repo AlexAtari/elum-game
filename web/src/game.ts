@@ -1,3 +1,8 @@
+import {
+  calculateOrionAssignedProduction,
+  planOrionHarvesterAssignments,
+} from './orionHarvesterOperations'
+
 import { createAgentPlan } from './agents'
 
 export type ProductionType = 'food' | 'energy' | 'ore'
@@ -77,6 +82,9 @@ export type RivalColonyState = {
   harvestersInConstruction?: number
   ownedTileIds?: string[]
   lastLandPurchaseRound?: number
+  harvesterAssignments?: Partial<
+    Record<string, ProductionType>
+  >
 }
 
 export type RivalColonies = Record<RivalId, RivalColonyState>
@@ -703,6 +711,24 @@ function getRivalProduction(
   roundPlayed: number,
   globalEvent: GlobalEventId | null = null,
 ): Record<ProductionType, number> {
+  if (
+    rival.id === 'orion' &&
+    rival.harvesterAssignments &&
+    Object.keys(rival.harvesterAssignments).length > 0
+  ) {
+    return calculateOrionAssignedProduction(
+      rival.harvesterAssignments,
+      tiles,
+      (production) =>
+        getGlobalProductionModifier(
+          globalEvent,
+          production,
+          roundPlayed,
+        ),
+    )
+  }
+
+
   const production = {
     food: 0,
     energy: 0,
@@ -755,6 +781,24 @@ export function advanceRivalColonies(
 ): RivalColonies {
   return Object.fromEntries(
     Object.entries(rivals).map(([id, rival]) => {
+      const operatingRival =
+        rival.id === 'orion'
+          ? {
+              ...rival,
+              harvesterAssignments:
+                planOrionHarvesterAssignments(
+                  rival,
+                  tiles,
+                  roundPlayed,
+                  MARKET_PRICES,
+                  {
+                    creditCost: HARVESTER_CREDIT_COST,
+                    oreCost: HARVESTER_ORE_COST,
+                  },
+                ),
+            }
+          : rival
+
       const populationGroups = Math.ceil(rival.population / 10)
       const plannedFood = populationGroups * 2
       const plannedEnergy = populationGroups * 2
@@ -767,7 +811,7 @@ export function advanceRivalColonies(
         plannedEnergy,
       )
       const production = getRivalProduction(
-        rival,
+        operatingRival,
         roundPlayed,
         globalEvent,
       )
@@ -785,7 +829,7 @@ export function advanceRivalColonies(
         rival.harvestersInConstruction ?? 0
 
       const nextColony: RivalColonyState = {
-        ...rival,
+        ...operatingRival,
         population: Math.max(
           1,
           rival.population + populationChange,
