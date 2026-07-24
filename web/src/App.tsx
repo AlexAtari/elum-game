@@ -11,6 +11,7 @@ import LocalEventNotice from './components/LocalEventNotice'
 import MarketLauncher from './components/MarketLauncher'
 import MarketPanel from './components/MarketPanel'
 import RoundBriefingPanel from './components/RoundBriefingPanel'
+import { placeStrategicOrionLandBid } from './orionLandBid'
 import {
   activateGlobalEvent,
   applyLocalEvent,
@@ -30,7 +31,6 @@ import {
   isLandBidBlocked,
   isMarketInitiationBlocked,
   orderHarvesterBuild,
-  placeLandBid,
   resolveLandTieBreak,
   runRound,
   selectGlobalEvent,
@@ -334,7 +334,7 @@ function App() {
 
   const submitLandBid = (tileId: string, amount: number) => {
     setGameState((currentState) =>
-      placeLandBid(currentState, tileId, amount),
+      placeStrategicOrionLandBid(currentState, tileId, amount),
     )
   }
 

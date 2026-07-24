@@ -469,3 +469,32 @@ export function createLandAuctionDecision(
     },
   }).landBid
 }
+
+export type AgentSealedLandBidDecision = AgentLandDecision & {
+  bid: number
+}
+
+export function createSealedLandBidDecision(
+  context: AgentContext,
+  candidate: AgentLandCandidate,
+): AgentSealedLandBidDecision | null {
+  const decision = createLandAuctionDecision(context, candidate)
+
+  if (!decision) {
+    return null
+  }
+
+  const bidRange = Math.max(
+    0,
+    decision.maximumBid - candidate.minimumBid,
+  )
+  const bid = Math.min(
+    decision.maximumBid,
+    candidate.minimumBid + Math.floor(bidRange * 0.67),
+  )
+
+  return {
+    ...decision,
+    bid,
+  }
+}
