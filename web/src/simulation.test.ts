@@ -5,6 +5,7 @@ import {
 } from './game'
 import {
   calculateSimulationWealth,
+  createBalancedSimulationStartingLand,
   runHeadlessEconomicSimulation,
 } from './simulation'
 
@@ -13,7 +14,7 @@ describe('Interne Wirtschaftssimulation', () => {
     const result = runHeadlessEconomicSimulation()
 
     expect(result.mode).toBe(
-      'headless-economic-v1',
+      'headless-economic-v2',
     )
     expect(result.roundsPlayed).toBe(
       GAME_ROUND_LIMIT,
@@ -76,6 +77,69 @@ describe('Interne Wirtschaftssimulation', () => {
     expect(
       createPlayableInitialGameState(),
     ).toEqual(before)
+  })
+
+  it('vergibt vier disjunkte und gleichwertige Startfeldpaare', () => {
+    const startingLand =
+      createBalancedSimulationStartingLand()
+    const allocations = Object.values(startingLand)
+    const allTileIds = allocations.flatMap(
+      (allocation) => allocation.tileIds,
+    )
+
+    expect(new Set(allTileIds).size).toBe(8)
+    expect(
+      new Set(
+        allocations.map(
+          (allocation) =>
+            [
+              allocation.foodYield,
+              allocation.energyYield,
+              allocation.orePotential,
+            ].join(':'),
+        ),
+      ).size,
+    ).toBe(1)
+  })
+
+  it('startet alle vier Kolonien mit Land und gleichem Vermögen', () => {
+    const result = runHeadlessEconomicSimulation({
+      rounds: 1,
+    })
+    const initialParticipants = Object.values(
+      result.history[0].participants,
+    )
+
+    for (const participant of initialParticipants) {
+      expect(participant.ownedTiles).toBe(2)
+      expect(participant.harvesters).toBe(2)
+    }
+
+    expect(
+      new Set(
+        initialParticipants.map(
+          (participant) => participant.wealth,
+        ),
+      ).size,
+    ).toBe(1)
+  })
+
+  it('erzeugt in keiner Runde Produktion ohne Grundstücksbasis', () => {
+    const result = runHeadlessEconomicSimulation()
+
+    for (const snapshot of result.history) {
+      for (
+        const participant of Object.values(
+          snapshot.participants,
+        )
+      ) {
+        if (participant.harvesters > 0) {
+          expect(
+            participant.ownedTiles,
+          ).toBeGreaterThan(0)
+        }
+      }
+    }
   })
 
   it('bewertet Vermögen nachvollziehbar', () => {

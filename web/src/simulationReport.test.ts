@@ -147,7 +147,10 @@ export function formatSimulationReport(
     'ENDRANGLISTE',
     'Rang Kolonie      Bev  Credits   Food Energie   Erz Kristall  Harv  Land Vermögen',
     '---- ---------- ----- -------- ------ ------- ----- -------- ----- ----- ---------',
-    ...result.finalStandings.map(formatStanding),
+    ...result.finalStandings.map(
+      (participant, index) =>
+        formatStanding(participant, index + 1),
+    ),
     '',
     'VERMÖGENSENTWICKLUNG',
     ...formatCheckpoints(result),
@@ -172,6 +175,12 @@ describe('Ausführbarer Simulationsbericht', () => {
     expect(report).toContain('Orion')
     expect(report).toContain('Nova')
     expect(report).toContain('Vega')
+    expect(report).toMatch(
+      /\n\s*1\s+\S/,
+    )
+    expect(report).not.toMatch(
+      /\n\s*0\s+\S/,
+    )
 
     if (showReport) {
       console.log(report)

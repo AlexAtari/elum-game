@@ -5,11 +5,14 @@ import {
   STARTING_HARVESTERS,
   advanceRivalColonies,
   createPlayableInitialGameState,
+  tiles,
   type GameState,
+  type ProductionType,
   type Resources,
   type RivalColonies,
   type RivalColonyState,
   type RivalId,
+  type Tile,
 } from './game'
 import {
   applyAutonomousRivalLandPurchases,
@@ -52,7 +55,7 @@ export type SimulationWarning = {
 }
 
 export type HeadlessSimulationResult = {
-  mode: 'headless-economic-v1'
+  mode: 'headless-economic-v2'
   roundsPlayed: number
   marketIncluded: false
   history: SimulationRoundSnapshot[]
@@ -63,6 +66,17 @@ export type HeadlessSimulationResult = {
 export type HeadlessSimulationOptions = {
   rounds?: number
 }
+
+export type SimulationStartingLand = {
+  tileIds: [string, string]
+  assignments: Record<string, ProductionType>
+  foodYield: number
+  energyYield: number
+  orePotential: number
+  distanceScore: number
+}
+
+type StartingLandCandidate = SimulationStartingLand
 
 type InternalSimulationState = {
   game: GameState
@@ -80,23 +94,275 @@ function cloneResources(resources: Resources): Resources {
   return { ...resources }
 }
 
-function createAgimaAgent(
-  game: GameState,
+function getTileDistance(tile: Tile): number {
+  return Math.max(
+    Math.abs(tile.q),
+    Math.abs(tile.r),
+    Math.abs(tile.q + tile.r),
+  )
+}
+
+function createStartingLandCandidate(
+  first: Tile,
+  second: Tile,
+): StartingLandCandidate {
+  const orientations = [
+    {
+      foodTile: first,
+      energyTile: second,
+    },
+    {
+      foodTile: second,
+      energyTile: first,
+    },
+  ].sort((left, right) => {
+    const leftFood = left.foodTile.food ?? 0
+    const leftEnergy = left.energyTile.energy ?? 0
+    const rightFood = right.foodTile.food ?? 0
+    const rightEnergy = right.energyTile.energy ?? 0
+
+    return (
+      rightFood + rightEnergy -
+        (leftFood + leftEnergy) ||
+      Math.min(rightFood, rightEnergy) -
+        Math.min(leftFood, leftEnergy) ||
+      left.foodTile.id.localeCompare(
+        right.foodTile.id,
+      ) ||
+      left.energyTile.id.localeCompare(
+        right.energyTile.id,
+      )
+    )
+  })
+
+  const selected = orientations[0]
+  const foodYield = selected.foodTile.food ?? 0
+  const energyYield =
+    selected.energyTile.energy ?? 0
+
+  return {
+    tileIds: [
+      selected.foodTile.id,
+      selected.energyTile.id,
+    ],
+    assignments: {
+      [selected.foodTile.id]: 'food',
+      [selected.energyTile.id]: 'energy',
+    },
+    foodYield,
+    energyYield,
+    orePotential:
+      (first.ore ?? 0) + (second.ore ?? 0),
+    distanceScore:
+      getTileDistance(first) +
+      getTileDistance(second),
+  }
+}
+
+function findDisjointStartingLand(
+  candidates: StartingLandCandidate[],
+  requiredCount: number,
+  startIndex: number = 0,
+  selected: StartingLandCandidate[] = [],
+  usedTileIds: Set<string> = new Set(),
+): StartingLandCandidate[] | null {
+  if (selected.length === requiredCount) {
+    return selected
+  }
+
+  for (
+    let index = startIndex;
+    index < candidates.length;
+    index += 1
+  ) {
+    const candidate = candidates[index]
+    if (
+      candidate.tileIds.some((tileId) =>
+        usedTileIds.has(tileId),
+      )
+    ) {
+      continue
+    }
+
+    const nextUsedTileIds = new Set(
+      usedTileIds,
+    )
+    for (const tileId of candidate.tileIds) {
+      nextUsedTileIds.add(tileId)
+    }
+
+    const result = findDisjointStartingLand(
+      candidates,
+      requiredCount,
+      index + 1,
+      [...selected, candidate],
+      nextUsedTileIds,
+    )
+    if (result) {
+      return result
+    }
+  }
+
+  return null
+}
+
+export function createBalancedSimulationStartingLand():
+  Record<
+    SimulationParticipantId,
+    SimulationStartingLand
+  > {
+  const candidateTiles = tiles.filter(
+    (tile) =>
+      tile.id !== 'HQ' &&
+      getTileDistance(tile) <= 3,
+  )
+  const groups = new Map<
+    string,
+    StartingLandCandidate[]
+  >()
+
+  for (
+    let firstIndex = 0;
+    firstIndex < candidateTiles.length;
+    firstIndex += 1
+  ) {
+    for (
+      let secondIndex = firstIndex + 1;
+      secondIndex < candidateTiles.length;
+      secondIndex += 1
+    ) {
+      const candidate =
+        createStartingLandCandidate(
+          candidateTiles[firstIndex],
+          candidateTiles[secondIndex],
+        )
+      const signature = [
+        candidate.foodYield,
+        candidate.energyYield,
+        candidate.orePotential,
+      ].join(':')
+
+      groups.set(
+        signature,
+        [
+          ...(groups.get(signature) ?? []),
+          candidate,
+        ],
+      )
+    }
+  }
+
+  const solutions: StartingLandCandidate[][] = []
+
+  for (const candidates of groups.values()) {
+    const orderedCandidates = [...candidates].sort(
+      (first, second) =>
+        first.tileIds.join(':').localeCompare(
+          second.tileIds.join(':'),
+        ),
+    )
+    const solution = findDisjointStartingLand(
+      orderedCandidates,
+      participantIds.length,
+    )
+
+    if (solution) {
+      solutions.push(solution)
+    }
+  }
+
+  solutions.sort((first, second) => {
+    const firstExample = first[0]
+    const secondExample = second[0]
+    const firstMinimumYield = Math.min(
+      firstExample.foodYield,
+      firstExample.energyYield,
+    )
+    const secondMinimumYield = Math.min(
+      secondExample.foodYield,
+      secondExample.energyYield,
+    )
+    const firstDistance = first.reduce(
+      (total, land) =>
+        total + land.distanceScore,
+      0,
+    )
+    const secondDistance = second.reduce(
+      (total, land) =>
+        total + land.distanceScore,
+      0,
+    )
+
+    return (
+      secondMinimumYield - firstMinimumYield ||
+      secondExample.foodYield +
+        secondExample.energyYield -
+        (firstExample.foodYield +
+          firstExample.energyYield) ||
+      secondExample.orePotential -
+        firstExample.orePotential ||
+      firstDistance - secondDistance ||
+      first
+        .flatMap((land) => land.tileIds)
+        .join(':')
+        .localeCompare(
+          second
+            .flatMap((land) => land.tileIds)
+            .join(':'),
+        )
+    )
+  })
+
+  const selected = solutions[0]
+  if (!selected) {
+    throw new Error(
+      'Keine vier gleichwertigen Startfeldpaare gefunden.',
+    )
+  }
+
+  return Object.fromEntries(
+    participantIds.map((participantId, index) => [
+      participantId,
+      selected[index],
+    ]),
+  ) as Record<
+    SimulationParticipantId,
+    SimulationStartingLand
+  >
+}
+
+function applyStartingLand(
+  colony: RivalColonyState,
+  startingLand: SimulationStartingLand,
 ): RivalColonyState {
   return {
-    ...game.rivals.orion,
-    id: 'orion',
-    name: 'Agima',
-    icon: '🧑‍🚀',
-    population: game.population,
-    credits: game.credits,
-    resources: cloneResources(game.resources),
-    harvesters: STARTING_HARVESTERS,
-    ownedTileIds: [...game.ownedTileIds],
-    lastLandPurchaseRound: undefined,
-    harvesterAssignments: {},
+    ...colony,
+    ownedTileIds: [...startingLand.tileIds],
+    lastLandPurchaseRound: 0,
+    harvesterAssignments: {
+      ...startingLand.assignments,
+    },
     inactiveHarvesterIds: [],
   }
+}
+
+function createAgimaAgent(
+  game: GameState,
+  startingLand: SimulationStartingLand,
+): RivalColonyState {
+  return applyStartingLand(
+    {
+      ...game.rivals.orion,
+      id: 'orion',
+      name: 'Agima',
+      icon: '🧑‍🚀',
+      population: game.population,
+      credits: game.credits,
+      resources: cloneResources(game.resources),
+      harvesters: STARTING_HARVESTERS,
+    },
+    startingLand,
+  )
 }
 
 function createShadowRival(
@@ -355,6 +621,48 @@ function collectRoundWarnings(
   return warnings
 }
 
+function createInitialSimulationState():
+  InternalSimulationState {
+  const baseGame =
+    createPlayableInitialGameState()
+  const startingLand =
+    createBalancedSimulationStartingLand()
+  const rivals: RivalColonies = {
+    orion: applyStartingLand(
+      baseGame.rivals.orion,
+      startingLand.orion,
+    ),
+    nova: applyStartingLand(
+      baseGame.rivals.nova,
+      startingLand.nova,
+    ),
+    vega: applyStartingLand(
+      baseGame.rivals.vega,
+      startingLand.vega,
+    ),
+  }
+  const game: GameState = {
+    ...baseGame,
+    ownedTileIds: [
+      ...startingLand.agima.tileIds,
+    ],
+    opponentTileIds: [
+      ...startingLand.orion.tileIds,
+      ...startingLand.nova.tileIds,
+      ...startingLand.vega.tileIds,
+    ],
+    rivals,
+  }
+
+  return {
+    game,
+    agima: createAgimaAgent(
+      game,
+      startingLand.agima,
+    ),
+  }
+}
+
 function advanceSimulationRound(
   state: InternalSimulationState,
   round: number,
@@ -411,12 +719,7 @@ export function runHeadlessEconomicSimulation(
       options.rounds ?? GAME_ROUND_LIMIT,
     ),
   )
-  const initialGame =
-    createPlayableInitialGameState()
-  let state: InternalSimulationState = {
-    game: initialGame,
-    agima: createAgimaAgent(initialGame),
-  }
+  let state = createInitialSimulationState()
   const history: SimulationRoundSnapshot[] = [
     createRoundSnapshot(0, state),
   ]
@@ -452,7 +755,7 @@ export function runHeadlessEconomicSimulation(
   )
 
   return {
-    mode: 'headless-economic-v1',
+    mode: 'headless-economic-v2',
     roundsPlayed,
     marketIncluded: false,
     history,
