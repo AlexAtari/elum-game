@@ -45,6 +45,7 @@ export type AgentLegalActions = {
     creditCost: number
     oreCost: number
   }
+  harvesterEnergyCost?: number
   landCandidates?: AgentLandCandidate[]
 }
 
@@ -170,14 +171,49 @@ function getRoundDemand(population: number) {
   return populationGroups * 2
 }
 
+function getHarvesterEnergyDemand(
+  context: AgentContext,
+) {
+  const energyCost =
+    context.legalActions?.harvesterEnergyCost ?? 1
+
+  return (
+    context.colony.harvesters *
+    Math.max(0, energyCost)
+  )
+}
+
+function getImmediateNeed(
+  resource: AgentMarketResource,
+  demand: number,
+  context: AgentContext,
+) {
+  if (resource === 'food') {
+    return demand
+  }
+
+  if (resource === 'energy') {
+    return demand + getHarvesterEnergyDemand(context)
+  }
+
+  return 0
+}
+
 function getTargetStock(
   resource: AgentMarketResource,
   demand: number,
   profile: AgentProfile,
   context: AgentContext,
 ) {
-  if (resource === 'food' || resource === 'energy') {
+  if (resource === 'food') {
     return Math.ceil(demand * profile.reserveRounds)
+  }
+
+  if (resource === 'energy') {
+    return Math.ceil(
+      (demand + getHarvesterEnergyDemand(context)) *
+        profile.reserveRounds,
+    )
   }
 
   if (resource === 'ore') {
@@ -207,8 +243,11 @@ function createMarketIntent(
 ): AgentMarketIntent {
   const stock = context.colony.resources[resource]
   const target = getTargetStock(resource, demand, profile, context)
-  const immediateNeed =
-    resource === 'food' || resource === 'energy' ? demand : 0
+  const immediateNeed = getImmediateNeed(
+    resource,
+    demand,
+    context,
+  )
   const urgency = getUrgency(stock, target, immediateNeed)
   const referencePrice = context.referencePrices[resource]
 
@@ -307,7 +346,12 @@ function decideHarvesterBuild(
 
   if (
     context.colony.resources.food < targetFoodReserve ||
-    context.colony.resources.energy < targetEnergyReserve
+    context.colony.resources.energy <
+      targetEnergyReserve +
+        Math.ceil(
+          profile.reserveRounds *
+            (context.legalActions?.harvesterEnergyCost ?? 1),
+        )
   ) {
     return { build: false, reason: 'unsafe-supply' }
   }
@@ -388,13 +432,17 @@ export function createAgentPlan(
 ): AgentPlan {
   const demand = getRoundDemand(context.colony.population)
   const targetFoodReserve = Math.ceil(demand * profile.reserveRounds)
-  const targetEnergyReserve = Math.ceil(demand * profile.reserveRounds)
+  const energyUnits =
+    demand + getHarvesterEnergyDemand(context)
+  const targetEnergyReserve = Math.ceil(
+    energyUnits * profile.reserveRounds,
+  )
 
   return {
     playerId: profile.id,
     supply: {
       foodUnits: demand,
-      energyUnits: demand,
+      energyUnits,
       targetFoodReserve,
       targetEnergyReserve,
     },

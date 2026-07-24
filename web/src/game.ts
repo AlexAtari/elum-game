@@ -1,6 +1,7 @@
 import {
   calculateOrionAssignedProduction,
   planOrionHarvesterAssignments,
+  allocateOrionHarvesterEnergy,
 } from './orionHarvesterOperations'
 
 import { createAgentPlan } from './agents'
@@ -85,6 +86,9 @@ export type RivalColonyState = {
   harvesterAssignments?: Partial<
     Record<string, ProductionType>
   >
+  lastConsumedEnergyByHq?: number
+  lastConsumedEnergyByHarvesters?: number
+  inactiveHarvesterIds?: string[]
 }
 
 export type RivalColonies = Record<RivalId, RivalColonyState>
@@ -798,55 +802,94 @@ export function advanceRivalColonies(
                 ),
             }
           : rival
-
-      const populationGroups = Math.ceil(rival.population / 10)
+      const populationGroups = Math.ceil(
+        operatingRival.population / 10,
+      )
       const plannedFood = populationGroups * 2
       const plannedEnergy = populationGroups * 2
       const consumedFood = Math.min(
-        rival.resources.food,
+        operatingRival.resources.food,
         plannedFood,
       )
-      const consumedEnergy = Math.min(
-        rival.resources.energy,
+      const consumedEnergyByHq = Math.min(
+        operatingRival.resources.energy,
         plannedEnergy,
       )
+      const remainingEnergyAfterHq = Math.max(
+        0,
+        operatingRival.resources.energy -
+          consumedEnergyByHq,
+      )
+      const orionEnergyAllocation =
+        operatingRival.id === 'orion'
+          ? allocateOrionHarvesterEnergy(
+              operatingRival.harvesterAssignments ?? {},
+              remainingEnergyAfterHq,
+            )
+          : null
+      const productionRival =
+        orionEnergyAllocation === null
+          ? operatingRival
+          : {
+              ...operatingRival,
+              harvesterAssignments:
+                orionEnergyAllocation.poweredAssignments,
+            }
+      const consumedEnergyByHarvesters =
+        orionEnergyAllocation?.consumedEnergy ?? 0
       const production = getRivalProduction(
-        operatingRival,
+        productionRival,
         roundPlayed,
         globalEvent,
       )
       const hasNormalSupply =
         consumedFood === plannedFood &&
-        consumedEnergy === plannedEnergy
+        consumedEnergyByHq === plannedEnergy
       const hasNoSupply =
-        consumedFood === 0 || consumedEnergy === 0
+        consumedFood === 0 || consumedEnergyByHq === 0
       const populationChange = hasNormalSupply
         ? 1
         : hasNoSupply
         ? -1
         : 0
       const completedHarvesters =
-        rival.harvestersInConstruction ?? 0
+        operatingRival.harvestersInConstruction ?? 0
 
       const nextColony: RivalColonyState = {
         ...operatingRival,
         population: Math.max(
           1,
-          rival.population + populationChange,
+          operatingRival.population + populationChange,
         ),
-        harvesters: rival.harvesters + completedHarvesters,
+        harvesters:
+          operatingRival.harvesters + completedHarvesters,
         resources: {
           food:
-            rival.resources.food -
+            operatingRival.resources.food -
             consumedFood +
             production.food,
           energy:
-            rival.resources.energy -
-            consumedEnergy +
+            operatingRival.resources.energy -
+            consumedEnergyByHq -
+            consumedEnergyByHarvesters +
             production.energy,
-          ore: rival.resources.ore + production.ore,
-          crystals: rival.resources.crystals,
+          ore:
+            operatingRival.resources.ore +
+            production.ore,
+          crystals:
+            operatingRival.resources.crystals,
         },
+        ...(operatingRival.id === 'orion'
+          ? {
+              lastConsumedEnergyByHq:
+                consumedEnergyByHq,
+              lastConsumedEnergyByHarvesters:
+                consumedEnergyByHarvesters,
+              inactiveHarvesterIds:
+                orionEnergyAllocation
+                  ?.inactiveHarvesterIds ?? [],
+            }
+          : {}),
       }
 
       if (completedHarvesters > 0) {
@@ -854,7 +897,7 @@ export function advanceRivalColonies(
       }
 
       if (
-        rival.id !== 'orion' ||
+        operatingRival.id !== 'orion' ||
         roundPlayed < 2 ||
         globalEvent === 'supply-chain-disruption'
       ) {
@@ -882,6 +925,7 @@ export function advanceRivalColonies(
             creditCost: harvesterCreditCost,
             oreCost: HARVESTER_ORE_COST,
           },
+          harvesterEnergyCost: 1,
         },
       })
 

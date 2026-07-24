@@ -52,9 +52,9 @@ describe('Wirtschaftsagenten', () => {
 
     expect(plan.supply).toEqual({
       foodUnits: 4,
-      energyUnits: 4,
+      energyUnits: 6,
       targetFoodReserve: 8,
-      targetEnergyReserve: 8,
+      targetEnergyReserve: 12,
     })
   })
 

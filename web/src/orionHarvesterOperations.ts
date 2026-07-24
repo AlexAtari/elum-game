@@ -180,3 +180,67 @@ export function calculateOrionAssignedProduction(
 
   return production
 }
+
+export type OrionEnergyAllocation = {
+  poweredAssignments: OrionHarvesterAssignments
+  inactiveHarvesterIds: string[]
+  consumedEnergy: number
+}
+
+const energyPriority: ProductionType[] = [
+  'energy',
+  'food',
+  'ore',
+]
+
+export function allocateOrionHarvesterEnergy(
+  assignments: OrionHarvesterAssignments,
+  availableEnergy: number,
+  energyPerHarvester: number = 1,
+): OrionEnergyAllocation {
+  const effectiveEnergyCost = Math.max(
+    1,
+    Math.floor(energyPerHarvester),
+  )
+  const assignmentEntries = Object.entries(assignments)
+    .filter(
+      (
+        entry,
+      ): entry is [string, ProductionType] =>
+        entry[1] !== undefined,
+    )
+    .sort(
+      ([firstTileId, firstProduction], [
+        secondTileId,
+        secondProduction,
+      ]) =>
+        energyPriority.indexOf(firstProduction) -
+          energyPriority.indexOf(secondProduction) ||
+        firstTileId.localeCompare(secondTileId),
+    )
+  const poweredCount = Math.min(
+    assignmentEntries.length,
+    Math.floor(
+      Math.max(0, availableEnergy) /
+        effectiveEnergyCost,
+    ),
+  )
+  const poweredEntries = assignmentEntries.slice(
+    0,
+    poweredCount,
+  )
+  const inactiveEntries = assignmentEntries.slice(
+    poweredCount,
+  )
+
+  return {
+    poweredAssignments: Object.fromEntries(
+      poweredEntries,
+    ) as OrionHarvesterAssignments,
+    inactiveHarvesterIds: inactiveEntries.map(
+      ([tileId]) => tileId,
+    ),
+    consumedEnergy:
+      poweredEntries.length * effectiveEnergyCost,
+  }
+}
