@@ -603,6 +603,20 @@
     grid-template-columns: 1fr;
   }
 
+  .market-arena {
+    min-height: 0;
+    height: clamp(320px, 55dvh, 480px);
+  }
+
+  .market-controls {
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top));
+    z-index: 20;
+    order: -1;
+    align-self: start;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+  }
+
   .market-introduction-ready {
     margin-top: 0;
   }
@@ -610,7 +624,10 @@
   .market-controls-auction {
     display: grid;
     min-height: 0;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
     gap: 10px;
+    background: rgba(8, 15, 29, 0.97);
   }
 
   .market-controls-auction .market-control-buttons,

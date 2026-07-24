@@ -258,6 +258,21 @@
     grid-template-columns: 1fr;
   }
 
+  .land-tie-arena {
+    min-height: 0;
+    height: clamp(320px, 55dvh, 480px);
+  }
+
+  .land-tie-controls {
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top));
+    z-index: 20;
+    order: -1;
+    align-self: start;
+    background: rgba(8, 15, 29, 0.97);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+  }
+
   .land-tie-control-buttons,
   .land-tie-ready,
   .land-tie-result {
