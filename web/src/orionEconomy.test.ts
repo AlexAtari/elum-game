@@ -51,21 +51,25 @@ function createRivals(): RivalColonies {
   }
 }
 
-describe('Orions Wirtschaft', () => {
+describe('Wirtschaft der Rivalenkolonien', () => {
   it('wartet in der ersten Runde mit dem Harvesterbau', () => {
     const next = advanceRivalColonies(createRivals(), 1)
 
-    expect(next.orion.credits).toBe(100)
-    expect(next.orion.harvestersInConstruction).toBeUndefined()
+    for (const rival of Object.values(next)) {
+      expect(rival.credits).toBe(100)
+      expect(
+        rival.harvestersInConstruction,
+      ).toBeUndefined()
+    }
   })
 
   it('bestellt ab Runde zwei bei sicheren Reserven einen Harvester', () => {
     const next = advanceRivalColonies(createRivals(), 2)
 
-    expect(next.orion.credits).toBe(70)
-    expect(next.orion.harvestersInConstruction).toBe(1)
-    expect(next.nova.harvestersInConstruction).toBeUndefined()
-    expect(next.vega.harvestersInConstruction).toBeUndefined()
+    for (const rival of Object.values(next)) {
+      expect(rival.credits).toBe(70)
+      expect(rival.harvestersInConstruction).toBe(1)
+    }
   })
 
   it('stellt einen bestellten Harvester in der Folgerunde fertig', () => {
@@ -86,7 +90,11 @@ describe('Orions Wirtschaft', () => {
       'supply-chain-disruption',
     )
 
-    expect(next.orion.credits).toBe(100)
-    expect(next.orion.harvestersInConstruction).toBeUndefined()
+    for (const rival of Object.values(next)) {
+      expect(rival.credits).toBe(100)
+      expect(
+        rival.harvestersInConstruction,
+      ).toBeUndefined()
+    }
   })
 })

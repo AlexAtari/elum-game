@@ -923,7 +923,6 @@ export function advanceRivalColonies(
       }
 
       if (
-        operatingRival.id !== 'orion' ||
         roundPlayed < 2 ||
         globalEvent === 'supply-chain-disruption'
       ) {
