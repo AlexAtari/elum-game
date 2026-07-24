@@ -1,0 +1,223 @@
+import {
+  createAgentPlan,
+  createSealedLandBidDecision,
+  type AgentContext,
+  type AgentLandCandidate,
+  type AgentSealedLandBidDecision,
+} from './agents'
+import {
+  GAME_ROUND_LIMIT,
+  HARVESTER_CREDIT_COST,
+  HARVESTER_ORE_COST,
+  LAND_MINIMUM_BID,
+  MARKET_PRICES,
+  isLandBidBlocked,
+  tiles,
+  type GameState,
+  type RivalId,
+  type Tile,
+} from './game'
+
+const autonomousRivalIds: RivalId[] = [
+  'orion',
+  'nova',
+  'vega',
+]
+
+function getHexDistance(first: Tile, second: Tile) {
+  const qDifference = first.q - second.q
+  const rDifference = first.r - second.r
+
+  return (
+    Math.abs(qDifference) +
+    Math.abs(rDifference) +
+    Math.abs(qDifference + rDifference)
+  ) / 2
+}
+
+function createAgentContext(
+  currentState: GameState,
+  rivalId: RivalId,
+  landCandidates: AgentLandCandidate[],
+): AgentContext {
+  return {
+    round: currentState.round,
+    colony: currentState.rivals[rivalId],
+    referencePrices: MARKET_PRICES,
+    legalActions: {
+      harvesterBuild: {
+        creditCost: HARVESTER_CREDIT_COST,
+        oreCost: HARVESTER_ORE_COST,
+      },
+      harvesterEnergyCost: 1,
+      landCandidates,
+    },
+  }
+}
+
+export function getAutonomousRivalPurchaseOrder(
+  round: number,
+): RivalId[] {
+  const offset =
+    ((Math.max(1, round) - 1) % autonomousRivalIds.length)
+
+  return [
+    ...autonomousRivalIds.slice(offset),
+    ...autonomousRivalIds.slice(0, offset),
+  ]
+}
+
+export function getAutonomousRivalLandDecision(
+  currentState: GameState,
+  rivalId: RivalId,
+): AgentSealedLandBidDecision | null {
+  const rival = currentState.rivals[rivalId]
+  const rivalTileIds = rival.ownedTileIds ?? []
+
+  if (
+    currentState.round < 2 ||
+    currentState.round > GAME_ROUND_LIMIT ||
+    currentState.pendingLandBid !== null ||
+    currentState.landAuctionTie !== null ||
+    isLandBidBlocked(currentState) ||
+    rival.lastLandPurchaseRound === currentState.round ||
+    rivalTileIds.length >= rival.harvesters
+  ) {
+    return null
+  }
+
+  const occupiedTileIds = new Set([
+    ...currentState.ownedTileIds,
+    ...currentState.opponentTileIds,
+  ])
+  const rivalTiles = tiles.filter((tile) =>
+    rivalTileIds.includes(tile.id),
+  )
+
+  const candidates: AgentLandCandidate[] = tiles
+    .filter(
+      (tile) =>
+        tile.owner === 'free' &&
+        !occupiedTileIds.has(tile.id),
+    )
+    .map((tile) => ({
+      tileId: tile.id,
+      minimumBid: LAND_MINIMUM_BID,
+      food: tile.food ?? 0,
+      energy: tile.energy ?? 0,
+      ore: tile.ore ?? 0,
+      adjacencyBonus: rivalTiles.filter(
+        (ownedTile) =>
+          getHexDistance(tile, ownedTile) === 1,
+      ).length,
+    }))
+
+  if (candidates.length === 0) {
+    return null
+  }
+
+  const context = createAgentContext(
+    currentState,
+    rivalId,
+    candidates,
+  )
+  const selectedLand = createAgentPlan(context).landBid
+
+  if (!selectedLand) {
+    return null
+  }
+
+  const selectedCandidate = candidates.find(
+    (candidate) =>
+      candidate.tileId === selectedLand.tileId,
+  )
+
+  if (!selectedCandidate) {
+    return null
+  }
+
+  return createSealedLandBidDecision(
+    context,
+    selectedCandidate,
+  )
+}
+
+export function applyAutonomousRivalLandPurchase(
+  currentState: GameState,
+  rivalId: RivalId,
+): GameState {
+  const decision = getAutonomousRivalLandDecision(
+    currentState,
+    rivalId,
+  )
+
+  if (!decision) {
+    return currentState
+  }
+
+  const rival = currentState.rivals[rivalId]
+  const rivalTileIds = rival.ownedTileIds ?? []
+
+  if (
+    decision.bid <= 0 ||
+    decision.bid > rival.credits ||
+    currentState.opponentTileIds.includes(
+      decision.tileId,
+    )
+  ) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    opponentTileIds: [
+      ...currentState.opponentTileIds,
+      decision.tileId,
+    ],
+    rivals: {
+      ...currentState.rivals,
+      [rivalId]: {
+        ...rival,
+        credits: rival.credits - decision.bid,
+        ownedTileIds: [
+          ...rivalTileIds,
+          decision.tileId,
+        ],
+        lastLandPurchaseRound: currentState.round,
+      },
+    },
+  }
+}
+
+export function applyAutonomousRivalLandPurchases(
+  currentState: GameState,
+): GameState {
+  return getAutonomousRivalPurchaseOrder(
+    currentState.round,
+  ).reduce(
+    (state, rivalId) =>
+      applyAutonomousRivalLandPurchase(
+        state,
+        rivalId,
+      ),
+    currentState,
+  )
+}
+
+export function getAutonomousOrionLandDecision(
+  currentState: GameState,
+): AgentSealedLandBidDecision | null {
+  return getAutonomousRivalLandDecision(
+    currentState,
+    'orion',
+  )
+}
+
+export function applyAutonomousOrionLandPurchase(
+  currentState: GameState,
+): GameState {
+  return applyAutonomousRivalLandPurchase(
+    currentState,
+    'orion',
+  )
+}

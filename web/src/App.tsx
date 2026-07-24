@@ -11,7 +11,7 @@ import LocalEventNotice from './components/LocalEventNotice'
 import MarketLauncher from './components/MarketLauncher'
 import MarketPanel from './components/MarketPanel'
 import RoundBriefingPanel from './components/RoundBriefingPanel'
-import { applyAutonomousOrionLandPurchase } from './orionAutonomousLand'
+import { applyAutonomousRivalLandPurchases } from './rivalAutonomousLand'
 import { placeStrategicOrionLandBid } from './orionLandBid'
 import {
   activateGlobalEvent,
@@ -462,10 +462,10 @@ function App() {
       },
     }
 
-    const stateWithOrionLand =
-    applyAutonomousOrionLandPurchase(gameState)
+    const stateWithRivalLand =
+    applyAutonomousRivalLandPurchases(gameState)
   const completedRound = runRound(
-    stateWithOrionLand,
+    stateWithRivalLand,
     roundPlan.harvesters,
     roundPlan.supplyPlan,
   )
