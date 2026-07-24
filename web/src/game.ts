@@ -1,7 +1,8 @@
 import {
   calculateOrionAssignedProduction,
-  planOrionHarvesterAssignments,
+  
   allocateOrionHarvesterEnergy,
+  planOrionHarvesterOperations,
 } from './orionHarvesterOperations'
 
 import { createAgentPlan } from './agents'
@@ -89,6 +90,9 @@ export type RivalColonyState = {
   lastConsumedEnergyByHq?: number
   lastConsumedEnergyByHarvesters?: number
   inactiveHarvesterIds?: string[]
+  lastHarvesterRetoolRound?: number
+  lastRetooledHarvesterId?: string
+  lastHarvesterRetoolCost?: number
 }
 
 export type RivalColonies = Record<RivalId, RivalColonyState>
@@ -785,23 +789,45 @@ export function advanceRivalColonies(
 ): RivalColonies {
   return Object.fromEntries(
     Object.entries(rivals).map(([id, rival]) => {
-      const operatingRival =
+      const orionHarvesterPlan =
         rival.id === 'orion'
-          ? {
+          ? planOrionHarvesterOperations(
+              rival,
+              tiles,
+              roundPlayed,
+              MARKET_PRICES,
+              {
+                creditCost: HARVESTER_CREDIT_COST,
+                oreCost: HARVESTER_ORE_COST,
+              },
+            )
+          : null
+      const operatingRival =
+        orionHarvesterPlan === null
+          ? rival
+          : {
               ...rival,
+              credits: Math.max(
+                0,
+                rival.credits -
+                  orionHarvesterPlan.retoolingCost,
+              ),
               harvesterAssignments:
-                planOrionHarvesterAssignments(
-                  rival,
-                  tiles,
-                  roundPlayed,
-                  MARKET_PRICES,
-                  {
-                    creditCost: HARVESTER_CREDIT_COST,
-                    oreCost: HARVESTER_ORE_COST,
-                  },
-                ),
+                orionHarvesterPlan.assignments,
+              ...(orionHarvesterPlan.retooledTileId
+                ? {
+                    lastHarvesterRetoolRound:
+                      roundPlayed,
+                    lastRetooledHarvesterId:
+                      orionHarvesterPlan.retooledTileId,
+                    lastHarvesterRetoolCost:
+                      orionHarvesterPlan.retoolingCost,
+                  }
+                : {
+                    lastRetooledHarvesterId: undefined,
+                    lastHarvesterRetoolCost: 0,
+                  }),
             }
-          : rival
       const populationGroups = Math.ceil(
         operatingRival.population / 10,
       )

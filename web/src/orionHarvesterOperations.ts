@@ -50,13 +50,57 @@ function getProductiveTileIds(
   return ownedTileIds.slice(0, -1)
 }
 
-export function planOrionHarvesterAssignments(
+export const ORION_RETOOL_CREDIT_COST = 5
+
+export type OrionHarvesterOperationsPlan = {
+  assignments: OrionHarvesterAssignments
+  retooledTileId: string | null
+  retoolingCost: number
+}
+
+function getEmergencyRetoolTarget(
+  rival: RivalColonyState,
+  plan: ReturnType<typeof createAgentPlan>,
+): ProductionType | null {
+  const hadEnergyShutdown =
+    (rival.inactiveHarvesterIds?.length ?? 0) > 0
+
+  if (
+    plan.emergency.energyShortage > 0 &&
+    hadEnergyShutdown
+  ) {
+    return 'energy'
+  }
+
+  if (plan.emergency.foodShortage > 0) {
+    return 'food'
+  }
+
+  if (plan.emergency.level === 'warning') {
+    return plan.productionPriorities[0]?.resource ?? null
+  }
+
+  return null
+}
+
+function getAssignmentUtility(
+  tile: Tile,
+  production: ProductionType,
+  priorityScores: Record<ProductionType, number>,
+) {
+  return (
+    priorityScores[production] +
+    getTileYield(tile, production) * 12
+  )
+}
+
+export function planOrionHarvesterOperations(
   rival: RivalColonyState,
   allTiles: Tile[],
   roundPlayed: number,
   referencePrices: AgentContext['referencePrices'],
   harvesterBuild: HarvesterBuildCost,
-): OrionHarvesterAssignments {
+): OrionHarvesterOperationsPlan {
   const productiveTileIds = getProductiveTileIds(
     rival,
     roundPlayed,
@@ -144,7 +188,100 @@ export function planOrionHarvesterAssignments(
     assignmentCounts[production] += 1
   }
 
-  return assignments
+  const retoolTarget = getEmergencyRetoolTarget(
+    rival,
+    plan,
+  )
+  const canRetool =
+    retoolTarget !== null &&
+    rival.credits >= ORION_RETOOL_CREDIT_COST &&
+    rival.lastHarvesterRetoolRound !== roundPlayed
+  const minimumUtilityGain =
+    plan.emergency.level === 'critical' ? 0 : 15
+
+  if (canRetool && retoolTarget !== null) {
+    const retoolCandidate = Object.entries(assignments)
+      .flatMap(([tileId, currentProduction]) => {
+        if (
+          !currentProduction ||
+          currentProduction === retoolTarget
+        ) {
+          return []
+        }
+
+        const tile = productiveTiles.find(
+          (candidate) => candidate.id === tileId,
+        )
+        if (!tile || getTileYield(tile, retoolTarget) <= 0) {
+          return []
+        }
+
+        const utilityGain =
+          getAssignmentUtility(
+            tile,
+            retoolTarget,
+            priorityScores,
+          ) -
+          getAssignmentUtility(
+            tile,
+            currentProduction,
+            priorityScores,
+          )
+
+        return [
+          {
+            tileId,
+            utilityGain,
+            targetYield: getTileYield(
+              tile,
+              retoolTarget,
+            ),
+          },
+        ]
+      })
+      .filter(
+        (candidate) =>
+          candidate.utilityGain >= minimumUtilityGain,
+      )
+      .sort(
+        (first, second) =>
+          second.utilityGain - first.utilityGain ||
+          second.targetYield - first.targetYield ||
+          first.tileId.localeCompare(second.tileId),
+      )[0]
+
+    if (retoolCandidate) {
+      assignments[retoolCandidate.tileId] = retoolTarget
+
+      return {
+        assignments,
+        retooledTileId: retoolCandidate.tileId,
+        retoolingCost: ORION_RETOOL_CREDIT_COST,
+      }
+    }
+  }
+
+  return {
+    assignments,
+    retooledTileId: null,
+    retoolingCost: 0,
+  }
+}
+
+export function planOrionHarvesterAssignments(
+  rival: RivalColonyState,
+  allTiles: Tile[],
+  roundPlayed: number,
+  referencePrices: AgentContext['referencePrices'],
+  harvesterBuild: HarvesterBuildCost,
+): OrionHarvesterAssignments {
+  return planOrionHarvesterOperations(
+    rival,
+    allTiles,
+    roundPlayed,
+    referencePrices,
+    harvesterBuild,
+  ).assignments
 }
 
 export function calculateOrionAssignedProduction(
