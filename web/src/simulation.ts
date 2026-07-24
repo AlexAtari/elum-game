@@ -1,12 +1,16 @@
 import {
   GAME_ROUND_LIMIT,
+  HARVESTER_CREDIT_COST,
+  HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
   MARKET_PRICES,
   STARTING_HARVESTERS,
   advanceRivalColonies,
   createPlayableInitialGameState,
+  playableMarketResources,
   tiles,
   type GameState,
+  type MarketResource,
   type ProductionType,
   type Resources,
   type RivalColonies,
@@ -14,6 +18,11 @@ import {
   type RivalId,
   type Tile,
 } from './game'
+import {
+  createAgentPlan,
+  getAgentMarketIntent,
+  type AgentMarketIntent,
+} from './agents'
 import {
   applyAutonomousRivalLandPurchases,
   getAutonomousRivalLandDecision,
@@ -40,6 +49,7 @@ export type SimulationRoundSnapshot = {
     SimulationParticipantId,
     SimulationParticipantSnapshot
   >
+  marketTransactions: number
 }
 
 export type SimulationWarning = {
@@ -54,17 +64,43 @@ export type SimulationWarning = {
   message: string
 }
 
+export type SimulationMarketCounterparty =
+  | SimulationParticipantId
+  | 'warehouse'
+
+export type SimulationMarketTransaction = {
+  round: number
+  resource: MarketResource
+  buyer: SimulationMarketCounterparty
+  seller: SimulationMarketCounterparty
+  price: number
+  quantity: 1
+  kind: 'player' | 'warehouse'
+}
+
+export type SimulationMarketSummary = {
+  totalTransactions: number
+  playerTrades: number
+  warehouseTrades: number
+  volume: Record<MarketResource, number>
+  finalPrices: Record<MarketResource, number>
+  finalWarehouseStock: Record<MarketResource, number>
+}
+
 export type HeadlessSimulationResult = {
-  mode: 'headless-economic-v2'
+  mode: 'headless-economic-v3'
   roundsPlayed: number
-  marketIncluded: false
+  marketIncluded: boolean
   history: SimulationRoundSnapshot[]
   warnings: SimulationWarning[]
   finalStandings: SimulationParticipantSnapshot[]
+  marketTransactions: SimulationMarketTransaction[]
+  marketSummary: SimulationMarketSummary
 }
 
 export type HeadlessSimulationOptions = {
   rounds?: number
+  includeMarket?: boolean
 }
 
 export type SimulationStartingLand = {
@@ -78,9 +114,17 @@ export type SimulationStartingLand = {
 
 type StartingLandCandidate = SimulationStartingLand
 
+type SimulationMarketState = {
+  prices: Record<MarketResource, number>
+  warehouseStock: Record<MarketResource, number>
+}
+
 type InternalSimulationState = {
   game: GameState
   agima: RivalColonyState
+  market: SimulationMarketState
+  marketTransactions: SimulationMarketTransaction[]
+  lastRoundMarketTransactions: SimulationMarketTransaction[]
 }
 
 const participantIds: SimulationParticipantId[] = [
@@ -89,6 +133,494 @@ const participantIds: SimulationParticipantId[] = [
   'nova',
   'vega',
 ]
+
+type WorkingMarketIntent = {
+  participantId: SimulationParticipantId
+  intent: AgentMarketIntent
+  remaining: number
+}
+
+function cloneMarketValues(
+  values: Record<MarketResource, number>,
+): Record<MarketResource, number> {
+  return { ...values }
+}
+
+function getSimulationColony(
+  state: InternalSimulationState,
+  participantId: SimulationParticipantId,
+): RivalColonyState {
+  return participantId === 'agima'
+    ? state.agima
+    : state.game.rivals[participantId]
+}
+
+function updateSimulationColony(
+  state: InternalSimulationState,
+  participantId: SimulationParticipantId,
+  update: (
+    colony: RivalColonyState,
+  ) => RivalColonyState,
+): InternalSimulationState {
+  if (participantId === 'agima') {
+    const agima = update(state.agima)
+
+    return {
+      ...state,
+      agima,
+      game: {
+        ...state.game,
+        population: agima.population,
+        credits: agima.credits,
+        resources: cloneResources(agima.resources),
+      },
+    }
+  }
+
+  const rival = update(
+    state.game.rivals[participantId],
+  )
+
+  return {
+    ...state,
+    game: {
+      ...state.game,
+      rivals: {
+        ...state.game.rivals,
+        [participantId]: rival,
+      },
+    },
+  }
+}
+
+function createSimulationMarketIntent(
+  state: InternalSimulationState,
+  participantId: SimulationParticipantId,
+  resource: MarketResource,
+  round: number,
+): AgentMarketIntent {
+  const colony = getSimulationColony(
+    state,
+    participantId,
+  )
+  const plan = createAgentPlan({
+    round,
+    colony: {
+      id: participantId,
+      population: colony.population,
+      credits: colony.credits,
+      resources: cloneResources(colony.resources),
+      harvesters: colony.harvesters,
+    },
+    referencePrices: cloneMarketValues(
+      state.market.prices,
+    ),
+    legalActions: {
+      harvesterBuild: {
+        creditCost: HARVESTER_CREDIT_COST,
+        oreCost: HARVESTER_ORE_COST,
+      },
+      harvesterEnergyCost: 1,
+    },
+  })
+
+  return (
+    getAgentMarketIntent(plan, resource) ?? {
+      resource,
+      role: 'neutral',
+      quantity: 0,
+      limitPrice: state.market.prices[resource],
+      urgency: 0,
+    }
+  )
+}
+
+function getMarketParticipantOrder(
+  round: number,
+  resource: MarketResource,
+): SimulationParticipantId[] {
+  const resourceIndex =
+    playableMarketResources.indexOf(resource)
+  const offset =
+    (
+      Math.max(1, round) -
+      1 +
+      Math.max(0, resourceIndex)
+    ) % participantIds.length
+
+  return [
+    ...participantIds.slice(offset),
+    ...participantIds.slice(0, offset),
+  ]
+}
+
+function getPlayerTradePrice(
+  referencePrice: number,
+  buyerLimit: number,
+  sellerLimit: number,
+): number {
+  return Math.max(
+    sellerLimit,
+    Math.min(referencePrice, buyerLimit),
+  )
+}
+
+function executeSimulationMarketTransaction(
+  state: InternalSimulationState,
+  transaction: SimulationMarketTransaction,
+): InternalSimulationState {
+  let nextState = state
+
+  if (transaction.buyer !== 'warehouse') {
+    nextState = updateSimulationColony(
+      nextState,
+      transaction.buyer,
+      (buyer) => ({
+        ...buyer,
+        credits: buyer.credits - transaction.price,
+        resources: {
+          ...buyer.resources,
+          [transaction.resource]:
+            buyer.resources[transaction.resource] + 1,
+        },
+      }),
+    )
+  }
+
+  if (transaction.seller !== 'warehouse') {
+    nextState = updateSimulationColony(
+      nextState,
+      transaction.seller,
+      (seller) => ({
+        ...seller,
+        credits: seller.credits + transaction.price,
+        resources: {
+          ...seller.resources,
+          [transaction.resource]:
+            seller.resources[transaction.resource] - 1,
+        },
+      }),
+    )
+  }
+
+  return {
+    ...nextState,
+    marketTransactions: [
+      ...nextState.marketTransactions,
+      transaction,
+    ],
+    lastRoundMarketTransactions: [
+      ...nextState.lastRoundMarketTransactions,
+      transaction,
+    ],
+  }
+}
+
+function createWorkingMarketIntents(
+  state: InternalSimulationState,
+  round: number,
+  resource: MarketResource,
+): WorkingMarketIntent[] {
+  return participantIds
+    .map((participantId) => {
+      const intent = createSimulationMarketIntent(
+        state,
+        participantId,
+        resource,
+        round,
+      )
+
+      return {
+        participantId,
+        intent,
+        remaining: intent.quantity,
+      }
+    })
+    .filter(
+      (entry) =>
+        entry.intent.role !== 'neutral' &&
+        entry.remaining > 0,
+    )
+}
+
+function clearSimulationResourceMarket(
+  state: InternalSimulationState,
+  round: number,
+  resource: MarketResource,
+): InternalSimulationState {
+  const referencePrice =
+    state.market.prices[resource]
+  const order = getMarketParticipantOrder(
+    round,
+    resource,
+  )
+  const orderIndex = new Map(
+    order.map((participantId, index) => [
+      participantId,
+      index,
+    ]),
+  )
+  const intents = createWorkingMarketIntents(
+    state,
+    round,
+    resource,
+  )
+  const buyers = intents
+    .filter(
+      (entry) => entry.intent.role === 'buyer',
+    )
+    .sort(
+      (first, second) =>
+        second.intent.limitPrice -
+          first.intent.limitPrice ||
+        second.intent.urgency -
+          first.intent.urgency ||
+        (orderIndex.get(first.participantId) ?? 0) -
+          (orderIndex.get(second.participantId) ?? 0),
+    )
+  const sellers = intents
+    .filter(
+      (entry) => entry.intent.role === 'seller',
+    )
+    .sort(
+      (first, second) =>
+        first.intent.limitPrice -
+          second.intent.limitPrice ||
+        second.intent.urgency -
+          first.intent.urgency ||
+        (orderIndex.get(first.participantId) ?? 0) -
+          (orderIndex.get(second.participantId) ?? 0),
+    )
+  let nextState = state
+
+  while (buyers.length > 0 && sellers.length > 0) {
+    const buyer = buyers[0]
+    const seller = sellers[0]
+
+    if (
+      buyer.intent.limitPrice <
+      seller.intent.limitPrice
+    ) {
+      break
+    }
+
+    const price = getPlayerTradePrice(
+      referencePrice,
+      buyer.intent.limitPrice,
+      seller.intent.limitPrice,
+    )
+    const buyerColony = getSimulationColony(
+      nextState,
+      buyer.participantId,
+    )
+    const sellerColony = getSimulationColony(
+      nextState,
+      seller.participantId,
+    )
+
+    if (buyerColony.credits < price) {
+      buyers.shift()
+      continue
+    }
+    if (
+      sellerColony.resources[resource] < 1
+    ) {
+      sellers.shift()
+      continue
+    }
+
+    nextState =
+      executeSimulationMarketTransaction(
+        nextState,
+        {
+          round,
+          resource,
+          buyer: buyer.participantId,
+          seller: seller.participantId,
+          price,
+          quantity: 1,
+          kind: 'player',
+        },
+      )
+    buyer.remaining -= 1
+    seller.remaining -= 1
+
+    if (buyer.remaining <= 0) {
+      buyers.shift()
+    }
+    if (seller.remaining <= 0) {
+      sellers.shift()
+    }
+  }
+
+  const spread = Math.max(
+    1,
+    Math.round(referencePrice * 0.15),
+  )
+  const warehouseSellPrice =
+    referencePrice + spread
+  const warehouseBuyPrice = Math.max(
+    1,
+    referencePrice - spread,
+  )
+  let warehouseStock =
+    nextState.market.warehouseStock[resource]
+  let warehouseNetFlow = 0
+
+  for (const buyer of buyers) {
+    while (
+      buyer.remaining > 0 &&
+      warehouseStock > 0 &&
+      buyer.intent.limitPrice >=
+        warehouseSellPrice
+    ) {
+      const buyerColony = getSimulationColony(
+        nextState,
+        buyer.participantId,
+      )
+      if (
+        buyerColony.credits <
+        warehouseSellPrice
+      ) {
+        break
+      }
+
+      nextState =
+        executeSimulationMarketTransaction(
+          nextState,
+          {
+            round,
+            resource,
+            buyer: buyer.participantId,
+            seller: 'warehouse',
+            price: warehouseSellPrice,
+            quantity: 1,
+            kind: 'warehouse',
+          },
+        )
+      buyer.remaining -= 1
+      warehouseStock -= 1
+      warehouseNetFlow -= 1
+    }
+  }
+
+  for (const seller of sellers) {
+    while (
+      seller.remaining > 0 &&
+      seller.intent.limitPrice <=
+        warehouseBuyPrice
+    ) {
+      const sellerColony = getSimulationColony(
+        nextState,
+        seller.participantId,
+      )
+      if (
+        sellerColony.resources[resource] < 1
+      ) {
+        break
+      }
+
+      nextState =
+        executeSimulationMarketTransaction(
+          nextState,
+          {
+            round,
+            resource,
+            buyer: 'warehouse',
+            seller: seller.participantId,
+            price: warehouseBuyPrice,
+            quantity: 1,
+            kind: 'warehouse',
+          },
+        )
+      seller.remaining -= 1
+      warehouseStock += 1
+      warehouseNetFlow += 1
+    }
+  }
+
+  const priceDifference =
+    warehouseNetFlow > 0
+      ? -1
+      : warehouseNetFlow < 0
+      ? 1
+      : 0
+  const maximumPrice =
+    MARKET_PRICES[resource] * 2
+
+  return {
+    ...nextState,
+    market: {
+      prices: {
+        ...nextState.market.prices,
+        [resource]: Math.max(
+          1,
+          Math.min(
+            maximumPrice,
+            referencePrice + priceDifference,
+          ),
+        ),
+      },
+      warehouseStock: {
+        ...nextState.market.warehouseStock,
+        [resource]: warehouseStock,
+      },
+    },
+  }
+}
+
+function runSimulationMarketPhase(
+  state: InternalSimulationState,
+  round: number,
+): InternalSimulationState {
+  return playableMarketResources.reduce<InternalSimulationState>(
+    (marketState, resource) =>
+      clearSimulationResourceMarket(
+        marketState,
+        round,
+        resource,
+      ),
+    {
+      ...state,
+      lastRoundMarketTransactions: [],
+    },
+  )
+}
+
+function createSimulationMarketSummary(
+  state: InternalSimulationState,
+): SimulationMarketSummary {
+  const volume = Object.fromEntries(
+    playableMarketResources.map((resource) => [
+      resource,
+      state.marketTransactions.filter(
+        (transaction) =>
+          transaction.resource === resource,
+      ).length,
+    ]),
+  ) as Record<MarketResource, number>
+  const playerTrades =
+    state.marketTransactions.filter(
+      (transaction) =>
+        transaction.kind === 'player',
+    ).length
+
+  return {
+    totalTransactions:
+      state.marketTransactions.length,
+    playerTrades,
+    warehouseTrades:
+      state.marketTransactions.length -
+      playerTrades,
+    volume,
+    finalPrices: cloneMarketValues(
+      state.market.prices,
+    ),
+    finalWarehouseStock: cloneMarketValues(
+      state.market.warehouseStock,
+    ),
+  }
+}
 
 function cloneResources(resources: Resources): Resources {
   return { ...resources }
@@ -442,6 +974,7 @@ function applyAgimaLandPurchase(
   }
 
   return {
+    ...state,
     game: {
       ...state.game,
       ownedTileIds: [
@@ -536,6 +1069,8 @@ function createRoundSnapshot(
         state.game.rivals.vega,
       ),
     },
+    marketTransactions:
+      state.lastRoundMarketTransactions.length,
   }
 }
 
@@ -654,18 +1189,37 @@ function createInitialSimulationState():
     rivals,
   }
 
+  const market: SimulationMarketState = {
+    prices: Object.fromEntries(
+      playableMarketResources.map((resource) => [
+        resource,
+        game.market[resource].referencePrice,
+      ]),
+    ) as Record<MarketResource, number>,
+    warehouseStock: Object.fromEntries(
+      playableMarketResources.map((resource) => [
+        resource,
+        game.market[resource].warehouseStock,
+      ]),
+    ) as Record<MarketResource, number>,
+  }
+
   return {
     game,
     agima: createAgimaAgent(
       game,
       startingLand.agima,
     ),
+    market,
+    marketTransactions: [],
+    lastRoundMarketTransactions: [],
   }
 }
 
 function advanceSimulationRound(
   state: InternalSimulationState,
   round: number,
+  includeMarket: boolean,
 ): InternalSimulationState {
   const gameAtRound: GameState = {
     ...state.game,
@@ -678,22 +1232,33 @@ function advanceSimulationRound(
   const withRivalLand =
     applyAutonomousRivalLandPurchases(gameAtRound)
   const withAgimaLand = applyAgimaLandPurchase({
+    ...state,
     game: withRivalLand,
     agima: state.agima,
   })
+  const withMarket = includeMarket
+    ? runSimulationMarketPhase(
+        withAgimaLand,
+        round,
+      )
+    : {
+        ...withAgimaLand,
+        lastRoundMarketTransactions: [],
+      }
   const nextRivals = advanceRivalColonies(
-    withAgimaLand.game.rivals,
+    withMarket.game.rivals,
     round,
     null,
   )
   const nextAgima = advanceAgima(
-    withAgimaLand.agima,
+    withMarket.agima,
     round,
   )
 
   return {
+    ...withMarket,
     game: {
-      ...withAgimaLand.game,
+      ...withMarket.game,
       round: Math.min(
         GAME_ROUND_LIMIT,
         round + 1,
@@ -719,6 +1284,8 @@ export function runHeadlessEconomicSimulation(
       options.rounds ?? GAME_ROUND_LIMIT,
     ),
   )
+  const includeMarket =
+    options.includeMarket ?? true
   let state = createInitialSimulationState()
   const history: SimulationRoundSnapshot[] = [
     createRoundSnapshot(0, state),
@@ -730,7 +1297,11 @@ export function runHeadlessEconomicSimulation(
     round <= roundsPlayed;
     round += 1
   ) {
-    state = advanceSimulationRound(state, round)
+    state = advanceSimulationRound(
+      state,
+      round,
+      includeMarket,
+    )
     const snapshot = createRoundSnapshot(
       round,
       state,
@@ -755,11 +1326,15 @@ export function runHeadlessEconomicSimulation(
   )
 
   return {
-    mode: 'headless-economic-v2',
+    mode: 'headless-economic-v3',
     roundsPlayed,
-    marketIncluded: false,
+    marketIncluded: includeMarket,
     history,
     warnings,
     finalStandings,
+    marketTransactions:
+      state.marketTransactions,
+    marketSummary:
+      createSimulationMarketSummary(state),
   }
 }

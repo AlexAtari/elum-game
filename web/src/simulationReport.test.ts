@@ -91,6 +91,33 @@ function formatCheckpoints(
     })
 }
 
+function formatMarketSummary(
+  result: HeadlessSimulationResult,
+): string[] {
+  const summary = result.marketSummary
+
+  return [
+    `Transaktionen: ${summary.totalTransactions} ` +
+      `(Spielerhandel: ${summary.playerTrades} · ` +
+      `HQ-Lager: ${summary.warehouseTrades})`,
+    'Volumen: ' +
+      `Nahrung ${summary.volume.food} · ` +
+      `Energie ${summary.volume.energy} · ` +
+      `Erz ${summary.volume.ore} · ` +
+      `Kristalle ${summary.volume.crystals}`,
+    'Endpreise: ' +
+      `Nahrung ${summary.finalPrices.food} · ` +
+      `Energie ${summary.finalPrices.energy} · ` +
+      `Erz ${summary.finalPrices.ore} · ` +
+      `Kristalle ${summary.finalPrices.crystals}`,
+    'HQ-Bestand: ' +
+      `Nahrung ${summary.finalWarehouseStock.food} · ` +
+      `Energie ${summary.finalWarehouseStock.energy} · ` +
+      `Erz ${summary.finalWarehouseStock.ore} · ` +
+      `Kristalle ${summary.finalWarehouseStock.crystals}`,
+  ]
+}
+
 function formatWarnings(
   warnings: SimulationWarning[],
 ): string[] {
@@ -155,6 +182,9 @@ export function formatSimulationReport(
     'VERMÖGENSENTWICKLUNG',
     ...formatCheckpoints(result),
     '',
+    'MARKT',
+    ...formatMarketSummary(result),
+    '',
     `WARNUNGEN (${result.warnings.length})`,
     ...formatWarnings(result.warnings),
     '=============================================================',
@@ -175,6 +205,13 @@ describe('Ausführbarer Simulationsbericht', () => {
     expect(report).toContain('Orion')
     expect(report).toContain('Nova')
     expect(report).toContain('Vega')
+    expect(report).toContain('MARKT')
+    expect(report).toContain('Spielerhandel')
+    expect(report).toContain('HQ-Lager')
+    expect(result.marketIncluded).toBe(true)
+    expect(
+      result.marketSummary.totalTransactions,
+    ).toBeGreaterThan(0)
     expect(report).toMatch(
       /\n\s*1\s+\S/,
     )

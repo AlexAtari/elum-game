@@ -14,12 +14,12 @@ describe('Interne Wirtschaftssimulation', () => {
     const result = runHeadlessEconomicSimulation()
 
     expect(result.mode).toBe(
-      'headless-economic-v2',
+      'headless-economic-v3',
     )
     expect(result.roundsPlayed).toBe(
       GAME_ROUND_LIMIT,
     )
-    expect(result.marketIncluded).toBe(false)
+    expect(result.marketIncluded).toBe(true)
     expect(result.history).toHaveLength(
       GAME_ROUND_LIMIT + 1,
     )
@@ -140,6 +140,76 @@ describe('Interne Wirtschaftssimulation', () => {
         }
       }
     }
+  })
+
+  it('führt den Markt vor Versorgung und Produktion aus', () => {
+    const result = runHeadlessEconomicSimulation()
+
+    expect(
+      result.marketSummary.totalTransactions,
+    ).toBeGreaterThan(0)
+    expect(
+      result.marketTransactions,
+    ).toHaveLength(
+      result.marketSummary.totalTransactions,
+    )
+    expect(
+      result.history.reduce(
+        (total, snapshot) =>
+          total + snapshot.marketTransactions,
+        0,
+      ),
+    ).toBe(
+      result.marketSummary.totalTransactions,
+    )
+
+    for (const transaction of result.marketTransactions) {
+      expect(transaction.quantity).toBe(1)
+      expect(transaction.price).toBeGreaterThan(0)
+      expect(transaction.buyer).not.toBe(
+        transaction.seller,
+      )
+    }
+  })
+
+  it('nutzt das HQ-Lager nur für nicht direkt gedeckte Restmengen', () => {
+    const result = runHeadlessEconomicSimulation()
+
+    expect(
+      result.marketSummary.playerTrades +
+        result.marketSummary.warehouseTrades,
+    ).toBe(
+      result.marketSummary.totalTransactions,
+    )
+    expect(
+      Object.values(
+        result.marketSummary.finalWarehouseStock,
+      ).every((stock) => stock >= 0),
+    ).toBe(true)
+    expect(
+      Object.values(
+        result.marketSummary.finalPrices,
+      ).every((price) => price >= 1),
+    ).toBe(true)
+  })
+
+  it('kann den Markt für einen direkten Vergleich deaktivieren', () => {
+    const result = runHeadlessEconomicSimulation({
+      rounds: 6,
+      includeMarket: false,
+    })
+
+    expect(result.marketIncluded).toBe(false)
+    expect(result.marketTransactions).toEqual([])
+    expect(
+      result.marketSummary.totalTransactions,
+    ).toBe(0)
+    expect(
+      result.history.every(
+        (snapshot) =>
+          snapshot.marketTransactions === 0,
+      ),
+    ).toBe(true)
   })
 
   it('bewertet Vermögen nachvollziehbar', () => {
