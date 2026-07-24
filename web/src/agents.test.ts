@@ -168,6 +168,69 @@ describe('Wirtschaftsagenten', () => {
     expect(createAgentPlan(context)).toEqual(createAgentPlan(context))
   })
 
+
+  it('erzeugt durch unterschiedliche Erzreserven echte Marktgegner', () => {
+    const baseContext = createContext({
+      colony: {
+        ...createContext().colony,
+        resources: {
+          ...createContext().colony.resources,
+          ore: 5,
+        },
+      },
+      legalActions: {
+        harvesterBuild: {
+          creditCost: 30,
+          oreCost: 3,
+        },
+        landCandidates: [],
+      },
+    })
+    const orionPlan = createAgentPlan({
+      ...baseContext,
+      colony: {
+        ...baseContext.colony,
+        id: 'orion',
+      },
+    })
+    const novaPlan = createAgentPlan({
+      ...baseContext,
+      colony: {
+        ...baseContext.colony,
+        id: 'nova',
+      },
+    })
+    const vegaPlan = createAgentPlan({
+      ...baseContext,
+      colony: {
+        ...baseContext.colony,
+        id: 'vega',
+      },
+    })
+    const orionOre =
+      getAgentMarketIntent(orionPlan, 'ore')
+    const novaOre =
+      getAgentMarketIntent(novaPlan, 'ore')
+    const vegaOre =
+      getAgentMarketIntent(vegaPlan, 'ore')
+
+    expect(orionOre).toMatchObject({
+      role: 'seller',
+      quantity: 1,
+    })
+    expect(novaOre).toMatchObject({
+      role: 'neutral',
+      quantity: 0,
+    })
+    expect(vegaOre).toMatchObject({
+      role: 'buyer',
+      quantity: 1,
+    })
+    expect(vegaOre?.limitPrice).toBeGreaterThanOrEqual(
+      orionOre?.limitPrice ?? Number.MAX_SAFE_INTEGER,
+    )
+  })
+
   it('bildet unterschiedliche Strategien in den Profilen ab', () => {
     expect(agentProfiles.nova.expansionBias).toBeGreaterThan(
       agentProfiles.orion.expansionBias,

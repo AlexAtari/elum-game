@@ -14,7 +14,7 @@ describe('Interne Wirtschaftssimulation', () => {
     const result = runHeadlessEconomicSimulation()
 
     expect(result.mode).toBe(
-      'headless-economic-v3',
+      'headless-economic-v4',
     )
     expect(result.roundsPlayed).toBe(
       GAME_ROUND_LIMIT,
@@ -172,6 +172,23 @@ describe('Interne Wirtschaftssimulation', () => {
     }
   })
 
+  it('erzeugt mindestens einen direkten Spielerhandel', () => {
+    const result = runHeadlessEconomicSimulation()
+
+    expect(
+      result.marketSummary.playerTrades,
+    ).toBeGreaterThan(0)
+    expect(
+      result.marketDiagnostics.some(
+        (diagnostic) =>
+          diagnostic.buyerCount > 0 &&
+          diagnostic.sellerCount > 0 &&
+          diagnostic.compatiblePairs > 0 &&
+          diagnostic.playerTrades > 0,
+      ),
+    ).toBe(true)
+  })
+
   it('nutzt das HQ-Lager nur für nicht direkt gedeckte Restmengen', () => {
     const result = runHeadlessEconomicSimulation()
 
@@ -193,6 +210,59 @@ describe('Interne Wirtschaftssimulation', () => {
     ).toBe(true)
   })
 
+  it('protokolliert jede Ressourcenauktion mit allen vier Rollen', () => {
+    const result = runHeadlessEconomicSimulation({
+      rounds: 5,
+    })
+
+    expect(result.marketDiagnostics).toHaveLength(
+      5 * 4,
+    )
+
+    for (const diagnostic of result.marketDiagnostics) {
+      expect(diagnostic.intents).toHaveLength(4)
+      expect(
+        new Set(
+          diagnostic.intents.map(
+            (intent) => intent.participantId,
+          ),
+        ).size,
+      ).toBe(4)
+      expect(diagnostic.referencePrice).toBeGreaterThan(0)
+      expect(diagnostic.warehouseBuyPrice).toBeGreaterThan(0)
+      expect(diagnostic.warehouseSellPrice).toBeGreaterThan(
+        diagnostic.warehouseBuyPrice,
+      )
+    }
+  })
+
+  it('verknüpft Diagnose und ausgeführte Markttransaktionen', () => {
+    const result = runHeadlessEconomicSimulation()
+
+    expect(
+      result.marketDiagnostics.reduce(
+        (total, diagnostic) =>
+          total + diagnostic.playerTrades,
+        0,
+      ),
+    ).toBe(result.marketSummary.playerTrades)
+    expect(
+      result.marketDiagnostics.reduce(
+        (total, diagnostic) =>
+          total + diagnostic.warehouseTrades,
+        0,
+      ),
+    ).toBe(result.marketSummary.warehouseTrades)
+
+    for (const diagnostic of result.marketDiagnostics) {
+      if (diagnostic.playerTrades > 0) {
+        expect(diagnostic.compatiblePairs).toBeGreaterThan(0)
+        expect(diagnostic.outcome).toBe('player-trade')
+        expect(diagnostic.reason).toBe('matched')
+      }
+    }
+  })
+
   it('kann den Markt für einen direkten Vergleich deaktivieren', () => {
     const result = runHeadlessEconomicSimulation({
       rounds: 6,
@@ -201,6 +271,7 @@ describe('Interne Wirtschaftssimulation', () => {
 
     expect(result.marketIncluded).toBe(false)
     expect(result.marketTransactions).toEqual([])
+    expect(result.marketDiagnostics).toEqual([])
     expect(
       result.marketSummary.totalTransactions,
     ).toBe(0)

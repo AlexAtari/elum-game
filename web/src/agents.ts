@@ -28,6 +28,7 @@ export type AgentProfile = {
   harvesterBias: number
   productionWeights: Record<AgentProductionResource, number>
   crystalReserve: number
+  oreReserveBuilds?: number
   maximumLandBidShare: number
 }
 
@@ -127,6 +128,7 @@ export const agentProfiles: Record<AgentPlayerId, AgentProfile> = {
     harvesterBias: 0.6,
     productionWeights: { food: 1, energy: 1, ore: 0.85 },
     crystalReserve: 1,
+    oreReserveBuilds: 1,
     maximumLandBidShare: 0.3,
   },
   orion: {
@@ -138,6 +140,7 @@ export const agentProfiles: Record<AgentPlayerId, AgentProfile> = {
     harvesterBias: 0.55,
     productionWeights: { food: 1, energy: 1, ore: 0.8 },
     crystalReserve: 1,
+    oreReserveBuilds: 1,
     maximumLandBidShare: 0.28,
   },
   nova: {
@@ -149,6 +152,7 @@ export const agentProfiles: Record<AgentPlayerId, AgentProfile> = {
     harvesterBias: 0.8,
     productionWeights: { food: 1.2, energy: 1.05, ore: 0.7 },
     crystalReserve: 0,
+    oreReserveBuilds: 1.5,
     maximumLandBidShare: 0.4,
   },
   vega: {
@@ -160,6 +164,7 @@ export const agentProfiles: Record<AgentPlayerId, AgentProfile> = {
     harvesterBias: 0.75,
     productionWeights: { food: 0.8, energy: 0.95, ore: 1.35 },
     crystalReserve: 2,
+    oreReserveBuilds: 2,
     maximumLandBidShare: 0.25,
   },
 }
@@ -232,7 +237,12 @@ function getTargetStock(
   }
 
   if (resource === 'ore') {
-    return context.legalActions?.harvesterBuild?.oreCost ?? 0
+    const oreCost =
+      context.legalActions?.harvesterBuild?.oreCost ?? 0
+
+    return Math.ceil(
+      oreCost * (profile.oreReserveBuilds ?? 1),
+    )
   }
 
   return profile.crystalReserve

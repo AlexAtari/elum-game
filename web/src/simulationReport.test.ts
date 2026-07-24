@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   runHeadlessEconomicSimulation,
   type HeadlessSimulationResult,
+  type SimulationMarketDiagnostic,
+  type SimulationMarketIntentDiagnostic,
   type SimulationParticipantSnapshot,
   type SimulationWarning,
 } from './simulation'
@@ -118,6 +120,161 @@ function formatMarketSummary(
   ]
 }
 
+const participantLabels = {
+  agima: 'Agima',
+  orion: 'Orion',
+  nova: 'Nova',
+  vega: 'Vega',
+} as const
+
+const resourceLabels = {
+  food: 'Nahrung',
+  energy: 'Energie',
+  ore: 'Erz',
+  crystals: 'Kristalle',
+} as const
+
+const diagnosticReasonLabels: Record<
+  SimulationMarketDiagnostic['reason'],
+  string
+> = {
+  matched: 'Spielerhandel',
+  'no-active-intents': 'keine aktiven Gebote',
+  'no-buyers': 'kein Käufer',
+  'no-sellers': 'kein Verkäufer',
+  'price-gap': 'Preislimits überschneiden sich nicht',
+  'resource-or-credit-limit':
+    'Bestand oder Credits verhindern Handel',
+}
+
+function formatDiagnosticIntent(
+  intent: SimulationMarketIntentDiagnostic,
+): string {
+  const role =
+    intent.role === 'buyer'
+      ? 'K'
+      : intent.role === 'seller'
+      ? 'V'
+      : '–'
+
+  return (
+    `${participantLabels[intent.participantId]} ` +
+    `${role}${intent.quantity}@${intent.limitPrice}` +
+    ` [Bestand ${intent.stock}, Credits ${intent.credits}]`
+  )
+}
+
+function getDiagnosticPriority(
+  diagnostic: SimulationMarketDiagnostic,
+): number {
+  if (
+    diagnostic.buyerCount > 0 &&
+    diagnostic.sellerCount > 0
+  ) {
+    return 0
+  }
+  if (
+    diagnostic.buyerCount > 0 ||
+    diagnostic.sellerCount > 0
+  ) {
+    return 1
+  }
+
+  return 2
+}
+
+function formatMarketDiagnostics(
+  result: HeadlessSimulationResult,
+): string[] {
+  if (!result.marketIncluded) {
+    return ['Markt war deaktiviert.']
+  }
+
+  const diagnostics = result.marketDiagnostics
+  const opposingRoles = diagnostics.filter(
+    (diagnostic) =>
+      diagnostic.buyerCount > 0 &&
+      diagnostic.sellerCount > 0,
+  ).length
+  const compatiblePrices = diagnostics.filter(
+    (diagnostic) =>
+      diagnostic.compatiblePairs > 0,
+  ).length
+  const playerTradeWindows = diagnostics.filter(
+    (diagnostic) =>
+      diagnostic.playerTrades > 0,
+  ).length
+  const warehouseOnlyWindows = diagnostics.filter(
+    (diagnostic) =>
+      diagnostic.outcome === 'warehouse-only',
+  ).length
+  const noTradeWindows = diagnostics.filter(
+    (diagnostic) =>
+      diagnostic.outcome === 'no-trade',
+  ).length
+  const reasonCounts = new Map<
+    SimulationMarketDiagnostic['reason'],
+    number
+  >()
+
+  for (const diagnostic of diagnostics) {
+    reasonCounts.set(
+      diagnostic.reason,
+      (reasonCounts.get(diagnostic.reason) ?? 0) + 1,
+    )
+  }
+
+  const reasons = Array.from(reasonCounts.entries())
+    .sort(
+      (first, second) =>
+        second[1] - first[1],
+    )
+    .map(
+      ([reason, count]) =>
+        `${diagnosticReasonLabels[reason]}: ${count}`,
+    )
+    .join(' · ')
+
+  const examples = [...diagnostics]
+    .filter(
+      (diagnostic) =>
+        diagnostic.playerTrades === 0,
+    )
+    .sort(
+      (first, second) =>
+        getDiagnosticPriority(first) -
+          getDiagnosticPriority(second) ||
+        first.round - second.round ||
+        first.resource.localeCompare(
+          second.resource,
+        ),
+    )
+    .slice(0, 12)
+    .map(
+      (diagnostic) =>
+        `Runde ${diagnostic.round} – ` +
+        `${resourceLabels[diagnostic.resource]} ` +
+        `(Ref ${diagnostic.referencePrice}, ` +
+        `HQ ${diagnostic.warehouseBuyPrice}/` +
+        `${diagnostic.warehouseSellPrice}): ` +
+        diagnostic.intents
+          .map(formatDiagnosticIntent)
+          .join(' · ') +
+        ` → ${diagnosticReasonLabels[diagnostic.reason]}`,
+    )
+
+  return [
+    `Marktfenster: ${diagnostics.length} · ` +
+      `Käufer und Verkäufer: ${opposingRoles} · ` +
+      `Preisüberschneidung: ${compatiblePrices}`,
+    `Spielerhandelsfenster: ${playerTradeWindows} · ` +
+      `nur HQ-Lager: ${warehouseOnlyWindows} · ` +
+      `ohne Handel: ${noTradeWindows}`,
+    `Ursachen: ${reasons || 'keine'}`,
+    ...examples,
+  ]
+}
+
 function formatWarnings(
   warnings: SimulationWarning[],
 ): string[] {
@@ -185,6 +342,9 @@ export function formatSimulationReport(
     'MARKT',
     ...formatMarketSummary(result),
     '',
+    'MARKTDIAGNOSE',
+    ...formatMarketDiagnostics(result),
+    '',
     `WARNUNGEN (${result.warnings.length})`,
     ...formatWarnings(result.warnings),
     '=============================================================',
@@ -208,6 +368,9 @@ describe('Ausführbarer Simulationsbericht', () => {
     expect(report).toContain('MARKT')
     expect(report).toContain('Spielerhandel')
     expect(report).toContain('HQ-Lager')
+    expect(report).toContain('MARKTDIAGNOSE')
+    expect(report).toContain('Marktfenster:')
+    expect(report).toContain('Käufer und Verkäufer:')
     expect(result.marketIncluded).toBe(true)
     expect(
       result.marketSummary.totalTransactions,

@@ -78,6 +78,41 @@ export type SimulationMarketTransaction = {
   kind: 'player' | 'warehouse'
 }
 
+export type SimulationMarketIntentDiagnostic = {
+  participantId: SimulationParticipantId
+  role: AgentMarketIntent['role']
+  quantity: number
+  limitPrice: number
+  urgency: number
+  credits: number
+  stock: number
+}
+
+export type SimulationMarketDiagnostic = {
+  round: number
+  resource: MarketResource
+  referencePrice: number
+  warehouseBuyPrice: number
+  warehouseSellPrice: number
+  intents: SimulationMarketIntentDiagnostic[]
+  buyerCount: number
+  sellerCount: number
+  compatiblePairs: number
+  playerTrades: number
+  warehouseTrades: number
+  outcome:
+    | 'player-trade'
+    | 'warehouse-only'
+    | 'no-trade'
+  reason:
+    | 'matched'
+    | 'no-active-intents'
+    | 'no-buyers'
+    | 'no-sellers'
+    | 'price-gap'
+    | 'resource-or-credit-limit'
+}
+
 export type SimulationMarketSummary = {
   totalTransactions: number
   playerTrades: number
@@ -88,13 +123,14 @@ export type SimulationMarketSummary = {
 }
 
 export type HeadlessSimulationResult = {
-  mode: 'headless-economic-v3'
+  mode: 'headless-economic-v4'
   roundsPlayed: number
   marketIncluded: boolean
   history: SimulationRoundSnapshot[]
   warnings: SimulationWarning[]
   finalStandings: SimulationParticipantSnapshot[]
   marketTransactions: SimulationMarketTransaction[]
+  marketDiagnostics: SimulationMarketDiagnostic[]
   marketSummary: SimulationMarketSummary
 }
 
@@ -125,6 +161,7 @@ type InternalSimulationState = {
   market: SimulationMarketState
   marketTransactions: SimulationMarketTransaction[]
   lastRoundMarketTransactions: SimulationMarketTransaction[]
+  marketDiagnostics: SimulationMarketDiagnostic[]
 }
 
 const participantIds: SimulationParticipantId[] = [
@@ -316,31 +353,41 @@ function executeSimulationMarketTransaction(
   }
 }
 
+function createSimulationMarketIntents(
+  state: InternalSimulationState,
+  round: number,
+  resource: MarketResource,
+): WorkingMarketIntent[] {
+  return participantIds.map((participantId) => {
+    const intent = createSimulationMarketIntent(
+      state,
+      participantId,
+      resource,
+      round,
+    )
+
+    return {
+      participantId,
+      intent,
+      remaining: intent.quantity,
+    }
+  })
+}
+
 function createWorkingMarketIntents(
   state: InternalSimulationState,
   round: number,
   resource: MarketResource,
 ): WorkingMarketIntent[] {
-  return participantIds
-    .map((participantId) => {
-      const intent = createSimulationMarketIntent(
-        state,
-        participantId,
-        resource,
-        round,
-      )
-
-      return {
-        participantId,
-        intent,
-        remaining: intent.quantity,
-      }
-    })
-    .filter(
-      (entry) =>
-        entry.intent.role !== 'neutral' &&
-        entry.remaining > 0,
-    )
+  return createSimulationMarketIntents(
+    state,
+    round,
+    resource,
+  ).filter(
+    (entry) =>
+      entry.intent.role !== 'neutral' &&
+      entry.remaining > 0,
+  )
 }
 
 function clearSimulationResourceMarket(
@@ -350,6 +397,38 @@ function clearSimulationResourceMarket(
 ): InternalSimulationState {
   const referencePrice =
     state.market.prices[resource]
+  const spread = Math.max(
+    1,
+    Math.round(referencePrice * 0.15),
+  )
+  const warehouseSellPrice =
+    referencePrice + spread
+  const warehouseBuyPrice = Math.max(
+    1,
+    referencePrice - spread,
+  )
+  const allIntents = createSimulationMarketIntents(
+    state,
+    round,
+    resource,
+  )
+  const diagnosticIntents =
+    allIntents.map((entry) => {
+      const colony = getSimulationColony(
+        state,
+        entry.participantId,
+      )
+
+      return {
+        participantId: entry.participantId,
+        role: entry.intent.role,
+        quantity: entry.intent.quantity,
+        limitPrice: entry.intent.limitPrice,
+        urgency: entry.intent.urgency,
+        credits: colony.credits,
+        stock: colony.resources[resource],
+      }
+    })
   const order = getMarketParticipantOrder(
     round,
     resource,
@@ -391,6 +470,20 @@ function clearSimulationResourceMarket(
         (orderIndex.get(first.participantId) ?? 0) -
           (orderIndex.get(second.participantId) ?? 0),
     )
+  const buyerCount = buyers.length
+  const sellerCount = sellers.length
+  const compatiblePairs = buyers.reduce(
+    (total, buyer) =>
+      total +
+      sellers.filter(
+        (seller) =>
+          buyer.intent.limitPrice >=
+          seller.intent.limitPrice,
+      ).length,
+    0,
+  )
+  const transactionStartIndex =
+    state.marketTransactions.length
   let nextState = state
 
   while (buyers.length > 0 && sellers.length > 0) {
@@ -453,16 +546,6 @@ function clearSimulationResourceMarket(
     }
   }
 
-  const spread = Math.max(
-    1,
-    Math.round(referencePrice * 0.15),
-  )
-  const warehouseSellPrice =
-    referencePrice + spread
-  const warehouseBuyPrice = Math.max(
-    1,
-    referencePrice - spread,
-  )
   let warehouseStock =
     nextState.market.warehouseStock[resource]
   let warehouseNetFlow = 0
@@ -548,6 +631,37 @@ function clearSimulationResourceMarket(
   const maximumPrice =
     MARKET_PRICES[resource] * 2
 
+  const resourceTransactions =
+    nextState.marketTransactions.slice(
+      transactionStartIndex,
+    )
+  const playerTrades =
+    resourceTransactions.filter(
+      (transaction) =>
+        transaction.kind === 'player',
+    ).length
+  const warehouseTrades =
+    resourceTransactions.length - playerTrades
+  const reason =
+    playerTrades > 0
+      ? 'matched'
+      : buyerCount === 0 &&
+        sellerCount === 0
+      ? 'no-active-intents'
+      : buyerCount === 0
+      ? 'no-buyers'
+      : sellerCount === 0
+      ? 'no-sellers'
+      : compatiblePairs === 0
+      ? 'price-gap'
+      : 'resource-or-credit-limit'
+  const outcome =
+    playerTrades > 0
+      ? 'player-trade'
+      : warehouseTrades > 0
+      ? 'warehouse-only'
+      : 'no-trade'
+
   return {
     ...nextState,
     market: {
@@ -566,6 +680,24 @@ function clearSimulationResourceMarket(
         [resource]: warehouseStock,
       },
     },
+    marketDiagnostics: [
+      ...nextState.marketDiagnostics,
+      {
+        round,
+        resource,
+        referencePrice,
+        warehouseBuyPrice,
+        warehouseSellPrice,
+        intents: diagnosticIntents,
+        buyerCount,
+        sellerCount,
+        compatiblePairs,
+        playerTrades,
+        warehouseTrades,
+        outcome,
+        reason,
+      },
+    ],
   }
 }
 
@@ -1213,6 +1345,7 @@ function createInitialSimulationState():
     market,
     marketTransactions: [],
     lastRoundMarketTransactions: [],
+    marketDiagnostics: [],
   }
 }
 
@@ -1326,7 +1459,7 @@ export function runHeadlessEconomicSimulation(
   )
 
   return {
-    mode: 'headless-economic-v3',
+    mode: 'headless-economic-v4',
     roundsPlayed,
     marketIncluded: includeMarket,
     history,
@@ -1334,6 +1467,8 @@ export function runHeadlessEconomicSimulation(
     finalStandings,
     marketTransactions:
       state.marketTransactions,
+    marketDiagnostics:
+      state.marketDiagnostics,
     marketSummary:
       createSimulationMarketSummary(state),
   }
