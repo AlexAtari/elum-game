@@ -1,3 +1,4 @@
+import { createLandAuctionDecision } from '../agents'
 import {
   useCallback,
   useEffect,
@@ -11,6 +12,10 @@ import {
   tiles,
   type LandAuctionTie,
   type LandTieBidState,
+  HARVESTER_CREDIT_COST,
+  HARVESTER_ORE_COST,
+  MARKET_PRICES,
+  type RivalColonyState,
 } from '../game'
 import AuctionPriceScale from './AuctionPriceScale'
 import AuctionTimer from './AuctionTimer'
@@ -27,7 +32,8 @@ type LandTieStage = 'preparation' | 'auction' | 'finished'
 type LandTieAuctionPanelProps = {
   tie: LandAuctionTie
   credits: number
-  orionCredits: number
+  orion: RivalColonyState
+  roundPlayed: number
   onComplete: (bids: LandTieBidState) => void
 }
 
@@ -48,18 +54,39 @@ function bidPosition(
 function LandTieAuctionPanel({
   tie,
   credits,
-  orionCredits,
+  orion,
+  roundPlayed,
   onComplete,
 }: LandTieAuctionPanelProps) {
   const tile = tiles.find((candidate) => candidate.id === tie.tileId)
-  const highestRating = Math.max(
-    tile?.food ?? 0,
-    tile?.energy ?? 0,
-    tile?.ore ?? 0,
-  )
-  const orionBidLimit = Math.min(
-    orionCredits,
-    tie.minimumBid + Math.max(1, highestRating - 2),
+  const orionLandDecision = tile
+    ? createLandAuctionDecision(
+        {
+          round: roundPlayed,
+          colony: orion,
+          referencePrices: MARKET_PRICES,
+          legalActions: {
+            harvesterBuild: {
+              creditCost: HARVESTER_CREDIT_COST,
+              oreCost: HARVESTER_ORE_COST,
+            },
+          },
+        },
+        {
+          tileId: tile.id,
+          minimumBid: tie.minimumBid,
+          food: tile.food ?? 0,
+          energy: tile.energy ?? 0,
+          ore: tile.ore ?? 0,
+        },
+      )
+    : null
+  const orionBidLimit = Math.max(
+    tie.tiedBid,
+    Math.min(
+      orion.credits,
+      orionLandDecision?.maximumBid ?? tie.tiedBid,
+    ),
   )
   const maximumBid = Math.max(
     tie.minimumBid,

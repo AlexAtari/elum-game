@@ -584,7 +584,8 @@ function App() {
             key={`${gameState.round}-${gameState.landAuctionTie.tileId}`}
             tie={gameState.landAuctionTie}
             credits={gameState.credits}
-            orionCredits={gameState.rivals.orion.credits}
+            orion={gameState.rivals.orion}
+            roundPlayed={gameState.round}
             onComplete={completeLandTieAuction}
           />
         ) : activeMarket !== null && activeResourceMarket ? (

@@ -456,3 +456,16 @@ export function createComplementaryMarketDecision(
 
   return isComplementary ? intent : neutralDecision
 }
+
+export function createLandAuctionDecision(
+  context: AgentContext,
+  candidate: AgentLandCandidate,
+): AgentLandDecision | null {
+  return createAgentPlan({
+    ...context,
+    legalActions: {
+      ...(context.legalActions ?? {}),
+      landCandidates: [candidate],
+    },
+  }).landBid
+}
