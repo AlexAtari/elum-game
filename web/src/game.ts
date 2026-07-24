@@ -74,6 +74,7 @@ export type RivalColonyState = {
   credits: number
   resources: Resources
   harvesters: number
+  harvestersInConstruction?: number
 }
 
 export type RivalColonies = Record<RivalId, RivalColonyState>
@@ -776,29 +777,85 @@ export function advanceRivalColonies(
       const populationChange = hasNormalSupply
         ? 1
         : hasNoSupply
-          ? -1
-          : 0
+        ? -1
+        : 0
+      const completedHarvesters =
+        rival.harvestersInConstruction ?? 0
+
+      const nextColony: RivalColonyState = {
+        ...rival,
+        population: Math.max(
+          1,
+          rival.population + populationChange,
+        ),
+        harvesters: rival.harvesters + completedHarvesters,
+        resources: {
+          food:
+            rival.resources.food -
+            consumedFood +
+            production.food,
+          energy:
+            rival.resources.energy -
+            consumedEnergy +
+            production.energy,
+          ore: rival.resources.ore + production.ore,
+          crystals: rival.resources.crystals,
+        },
+      }
+
+      if (completedHarvesters > 0) {
+        nextColony.harvestersInConstruction = 0
+      }
+
+      if (
+        rival.id !== 'orion' ||
+        roundPlayed < 2 ||
+        globalEvent === 'supply-chain-disruption'
+      ) {
+        return [id, nextColony]
+      }
+
+      const harvesterCreditCost =
+        globalEvent === 'technological-breakthrough'
+          ? Math.max(
+              0,
+              HARVESTER_CREDIT_COST -
+                (getGlobalEventAmount(
+                  globalEvent,
+                  roundPlayed,
+                ) ?? 0),
+            )
+          : HARVESTER_CREDIT_COST
+
+      const plan = createAgentPlan({
+        round: roundPlayed + 1,
+        colony: nextColony,
+        referencePrices: MARKET_PRICES,
+        legalActions: {
+          harvesterBuild: {
+            creditCost: harvesterCreditCost,
+            oreCost: HARVESTER_ORE_COST,
+          },
+        },
+      })
+
+      if (!plan.harvester.build) {
+        return [id, nextColony]
+      }
 
       return [
         id,
         {
-          ...rival,
-          population: Math.max(
-            1,
-            rival.population + populationChange,
-          ),
+          ...nextColony,
+          credits:
+            nextColony.credits - harvesterCreditCost,
           resources: {
-            food:
-              rival.resources.food -
-              consumedFood +
-              production.food,
-            energy:
-              rival.resources.energy -
-              consumedEnergy +
-              production.energy,
-            ore: rival.resources.ore + production.ore,
-            crystals: rival.resources.crystals,
+            ...nextColony.resources,
+            ore:
+              nextColony.resources.ore -
+              HARVESTER_ORE_COST,
           },
+          harvestersInConstruction: 1,
         },
       ]
     }),

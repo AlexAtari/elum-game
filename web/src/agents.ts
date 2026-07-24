@@ -423,3 +423,36 @@ export function getAgentMarketIntent(
 ) {
   return plan.marketIntents.find((intent) => intent.resource === resource)
 }
+
+export function createComplementaryMarketDecision(
+  context: AgentContext,
+  resource: AgentMarketResource,
+  opposingRole: AgentMarketRole,
+): AgentMarketIntent {
+  const neutralDecision: AgentMarketIntent = {
+    resource,
+    role: 'neutral',
+    quantity: 0,
+    limitPrice: context.referencePrices[resource],
+    urgency: 0,
+  }
+
+  if (opposingRole === 'neutral') {
+    return neutralDecision
+  }
+
+  const intent = getAgentMarketIntent(
+    createAgentPlan(context),
+    resource,
+  )
+
+  if (!intent) {
+    return neutralDecision
+  }
+
+  const isComplementary =
+    (opposingRole === 'seller' && intent.role === 'buyer') ||
+    (opposingRole === 'buyer' && intent.role === 'seller')
+
+  return isComplementary ? intent : neutralDecision
+}

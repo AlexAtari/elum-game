@@ -1,3 +1,4 @@
+import { createComplementaryMarketDecision } from '../agents'
 import {
   useCallback,
   useEffect,
@@ -5,8 +6,10 @@ import {
   useState,
 } from 'react'
 import {
-  getOrionMarketRole,
   getMarketTiming,
+  MARKET_PRICES,
+  HARVESTER_ORE_COST,
+  HARVESTER_CREDIT_COST,
   getWarehousePrices,
   marketResourceTypes,
   moveMarketOffer,
@@ -14,6 +17,7 @@ import {
   type MarketDirection,
   type MarketResource,
   type MarketRole,
+  type RivalColonyState,
 } from '../game'
 import AuctionPriceScale from './AuctionPriceScale'
 import AuctionTimer from './AuctionTimer'
@@ -33,6 +37,7 @@ type MarketPanelProps = {
   credits: number
   referencePrice: number
   warehouseStock: number
+  orion: RivalColonyState
   rivalResourceAmounts: {
     orion: number
     nova: number
@@ -134,6 +139,7 @@ function MarketPanel({
   credits,
   referencePrice,
   warehouseStock,
+  orion,
   rivalResourceAmounts,
   nextResource,
   invitationSeconds,
@@ -158,6 +164,29 @@ function MarketPanel({
   const [stage, setStage] =
     useState<MarketStage>('introduction')
   const [role, setRole] = useState<MarketRole>('neutral')
+  const orionDecision = createComplementaryMarketDecision(
+    {
+      round: roundPlayed,
+      colony: orion,
+      referencePrices: {
+        ...MARKET_PRICES,
+        [resource]: referencePrice,
+      },
+      legalActions: {
+        harvesterBuild: {
+          creditCost: HARVESTER_CREDIT_COST,
+          oreCost: HARVESTER_ORE_COST,
+        },
+      },
+    },
+    resource,
+    role,
+  )
+  const plannedOrionRole = orionDecision.role
+  const plannedOrionUnits = Math.min(
+    orionTradeLimit,
+    orionDecision.quantity,
+  )
   const [orionRole, setOrionRole] = useState<
     MarketRole | 'pending'
   >('pending')
@@ -172,12 +201,10 @@ function MarketPanel({
   const [orionPrice, setOrionPrice] = useState(
     referencePrice,
   )
-  const [orionUnitsRemaining, setOrionUnitsRemaining] = useState(
-    orionTradeLimit,
-  )
-  const [orionResourceAmount, setOrionResourceAmount] = useState(
-    orionTradeLimit,
-  )
+  const [orionUnitsRemaining, setOrionUnitsRemaining] =
+    useState(0)
+  const [orionResourceAmount, setOrionResourceAmount] =
+    useState(orion.resources[resource])
   const [orionParked, setOrionParked] = useState(false)
   const [tradedUnits, setTradedUnits] = useState(0)
   const [lastTradePrice, setLastTradePrice] = useState<
@@ -222,9 +249,8 @@ function MarketPanel({
     }
 
     const timer = window.setTimeout(() => {
-      setOrionRole(
-        getOrionMarketRole(roundPlayed, resource, role),
-      )
+      setOrionRole(plannedOrionRole)
+    setOrionUnitsRemaining(plannedOrionUnits)
     }, orionDecisionMilliseconds)
 
     return () => window.clearTimeout(timer)
@@ -241,12 +267,8 @@ function MarketPanel({
           return currentSeconds - 1
         }
 
-        const finalOrionRole = getOrionMarketRole(
-          roundPlayed,
-          resource,
-          role,
-        )
-        setOrionRole(finalOrionRole)
+        setOrionRole(plannedOrionRole)
+      setOrionUnitsRemaining(plannedOrionUnits)
 
         if (role === 'neutral') {
           setStage('skipped')
@@ -260,7 +282,7 @@ function MarketPanel({
         setOrionPrice(
           role === 'seller' ? minimumPrice : maximumPrice,
         )
-        setOrionResourceAmount(orionTradeLimit)
+        setOrionResourceAmount(orion.resources[resource])
         setOrionParked(false)
         setStage('auction')
         return auctionSeconds
@@ -317,7 +339,7 @@ function MarketPanel({
   const orionRetreating =
     orionParticipates && !orionActive && !orionParked
   const orionPriceLimit = clampPrice(
-    role === 'seller' ? referencePrice + 1 : referencePrice - 1,
+    orionDecision.limitPrice,
     minimumPrice,
     maximumPrice,
   )

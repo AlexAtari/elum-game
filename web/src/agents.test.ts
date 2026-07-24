@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   agentProfiles,
   createAgentPlan,
+  createComplementaryMarketDecision,
   getAgentMarketIntent,
   type AgentContext,
 } from './agents'
@@ -31,7 +32,7 @@ const createContext = (
   legalActions: {
     harvesterBuild: {
       creditCost: 30,
-      oreCost: 8,
+      oreCost: 3,
     },
     landCandidates: [],
   },
@@ -125,7 +126,7 @@ describe('Wirtschaftsagenten', () => {
         legalActions: {
           harvesterBuild: {
             creditCost: 30,
-            oreCost: 8,
+            oreCost: 3,
           },
           landCandidates: [
             {
@@ -188,5 +189,63 @@ describe('Wirtschaftsagenten', () => {
 
     expect(plan.playerId).toBe('agima')
     expect(agentProfiles.agima.personality).toBe('autopilot')
+  })
+
+  it('nimmt nur eine wirtschaftlich passende Marktrolle ein', () => {
+    const context = createContext({
+      colony: {
+        ...createContext().colony,
+        resources: {
+          ...createContext().colony.resources,
+          food: 1,
+        },
+      },
+    })
+
+    expect(
+      createComplementaryMarketDecision(
+        context,
+        'food',
+        'seller',
+      ),
+    ).toMatchObject({
+      role: 'buyer',
+      quantity: 3,
+      urgency: 100,
+    })
+
+    expect(
+      createComplementaryMarketDecision(
+        context,
+        'food',
+        'buyer',
+      ),
+    ).toMatchObject({
+      role: 'neutral',
+      quantity: 0,
+    })
+  })
+
+  it('verkauft am Markt nur echten Überschuss', () => {
+    const context = createContext({
+      colony: {
+        ...createContext().colony,
+        resources: {
+          ...createContext().colony.resources,
+          food: 12,
+        },
+      },
+    })
+
+    expect(
+      createComplementaryMarketDecision(
+        context,
+        'food',
+        'buyer',
+      ),
+    ).toMatchObject({
+      role: 'seller',
+      quantity: 6,
+    })
   })
 })
