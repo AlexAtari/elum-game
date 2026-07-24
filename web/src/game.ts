@@ -1,3 +1,5 @@
+import { createAgentPlan } from './agents'
+
 export type ProductionType = 'food' | 'energy' | 'ore'
 
 export type Resources = {
@@ -693,15 +695,6 @@ export function createLeaderboardEntries(
   )
 }
 
-const rivalProductionCycles: Record<
-  RivalId,
-  ProductionType[]
-> = {
-  orion: ['food', 'energy', 'ore'],
-  nova: ['food', 'energy', 'food', 'ore'],
-  vega: ['energy', 'ore', 'food', 'ore'],
-}
-
 function getRivalProduction(
   rival: RivalColonyState,
   roundPlayed: number,
@@ -712,7 +705,17 @@ function getRivalProduction(
     energy: 0,
     ore: 0,
   }
-  const cycle = rivalProductionCycles[rival.id]
+  const productionCycle = createAgentPlan({
+    round: roundPlayed,
+    colony: rival,
+    referencePrices: MARKET_PRICES,
+    legalActions: {
+      harvesterBuild: {
+        creditCost: HARVESTER_CREDIT_COST,
+        oreCost: HARVESTER_ORE_COST,
+      },
+    },
+  }).productionPriorities.map(({ resource }) => resource)
   const quakeFailures =
     globalEvent === 'planetary-quake'
       ? getGlobalEventAmount(globalEvent, roundPlayed) ?? 0
@@ -724,7 +727,9 @@ function getRivalProduction(
 
   for (let index = 0; index < producingHarvesters; index += 1) {
     const productionType =
-      cycle[(roundPlayed - 1 + index) % cycle.length]
+      productionCycle[
+        (roundPlayed - 1 + index) % productionCycle.length
+      ]
 
     production[productionType] += Math.max(
       0,
