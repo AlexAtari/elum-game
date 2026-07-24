@@ -1,9 +1,9 @@
 import {
-  calculateOrionAssignedProduction,
+  calculateRivalAssignedProduction,
   
-  allocateOrionHarvesterEnergy,
-  planOrionHarvesterOperations,
-} from './orionHarvesterOperations'
+  allocateRivalHarvesterEnergy,
+  planRivalHarvesterOperations,
+} from './rivalHarvesterOperations'
 
 import { createAgentPlan } from './agents'
 
@@ -720,11 +720,10 @@ function getRivalProduction(
   globalEvent: GlobalEventId | null = null,
 ): Record<ProductionType, number> {
   if (
-    rival.id === 'orion' &&
     rival.harvesterAssignments &&
     Object.keys(rival.harvesterAssignments).length > 0
   ) {
-    return calculateOrionAssignedProduction(
+    return calculateRivalAssignedProduction(
       rival.harvesterAssignments,
       tiles,
       (production) =>
@@ -789,45 +788,40 @@ export function advanceRivalColonies(
 ): RivalColonies {
   return Object.fromEntries(
     Object.entries(rivals).map(([id, rival]) => {
-      const orionHarvesterPlan =
-        rival.id === 'orion'
-          ? planOrionHarvesterOperations(
-              rival,
-              tiles,
-              roundPlayed,
-              MARKET_PRICES,
-              {
-                creditCost: HARVESTER_CREDIT_COST,
-                oreCost: HARVESTER_ORE_COST,
-              },
-            )
-          : null
-      const operatingRival =
-        orionHarvesterPlan === null
-          ? rival
-          : {
-              ...rival,
-              credits: Math.max(
-                0,
-                rival.credits -
-                  orionHarvesterPlan.retoolingCost,
-              ),
-              harvesterAssignments:
-                orionHarvesterPlan.assignments,
-              ...(orionHarvesterPlan.retooledTileId
-                ? {
-                    lastHarvesterRetoolRound:
-                      roundPlayed,
-                    lastRetooledHarvesterId:
-                      orionHarvesterPlan.retooledTileId,
-                    lastHarvesterRetoolCost:
-                      orionHarvesterPlan.retoolingCost,
-                  }
-                : {
-                    lastRetooledHarvesterId: undefined,
-                    lastHarvesterRetoolCost: 0,
-                  }),
+      const rivalHarvesterPlan =
+        planRivalHarvesterOperations(
+          rival,
+          tiles,
+          roundPlayed,
+          MARKET_PRICES,
+          {
+            creditCost: HARVESTER_CREDIT_COST,
+            oreCost: HARVESTER_ORE_COST,
+          },
+        )
+      const operatingRival = {
+        ...rival,
+        credits: Math.max(
+          0,
+          rival.credits -
+            rivalHarvesterPlan.retoolingCost,
+        ),
+        harvesterAssignments:
+          rivalHarvesterPlan.assignments,
+        ...(rivalHarvesterPlan.retooledTileId
+          ? {
+              lastHarvesterRetoolRound:
+                roundPlayed,
+              lastRetooledHarvesterId:
+                rivalHarvesterPlan.retooledTileId,
+              lastHarvesterRetoolCost:
+                rivalHarvesterPlan.retoolingCost,
             }
+          : {
+              lastRetooledHarvesterId: undefined,
+              lastHarvesterRetoolCost: 0,
+            }),
+      }
       const populationGroups = Math.ceil(
         operatingRival.population / 10,
       )
@@ -846,23 +840,18 @@ export function advanceRivalColonies(
         operatingRival.resources.energy -
           consumedEnergyByHq,
       )
-      const orionEnergyAllocation =
-        operatingRival.id === 'orion'
-          ? allocateOrionHarvesterEnergy(
-              operatingRival.harvesterAssignments ?? {},
-              remainingEnergyAfterHq,
-            )
-          : null
-      const productionRival =
-        orionEnergyAllocation === null
-          ? operatingRival
-          : {
-              ...operatingRival,
-              harvesterAssignments:
-                orionEnergyAllocation.poweredAssignments,
-            }
+      const rivalEnergyAllocation =
+        allocateRivalHarvesterEnergy(
+          operatingRival.harvesterAssignments ?? {},
+          remainingEnergyAfterHq,
+        )
+      const productionRival = {
+        ...operatingRival,
+        harvesterAssignments:
+          rivalEnergyAllocation.poweredAssignments,
+      }
       const consumedEnergyByHarvesters =
-        orionEnergyAllocation?.consumedEnergy ?? 0
+        rivalEnergyAllocation.consumedEnergy
       const production = getRivalProduction(
         productionRival,
         roundPlayed,
@@ -905,17 +894,12 @@ export function advanceRivalColonies(
           crystals:
             operatingRival.resources.crystals,
         },
-        ...(operatingRival.id === 'orion'
-          ? {
-              lastConsumedEnergyByHq:
-                consumedEnergyByHq,
-              lastConsumedEnergyByHarvesters:
-                consumedEnergyByHarvesters,
-              inactiveHarvesterIds:
-                orionEnergyAllocation
-                  ?.inactiveHarvesterIds ?? [],
-            }
-          : {}),
+        lastConsumedEnergyByHq:
+          consumedEnergyByHq,
+        lastConsumedEnergyByHarvesters:
+          consumedEnergyByHarvesters,
+        inactiveHarvesterIds:
+          rivalEnergyAllocation.inactiveHarvesterIds,
       }
 
       if (completedHarvesters > 0) {
