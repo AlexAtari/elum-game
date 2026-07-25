@@ -100,12 +100,12 @@ function LandTieAuctionPanel({
   const [secondsLeft, setSecondsLeft] =
     useState(preparationSeconds)
   const [bids, setBids] = useState<LandTieBidState>({
-    playerBid: tie.tiedBid,
-    orionBid: tie.tiedBid,
-    leader: null,
+    playerBid: tie.playerOpeningBid,
+    orionBid: tie.orionOpeningBid,
+    leader: tie.initialLeader,
   })
   const [playerBehindStart, setPlayerBehindStart] =
-    useState(true)
+    useState(tie.initialLeader !== 'player')
   const bidsRef = useRef(bids)
   const nextPlayerMovementAt = useRef(0)
 
@@ -214,11 +214,13 @@ function LandTieAuctionPanel({
 
     const orionMovement = window.setInterval(() => {
       setBids((currentBids) =>
-        raiseLandTieBid(
-          currentBids,
-          'orion',
-          orionBidLimit,
-        ),
+        currentBids.leader === 'orion'
+          ? currentBids
+          : raiseLandTieBid(
+              currentBids,
+              'orion',
+              orionBidLimit,
+            ),
       )
     }, orionMovementMilliseconds)
 
@@ -239,20 +241,20 @@ function LandTieAuctionPanel({
   }, [onComplete, stage])
 
   const highestBid = Math.max(
-    tie.minimumBid,
+    tie.tiedBid,
     bids.playerBid,
     bids.orionBid,
   )
   const positionForPrice = useCallback(
     (price: number) =>
-      bidPosition(price, tie.minimumBid, maximumBid),
-    [maximumBid, tie.minimumBid],
+      bidPosition(price, tie.tiedBid, maximumBid),
+    [maximumBid, tie.tiedBid],
   )
   const playerPosition = playerBehindStart
     ? '7%'
     : positionForPrice(bids.playerBid)
   const orionPosition =
-    bids.orionBid < tie.minimumBid
+    bids.orionBid < tie.tiedBid
       ? '7%'
       : positionForPrice(bids.orionBid)
   const fieldRatings = useMemo(
@@ -268,7 +270,7 @@ function LandTieAuctionPanel({
     <section className="land-tie-panel">
       <div className="land-tie-heading">
         <div>
-          <p className="eyebrow">Grundstücks-Stichauktion</p>
+          <p className="eyebrow">Grundstücksauktion</p>
           <h2>Feld {tie.tileId}</h2>
         </div>
 
@@ -281,8 +283,8 @@ function LandTieAuctionPanel({
           }
           label={
             stage === 'preparation'
-              ? 'Start der Stichauktion'
-              : 'Restzeit Stichauktion'
+              ? 'Start der Grundstücksauktion'
+              : 'Restzeit Grundstücksauktion'
           }
           ariaLabel="Verbleibende Zeit der Grundstücksauktion"
         />
@@ -298,7 +300,7 @@ function LandTieAuctionPanel({
           <strong>💰 {credits}</strong>
         </div>
         <div>
-          <span>Ausgangsgleichstand</span>
+          <span>Höchstes Startgebot</span>
           <strong>{tie.tiedBid} Credits</strong>
         </div>
         <div>
@@ -316,10 +318,10 @@ function LandTieAuctionPanel({
       <div className="land-tie-content">
         <div className="land-tie-arena">
           <AuctionPriceScale
-            minimum={tie.minimumBid}
+            minimum={tie.tiedBid}
             maximum={maximumBid}
             positionForPrice={positionForPrice}
-            ariaLabel={`Gebotsskala von ${tie.minimumBid} bis ${maximumBid} Credits`}
+            ariaLabel={`Gebotsskala von ${tie.tiedBid} bis ${maximumBid} Credits`}
           />
 
           {stage === 'preparation' && (
@@ -328,11 +330,11 @@ function LandTieAuctionPanel({
               role="status"
               aria-live="polite"
             >
-              <p className="eyebrow">Stichauktion angekündigt</p>
+              <p className="eyebrow">Grundstücksauktion angekündigt</p>
               <h3>Feld {tie.tileId}</h3>
               <p>Agima und Orion treten gegeneinander an.</p>
               <strong>
-                Startpreis: {tie.minimumBid} Credits
+                Startpreis: {tie.tiedBid} Credits
               </strong>
               <b>Beginn in {secondsLeft}</b>
               <small>Macht euch bereit.</small>
@@ -381,7 +383,7 @@ function LandTieAuctionPanel({
           </div>
 
           <span className="land-tie-start-label">
-            STARTPREIS · {tie.minimumBid} CREDITS
+            STARTPREIS · {tie.tiedBid} CREDITS
           </span>
         </div>
 
@@ -413,8 +415,7 @@ function LandTieAuctionPanel({
                 type="button"
                 disabled={
                   playerBehindStart
-                    ? bids.playerBid < tie.minimumBid &&
-                      tie.minimumBid > credits
+                    ? tie.minimumBid > credits
                     : bids.playerBid >= credits
                 }
                 onClick={raisePlayerBid}

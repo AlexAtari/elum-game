@@ -924,38 +924,87 @@ describe('Grundstücksauktion', () => {
     expect(state.pendingLandBid).toBeNull()
   })
 
-  it('überträgt das Feld bei einem höheren Gebot an den Spieler', () => {
+  it('startet auch bei höherem Spielergebot eine Grundstücksauktion', () => {
     const state = placeLandBid(
       createInitialGameState(),
       'C',
       36,
       35,
     )
-    const result = runRound(state, {}, normalSupply)
+    const preview = runRound(state, {}, normalSupply)
+    const auctionState = beginLandTieBreak(state)
 
-    expect(result.nextState.credits).toBe(64)
-    expect(result.nextState.ownedTileIds).toEqual([
-      'A',
-      'B',
-      'C',
-    ])
-    expect(result.nextState.pendingLandBid).toBeNull()
+    expect(preview.report.landAuction?.outcome).toBe('tie')
+    expect(auctionState.credits).toBe(100)
+    expect(auctionState.pendingLandBid).toBeNull()
+    expect(auctionState.landAuctionTie).toEqual({
+      tileId: 'C',
+      tiedBid: 36,
+      minimumBid: 37,
+      playerOpeningBid: 36,
+      orionOpeningBid: 35,
+      initialLeader: 'player',
+    })
+
+    const resolvedState = resolveLandTieBreak(
+      auctionState,
+      {
+        playerBid: 36,
+        orionBid: 35,
+        leader: 'player',
+      },
+    )
+    const result = runRound(
+      resolvedState,
+      {},
+      normalSupply,
+    )
+
     expect(result.report.landAuction?.outcome).toBe('won')
+    expect(result.nextState.ownedTileIds).toContain('C')
+    expect(result.nextState.credits).toBe(64)
   })
 
-  it('erstattet das Gebot und überträgt das Feld bei einer Niederlage an Orion', () => {
+  it('startet auch bei höherem Orion-Gebot eine Grundstücksauktion', () => {
     const state = placeLandBid(
       createInitialGameState(),
       'C',
       30,
       35,
     )
-    const result = runRound(state, {}, normalSupply)
+    const preview = runRound(state, {}, normalSupply)
+    const auctionState = beginLandTieBreak(state)
 
-    expect(result.nextState.credits).toBe(100)
-    expect(result.nextState.ownedTileIds).toEqual(['A', 'B'])
-    expect(result.nextState.opponentTileIds).toEqual(['C'])
+    expect(preview.report.landAuction?.outcome).toBe('tie')
+    expect(auctionState.credits).toBe(100)
+    expect(auctionState.landAuctionTie).toEqual({
+      tileId: 'C',
+      tiedBid: 35,
+      minimumBid: 36,
+      playerOpeningBid: 30,
+      orionOpeningBid: 35,
+      initialLeader: 'orion',
+    })
+
+    const resolvedState = resolveLandTieBreak(
+      auctionState,
+      {
+        playerBid: 30,
+        orionBid: 35,
+        leader: 'orion',
+      },
+    )
+    const result = runRound(
+      resolvedState,
+      {},
+      normalSupply,
+    )
+
     expect(result.report.landAuction?.outcome).toBe('lost')
+    expect(result.nextState.ownedTileIds).toEqual(['A', 'B'])
+    expect(result.nextState.opponentTileIds).toContain('C')
+    expect(result.nextState.credits).toBe(100)
+    expect(result.nextState.rivals.orion.credits).toBe(61)
   })
 
   it('startet bei Gleichstand eine grafische Stichauktion', () => {
@@ -973,10 +1022,13 @@ describe('Grundstücksauktion', () => {
       tileId: 'C',
       tiedBid: 30,
       minimumBid: 31,
+      playerOpeningBid: 30,
+      orionOpeningBid: 30,
+      initialLeader: null,
     })
   })
 
-  it('lässt bei gleichem Preis den zuerst Führenden vorne', () => {
+  it('übernimmt die Führung nur mit einem höheren Gebot', () => {
     const start = {
       playerBid: 30,
       orionBid: 30,
@@ -987,13 +1039,8 @@ describe('Grundstücksauktion', () => {
       'player',
       100,
     )
-    const orionDrawsLevel = raiseLandTieBid(
-      playerLeads,
-      'orion',
-      100,
-    )
     const orionOvertakes = raiseLandTieBid(
-      orionDrawsLevel,
+      playerLeads,
       'orion',
       100,
     )
@@ -1001,11 +1048,6 @@ describe('Grundstücksauktion', () => {
     expect(playerLeads).toEqual({
       playerBid: 31,
       orionBid: 30,
-      leader: 'player',
-    })
-    expect(orionDrawsLevel).toEqual({
-      playerBid: 31,
-      orionBid: 31,
       leader: 'player',
     })
     expect(orionOvertakes).toEqual({

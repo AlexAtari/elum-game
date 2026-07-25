@@ -127,6 +127,9 @@ export type LandAuctionTie = {
   tileId: string
   tiedBid: number
   minimumBid: number
+  playerOpeningBid: number
+  orionOpeningBid: number
+  initialLeader: LandTieBidder | null
 }
 
 export type LandTieBidder = 'player' | 'orion'
@@ -1652,6 +1655,14 @@ export function cancelLandBid(
           tileId: bid.tileId,
           tiedBid: bid.tieMinimum - 1,
           minimumBid: bid.tieMinimum,
+          playerOpeningBid: bid.amount,
+          orionOpeningBid: bid.rivalBid,
+          initialLeader:
+            bid.amount > bid.rivalBid
+              ? 'player'
+              : bid.amount < bid.rivalBid
+                ? 'orion'
+                : null,
         }
       : null,
   }
@@ -1662,9 +1673,20 @@ export function beginLandTieBreak(
 ): GameState {
   const bid = currentState.pendingLandBid
 
-  if (!bid || bid.amount !== bid.rivalBid) {
+  if (!bid || bid.tieWinner) {
     return currentState
   }
+
+  const startingBid = Math.max(
+    bid.amount,
+    bid.rivalBid,
+  )
+  const initialLeader: LandTieBidder | null =
+    bid.amount > bid.rivalBid
+      ? 'player'
+      : bid.amount < bid.rivalBid
+        ? 'orion'
+        : null
 
   return {
     ...currentState,
@@ -1674,8 +1696,11 @@ export function beginLandTieBreak(
     pendingLandBid: null,
     landAuctionTie: {
       tileId: bid.tileId,
-      tiedBid: bid.amount,
-      minimumBid: bid.amount + 1,
+      tiedBid: startingBid,
+      minimumBid: startingBid + 1,
+      playerOpeningBid: bid.amount,
+      orionOpeningBid: bid.rivalBid,
+      initialLeader,
     },
   }
 }
@@ -1693,7 +1718,10 @@ export function raiseLandTieBid(
     bidder === 'player'
       ? currentBids.orionBid
       : currentBids.playerBid
-  const nextBid = ownBid + 1
+  const nextBid = Math.max(
+    ownBid + 1,
+    opposingBid + 1,
+  )
 
   if (nextBid > creditLimit) {
     return currentBids
@@ -1779,10 +1807,19 @@ export function resolveLandTieBreak(
     }
   }
 
+  const playerMinimumWinningBid =
+    tie.initialLeader === 'player'
+      ? tie.tiedBid
+      : tie.minimumBid
+  const orionMinimumWinningBid =
+    tie.initialLeader === 'orion'
+      ? tie.tiedBid
+      : tie.minimumBid
+
   if (
     bids.leader === 'player' &&
     (bids.playerBid < bids.orionBid ||
-      bids.playerBid < tie.minimumBid ||
+      bids.playerBid < playerMinimumWinningBid ||
       currentState.credits < bids.playerBid)
   ) {
     return currentState
@@ -1791,7 +1828,7 @@ export function resolveLandTieBreak(
   if (
     bids.leader === 'orion' &&
     (bids.orionBid < bids.playerBid ||
-      bids.orionBid < tie.minimumBid)
+      bids.orionBid < orionMinimumWinningBid)
   ) {
     return currentState
   }
@@ -2102,10 +2139,6 @@ export function runRound(
             ? 'won'
             : landBid.tieWinner === 'orion'
               ? 'lost'
-              : landBid.amount > landBid.rivalBid
-            ? 'won'
-            : landBid.amount < landBid.rivalBid
-              ? 'lost'
               : 'tie',
       }
     : null
@@ -2168,8 +2201,23 @@ export function runRound(
     landAuctionTie: tiedLandAuction
       ? {
           tileId: landBid!.tileId,
-          tiedBid: landBid!.amount,
-          minimumBid: landBid!.amount + 1,
+          tiedBid: Math.max(
+            landBid!.amount,
+            landBid!.rivalBid,
+          ),
+          minimumBid:
+            Math.max(
+              landBid!.amount,
+              landBid!.rivalBid,
+            ) + 1,
+          playerOpeningBid: landBid!.amount,
+          orionOpeningBid: landBid!.rivalBid,
+          initialLeader:
+            landBid!.amount > landBid!.rivalBid
+              ? 'player'
+              : landBid!.amount < landBid!.rivalBid
+                ? 'orion'
+                : null,
         }
       : null,
     harvestersInConstruction: 0,

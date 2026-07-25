@@ -3,7 +3,7 @@ export const de = {
   'app.status': 'Status',
   'app.round': 'Runde {{round}}',
   'app.marketRound': 'Markt · Runde {{round}}',
-  'app.tieAuctionRound': 'Stichauktion · Runde {{round}}',
+  'app.tieAuctionRound': 'Grundstücksauktion · Runde {{round}}',
   'app.leaderboardRound': 'Zwischenstand · Runde {{round}}',
   'app.finalResult': 'Endstand',
   'app.briefingRound': 'Rundenstart · Runde {{round}}',

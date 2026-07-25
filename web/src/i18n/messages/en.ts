@@ -5,7 +5,7 @@ export const en = {
   'app.status': 'Status',
   'app.round': 'Round {{round}}',
   'app.marketRound': 'Market · Round {{round}}',
-  'app.tieAuctionRound': 'Tie auction · Round {{round}}',
+  'app.tieAuctionRound': 'Land auction · Round {{round}}',
   'app.leaderboardRound': 'Standings · Round {{round}}',
   'app.finalResult': 'Final standings',
   'app.briefingRound': 'Round start · Round {{round}}',
