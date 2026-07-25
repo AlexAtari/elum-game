@@ -123,7 +123,7 @@ export type SimulationMarketSummary = {
 }
 
 export type HeadlessSimulationResult = {
-  mode: 'headless-economic-v4'
+  mode: 'headless-economic-v5'
   roundsPlayed: number
   marketIncluded: boolean
   history: SimulationRoundSnapshot[]
@@ -137,6 +137,7 @@ export type HeadlessSimulationResult = {
 export type HeadlessSimulationOptions = {
   rounds?: number
   includeMarket?: boolean
+  seed?: number
 }
 
 export type SimulationStartingLand = {
@@ -158,6 +159,7 @@ type SimulationMarketState = {
 type InternalSimulationState = {
   game: GameState
   agima: RivalColonyState
+  seed: number
   market: SimulationMarketState
   marketTransactions: SimulationMarketTransaction[]
   lastRoundMarketTransactions: SimulationMarketTransaction[]
@@ -170,6 +172,55 @@ const participantIds: SimulationParticipantId[] = [
   'nova',
   'vega',
 ]
+
+function normalizeSimulationSeed(
+  seed: number | undefined,
+): number {
+  if (!Number.isFinite(seed)) {
+    return 1
+  }
+
+  return Math.max(
+    1,
+    Math.abs(Math.trunc(seed ?? 1)),
+  )
+}
+
+function createSeededRandom(seed: number):
+  () => number {
+  let state = normalizeSimulationSeed(seed) >>> 0
+
+  return () => {
+    state =
+      (Math.imul(state, 1664525) + 1013904223) >>>
+      0
+
+    return state / 4294967296
+  }
+}
+
+function shuffleWithSeed<T>(
+  values: readonly T[],
+  seed: number,
+): T[] {
+  const result = [...values]
+  const random = createSeededRandom(seed)
+
+  for (
+    let index = result.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const swapIndex = Math.floor(
+      random() * (index + 1),
+    )
+    const value = result[index]
+    result[index] = result[swapIndex]
+    result[swapIndex] = value
+  }
+
+  return result
+}
 
 type WorkingMarketIntent = {
   participantId: SimulationParticipantId
@@ -275,19 +326,27 @@ function createSimulationMarketIntent(
 function getMarketParticipantOrder(
   round: number,
   resource: MarketResource,
+  seed: number,
 ): SimulationParticipantId[] {
   const resourceIndex =
     playableMarketResources.indexOf(resource)
+  const seededParticipants = shuffleWithSeed(
+    participantIds,
+    seed +
+      Math.max(1, round) * 31 +
+      Math.max(0, resourceIndex) * 101,
+  )
   const offset =
     (
       Math.max(1, round) -
       1 +
-      Math.max(0, resourceIndex)
+      Math.max(0, resourceIndex) +
+      seed
     ) % participantIds.length
 
   return [
-    ...participantIds.slice(offset),
-    ...participantIds.slice(0, offset),
+    ...seededParticipants.slice(offset),
+    ...seededParticipants.slice(0, offset),
   ]
 }
 
@@ -432,6 +491,7 @@ function clearSimulationResourceMarket(
   const order = getMarketParticipantOrder(
     round,
     resource,
+    state.seed,
   )
   const orderIndex = new Map(
     order.map((participantId, index) => [
@@ -870,11 +930,12 @@ function findDisjointStartingLand(
   return null
 }
 
-export function createBalancedSimulationStartingLand():
-  Record<
-    SimulationParticipantId,
-    SimulationStartingLand
-  > {
+export function createBalancedSimulationStartingLand(
+  seed: number = 1,
+): Record<
+  SimulationParticipantId,
+  SimulationStartingLand
+> {
   const candidateTiles = tiles.filter(
     (tile) =>
       tile.id !== 'HQ' &&
@@ -977,15 +1038,30 @@ export function createBalancedSimulationStartingLand():
     )
   })
 
-  const selected = solutions[0]
+  const normalizedSeed =
+    normalizeSimulationSeed(seed)
+  const candidateSolutionCount = Math.min(
+    12,
+    solutions.length,
+  )
+  const selected =
+    solutions[
+      normalizedSeed %
+        Math.max(1, candidateSolutionCount)
+    ]
   if (!selected) {
     throw new Error(
       'Keine vier gleichwertigen Startfeldpaare gefunden.',
     )
   }
 
+  const participantOrder = shuffleWithSeed(
+    participantIds,
+    normalizedSeed * 17,
+  )
+
   return Object.fromEntries(
-    participantIds.map((participantId, index) => [
+    participantOrder.map((participantId, index) => [
       participantId,
       selected[index],
     ]),
@@ -1288,12 +1364,13 @@ function collectRoundWarnings(
   return warnings
 }
 
-function createInitialSimulationState():
-  InternalSimulationState {
+function createInitialSimulationState(
+  seed: number,
+): InternalSimulationState {
   const baseGame =
     createPlayableInitialGameState()
   const startingLand =
-    createBalancedSimulationStartingLand()
+    createBalancedSimulationStartingLand(seed)
   const rivals: RivalColonies = {
     orion: applyStartingLand(
       baseGame.rivals.orion,
@@ -1342,6 +1419,7 @@ function createInitialSimulationState():
       game,
       startingLand.agima,
     ),
+    seed,
     market,
     marketTransactions: [],
     lastRoundMarketTransactions: [],
@@ -1419,7 +1497,10 @@ export function runHeadlessEconomicSimulation(
   )
   const includeMarket =
     options.includeMarket ?? true
-  let state = createInitialSimulationState()
+  const seed = normalizeSimulationSeed(
+    options.seed,
+  )
+  let state = createInitialSimulationState(seed)
   const history: SimulationRoundSnapshot[] = [
     createRoundSnapshot(0, state),
   ]
@@ -1459,7 +1540,7 @@ export function runHeadlessEconomicSimulation(
   )
 
   return {
-    mode: 'headless-economic-v4',
+    mode: 'headless-economic-v5',
     roundsPlayed,
     marketIncluded: includeMarket,
     history,

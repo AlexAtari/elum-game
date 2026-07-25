@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "simulate": "ELUM_SIMULATION_REPORT=1 vitest run src/simulationReport.test.ts"
+    "simulate": "ELUM_SIMULATION_REPORT=1 vitest run src/simulationReport.test.ts",
+    "simulate:batch": "ELUM_BATCH_REPORT=1 vitest run src/simulationBatchReport.test.ts"
   },
   "dependencies": {
     "react": "^19.2.7",

@@ -14,7 +14,7 @@ describe('Interne Wirtschaftssimulation', () => {
     const result = runHeadlessEconomicSimulation()
 
     expect(result.mode).toBe(
-      'headless-economic-v4',
+      'headless-economic-v5',
     )
     expect(result.roundsPlayed).toBe(
       GAME_ROUND_LIMIT,
@@ -65,6 +65,43 @@ describe('Interne Wirtschaftssimulation', () => {
         rounds: 6,
       }),
     )
+  })
+
+  it('bleibt mit demselben Seed vollständig reproduzierbar', () => {
+    const first = runHeadlessEconomicSimulation({
+      rounds: 8,
+      seed: 17,
+    })
+    const second = runHeadlessEconomicSimulation({
+      rounds: 8,
+      seed: 17,
+    })
+
+    expect(second).toEqual(first)
+  })
+
+  it('variiert faire Startfelder und Marktprioritäten per Seed', () => {
+    expect(
+      createBalancedSimulationStartingLand(1),
+    ).not.toEqual(
+      createBalancedSimulationStartingLand(2),
+    )
+
+    const signatures = new Set(
+      [1, 2, 3, 4, 5, 6].map((seed) =>
+        runHeadlessEconomicSimulation({
+          rounds: 8,
+          seed,
+        }).finalStandings
+          .map(
+            (participant) =>
+              `${participant.id}:${participant.wealth}`,
+          )
+          .join('|'),
+      ),
+    )
+
+    expect(signatures.size).toBeGreaterThan(1)
   })
 
   it('verändert den normalen Spielstart nicht', () => {
