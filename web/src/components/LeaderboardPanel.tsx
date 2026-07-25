@@ -4,7 +4,7 @@ import { useI18n } from '../i18n/I18nContext'
 import './LeaderboardPanel.css'
 
 const leaderboardRevealStepSeconds = 1
-const completeLeaderboardSeconds = 3
+const completeLeaderboardSeconds = 5
 
 type LeaderboardPanelProps = {
   roundPlayed: number
