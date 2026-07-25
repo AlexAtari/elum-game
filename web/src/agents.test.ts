@@ -311,4 +311,33 @@ describe('Wirtschaftsagenten', () => {
       quantity: 6,
     })
   })
+
+  it('balanciert Nova offensiv und Vega versorgungsorientiert', () => {
+    expect(
+      agentProfiles.nova.cashReserve,
+    ).toBeLessThan(
+      agentProfiles.orion.cashReserve,
+    )
+    expect(
+      agentProfiles.nova.harvesterBias,
+    ).toBeGreaterThan(
+      agentProfiles.orion.harvesterBias,
+    )
+    expect(
+      agentProfiles.nova.expansionBias,
+    ).toBeGreaterThan(
+      agentProfiles.vega.expansionBias,
+    )
+    expect(
+      agentProfiles.vega.reserveRounds,
+    ).toBeGreaterThanOrEqual(
+      agentProfiles.orion.reserveRounds,
+    )
+    expect(
+      agentProfiles.vega.productionWeights.energy,
+    ).toBeGreaterThanOrEqual(
+      agentProfiles.vega.productionWeights.food,
+    )
+  })
+
 })
