@@ -178,16 +178,32 @@ function LeaderboardPanel({
                     <small>{t('leaderboard.you')}</small>
                   )}
                 </div>
-                <strong role="cell">
+                <strong
+                  className="leaderboard-stat leaderboard-population"
+                  data-label={t('resource.population')}
+                  role="cell"
+                >
                   {number(entry.population)}
                 </strong>
-                <strong role="cell">
+                <strong
+                  className="leaderboard-stat leaderboard-credits"
+                  data-label={t('resource.credits')}
+                  role="cell"
+                >
                   {number(entry.credits)}
                 </strong>
-                <strong role="cell">
+                <strong
+                  className="leaderboard-stat leaderboard-resources"
+                  data-label={t('leaderboard.resources')}
+                  role="cell"
+                >
                   {number(entry.resources)}
                 </strong>
-                <strong role="cell">
+                <strong
+                  className="leaderboard-stat leaderboard-harvesters"
+                  data-label={t('leaderboard.harvesters')}
+                  role="cell"
+                >
                   {number(entry.harvesters)}
                 </strong>
                 <span

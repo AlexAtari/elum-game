@@ -521,6 +521,10 @@ function App() {
           activeMarket !== null || gameState.landAuctionTie !== null
             ? 'market-screen'
             : ''
+        } ${
+          showLeaderboard && lastReport
+            ? 'leaderboard-screen'
+            : ''
         }`}
       >
         <header className="game-header">

@@ -374,3 +374,15 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 760px) {
+  .game-screen.leaderboard-screen {
+    min-height: 100dvh;
+    padding: 8px;
+  }
+
+  .leaderboard-screen .game-header {
+    display: none;
+  }
+}
+

@@ -262,13 +262,129 @@
 
 @media (max-width: 760px) {
   .leaderboard-panel {
-    padding: 20px;
+    width: auto;
+    margin: 12px -12px 0;
+    padding: 18px 12px;
+    border-radius: 16px;
   }
 
   .leaderboard-heading,
   .leaderboard-footer {
     align-items: stretch;
     flex-direction: column;
+    gap: 14px;
+  }
+
+  .leaderboard-heading h2 {
+    font-size: clamp(1.55rem, 8vw, 2.15rem);
+  }
+
+  .leaderboard-heading > p {
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .leaderboard-scroll {
+    margin-top: 18px;
+    overflow-x: visible;
+  }
+
+  .leaderboard-table {
+    min-width: 0;
+  }
+
+  .leaderboard-header-row {
+    display: none;
+  }
+
+  .leaderboard-row:not(.leaderboard-header-row) {
+    grid-template-areas:
+      'rank colony'
+      'population credits'
+      'resources harvesters';
+    grid-template-columns: 52px minmax(0, 1fr);
+    min-height: 0;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+
+  .leaderboard-row > *:not(.leaderboard-population-bar) {
+    padding: 11px 12px;
+  }
+
+  .leaderboard-rank {
+    grid-area: rank;
+    align-self: stretch;
+    min-height: 58px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 1.3rem;
+  }
+
+  .leaderboard-crown {
+    position: absolute;
+    top: 8px;
+    right: 4px;
+    font-size: 0.82rem;
+    transform: rotate(8deg);
+  }
+
+  .leaderboard-colony {
+    grid-area: colony;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-width: 0;
+  }
+
+  .leaderboard-colony > span {
+    font-size: 1.3rem;
+  }
+
+  .leaderboard-colony > strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .leaderboard-colony small {
+    padding: 3px 7px;
+    font-size: 0.7rem;
+  }
+
+  .leaderboard-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 1rem;
+  }
+
+  .leaderboard-stat::before {
+    content: attr(data-label);
+    min-width: 0;
+    color: #8995aa;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .leaderboard-population {
+    grid-area: population;
+  }
+
+  .leaderboard-credits {
+    grid-area: credits;
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .leaderboard-resources {
+    grid-area: resources;
+  }
+
+  .leaderboard-harvesters {
+    grid-area: harvesters;
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
   }
 
   .leaderboard-countdown {
@@ -278,5 +394,270 @@
   .leaderboard-final-summary {
     align-items: stretch;
     flex-direction: column;
+    gap: 18px;
+    padding: 16px;
+  }
+
+  .leaderboard-restart-button {
+    width: 100%;
+    min-width: 0;
   }
 }
+
+@media (max-width: 390px) {
+  .leaderboard-panel {
+    margin-right: -16px;
+    margin-left: -16px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .leaderboard-row > *:not(.leaderboard-population-bar) {
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+
+  .leaderboard-colony {
+    gap: 7px;
+  }
+
+  .leaderboard-stat::before {
+    font-size: 0.68rem;
+  }
+}
+
+/*
+ * Mobile Vollbildansicht:
+ * Auf schmalen Displays wird die Rangliste so stark verdichtet,
+ * dass alle vier Kolonien samt Countdown ohne Seitenscrollen
+ * in den üblichen Smartphone-Viewport passen.
+ */
+@media (max-width: 760px) {
+  .leaderboard-screen .leaderboard-panel {
+    display: flex;
+    min-height: calc(100dvh - 16px);
+    margin: 0;
+    padding: 10px;
+    flex-direction: column;
+    border-radius: 14px;
+  }
+
+  .leaderboard-screen .leaderboard-heading {
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .leaderboard-screen .leaderboard-heading .eyebrow {
+    font-size: 0.68rem;
+  }
+
+  .leaderboard-screen .leaderboard-heading h2 {
+    margin: 2px 0 0;
+    font-size: clamp(1.3rem, 6vw, 1.75rem);
+    line-height: 1.05;
+  }
+
+  .leaderboard-screen .leaderboard-heading > p {
+    display: none;
+  }
+
+  .leaderboard-screen .leaderboard-scroll {
+    display: flex;
+    min-height: 0;
+    margin-top: 8px;
+    flex: 1 1 auto;
+    overflow: visible;
+  }
+
+  .leaderboard-screen .leaderboard-table {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    align-content: center;
+    gap: 6px;
+  }
+
+  .leaderboard-screen
+    .leaderboard-row:not(.leaderboard-header-row) {
+    display: grid;
+    min-height: 0;
+    margin-top: 0;
+    grid-template-areas:
+      'rank colony colony colony colony'
+      'rank population credits resources harvesters';
+    grid-template-columns:
+      38px
+      repeat(4, minmax(0, 1fr));
+  }
+
+  .leaderboard-screen
+    .leaderboard-row
+    > *:not(.leaderboard-population-bar) {
+    padding: 5px 6px;
+  }
+
+  .leaderboard-screen .leaderboard-rank {
+    min-height: 0;
+    padding: 6px 3px !important;
+    font-size: 1.1rem;
+  }
+
+  .leaderboard-screen .leaderboard-crown {
+    top: 3px;
+    right: 1px;
+    font-size: 0.65rem;
+  }
+
+  .leaderboard-screen .leaderboard-colony {
+    min-height: 27px;
+    padding: 5px 7px !important;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .leaderboard-screen .leaderboard-colony > span {
+    font-size: 1rem;
+  }
+
+  .leaderboard-screen .leaderboard-colony > strong {
+    font-size: 0.8rem;
+    line-height: 1.1;
+  }
+
+  .leaderboard-screen .leaderboard-colony small {
+    padding: 2px 5px;
+    font-size: 0.56rem;
+  }
+
+  .leaderboard-screen .leaderboard-stat {
+    min-height: 28px;
+    padding: 4px 2px !important;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
+    font-size: 0.82rem;
+    line-height: 1;
+  }
+
+  .leaderboard-screen .leaderboard-stat::before {
+    display: block;
+    content: '';
+    overflow: visible;
+    color: #8995aa;
+    font-size: 0.68rem;
+    line-height: 1;
+    text-overflow: clip;
+  }
+
+  .leaderboard-screen .leaderboard-population::before {
+    content: '👥';
+  }
+
+  .leaderboard-screen .leaderboard-credits::before {
+    content: '💰';
+  }
+
+  .leaderboard-screen .leaderboard-resources::before {
+    content: '📦';
+  }
+
+  .leaderboard-screen .leaderboard-harvesters::before {
+    content: '🚜';
+  }
+
+  .leaderboard-screen .leaderboard-footer {
+    display: block;
+    margin-top: 8px;
+    flex: 0 0 auto;
+  }
+
+  .leaderboard-screen .leaderboard-footer > p {
+    display: none;
+  }
+
+  .leaderboard-screen .leaderboard-countdown {
+    width: 100%;
+    padding: 6px 9px;
+  }
+
+  .leaderboard-screen
+    .leaderboard-countdown
+    > div:first-child {
+    font-size: 0.72rem;
+  }
+
+  .leaderboard-screen .leaderboard-countdown strong {
+    font-size: 0.9rem;
+  }
+
+  .leaderboard-screen .leaderboard-countdown-track {
+    height: 4px;
+    margin-top: 5px;
+  }
+
+  .leaderboard-screen .leaderboard-final-summary {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .leaderboard-screen
+    .leaderboard-final-summary
+    > div
+    > strong {
+    font-size: 1rem;
+  }
+
+  .leaderboard-screen .leaderboard-final-summary p,
+  .leaderboard-screen .leaderboard-final-summary small {
+    font-size: 0.72rem;
+  }
+
+  .leaderboard-screen .leaderboard-restart-button {
+    min-height: 38px;
+    padding: 9px 12px;
+  }
+}
+
+@media (max-width: 760px) and (max-height: 620px) {
+  .leaderboard-screen .leaderboard-panel {
+    padding: 6px 8px;
+  }
+
+  .leaderboard-screen .leaderboard-heading .eyebrow {
+    display: none;
+  }
+
+  .leaderboard-screen .leaderboard-heading h2 {
+    font-size: 1.2rem;
+  }
+
+  .leaderboard-screen .leaderboard-scroll {
+    margin-top: 4px;
+  }
+
+  .leaderboard-screen .leaderboard-table {
+    gap: 4px;
+  }
+
+  .leaderboard-screen
+    .leaderboard-row:not(.leaderboard-header-row) {
+    grid-template-columns:
+      34px
+      repeat(4, minmax(0, 1fr));
+  }
+
+  .leaderboard-screen .leaderboard-colony {
+    min-height: 23px;
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+  }
+
+  .leaderboard-screen .leaderboard-stat {
+    min-height: 24px;
+  }
+
+  .leaderboard-screen .leaderboard-footer {
+    margin-top: 4px;
+  }
+}
+
