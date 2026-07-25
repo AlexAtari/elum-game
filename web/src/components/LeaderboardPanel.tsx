@@ -112,7 +112,90 @@ function LeaderboardPanel({
         <p>{t('leaderboard.criteria')}</p>
       </div>
 
-      <div className="leaderboard-scroll">
+      <div
+        className="leaderboard-mobile-list"
+        role="list"
+        aria-label={t('leaderboard.title')}
+      >
+        {entries.map((entry, index) => {
+          const entryIsVisible =
+            index >= entries.length - visibleEntries
+
+          return (
+            <article
+              className={`leaderboard-mobile-card ${
+                entry.isPlayer
+                  ? 'leaderboard-mobile-player-card'
+                  : ''
+              } ${
+                index === 0
+                  ? 'leaderboard-mobile-winner-card'
+                  : ''
+              } ${
+                entryIsVisible
+                  ? 'leaderboard-mobile-card-visible'
+                  : 'leaderboard-mobile-card-hidden'
+              }`}
+              key={`mobile-${entry.id}`}
+              role="listitem"
+              aria-hidden={!entryIsVisible}
+            >
+              <div className="leaderboard-mobile-card-top">
+                <strong className="leaderboard-mobile-rank">
+                  <span>{index + 1}.</span>
+                  {index === 0 && (
+                    <span
+                      className="leaderboard-mobile-crown"
+                      aria-label={t('leaderboard.firstPlace')}
+                    >
+                      👑
+                    </span>
+                  )}
+                </strong>
+
+                <div className="leaderboard-mobile-colony">
+                  <span aria-hidden="true">{entry.icon}</span>
+                  <strong>{entry.name}</strong>
+                  {entry.isPlayer && (
+                    <small>{t('leaderboard.you')}</small>
+                  )}
+                </div>
+              </div>
+
+              <div className="leaderboard-mobile-stats">
+                <div>
+                  <span>👥 {t('resource.population')}</span>
+                  <strong>{number(entry.population)}</strong>
+                </div>
+                <div>
+                  <span>💰 {t('resource.credits')}</span>
+                  <strong>{number(entry.credits)}</strong>
+                </div>
+                <div>
+                  <span>📦 {t('leaderboard.resources')}</span>
+                  <strong>{number(entry.resources)}</strong>
+                </div>
+                <div>
+                  <span>🚜 {t('leaderboard.harvesters')}</span>
+                  <strong>{number(entry.harvesters)}</strong>
+                </div>
+              </div>
+
+              <span
+                className="leaderboard-mobile-population-bar"
+                style={{
+                  width: `${
+                    (entry.population / highestPopulation) * 100
+                  }%`,
+                }}
+                aria-hidden="true"
+              />
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="leaderboard-scroll leaderboard-desktop-scroll">
         <div className="leaderboard-table" role="table">
           <div
             className="leaderboard-row leaderboard-header-row"

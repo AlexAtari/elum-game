@@ -661,3 +661,221 @@
   }
 }
 
+/* Separate mobile leaderboard cards. */
+.leaderboard-mobile-list {
+  display: none;
+}
+
+@keyframes leaderboard-mobile-card-fly-in {
+  0% {
+    opacity: 0;
+    transform: translateX(105vw) rotate(2deg) scale(0.96);
+  }
+
+  72% {
+    opacity: 1;
+    transform: translateX(-10px) rotate(-0.4deg) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotate(0) scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .leaderboard-panel {
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .leaderboard-desktop-scroll {
+    display: none !important;
+  }
+
+  .leaderboard-mobile-list {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 16px;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .leaderboard-mobile-card {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    box-sizing: border-box;
+  }
+
+  .leaderboard-mobile-card-hidden {
+    display: none;
+  }
+
+  .leaderboard-mobile-card-visible {
+    display: block;
+    animation:
+      leaderboard-mobile-card-fly-in
+      560ms
+      cubic-bezier(0.18, 0.82, 0.25, 1)
+      both;
+  }
+
+  .leaderboard-mobile-player-card {
+    border-color: rgba(121, 221, 185, 0.48);
+    background: rgba(121, 221, 185, 0.1);
+  }
+
+  .leaderboard-mobile-winner-card {
+    box-shadow: 0 0 26px rgba(240, 201, 109, 0.1);
+  }
+
+  .leaderboard-mobile-card-top {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    min-width: 0;
+  }
+
+  .leaderboard-mobile-rank {
+    position: relative;
+    display: flex;
+    min-height: 52px;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f0c96d;
+    font-size: 1.25rem;
+  }
+
+  .leaderboard-mobile-crown {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    font-size: 0.72rem;
+    transform: rotate(8deg);
+  }
+
+  .leaderboard-mobile-colony {
+    display: grid;
+    min-width: 0;
+    padding: 10px 12px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .leaderboard-mobile-colony > span {
+    font-size: 1.35rem;
+  }
+
+  .leaderboard-mobile-colony > strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 0.95rem;
+  }
+
+  .leaderboard-mobile-colony small {
+    padding: 3px 7px;
+    border-radius: 999px;
+    color: #07110d;
+    background: #79ddb9;
+    font-size: 0.68rem;
+    font-weight: 800;
+  }
+
+  .leaderboard-mobile-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .leaderboard-mobile-stats > div {
+    display: flex;
+    min-width: 0;
+    padding: 8px 10px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .leaderboard-mobile-stats > div:nth-child(even) {
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .leaderboard-mobile-stats > div:nth-child(n + 3) {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .leaderboard-mobile-stats span {
+    min-width: 0;
+    overflow: hidden;
+    color: #8995aa;
+    text-overflow: ellipsis;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .leaderboard-mobile-stats strong {
+    flex: 0 0 auto;
+    font-size: 0.92rem;
+  }
+
+  .leaderboard-mobile-population-bar {
+    display: block;
+    height: 4px;
+    background: linear-gradient(90deg, #79ddb9, #f0c96d);
+    transition: width 350ms ease;
+  }
+}
+
+@media (max-width: 390px) {
+  .leaderboard-mobile-list {
+    gap: 8px;
+  }
+
+  .leaderboard-mobile-card-top {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .leaderboard-mobile-rank {
+    min-height: 46px;
+    font-size: 1.1rem;
+  }
+
+  .leaderboard-mobile-colony {
+    padding: 8px 9px;
+    gap: 6px;
+  }
+
+  .leaderboard-mobile-colony > span {
+    font-size: 1.15rem;
+  }
+
+  .leaderboard-mobile-colony > strong {
+    font-size: 0.86rem;
+  }
+
+  .leaderboard-mobile-stats > div {
+    padding: 7px 8px;
+  }
+
+  .leaderboard-mobile-stats span {
+    font-size: 0.67rem;
+  }
+
+  .leaderboard-mobile-stats strong {
+    font-size: 0.86rem;
+  }
+}
+
