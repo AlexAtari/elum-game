@@ -683,7 +683,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1000px), (hover: none) and (pointer: coarse) {
   .leaderboard-panel {
     width: 100%;
     max-width: 100%;
