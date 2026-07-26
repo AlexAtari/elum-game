@@ -4,7 +4,7 @@ import { useI18n } from '../i18n/I18nContext'
 import './LeaderboardPanel.css'
 
 const leaderboardRevealStepSeconds = 1
-const completeLeaderboardSeconds = 5
+const completeLeaderboardSeconds = 8
 
 type LeaderboardPanelProps = {
   roundPlayed: number
@@ -380,6 +380,18 @@ function LeaderboardPanel({
                 />
               </div>
             </div>
+
+            {leaderboardComplete && (
+              <button
+                type="button"
+                className="leaderboard-continue-button"
+                onClick={onContinue}
+              >
+                {t('leaderboard.nextRound', {
+                  round: nextRound,
+                })}
+              </button>
+            )}
           </>
         )}
       </div>

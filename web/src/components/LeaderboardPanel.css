@@ -669,12 +669,12 @@
 @keyframes leaderboard-mobile-card-fly-in {
   0% {
     opacity: 0;
-    transform: translateX(34px) scale(0.985);
+    transform: translateX(30px) scale(0.99);
   }
 
-  70% {
+  76% {
     opacity: 1;
-    transform: translateX(-3px) scale(1.003);
+    transform: translateX(-2px) scale(1.001);
   }
 
   100% {
@@ -730,7 +730,7 @@
     opacity: 1;
     animation:
       leaderboard-mobile-card-fly-in
-      820ms
+      950ms
       cubic-bezier(0.18, 0.82, 0.25, 1)
       both;
   }
@@ -887,3 +887,40 @@
   }
 }
 
+/* Fixed mobile leaderboard slots V8. */
+@media (max-width: 1000px), (hover: none) and (pointer: coarse) {
+  .leaderboard-mobile-list {
+    display: grid;
+    grid-template-rows: repeat(4, auto);
+    align-content: start;
+  }
+
+  .leaderboard-mobile-card {
+    min-width: 0;
+    contain: layout paint;
+    will-change: opacity, transform;
+  }
+
+  .leaderboard-continue-button {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 14px;
+    padding: 11px 18px;
+    border: 0;
+    border-radius: 999px;
+    color: #07110d;
+    background: #79ddb9;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .leaderboard-continue-button:hover {
+    background: #91e8c9;
+  }
+
+  .leaderboard-continue-button:focus-visible {
+    outline: 3px solid rgba(121, 221, 185, 0.45);
+    outline-offset: 3px;
+  }
+}
