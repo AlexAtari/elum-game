@@ -77,17 +77,26 @@ Alle Spieler planen gleichzeitig und verdeckt:
 
 ## 3. Grundstücksauktionen
 
-- Alle Gebote werden gleichzeitig aufgedeckt.
-- Der Höchstbietende gewinnt.
-- Gleichstände werden unmittelbar in einer grafischen Stichauktion entschieden. Eine fünfsekündige Ankündigung nennt vorher das Feld, die Beteiligten und den Startpreis.
-- Der Startpreis beträgt das bisherige Gleichstandsgebot plus einen Credit. Nach dem Countdown läuft die eigentliche Auktion zehn Sekunden.
-- Die beteiligten Spieler starten unterhalb des Preisbalkens. Der erste Schritt nach oben aktiviert das Mindestgebot; weitere Schritte verändern das Gebot in Ein-Credit-Schritten.
-- Der zuerst erreichte Preis führt. Das bloße Erreichen desselben Preises übernimmt die Führung nicht; dafür ist ein um einen Credit höheres Gebot nötig.
-- Der Führende darf den Balken wieder nach unten ziehen. Er bleibt am Gebot des nächsten Spielers hängen, der dadurch die Führung übernimmt. Am Startpreis bleibt ein bereits aktiviertes Mindestgebot bestehen.
-- Der aktuell führende Spieler blinkt beziehungsweise pulsiert deutlich.
-- Gebote sind durch die verfügbaren Credits begrenzt. Aktiviert niemand den Startpreis, bleibt das Feld frei.
-
-Das Grundstück wird erst zu Beginn der nächsten Runde übertragen.
+- Alle verdeckten Gebote werden gleichzeitig aufgedeckt.
+- Gibt es für ein Grundstück nur einen Bieter, erhält er das Feld
+  zu seinem Gebot.
+- Treffen mindestens zwei Gebote auf dasselbe Grundstück, findet
+  immer eine grafische Grundstücksauktion statt.
+- Der Startpreis ist das höchste ursprüngliche verdeckte Gebot.
+- Der Teilnehmer mit dem allein höchsten Startgebot beginnt als
+  Führender.
+- Erfolgt kein höheres Gebot, gewinnt der anfängliche Führende
+  zum Startpreis.
+- Bei identischen höchsten Startgeboten gibt es zunächst keinen
+  Führenden. Das erste gültige Übergebot eröffnet die
+  Stichentscheidung.
+- Ein Teilnehmer übernimmt die Führung nur mit einem höheren
+  Gebot. Gleichziehen reicht nicht.
+- Gebote dürfen die verfügbaren Credits nicht überschreiten.
+- Die Auktion wird vorher angekündigt und läuft anschließend als
+  sichtbare Echtzeitphase.
+- Das Grundstück wird nach der Auflösung im regulären
+  Rundenübergang übertragen.
 
 ## 4. Freiwillige Ressourcenauktionen
 
@@ -221,9 +230,24 @@ Neue Grundstücke können ausschließlich ersteigert werden, wenn sie an mindest
 
 Freie Grundstücke werden über eine verdeckte Auktion vergeben.
 
-Bei identischen Höchstgeboten findet nach einer fünfsekündigen Ankündigung eine grafische Stichauktion zwischen den beteiligten Spielern statt. Der Startpreis liegt einen Credit über dem Gleichstandsgebot. Alle Beteiligten stehen zunächst darunter und können den gemeinsamen Bestgebotsbalken in Ein-Credit-Schritten nach oben schieben oder wieder zurückziehen. Wer einen Preis zuerst erreicht, behält bei einem späteren Gleichstand die Führung. Zieht sich der Führende bis zu einem wartenden Spieler zurück, bleibt der Balken dort hängen und die Führung wechselt. Der Führende wird durch einen Blinkeffekt hervorgehoben. Nach zehn Sekunden gewinnt er zu seinem angezeigten Gebot; ohne aktiviertes Mindestgebot bleibt das Feld frei.
+<!-- STAGE25_CURRENT_LAND_RULE -->
+Treffen mindestens zwei Gebote auf dasselbe freie Grundstück,
+wird es in einer grafischen Grundstücksauktion entschieden.
+Der Startpreis ist das höchste zuvor verdeckt abgegebene Gebot.
 
-Die Gewinner erhalten das Grundstück zu Beginn der nächsten Runde.
+Der Teilnehmer mit dem allein höchsten Startgebot beginnt als
+Führender. Erfolgt kein höheres Gebot, gewinnt er das Grundstück
+zu diesem Startpreis. Bei identischen höchsten Startgeboten gibt
+es zunächst keinen Führenden; die bisherige Stichentscheidung
+beginnt oberhalb des gemeinsamen Startgebots.
+
+Ein neues Gebot muss das aktuell führende Gebot übertreffen.
+Das bloße Gleichziehen übernimmt die Führung nicht. Gebote sind
+durch die verfügbaren Credits begrenzt. Nach Ablauf der Auktion
+erhält der Führende das Grundstück zu seinem angezeigten Gebot.
+Bei einem anfänglichen Gleichstand ohne aktiviertes Übergebot
+bleibt das Grundstück frei. Die Übertragung erfolgt zu Beginn
+der nächsten Runde.
 
 ---
 

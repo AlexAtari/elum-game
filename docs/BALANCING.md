@@ -63,19 +63,41 @@ Grundsatz:
 
 Für Version 0.1 können Grundstücke nicht verkauft werden.
 
-## Grundstücks-Stichauktion
+## Grundstücksauktion
 
-| Parameter | Vorläufiger Wert |
-|---|---:|
-| Ankündigungszeit | 5 Sekunden |
-| Dauer | 10 Sekunden |
-| Gebotsschritt | 1 Credit |
-| Eingabesperre zwischen Schritten | 0,3 Sekunden |
-| Orions Schrittintervall | 1,1 Sekunden |
+### Auslöser
 
-Bei identischen verdeckten Höchstgeboten werden die reservierten Credits zunächst wieder freigegeben. Der Startpreis der Stichauktion beträgt Gleichstandsgebot plus einen Credit. In der grafischen Stichauktion darf kein Teilnehmer oberhalb seiner verfügbaren Credits bieten. Wer einen Preis zuerst erreicht, bleibt bei einem anschließenden Gleichstand in Führung; die Führung wechselt erst bei einem höheren Gebot oder wenn der Führende seinen Balken bewusst bis zu einem wartenden Spieler zurückzieht. Ein abgegebenes Gebot kann nicht unter den Startpreis gesenkt werden. Der Führende wird durch einen pulsierenden Blinkeffekt sichtbar gemacht. Aktiviert niemand den Startpreis, bleibt das Feld frei. Der Gewinner bezahlt sein tatsächliches Schlussgebot.
+- Ein einzelner Bieter gewinnt ohne zusätzliche Echtzeitauktion.
+- Bei mindestens zwei Geboten auf dasselbe Grundstück startet
+  immer die grafische Auktion, unabhängig von der Differenz der
+  verdeckten Gebote.
 
----
+### Startzustand
+
+- Startpreis: höchstes verdecktes Gebot
+- Mindestpreis für ein Übergebot: Startpreis plus 1 Credit
+- alleiniger Höchstbietender: beginnt als Führender
+- identisches Höchstgebot: kein anfänglicher Führender
+
+### Auflösung
+
+- Ohne Übergebot gewinnt ein anfänglicher Führender zum
+  Startpreis.
+- Bei anfänglichem Gleichstand muss ein Beteiligter ein gültiges
+  Übergebot aktivieren.
+- Ein gleich hohes Gebot ändert die Führung nicht.
+- Siegerpreis ist das am Ende geführte Gebot.
+- Der Spieler kann niemals über seine verfügbaren Credits bieten.
+- Ein unterlegenes reserviertes Spielergebot wird vollständig
+  erstattet.
+
+### Aktuelle Zeiten
+
+- Ankündigung: 5 Sekunden
+- Auktion: 10 Sekunden
+
+Die Zeiten sind Playtest-Werte und können verändert werden,
+ohne die Auflösungsregel zu ändern.
 
 # 5. Produktion
 
