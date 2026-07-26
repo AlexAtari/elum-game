@@ -924,3 +924,118 @@
     outline-offset: 3px;
   }
 }
+
+/* Absolute mobile leaderboard slots V9. */
+@media (max-width: 1000px), (hover: none) and (pointer: coarse) {
+  /*
+   * Die Karten sind absolut auf vier festen Positionen verankert.
+   * Sichtbarkeitsänderungen können dadurch keine andere Karte
+   * mehr nach oben oder unten verschieben.
+   */
+  .leaderboard-mobile-list {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    height: 510px;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .leaderboard-mobile-card {
+    position: absolute !important;
+    right: 0 !important;
+    left: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 120px;
+    min-height: 120px !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    transition: none !important;
+    will-change: opacity, transform;
+  }
+
+  .leaderboard-mobile-card:nth-child(1) {
+    top: 0 !important;
+  }
+
+  .leaderboard-mobile-card:nth-child(2) {
+    top: 130px !important;
+  }
+
+  .leaderboard-mobile-card:nth-child(3) {
+    top: 260px !important;
+  }
+
+  .leaderboard-mobile-card:nth-child(4) {
+    top: 390px !important;
+  }
+
+  .leaderboard-mobile-card-hidden {
+    display: block !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .leaderboard-mobile-card-visible {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1;
+  }
+
+  /*
+   * Nur opacity und transform werden animiert.
+   * top, Höhe und Reihenfolge bleiben unverändert.
+   */
+  @keyframes leaderboard-mobile-card-fly-in {
+    0% {
+      opacity: 0;
+      transform: translateX(36px) scale(0.992);
+    }
+
+    78% {
+      opacity: 1;
+      transform: translateX(-2px) scale(1.001);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+}
+
+@media (max-width: 390px) {
+  .leaderboard-mobile-list {
+    height: 466px;
+  }
+
+  .leaderboard-mobile-card {
+    height: 110px;
+    min-height: 110px !important;
+  }
+
+  .leaderboard-mobile-card:nth-child(1) {
+    top: 0 !important;
+  }
+
+  .leaderboard-mobile-card:nth-child(2) {
+    top: 118px !important;
+  }
+
+  .leaderboard-mobile-card:nth-child(3) {
+    top: 236px !important;
+  }
+
+  .leaderboard-mobile-card:nth-child(4) {
+    top: 354px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaderboard-mobile-card-visible {
+    animation-duration: 1ms !important;
+  }
+}
+
