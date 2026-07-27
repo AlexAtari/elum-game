@@ -108,3 +108,34 @@ Nach UI- und Dokumentationsarbeiten:
 
 Diese Punkte stehen unter Vorbehalt und dürfen den kleinen,
 vollständigen Kern von Version 1 nicht unnötig vergrößern.
+
+<!-- ELUM-PLANET-STATUS:BEGIN -->
+## Beschlossenes Zielbild – noch nicht implementiert
+
+- 20 Runden mit sichtbarem Countdown bis zum Versorgungsschiff
+- 92 Kartenfelder: ein HQ und 91 Grundstücke
+- 80 Hexagone und zwölf Pentagone
+- vier radiale Startkorridore mit je zwei kristallfreien Feldern
+- Kartenregeln über Feld-IDs, Nachbarlisten und Graphdistanzen
+- zunächst flache Darstellung
+- vier natürliche Kristalladern
+- interstellarer Käufer als zusätzlicher Kristallmarktteilnehmer
+- regelmäßige Hochsicherheits-Kristalltransporter
+- zwei garantierte und ein möglicher dritter Meteorit
+- unregelmäßige, konfigurierbare Meteor-Krater
+- Bewertung nicht verkaufter Kristalle zum letzten gültigen Kurs
+
+Der Browserprototyp bleibt bis zur schrittweisen Umstellung bei
+15 Runden und 60 Grundstücken.
+
+Nächste technische Reihenfolge:
+
+1. Kartenmodell von der Darstellung lösen.
+2. 92-Felder-Graph mit Tests einführen.
+3. Startpositionen und Zonen validieren.
+4. Kristalladern und Meteoriten ergänzen.
+5. interstellaren Käufer ergänzen.
+6. danach erneut simulieren und balancieren.
+
+Details: `docs/PLANET_MAP.md`.
+<!-- ELUM-PLANET-STATUS:END -->

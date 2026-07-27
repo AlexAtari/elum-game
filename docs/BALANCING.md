@@ -24,10 +24,11 @@ Grundsatz:
 | Parameter | Startwert |
 |---|---:|
 | Spieler | 2–4 |
-| Runden | 15 |
-| Zielspielzeit | 20–30 Minuten |
+| Runden Standardmodus | 20 |
+| Zielspielzeit | zunächst 35–45 Minuten, neu zu messen |
+| möglicher Schnellmodus | 15 Runden, später festzulegen |
 | Aktionspunkte pro Runde | 3 |
-| Maximal ansparbare Aktionspunkte | 5 |
+| maximal ansparbare Aktionspunkte | 5 |
 | Aktionspunkte in Runde 1 | unbegrenzt |
 
 ---
@@ -301,34 +302,73 @@ Die Routine ist bewusst deterministisch, damit Playtests wiederholbar bleiben. C
 
 ---
 
-# 11. Kartenwerte
+# 11. Planet und Kartenwerte
 
-| Spieler | Kartenumfang |
+## Zielstruktur
+
+| Parameter | Zielwert |
 |---|---:|
-| 2 | 37 Hexfelder |
-| 3 | 49 Hexfelder |
-| 4 | 61 Hexfelder |
+| Kartenfelder insgesamt | 92 |
+| neutrales HQ | 1 |
+| erwerbbare Grundstücke | 91 |
+| Hexagone | 80 |
+| Pentagone | 12 |
+| Startgrundstücke je Spieler | 2 |
+| Grundstückserwerbe je Spieler und Runde | maximal 1 |
 
-Der aktuelle Kartenprototyp nutzt unabhängig von der noch simulierten
-Spielerzahl bereits die Vier-Spieler-Fläche mit 61 Feldern. Dadurch
-können Übersicht, Touch-Bedienung, Expansion und spätere
-Mehrspieler-Startsektoren früh getestet werden.
+Der aktuelle Prototyp verwendet weiterhin ein HQ und 60 Grundstücke.
+Die 92-Felder-Struktur ist beschlossen, aber noch nicht implementiert.
 
-Startregion:
+## Entfernungszonen
 
-- HQ plus vier sichtbare Nachbarfelder
-- mindestens ein gutes Nahrungsfeld
-- mindestens ein gutes Energiefeld
-- mindestens ein gutes Erzfeld
-- keine garantierten Kristalle
+| Bereich | vorläufige Zielgröße |
+|---|---:|
+| HQ und Startzone | 9 |
+| innere Koloniezone | ungefähr 18 |
+| Explorationszone | ungefähr 29 |
+| planetare Fernzone | ungefähr 36 |
 
-Expansion ist nur über Felder möglich, die an eigenes Land oder das HQ angrenzen.
+## Natürliche Kristalladern
+
+- vier natürliche 5-Sterne-Kerne,
+- bevorzugt in der Fernzone,
+- keine Kerne auf Pentagonen oder Startfeldern,
+- unregelmäßige Abstufung über vier, drei und zwei Sterne,
+- keine natürlichen 5-Sterne-Zufallsfelder außerhalb der Adern.
+
+## Interstellarer Kristallkäufer
+
+| Parameter | erste Simulationsbasis |
+|---|---:|
+| Startkapazität | 1 Einheit |
+| Wachstumsstufe bis ungefähr Runde 4 | +1 |
+| Wachstumsstufe ab ungefähr Runde 5 | +2 |
+| Wachstumsstufe ab ungefähr Runde 10 | +3 |
+| Wachstumsstufe ab ungefähr Runde 15 | +4 |
+| Obergrenze | offen |
+| Einstiegspreis | offen |
+| Preisreaktion | offen |
+
+Zu vergleichen sind eine ungebremste, eine gedeckelte und eine
+angebotsabhängige Variante.
+
+## Meteorparameter
+
+| Parameter | klein | Standard | groß |
+|---|---:|---:|---:|
+| Zentrum-Aufwertung | +3 | +3 | +3 |
+| direkte +2-Felder | 3 | 4 | 5 |
+| äußere +1-Felder | 4 | 6 | 8 |
+| maximale Entfernung | 2 | 2 | 2 |
+| maximaler Feldwert | 5 | 5 | 5 |
+
+Erste optionale Testverteilung der Kratergrößen: 25/60/15.
 
 ---
 
 # 12. Spielende
 
-Die Standardpartie endet nach **15 vollständig abgerechneten
+Die Standardpartie endet nach **20 vollständig abgerechneten
 Runden**.
 
 Die Rangfolge wird lexikografisch ermittelt:
@@ -338,8 +378,8 @@ Die Rangfolge wird lexikografisch ermittelt:
 3. höhere Summe aller gelagerten Ressourcen
 4. mehr Harvester
 
-Die Rangliste nach Runde 15 ist die Abschlussrangliste. Danach beginnt
-keine Runde 16.
+Nicht verkaufte Kristalle werden zum zuletzt gültigen Kurs bewertet.
+Nach Runde 20 beginnt keine Runde 21.
 
 ---
 
@@ -350,33 +390,27 @@ keine Runde 16.
 - Wächst die Bevölkerung zu schnell?
 - Sind Kristalle zu mächtig?
 - Werden neue Harvester früh genug gebaut?
-- Sind drei Aktionspunkte ausreichend?
-- Ist das Versetzen eines Harvesters mit zwei AP zu teuer?
-- Ist eine Energie für Umrüstung und Einrichtung angemessen?
-- Ist die aufgerundete Produktion von 50 % während der Umrüstung zu hoch oder zu niedrig?
-- Ist eine vollständige Ausfallrunde nach einer Versetzung angemessen?
-- Werden Grundstücke regelmäßig gekauft?
 - Entstehen mehrere sinnvolle Strategien?
-- Bleibt eine Partie innerhalb von 20–30 Minuten?
+- Welche reale Spielzeit erreicht die 20-Runden-Partie?
+- Wie viele Grundstücke besitzt eine Kolonie nach 20 Runden?
+- Sind die vier Startkorridore statistisch gleichwertig?
+- Stabilisiert der interstellare Käufer den Preis, ohne Überangebot
+  folgenlos zu machen?
+- Sind Meteoriten stark genug für Konflikte, aber nicht
+  spielentscheidend?
+- Wie groß müssen innere, Explorations- und Fernzone sein?
 
 ---
 
 # 14. Noch nicht festgelegt
 
-- genaue Kartenverteilung
-- Wahrscheinlichkeit von Kristallvorkommen
-- Häufigkeit und Stärke von Ereignissen
-- Globale Ereignisse: vorläufig 40 % pro Runde ab Runde 2
-- Lokale Ereignisse: vorläufig 50 % pro Runde ab Runde 2, ohne
-  Sperrrunde; aufeinanderfolgende Ereignisse sind ausdrücklich erlaubt
-- Je Ereignispool 15 Einträge: sechs positive und neun negative
-- Zahlenwirkungen verdoppeln sich nach jeweils sechs Runden:
-  Runde 1–6 ×1, 7–12 ×2, 13–18 ×4 und so weiter
-- Aktionssperren skalieren nicht und enden mit der Rundenabrechnung
-- Ressourcen und Credits fallen durch Ereignisse niemals unter null;
-  Harvester-Rabatte senken den Preis niemals unter null
-- Rundenbericht: bleibt bis zur Bestätigung sichtbar; lokale Einblendung nach
-  zwei bis sechs Sekunden und für sechs Sekunden sichtbar
+- konkrete Graphdatei und flache Darstellung der 92 Felder
+- genaue Zonengrenzen
+- Hintergrundverteilung der Kristallwerte
+- Mindestabstand und Größe natürlicher Kristalladern
+- Kapazitätskurve, Preis und Deckel des interstellaren Käufers
+- Wahrscheinlichkeit kleiner, mittlerer und großer Meteor-Krater
+- endgültige Häufigkeit und Stärke der übrigen Ereignisse
 - Kosten für beschädigte Harvester
 - endgültige Vermögensgewichtung
 - Koloniestufen und technologische Boni

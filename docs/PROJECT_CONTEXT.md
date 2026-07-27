@@ -212,3 +212,41 @@ Dieses Dokument wurde aus Commit `34cf55a` erzeugt. Es kann nach
 weiteren Commits veraltet sein. Darum immer Git und
 `docs/STATUS.md` prüfen, bevor daraus konkrete Aussagen abgeleitet
 werden.
+
+<!-- ELUM-PLANET-CONTEXT:BEGIN -->
+## Beschlossenes Zielbild vom 27.07.2026
+
+### Implementierter Prototyp
+
+- 15 Runden
+- flache Hexkarte mit HQ und 60 Grundstücken
+
+### Nächster Regelstand
+
+- 20 vollständig abgerechnete Runden
+- sichtbarer Countdown bis zum Versorgungsschiff
+- 92 Kartenfelder: ein HQ und 91 Grundstücke
+- zwölf Pentagone und 80 Hexagone
+- vier radiale Startkorridore mit je zwei kristallfreien Feldern
+- Kartenlogik über Nachbarlisten und Graphdistanzen
+- vier natürliche Kristalladern
+- interstellarer Käufer im Kristallmarkt
+- regelmäßige Hochsicherheits-Kristalltransporter
+- zwei garantierte und möglicherweise drei Meteoriten
+- Kugel erst als spätere Darstellung
+
+### Arbeitsreihenfolge
+
+1. Dokumentation
+2. Kartenmodell von Darstellung lösen
+3. 92-Felder-Graph
+4. Startpositionen und Zonen
+5. Kristalladern
+6. Meteoriten
+7. interstellarer Käufer
+8. Countdown
+9. Simulation
+10. später 3D-Kugel
+
+Verbindliche Details: `docs/PLANET_MAP.md`.
+<!-- ELUM-PLANET-CONTEXT:END -->

@@ -75,3 +75,13 @@ Am Ende nennen:
 - ausgeführte Prüfungen,
 - bekannte offene Punkte,
 - empfohlenen Commit-Text.
+
+<!-- ELUM-PLANET-AGENTS:BEGIN -->
+## Planetenkarten-Dokumentation
+
+Bei Arbeiten an Karte, Startpositionen, Kristalladern, Meteoriten oder
+Planetendarstellung ist zusätzlich `docs/PLANET_MAP.md` verbindlich.
+
+Der implementierte Stand steht in `docs/STATUS.md`. Ein dokumentiertes
+Zielbild darf nicht als bereits implementiert beschrieben werden.
+<!-- ELUM-PLANET-AGENTS:END -->

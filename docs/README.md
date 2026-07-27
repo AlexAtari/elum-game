@@ -68,3 +68,11 @@ Bei einer abgeschlossenen Entwicklungsstufe:
 3. geänderte Regeln in GDD oder Balancing nachziehen.
 4. bei einer Architekturänderung `ARCHITECTURE.md` aktualisieren.
 5. `PROJECT_CONTEXT.md` kurz und aktuell halten.
+
+<!-- ELUM-PLANET-README:BEGIN -->
+## Planetendokumentation
+
+Für das beschlossene Karten-, Kristall- und Meteor-Zielbild ist
+[`PLANET_MAP.md`](PLANET_MAP.md) nach `GDD.md` und vor den konkreten
+Balancingwerten zu lesen.
+<!-- ELUM-PLANET-README:END -->

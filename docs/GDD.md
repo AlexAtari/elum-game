@@ -37,7 +37,7 @@ Während der gesamten Entwicklung gelten folgende Grundsätze:
 
 # 3. Spielziel
 
-Eine Standardpartie dauert **15 Runden**.
+Eine Standardpartie dauert **20 Runden**.
 
 Nach der letzten Runde gewinnt der Spieler mit der **größten Bevölkerung**.
 
@@ -136,7 +136,7 @@ Abhängig von der Versorgung wächst die Bevölkerung, stagniert oder schrumpft.
 - Markt- und Lagerwerte werden aktualisiert.
 - Nach der Abrechnung wird eine gemeinsame Kolonie-Rangliste eingeblendet.
 - Prüfung auf Spielende.
-- Nach Runde 15 wird die Rangliste zur Abschlussrangliste. Sie nennt
+- Nach Runde 20 wird die Rangliste zur Abschlussrangliste. Sie nennt
   den Sieger und den eigenen Schlussrang; eine neue Partie kann von
   dort direkt gestartet werden.
 - In allen früheren Runden folgt der Bericht „Ereignisse & deine
@@ -148,61 +148,44 @@ Falls das Spiel nicht beendet ist, beginnt die nächste Runde.
 
 # 5. Spielkarte
 
-Die Karte besteht aus Hexfeldern.
+Das beschlossene Zielbild ist ein zusammenhängender Planetengraph mit
+**92 Kartenfeldern**:
 
-Im zentralen HQ- und Marktgebiet verwaltet jeder Spieler einen eigenen Koloniebereich mit eigener Bevölkerung, eigenem Lager und eigener Versorgung.
+- ein neutrales gemeinsames HQ,
+- 91 erwerbbare Grundstücke,
+- zwölf Pentagonfelder mit fünf Nachbarn,
+- 80 Hexagonfelder mit sechs Nachbarn.
 
-Eigenschaften:
+Das HQ liegt auf einem Hexagon. Alle Grundstücke sind wirtschaftlich
+gleich große Spieleinheiten.
 
-- zentrales HQ- und Marktgebiet in der Kartenmitte
-- technische Darstellung über axiale Hexkoordinaten
-- jeder Spieler startet mit zwei automatisch zugewiesenen Startgrundstücken
-- faire, symmetrisch erzeugte Startsektoren
-- leichte Zufallsvariationen innerhalb der einzelnen Sektoren
-- pro Partie zufällig generierte Karte
-- Nebel des Krieges
-- Expansion nur über angrenzende Grundstücke
-- Bodeneignung vor dem Kauf sichtbar
-- Besonderheiten nach dem Kauf sichtbar
+Die Kernregeln arbeiten langfristig über stabile Feld-IDs,
+Nachbarlisten und Graphdistanzen. Die Karte bleibt zunächst flach
+dargestellt; eine drehbare 3D-Kugel folgt später.
 
-Der Kartengenerator soll dafür sorgen, dass alle Spieler statistisch gleichwertige Startbedingungen erhalten.
+Jeder Spieler startet mit zwei zusammenhängenden Grundstücken:
 
-Der Kartenprototyp verwendet zunächst die Vier-Spieler-Größe mit
-einem HQ und 60 Grundstücken in vier vollständigen Hexringen. Die
-Karte liegt in einem verschieb- und zoombaren Ausschnitt. Mausziehen
-und Mausrad werden auf Desktop-Geräten unterstützt; auf Smartphones
-und Tablets gelten Ziehen und Zwei-Finger-Zoom. Feste Schaltflächen
-für Vergrößern, Verkleinern und Zentrieren bilden die barrierearme
-Alternative zu den Gesten. Auswahl und Detailansicht eines Feldes
-bleiben von der Kameraposition unabhängig.
+1. ein Grundstück direkt am HQ,
+2. ein angrenzendes Grundstück weiter vom HQ weg.
 
-Eine vorläufige, pro Feld erzeugte Geländeschicht orientiert sich an
-der jeweils stärksten Eignung: fruchtbare Vegetation steht für
-Nahrung, leuchtende Strukturen für Energie und felsige Flächen für
-Erz. Diese Schicht ist von Besitz-, Auswahl- und Hover-Konturen
-getrennt. Sie kann deshalb in einer späteren Grafikphase durch
-hochwertige Texturen oder Animationen ersetzt werden, ohne
-Kartenkoordinaten oder Spielregeln zu verändern.
+Alle acht Startgrundstücke sind kristallfrei, liegen nicht auf
+Pentagonen und werden ohne Auktion zugewiesen.
 
-Die Startfelder jedes Spielers sind bewusst so gestaltet, dass mehrere sinnvolle Eröffnungsstrategien möglich sind.
+Die Karte besitzt keinen regeltechnischen Außenrand. Regionen werden
+über die kürzeste Entfernung zum HQ eingeteilt. Strategisches
+Blockieren und Einschließen sind erlaubt.
 
-Mindestens ein Startfeld bietet sowohl gute Nahrungsvorkommen als auch gute Erzvorkommen, sodass der Spieler bereits in der ersten Runde zwischen sicherem Wachstum und schneller Expansion entscheiden muss.
+Die vollständige Spezifikation steht in
+[`PLANET_MAP.md`](PLANET_MAP.md).
 
 ## Kartendesign
 
-Die Spielkarte ist ein zentrales Balancing-Element.
+Konflikte und Expansion sollen primär durch Topologie, Entfernungen,
+Kristallverteilung und Engstellen entstehen.
 
-Anstatt zusätzliche Spielregeln einzuführen, werden Spielfluss und Konflikte primär über die Gestaltung der Karte beeinflusst.
-
-Dazu gehören beispielsweise:
-
-- Kartengröße
-- unpassierbare Gebiete
-- natürliche Engstellen
-- Ressourcenverteilung
-- Abstand der Startgebiete
-
-Ziel ist es, dass Spieler je nach Karte früher oder später aufeinander treffen, ohne künstliche Eingriffe in den Spielablauf.
+Der aktuelle Browserprototyp mit HQ und 60 Grundstücken bleibt bis zur
+schrittweisen Einführung des 92-Felder-Graphen der implementierte
+Stand. Diese Abweichung ist in `STATUS.md` dokumentiert.
 
 ---
 
@@ -372,11 +355,22 @@ Erz begrenzt gemeinsam mit Credits die Geschwindigkeit der Expansion.
 
 ---
 
-## Kristalle 💎
+## Kristalle
 
-- seltenste Ressource
-- höchste Verkaufspreise
-- wichtigste Einnahmequelle im späteren Spiel
+- seltenste Ressource,
+- höchste Verkaufspreise,
+- wichtige Einnahmequelle im späteren Spiel,
+- natürliche Vorkommen bilden unregelmäßige, lesbare Adern,
+- Kristallwerte bleiben bis zur Untersuchung verborgen.
+
+Kristalle werden im normalen Ressourcenmarkt gehandelt. Zusätzlich
+tritt ein interstellarer Käufer mit begrenzter und im Spielverlauf
+wachsender Kaufkapazität auf.
+
+Verkaufte Kristalle werden regelmäßig von spezialisierten
+Hochsicherheits-Transportern abgeholt. Diese Werttransporter sind
+unabhängig vom Versorgungsschiff und bringen keine Waren oder
+Personen.
 
 ---
 
@@ -504,7 +498,7 @@ Abstand von jeweils einer Sekunde aufgedeckt. Der Erstplatzierte erhält
 zusätzlich ein kleines Kronensymbol. Sobald alle Plätze sichtbar sind,
 bleibt die vollständige Rangliste weitere drei Sekunden stehen und
 wechselt danach ohne Bestätigung in den Rundenbericht der nächsten
-Runde. Nach Runde 15 entfällt dieser automatische Wechsel; die
+Runde. Nach Runde 20 entfällt dieser automatische Wechsel; die
 Abschlussrangliste bleibt bis zum Start einer neuen Partie sichtbar.
 Dieser gemeinsame Ablauf dient später im Mehrspielermodus zugleich als
 synchroner Übergang für alle Teilnehmer.
@@ -582,6 +576,17 @@ Nicht verkaufte Ressourcen verbleiben im Lager der eigenen Kolonie und können i
 
 ---
 
+## Interstellarer Kristallkäufer
+
+In der Kristallauktion existiert ein zusätzlicher interstellarer
+Käufer. Er verwendet dieselbe Auktionslogik wie andere Käufer, besitzt
+aber eine begrenzte Kaufkapazität.
+
+Kapazitätskurve, Einstiegspreis, Preisreaktion und mögliche Obergrenze
+bleiben konfigurierbare Simulationsparameter. Der Käufer soll den
+Preisbereich stabilisieren, aber weder jeden Verkauf noch einen
+garantierten Mindestgewinn sicherstellen.
+
 # 12. Ereignisse
 
 Es gibt zwei Arten von Ereignissen.
@@ -636,11 +641,37 @@ Strategische Entscheidungen bleiben wichtiger als Glück.
 
 ---
 
+## Meteoriten
+
+Meteoriten sind besondere globale Ereignisse am Rundenende:
+
+- zwei Einschläge sind garantiert,
+- ein dritter erfolgt mit 50 Prozent Wahrscheinlichkeit,
+- Zeitfenster ungefähr Runde 5–6, 10–12 und optional 15–16,
+- in den letzten vier Runden erfolgen keine neuen Einschläge.
+
+Das Zentrum muss unverkauft sein und darf weder HQ, Startfeld noch
+zunächst ein Pentagon sein. Nur das Zentrum muss frei sein.
+
+Der konfigurierbare Standardkrater erhöht:
+
+- das Zentrum um drei Kristallsterne,
+- drei bis fünf direkte Nachbarn, Standard vier, um zwei Sterne,
+- vier bis acht weitere zusammenhängende Felder, Standard sechs,
+  um einen Stern.
+
+Kein Feld steigt über fünf Sterne. Alle Spieler sehen Ort,
+Animation und Geländeveränderung am Zentrum. Die genauen Aufwertungen
+bleiben verborgen; Besitzer bereits untersuchter oder aktiv abgebauter
+Felder sehen den neuen Wert sofort.
+
 # 13. Spielende
 
-Eine Partie endet nach einer festgelegten Rundenzahl.
+Die Standardpartie endet nach **20 vollständig abgerechneten Runden**.
 
-Standard: **15 Runden**
+Intern zählt die Runde weiterhin aufsteigend. Die Oberfläche zeigt den
+Countdown bis zum Versorgungsschiff. Nach der letzten Abrechnung trifft
+es mit Vorräten, Ersatzteilen, neuem Personal und der Ablösung ein.
 
 Gewonnen hat der Spieler mit der größten Bevölkerung.
 
@@ -650,10 +681,12 @@ Bei Gleichstand entscheiden:
 2. Summe aller gelagerten Ressourcen
 3. Anzahl der Harvester
 
-Nach der Abrechnung von Runde 15 wird die bekannte Rangliste vom
-letzten bis zum ersten Platz aufgedeckt. Sie bleibt anschließend als
-Abschlussrangliste stehen, zeigt Sieger und eigenen Schlussrang und
-bietet den Start einer neuen Partie an. Es wird keine Runde 16
+Nicht verkaufte Kristalle werden zum zuletzt gültigen Kristallkurs
+bewertet. Gab es in der letzten Runde keinen Abschluss, bleibt der
+letzte zuvor gültige Kurs bestehen.
+
+Nach Runde 20 bleibt die Abschlussrangliste stehen, zeichnet den
+Sieger aus und bietet eine neue Partie an. Es wird keine Runde 21
 eröffnet.
 
 ---

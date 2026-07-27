@@ -183,3 +183,45 @@ Push auf main
   → Upload von web/dist
   → GitHub Pages
 ```
+
+<!-- ELUM-PLANET-ARCHITECTURE:BEGIN -->
+## Zielarchitektur der Planetenkarten
+
+Der aktuelle Prototyp verwendet axiale Hexkoordinaten. Das
+beschlossene Zielbild ist ein 92-Felder-Planetengraph.
+
+Kernprinzip:
+
+> Spielregeln arbeiten mit Feld-IDs, Nachbarlisten und
+> Graphdistanzen; Koordinaten und Polygongeometrie gehören zur
+> Darstellung.
+
+Ein künftiges Feldmodell enthält mindestens:
+
+```ts
+interface PlanetTile {
+  id: string
+  neighborIds: string[]
+  distanceFromHq: number
+  shape: "hexagon" | "pentagon"
+  position: {
+    flat?: { x: number; y: number }
+    sphere?: { x: number; y: number; z: number }
+  }
+}
+```
+
+Umsetzungsreihenfolge:
+
+1. bestehendes Kartenmodell von der UI lösen,
+2. 92-Felder-Graph hinzufügen und validieren,
+3. Startpositionen und Zonen berechnen,
+4. Graph zunächst flach darstellen,
+5. Kristalladern und Meteoriten anbinden,
+6. später eine 3D-Kugel ergänzen.
+
+Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und
+Simulationen reproduzierbar bleiben.
+
+Details: [`PLANET_MAP.md`](PLANET_MAP.md).
+<!-- ELUM-PLANET-ARCHITECTURE:END -->
