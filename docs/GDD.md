@@ -195,22 +195,21 @@ Konflikte und Expansion sollen primär durch Topologie, Entfernungen,
 Kristallverteilung und Engstellen entstehen.
 
 Der Browserprototyp verwendet den 92-Felder-Graphen in einer
-drehbaren Kugelprojektion. Nachbarverbindungen sind sichtbar,
-Pentagone erkennbar und alle Felder durch Drehen erreichbar und
-auswählbar. Eine mögliche spätere Polyederentfaltung würde denselben
-Graphen verwenden.
+drehbaren Kugelprojektion. Alle Felder sind durch Drehen erreichbar
+und auswählbar. Eine mögliche spätere Polyederentfaltung würde
+denselben Graphen verwenden.
 
-Die Oberflächentextur eines Grundstücks folgt seiner stärksten
-Ressourceneignung. Nahrung verwendet eine grüne Wiesen- und
-Vegetationsstruktur, Energie Windströmungen und Windräder, Erz eine
-braune Berg- und Höhenlinienstruktur. Die jeweilige Sternstärke
-bestimmt die Sichtbarkeit der Textur. Die Feldflächen schließen auf
-der Kugel ohne untexturierte Zwischenräume aneinander. Texturmotive
-sind lokal auf dem Planeten verankert und drehen sich mit ihrer
-Kugelzelle. Permanente Polygonrahmen werden vermieden; Hover
+Der Planet verwendet eine gemeinsame fotorealistische
+Oberflächentextur in einer zusammenhängenden erdig-grünen Farbwelt.
+Nahrung, Energie und Erz verändern diese Basis nur durch sehr
+schwache, räumlich geglättete Farbnuancen; es gibt weder gezeichnete
+Ressourcensymbole noch harte Biome oder Neustarts der Textur je
+Grundstück. Die Welttextur ist kugelrichtig verankert und dreht sich
+mit dem Planeten. Die lückenlosen sphärischen Dualzellen dienen der
+Interaktion, bleiben im Normalzustand jedoch unsichtbar. Hover
 beziehungsweise Tastaturfokus und die Auswahl durch Antippen lassen
-die Feldkontur aufscheinen. Gebote, Meteore und andere notwendige
-Spielzustände dürfen weiterhin klar markiert werden.
+die jeweilige Feldkontur aufscheinen. Gebote, Meteore und andere
+notwendige Spielzustände dürfen weiterhin klar markiert werden.
 
 Die Kugel besitzt eine feste, von links oben einfallende Beleuchtung
 mit weich abgedunkelter Gegenseite und sichtbarem atmosphärischem

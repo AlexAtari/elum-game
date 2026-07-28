@@ -26,6 +26,7 @@ import {
   projectPlanetSurfaceCells,
   type PlanetRotation,
 } from '../planetProjection'
+import { PlanetSurface } from './PlanetSurface'
 import './HexMap.css'
 
 type HexMapProps = {
@@ -117,92 +118,12 @@ function getMidpoint(first: Point, second: Point) {
   }
 }
 
-type TerrainKind =
-  | 'food'
-  | 'energy'
-  | 'ore'
-  | 'barren'
-  | 'hq'
-
-function getTerrain(
-  tile: (typeof tiles)[number],
-) {
-  if (tile.owner === 'hq') {
-    return { kind: 'hq' as const, strength: 5 }
-  }
-
-  const dominantResource = [
-    { resource: 'food', rating: tile.food ?? 0 },
-    { resource: 'energy', rating: tile.energy ?? 0 },
-    { resource: 'ore', rating: tile.ore ?? 0 },
-  ].reduce((strongest, resource) =>
-    resource.rating > strongest.rating
-      ? resource
-      : strongest,
-  )
-
-  if (dominantResource.rating === 0) {
-    return { kind: 'barren' as const, strength: 0 }
-  }
-
-  return {
-    kind: dominantResource.resource as Exclude<
-      TerrainKind,
-      'barren' | 'hq'
-    >,
-    strength: dominantResource.rating,
-  }
-}
-
 function formatPolygonPoints(
   points: Array<{ x: number; y: number }>,
 ) {
   return points
     .map((point) => `${point.x},${point.y}`)
     .join(' ')
-}
-
-function renderTerrainMotif(kind: TerrainKind) {
-  if (kind === 'food') {
-    return (
-      <>
-        <path d="M-1.35-.62Q-.72-.98-.08-.6T1.35-.68M-1.35.02Q-.7-.34 0 .02T1.35-.06M-1.35.66Q-.68.3-.02.64T1.35.58" />
-        <path d="M-.78.92-.7.3-.61.92M-.12.25-.03-.48.06.25M.61.92.7.25.8.92" />
-        <circle cx="-.7" cy=".16" r=".08" />
-        <circle cx="-.03" cy="-.6" r=".08" />
-        <circle cx=".7" cy=".11" r=".08" />
-      </>
-    )
-  }
-
-  if (kind === 'energy') {
-    return (
-      <>
-        <path className="terrain-flow" d="M-1.4-.72Q-.7-1.05.02-.7T1.4-.78M-1.4.15Q-.68-.18.05.14T1.4.05M-1.4.82Q-.72.49 0 .8T1.4.69" />
-        <path d="M-.58.96V-.02M-.58-.02-.97-.35M-.58-.02-.08-.29M-.58-.02-.54-.57M.66.98V.34M.66.34.37.08M.66.34 1.02.2M.66.34.69-.05" />
-        <circle cx="-.58" cy="-.02" r=".1" />
-        <circle cx=".66" cy=".34" r=".08" />
-      </>
-    )
-  }
-
-  if (kind === 'ore') {
-    return (
-      <>
-        <path className="terrain-mass" d="M-1.38 1.05-.82-.22-.37.42.14-.86 1.38 1.05Z" />
-        <path d="M-1.4.72Q-.73.37-.16.68T1.4.55M-1.27 1Q-.53.61.14.91T1.42.82M-.42.3Q.1-.08.69.25" />
-        <path d="M.14-.86-.08.24.24.02.52.61" />
-      </>
-    )
-  }
-
-  if (kind === 'barren') {
-    return (
-      <path d="M-1.35-.5Q-.72-.78-.06-.48T1.35-.57M-1.35.5Q-.66.16.02.48T1.35.38" />
-    )
-  }
-
-  return null
 }
 
 function formatStars(value = 0) {
@@ -566,6 +487,13 @@ function HexMap({
 
       <div className="map-layout">
         <div className="hex-map-viewport">
+          <PlanetSurface
+            radius={PLANET_RADIUS * cameraState.zoom}
+            rotation={cameraState}
+            tiles={tiles}
+            viewSize={MAP_VIEW_SIZE}
+          />
+
           <div
             className="map-controls"
             aria-label="Kartensteuerung"
@@ -658,18 +586,6 @@ function HexMap({
                   r={PLANET_RADIUS * cameraState.zoom}
                 />
               </clipPath>
-              {visibleTiles.map((tile) => (
-                <clipPath
-                  id={`terrain-clip-${tile.id}`}
-                  key={tile.id}
-                >
-                  <polygon
-                    points={formatPolygonPoints(
-                      projectedCells[tile.id].points,
-                    )}
-                  />
-                </clipPath>
-              ))}
             </defs>
 
             <circle
@@ -680,6 +596,10 @@ function HexMap({
               className="planet-surface"
               r={PLANET_RADIUS * cameraState.zoom}
             />
+            <circle
+              className="planet-cell-lighting"
+              r={PLANET_RADIUS * cameraState.zoom}
+            />
 
             <g clipPath="url(#planet-clip)">
               {visibleTiles.map((tile) => {
@@ -688,7 +608,6 @@ function HexMap({
                 const polygonPoints = formatPolygonPoints(
                   cell.points,
                 )
-                const terrain = getTerrain(tile)
                 const isSelected = tile.id === selectedId
                 const harvester = harvesters[tile.id]
                 const production = harvester?.production
@@ -722,13 +641,6 @@ function HexMap({
                       isMeteorCenter ? 'meteor-center' : '',
                       isSelected ? 'selected' : '',
                     ].join(' ')}
-                    style={{
-                      opacity: clamp(
-                        0.58 + position.depth * 0.42,
-                        0.5,
-                        1,
-                      ),
-                    }}
                     role="button"
                     aria-label={
                       tile.owner === 'hq'
@@ -763,24 +675,7 @@ function HexMap({
                     }}
                   >
                     <polygon
-                      className={`hex-landscape terrain-${terrain.kind}`}
-                      points={polygonPoints}
-                    />
-                    <g
-                      className={[
-                        'terrain-texture',
-                        `terrain-${terrain.kind}-motif`,
-                        `terrain-strength-${terrain.strength}`,
-                      ].join(' ')}
-                      clipPath={`url(#terrain-clip-${tile.id})`}
-                      aria-hidden="true"
-                    >
-                      <g transform={cell.textureTransform}>
-                        {renderTerrainMotif(terrain.kind)}
-                      </g>
-                    </g>
-                    <polygon
-                      className="planet-cell-lighting"
+                      className="hex-landscape"
                       points={polygonPoints}
                     />
                     <polygon

@@ -40,13 +40,14 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sichtbaren Nachbarverbindungen und erkennbaren Pentagonen
 - Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
   auf dem Zielgraphen
-- ressourcenabhängige kartografische Feldtexturen: Wiesen für
-  Nahrung, Windströmungen und Windräder für Energie sowie
-  Berg- und Höhenlinien für Erz
+- durchgehende fotorealistische Oberflächentextur ohne gezeichnete
+  Ressourcenmotive oder harte Biome
 - lückenlos aneinander anschließende sphärische Dualzellen aus den
   gemeinsamen Dreiecksflächen des Planetengraphen
-- fest an jeder Kugelzelle verankerte Texturmotive, die beim Drehen
-  ihre lokale Ausrichtung und Position auf dem Planeten behalten
+- kugelrichtige Rückprojektion einer gemeinsamen Welttextur, die
+  beim Drehen fest auf dem Planeten bleibt
+- sehr schwache, räumlich geglättete Farbnuancen aus Nahrung,
+  Energie und Erz statt sichtbar verschiedener Feldtexturen
 - feste gerichtete Beleuchtung mit heller Einfallsseite, weich
   abgedunkelter Gegenseite und atmosphärischem Kugelrand
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in

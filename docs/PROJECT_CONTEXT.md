@@ -231,11 +231,12 @@ werden.
 - drehbare Kugelprojektion mit HQ und 91 Grundstücken
 - Kartenregeln für Nachbarschaft und Distanz von Kugelprojektion und
   flachem Hilfslayout getrennt
-- prozedurale Feldtexturen nach stärkster Ressourceneignung und
-  Sternstärke; Polygonkonturen nur bei Interaktion oder notwendigem
-  Spielstatus
-- lückenlose sphärische Dualzellen und lokal auf der Kugel verankerte
-  Texturmotive statt regelmäßig verkleinerter Bildschirm-Polygone
+- gemeinsame fotorealistische Welttextur mit sehr schwachen,
+  räumlich geglätteten Ressourcenfarbnuancen; Polygonkonturen nur
+  bei Interaktion oder notwendigem Spielstatus
+- lückenlose sphärische Dualzellen als unsichtbare
+  Interaktionsflächen und kugelrichtige Rückprojektion der fest auf
+  dem Planeten verankerten Oberflächentextur
 - feste Sonnenbeleuchtung und atmosphärischer Rand; Feldnummern nur
   in Details und barrierefreien Namen, nicht auf der Kugeloberfläche
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv

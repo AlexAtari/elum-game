@@ -22,17 +22,22 @@ Das HQ liegt auf einem Hexagon. Die Browserpartie zeigt eine drehbare
 orthografische Kugelprojektion desselben Graphen. Rückseitenfelder
 werden erst nach einer Drehung sichtbar und anklickbar.
 
-Die Felder erhalten prozedurale kartografische Texturen nach ihrer
-stärksten Ressourceneignung. Die Texturintensität folgt der
-Sternstärke. Die sichtbaren Grundstücksflächen werden als sphärische
-Dualzellen aus den Mittelpunkten der angrenzenden Dreiecksflächen
-gebildet. Benachbarte Zellen teilen dadurch exakt dieselbe Kante und
-lassen keine untexturierte Kugelfläche frei. Jedes Texturmotiv besitzt
-eine feste lokale Tangentenausrichtung und wird gemeinsam mit seiner
-Zelle projiziert. Standardfelder besitzen keine permanente harte
-Umrandung; Hover, Tastaturfokus und Auswahl blenden eine Kontur ein.
-Statusmarkierungen für Gebote und Meteorzentren bleiben davon
-ausgenommen.
+Die Kugel erhält eine gemeinsame fotorealistische Welttextur ohne
+gezeichnete Ressourcenmotive, Feldlinien oder harte Biomgrenzen.
+Nahrung, Energie und Erz erzeugen nur schwache Farbnuancen. Diese
+werden aus den umliegenden Feldwerten räumlich geglättet, sodass
+Ressourcenübergänge nicht an Grundstückskanten abbrechen. Eine
+Rückprojektion ordnet die sichtbaren Kugelpixel festen
+Weltkoordinaten zu; die Textur bleibt deshalb beim Drehen auf dem
+Planeten verankert.
+
+Die Grundstücksflächen werden weiterhin als sphärische Dualzellen
+aus den Mittelpunkten der angrenzenden Dreiecksflächen gebildet.
+Benachbarte Zellen teilen exakt dieselbe Kante, dienen aber nur als
+unsichtbare Interaktionsflächen. Standardfelder besitzen keine
+permanente harte Umrandung; Hover, Tastaturfokus und Auswahl blenden
+eine Kontur ein. Statusmarkierungen für Gebote und Meteorzentren
+bleiben davon ausgenommen.
 
 Eine globale, im Ansichtsraum feste Lichtverteilung überlagert alle
 Zelltexturen gemeinsam. Sie erzeugt eine helle Einfallsseite, eine

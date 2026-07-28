@@ -239,18 +239,21 @@ gemeinsamen Dreiecksflächen lückenlose sphärische Dualzellen, rotiert
 die normalisierten Positionen und projiziert sie orthografisch in den
 SVG-Raum. Zellen am Horizont werden gegen die Vorderseite der Kugel
 geschnitten; Rückseitenfelder werden nicht interaktiv gerendert.
-`HexMap.tsx` zeichnet daraus die zusammenhängenden Hexagon- und
-Pentagonzellen und verwaltet Touch-Drehung, Zoom sowie
-HQ-Zentrierung. SVG-Muster und CSS-Intensitätsklassen bilden die
-stärkste Ressourceneignung und deren Sternwert ab. Eine aus der
-Kugeltangente projizierte Transformationsmatrix verankert jedes
-Texturmotiv dauerhaft an seiner Zelle. Interaktionskonturen werden
-getrennt von Gelände- und Statusflächen gezeichnet. Diese Geometrie
-bleibt reine Darstellung und verändert keine Spielregel.
+`HexMap.tsx` zeichnet daraus unsichtbare, zusammenhängende Hexagon-
+und Pentagonzellen und verwaltet Touch-Drehung, Zoom sowie
+HQ-Zentrierung. `PlanetSurface.tsx` bereitet aus einer gemeinsamen
+fotorealistischen Welttextur und schwach geglätteten
+Ressourcenfarbnuancen eine diffuse Oberflächenkarte vor.
+`unprojectPlanetViewPosition` ordnet jeden sichtbaren Canvas-Pixel
+bei jeder Kameradrehung wieder einer festen Weltkoordinate zu. So
+dreht sich eine durchgehende Textur ohne Feldnähte mit der Kugel,
+während SVG-Zellen ausschließlich Interaktion, Auswahl und
+Statusmarkierungen tragen. Diese Geometrie bleibt reine Darstellung
+und verändert keine Spielregel.
 `createRadialGraphLayout` bleibt als
 reproduzierbares flaches Hilfslayout verfügbar.
 
-Eine gemeinsame SVG-Lichtmaske verwendet absolute
+Eine gemeinsame SVG-Lichtmaske über der Canvas-Oberfläche verwendet absolute
 Kugelansichtskoordinaten und bleibt deshalb beim Drehen im
 Ansichtsraum fest. Sichtbare Feldnummern werden nicht gerendert;
 `aria-label` und die Detailansicht bewahren die Feld-ID für Bedienung

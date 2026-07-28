@@ -27,6 +27,12 @@ type ViewPosition = {
   depth: number
 }
 
+export type NormalizedViewPosition = {
+  x: number
+  y: number
+  depth: number
+}
+
 export type PlanetSurfaceCells = Record<
   string,
   SpherePosition[]
@@ -133,6 +139,48 @@ function createViewTransform(
       depth: rotatedZ,
     }
   }
+}
+
+export function unprojectPlanetViewPosition(
+  map: PlanetMap,
+  rotation: PlanetRotation,
+  position: NormalizedViewPosition,
+): SpherePosition {
+  const positions = map.spherePositions
+  const forward = positions?.[map.hqTileId]
+
+  if (!positions || !forward) {
+    throw new Error(
+      'planet unprojection requires sphere positions',
+    )
+  }
+
+  const reference =
+    Math.abs(forward.z) < 0.9
+      ? { x: 0, y: 0, z: 1 }
+      : { x: 1, y: 0, z: 0 }
+  const right = normalize(cross(reference, forward))
+  const up = normalize(cross(forward, right))
+  const cosYaw = Math.cos(rotation.yaw)
+  const sinYaw = Math.sin(rotation.yaw)
+  const cosPitch = Math.cos(rotation.pitch)
+  const sinPitch = Math.sin(rotation.pitch)
+  const rotatedY = -position.y
+  const localY =
+    rotatedY * cosPitch + position.depth * sinPitch
+  const yawZ =
+    -rotatedY * sinPitch + position.depth * cosPitch
+  const localX =
+    position.x * cosYaw - yawZ * sinYaw
+  const localZ =
+    position.x * sinYaw + yawZ * cosYaw
+
+  return normalize(
+    add(
+      add(scale(right, localX), scale(up, localY)),
+      scale(forward, localZ),
+    ),
+  )
 }
 
 function createTileTangentAxes(

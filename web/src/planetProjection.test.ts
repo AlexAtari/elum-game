@@ -4,6 +4,7 @@ import {
   createPlanetSurfaceCells,
   projectPlanetMap,
   projectPlanetSurfaceCells,
+  unprojectPlanetViewPosition,
 } from './planetProjection'
 
 function positionKey(position: {
@@ -57,6 +58,33 @@ describe('Kugelprojektion der Planetenkarte', () => {
 
     expect(projection.HQ.depth).toBeCloseTo(-1)
     expect(projection.HQ.visible).toBe(false)
+  })
+
+  it('führt Projektion und Rückprojektion verlustfrei zusammen', () => {
+    const rotation = { yaw: 0.7, pitch: -0.35 }
+    const projection = projectPlanetMap(
+      targetPlanetMap,
+      rotation,
+      1,
+    )
+    const source =
+      targetPlanetMap.spherePositions?.P021
+    const projected = projection.P021
+
+    expect(source).toBeDefined()
+    const restored = unprojectPlanetViewPosition(
+      targetPlanetMap,
+      rotation,
+      {
+        x: projected.x,
+        y: projected.y,
+        depth: projected.depth,
+      },
+    )
+
+    expect(restored.x).toBeCloseTo(source!.x)
+    expect(restored.y).toBeCloseTo(source!.y)
+    expect(restored.z).toBeCloseTo(source!.z)
   })
 
   it('erzeugt lückenlose gemeinsame Zellkanten', () => {
