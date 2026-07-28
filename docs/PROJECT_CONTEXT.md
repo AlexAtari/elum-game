@@ -234,6 +234,8 @@ werden.
 - gemeinsame marsartige, fotorealistische Welttextur mit moderat
   differenzierten und räumlich geglätteten Ressourcenfarbnuancen;
   Polygonkonturen nur bei Interaktion oder notwendigem Spielstatus
+- getrennte hochauflösende Geologiebasis und sparsamere
+  Ressourcenfarbkarte für scharfen mobilen Nahzoom
 - über 20 Runden schrittweise grünere Nahrungsregionen als rein
   visuelle Kultivierung
 - lückenlose sphärische Dualzellen als unsichtbare

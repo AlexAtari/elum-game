@@ -25,6 +25,9 @@ werden erst nach einer Drehung sichtbar und anklickbar.
 Die Kugel erhält eine gemeinsame marsartige, fotorealistische
 Welttextur aus Rostboden, Terrakotta, Ocker und dunklem Basalt ohne
 gezeichnete Ressourcenmotive, Feldlinien oder harte Biomgrenzen.
+Die geologische Basisebene verwendet eine höhere Abtastauflösung als
+die getrennte Ressourcenfarbkarte, damit feiner Regolith,
+Sedimentschichten und Basaltbrüche auch im Nahzoom sichtbar bleiben.
 Nahrung erzeugt olivgrüne, Energie kühl blaugraue und Erz
 eisenrote Farbnuancen. Diese werden aus den umliegenden Feldwerten
 räumlich geglättet, sodass Ressourcenübergänge nicht an

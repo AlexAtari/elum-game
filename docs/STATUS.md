@@ -45,6 +45,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - durchgehende fotorealistische, marsartige Oberflächentextur aus
   Rostboden, Terrakotta, Ocker und dunklem Basalt ohne gezeichnete
   Ressourcenmotive oder harte Biome
+- hochauflösende geologische Basisebene mit Regolith, Sedimenten,
+  Erosionsfächern und Basaltbrüchen für den 2,2-fachen Nahzoom
 - lückenlos aneinander anschließende sphärische Dualzellen aus den
   gemeinsamen Dreiecksflächen des Planetengraphen
 - kugelrichtige Rückprojektion einer gemeinsamen Welttextur, die

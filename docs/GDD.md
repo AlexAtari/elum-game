@@ -201,7 +201,9 @@ denselben Graphen verwenden.
 
 Der Planet verwendet eine gemeinsame fotorealistische, marsartige
 Oberflächentextur aus oxidiertem Rostboden, Terrakotta, staubigem
-Ocker und dunklem Basalt. Nahrung verschiebt diese Basis moderat in
+Ocker und dunklem Basalt. Feiner Regolith, Sedimentschichten,
+Erosionsfächer und Basaltbrüche bleiben auch im Nahzoom erkennbar.
+Nahrung verschiebt diese Basis moderat in
 Richtung Olivgrün, Energie in ein kühles Blaugrau und Erz in ein
 dunkleres Eisenrot. Die Farbnuancen werden räumlich geglättet; es
 gibt weder gezeichnete Ressourcensymbole noch harte Biome oder

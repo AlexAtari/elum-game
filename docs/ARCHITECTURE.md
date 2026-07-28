@@ -249,6 +249,11 @@ Farbzuordnung für Nahrung, Energie und Erz getrennt von Canvas und
 React testbar. Der aktuelle Rundenwert verstärkt ausschließlich den
 Grünanteil der Nahrungsnuance bis Runde 20; die Spiellogik bleibt
 davon unberührt.
+
+Die geologische Basisebene wird für den Nahzoom mit 1024 × 512
+Pixeln abgetastet. Die rechenintensive Ressourcenfarbkarte bleibt
+getrennt bei 512 × 256 Pixeln und wird erst beim Rendern mit der
+Basisebene multipliziert.
 `unprojectPlanetViewPosition` ordnet jeden sichtbaren Canvas-Pixel
 bei jeder Kameradrehung wieder einer festen Weltkoordinate zu. So
 dreht sich eine durchgehende Textur ohne Feldnähte mit der Kugel,

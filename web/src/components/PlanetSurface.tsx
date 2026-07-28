@@ -3,7 +3,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import planetSurfaceUrl from '../assets/planet-surface-v2.webp'
+import planetSurfaceUrl from '../assets/planet-surface-v3.webp'
 import {
   GAME_ROUND_LIMIT,
   type Tile,
@@ -30,22 +30,30 @@ type CanvasSize = {
   height: number
 }
 
-const TEXTURE_WIDTH = 512
-const TEXTURE_HEIGHT = 256
+type PlanetTexture = {
+  base: ImageData
+  tint: ImageData
+}
+
+const BASE_TEXTURE_WIDTH = 1024
+const BASE_TEXTURE_HEIGHT = 512
+const TINT_TEXTURE_WIDTH = 512
+const TINT_TEXTURE_HEIGHT = 256
+const TINT_NEUTRAL_VALUE = 128
 const MAX_RENDER_SIZE = 620
 
 function clampByte(value: number) {
   return Math.round(Math.min(255, Math.max(0, value)))
 }
 
-function createResourceTexture(
+function createPlanetTexture(
   image: HTMLImageElement,
   tiles: Tile[],
   round: number,
 ) {
   const canvas = document.createElement('canvas')
-  canvas.width = TEXTURE_WIDTH
-  canvas.height = TEXTURE_HEIGHT
+  canvas.width = BASE_TEXTURE_WIDTH
+  canvas.height = BASE_TEXTURE_HEIGHT
   const context = canvas.getContext('2d', {
     willReadFrequently: true,
   })
@@ -58,14 +66,18 @@ function createResourceTexture(
     image,
     0,
     0,
-    TEXTURE_WIDTH,
-    TEXTURE_HEIGHT,
+    BASE_TEXTURE_WIDTH,
+    BASE_TEXTURE_HEIGHT,
   )
-  const texture = context.getImageData(
+  const base = context.getImageData(
     0,
     0,
-    TEXTURE_WIDTH,
-    TEXTURE_HEIGHT,
+    BASE_TEXTURE_WIDTH,
+    BASE_TEXTURE_HEIGHT,
+  )
+  const tint = context.createImageData(
+    TINT_TEXTURE_WIDTH,
+    TINT_TEXTURE_HEIGHT,
   )
   const resourceTiles = tiles.flatMap((tile) => {
     const position =
@@ -76,15 +88,15 @@ function createResourceTexture(
       : []
   })
 
-  for (let y = 0; y < TEXTURE_HEIGHT; y += 1) {
+  for (let y = 0; y < TINT_TEXTURE_HEIGHT; y += 1) {
     const latitude =
       Math.PI / 2 -
-      ((y + 0.5) / TEXTURE_HEIGHT) * Math.PI
+      ((y + 0.5) / TINT_TEXTURE_HEIGHT) * Math.PI
     const latitudeRadius = Math.cos(latitude)
 
-    for (let x = 0; x < TEXTURE_WIDTH; x += 1) {
+    for (let x = 0; x < TINT_TEXTURE_WIDTH; x += 1) {
       const longitude =
-        ((x + 0.5) / TEXTURE_WIDTH - 0.5) *
+        ((x + 0.5) / TINT_TEXTURE_WIDTH - 0.5) *
         Math.PI *
         2
       const position = {
@@ -110,12 +122,6 @@ function createResourceTexture(
         weightTotal += weight
       }
 
-      const resourceTotal = food + energy + ore
-
-      if (weightTotal === 0 || resourceTotal === 0) {
-        continue
-      }
-
       const colorScale = calculateResourceColorScale(
         food,
         energy,
@@ -124,21 +130,23 @@ function createResourceTexture(
         round,
         GAME_ROUND_LIMIT,
       )
-      const offset = (y * TEXTURE_WIDTH + x) * 4
+      const offset =
+        (y * TINT_TEXTURE_WIDTH + x) * 4
 
-      texture.data[offset] = clampByte(
-        texture.data[offset] * colorScale.red,
+      tint.data[offset] = clampByte(
+        colorScale.red * TINT_NEUTRAL_VALUE,
       )
-      texture.data[offset + 1] = clampByte(
-        texture.data[offset + 1] * colorScale.green,
+      tint.data[offset + 1] = clampByte(
+        colorScale.green * TINT_NEUTRAL_VALUE,
       )
-      texture.data[offset + 2] = clampByte(
-        texture.data[offset + 2] * colorScale.blue,
+      tint.data[offset + 2] = clampByte(
+        colorScale.blue * TINT_NEUTRAL_VALUE,
       )
+      tint.data[offset + 3] = 255
     }
   }
 
-  return texture
+  return { base, tint }
 }
 
 export function PlanetSurface({
@@ -154,7 +162,7 @@ export function PlanetSurface({
     height: 1,
   })
   const [texture, setTexture] =
-    useState<ImageData | null>(null)
+    useState<PlanetTexture | null>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -203,7 +211,7 @@ export function PlanetSurface({
 
       if (isActive) {
         setTexture(
-          createResourceTexture(image, tiles, round),
+          createPlanetTexture(image, tiles, round),
         )
       }
     }
@@ -276,32 +284,54 @@ export function PlanetSurface({
         )
         const longitude = Math.atan2(world.z, world.x)
         const latitude = Math.asin(world.y)
-        const textureX =
-          ((longitude / (Math.PI * 2) + 0.5) *
-            TEXTURE_WIDTH +
-            TEXTURE_WIDTH) %
-          TEXTURE_WIDTH
-        const textureY = Math.min(
-          TEXTURE_HEIGHT - 1,
-          Math.max(
-            0,
-            (0.5 - latitude / Math.PI) *
-              TEXTURE_HEIGHT,
-          ),
+        const horizontalPosition =
+          (longitude / (Math.PI * 2) + 1.5) % 1
+        const verticalPosition = Math.min(
+          1,
+          Math.max(0, 0.5 - latitude / Math.PI),
         )
-        const textureOffset =
-          (Math.floor(textureY) * TEXTURE_WIDTH +
-            Math.floor(textureX)) *
+        const baseOffset =
+          (Math.min(
+            BASE_TEXTURE_HEIGHT - 1,
+            Math.floor(
+              verticalPosition * BASE_TEXTURE_HEIGHT,
+            ),
+          ) *
+            BASE_TEXTURE_WIDTH +
+            Math.floor(
+              horizontalPosition * BASE_TEXTURE_WIDTH,
+            )) *
+          4
+        const tintOffset =
+          (Math.min(
+            TINT_TEXTURE_HEIGHT - 1,
+            Math.floor(
+              verticalPosition * TINT_TEXTURE_HEIGHT,
+            ),
+          ) *
+            TINT_TEXTURE_WIDTH +
+            Math.floor(
+              horizontalPosition * TINT_TEXTURE_WIDTH,
+            )) *
           4
         const frameOffset =
           (y * canvas.width + x) * 4
 
-        frame.data[frameOffset] =
-          texture.data[textureOffset]
-        frame.data[frameOffset + 1] =
-          texture.data[textureOffset + 1]
-        frame.data[frameOffset + 2] =
-          texture.data[textureOffset + 2]
+        frame.data[frameOffset] = clampByte(
+          (texture.base.data[baseOffset] *
+            texture.tint.data[tintOffset]) /
+            TINT_NEUTRAL_VALUE,
+        )
+        frame.data[frameOffset + 1] = clampByte(
+          (texture.base.data[baseOffset + 1] *
+            texture.tint.data[tintOffset + 1]) /
+            TINT_NEUTRAL_VALUE,
+        )
+        frame.data[frameOffset + 2] = clampByte(
+          (texture.base.data[baseOffset + 2] *
+            texture.tint.data[tintOffset + 2]) /
+            TINT_NEUTRAL_VALUE,
+        )
         frame.data[frameOffset + 3] = 255
       }
     }
