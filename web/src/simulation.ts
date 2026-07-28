@@ -819,11 +819,7 @@ function cloneResources(resources: Resources): Resources {
 }
 
 function getTileDistance(tile: Tile): number {
-  return Math.max(
-    Math.abs(tile.q),
-    Math.abs(tile.r),
-    Math.abs(tile.q + tile.r),
-  )
+  return tile.distanceFromHq
 }
 
 function createStartingLandCandidate(

@@ -67,9 +67,12 @@ vermischt werden.
 
 ### Partie
 
-- 15 Runden
-- Zielzeit 20–30 Minuten
-- Wertung: Bevölkerung, dann Credits, Ressourcen, Harvester
+- Browserprototyp: 15 Runden, ungefähr 20–30 Minuten
+- beschlossenes Ziel: 20 Runden, zunächst 35–45 Minuten,
+  durch Playtests neu zu messen
+- aktuelle Wertung: Bevölkerung, Credits, Ressourcen, Harvester
+- Zielwertung: Bevölkerung, Credits plus Kurswert verbliebener
+  Kristalle, übrige Ressourcen ohne Kristalle, Harvester
 
 ### Ressourcen
 
@@ -121,6 +124,8 @@ vermischt werden.
 ## Technische Landkarte
 
 - `web/src/game.ts`: Kernzustand und zentrale Regeln
+- `web/src/planetMap.ts`: Kartengraph, Graphdistanzen und getrennte
+  flache Layoutpositionen
 - `web/src/App.tsx`: sichtbarer Ablauf
 - `web/src/components/`: UI
 - `web/src/agents.ts`: gemeinsame Agentenlogik
@@ -220,6 +225,8 @@ werden.
 
 - 15 Runden
 - flache Hexkarte mit HQ und 60 Grundstücken
+- Kartenregeln für Nachbarschaft und Distanz bereits vom flachen
+  Layout getrennt
 
 ### Nächster Regelstand
 
@@ -238,15 +245,14 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. Kartenmodell von Darstellung lösen
-3. 92-Felder-Graph
-4. Startpositionen und Zonen
-5. Kristalladern
-6. Meteoriten
-7. interstellarer Käufer
-8. Countdown
-9. Simulation
-10. später 3D-Kugel
+2. 92-Felder-Graph
+3. Startpositionen und Zonen
+4. Kristalladern
+5. Meteoriten
+6. interstellarer Käufer
+7. Countdown
+8. Simulation
+9. später 3D-Kugel
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

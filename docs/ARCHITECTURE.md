@@ -18,6 +18,7 @@ elum-game/
 │   │   ├── components/      React-Oberfläche
 │   │   ├── i18n/            Sprache und Zahlenformatierung
 │   │   ├── game.ts          zentrale Regeln und Zustände
+│   │   ├── planetMap.ts     UI-unabhängiger Kartengraph und Layoutdaten
 │   │   ├── agents.ts        gemeinsame Agentenplanung
 │   │   ├── orion*.ts        Orion-spezifische Entscheidungen
 │   │   ├── rival*.ts        gemeinsame Rivalenoperationen
@@ -190,6 +191,27 @@ Push auf main
 Der aktuelle Prototyp verwendet axiale Hexkoordinaten. Das
 beschlossene Zielbild ist ein 92-Felder-Planetengraph.
 
+### Implementierte Modellgrenze
+
+`web/src/planetMap.ts` enthält inzwischen:
+
+- stabile Feld-IDs,
+- symmetrische Nachbarlisten,
+- aus dem Graphen berechnete HQ-Distanzen,
+- Feldformen,
+- Graphvalidierung,
+- eine davon getrennte flache Positionstabelle.
+
+Agentennachbarschaft, Simulation und Harvesterpriorisierung verwenden
+keine axialen Koordinaten mehr. `HexMap.tsx` liest die bisherigen
+Axialkoordinaten ausschließlich aus `flatPositions`.
+
+Die alte 61-Felder-Prototypkarte und ihre sichtbare Anordnung bleiben
+unverändert. Ihre bestehenden Gelände-Eignungen werden beim Aufbau
+vorübergehend über die alte flache Position reproduziert. Mit dem
+92-Felder-Graphen wird dieser Adapter durch explizite beziehungsweise
+seedbasiert erzeugte Kartendaten ersetzt.
+
 Kernprinzip:
 
 > Spielregeln arbeiten mit Feld-IDs, Nachbarlisten und
@@ -211,14 +233,18 @@ interface PlanetTile {
 }
 ```
 
-Umsetzungsreihenfolge:
+`distanceFromHq` ist kein frei gepflegter Kartenwert. Die Distanz wird
+aus `neighborIds` per Graphsuche berechnet und darf anschließend für
+Abfragen zwischengespeichert werden. Graph und Distanzwerte können so
+nicht unabhängig voneinander veralten.
 
-1. bestehendes Kartenmodell von der UI lösen,
-2. 92-Felder-Graph hinzufügen und validieren,
-3. Startpositionen und Zonen berechnen,
-4. Graph zunächst flach darstellen,
-5. Kristalladern und Meteoriten anbinden,
-6. später eine 3D-Kugel ergänzen.
+Weitere Umsetzungsreihenfolge:
+
+1. 92-Felder-Graph hinzufügen und validieren,
+2. Startpositionen und Zonen berechnen,
+3. Graph zunächst flach darstellen,
+4. Kristalladern und Meteoriten anbinden,
+5. später eine 3D-Kugel ergänzen.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und
 Simulationen reproduzierbar bleiben.

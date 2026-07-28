@@ -26,8 +26,9 @@ const buildCost = {
 const testTiles: Tile[] = [
   {
     id: 'A',
-    q: 0,
-    r: 0,
+    neighborIds: ['B'],
+    distanceFromHq: 1,
+    shape: 'hexagon',
     owner: 'free',
     food: 4,
     energy: 1,
@@ -35,8 +36,9 @@ const testTiles: Tile[] = [
   },
   {
     id: 'B',
-    q: 1,
-    r: 0,
+    neighborIds: ['A'],
+    distanceFromHq: 2,
+    shape: 'hexagon',
     owner: 'free',
     food: 1,
     energy: 5,

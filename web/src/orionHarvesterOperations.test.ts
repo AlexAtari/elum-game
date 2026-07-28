@@ -47,8 +47,9 @@ function createOrion(
 const testTiles: Tile[] = [
   {
     id: 'A',
-    q: 0,
-    r: 0,
+    neighborIds: ['B'],
+    distanceFromHq: 1,
+    shape: 'hexagon',
     owner: 'free',
     food: 5,
     energy: 1,
@@ -56,8 +57,9 @@ const testTiles: Tile[] = [
   },
   {
     id: 'B',
-    q: 1,
-    r: 0,
+    neighborIds: ['A', 'C'],
+    distanceFromHq: 2,
+    shape: 'hexagon',
     owner: 'free',
     food: 1,
     energy: 4,
@@ -65,8 +67,9 @@ const testTiles: Tile[] = [
   },
   {
     id: 'C',
-    q: 2,
-    r: 0,
+    neighborIds: ['B'],
+    distanceFromHq: 3,
+    shape: 'hexagon',
     owner: 'free',
     food: 3,
     energy: 3,

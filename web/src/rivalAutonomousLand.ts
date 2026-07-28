@@ -15,25 +15,17 @@ import {
   tiles,
   type GameState,
   type RivalId,
-  type Tile,
 } from './game'
+import {
+  areTilesAdjacent,
+  prototypePlanetMap,
+} from './planetMap'
 
 const autonomousRivalIds: RivalId[] = [
   'orion',
   'nova',
   'vega',
 ]
-
-function getHexDistance(first: Tile, second: Tile) {
-  const qDifference = first.q - second.q
-  const rDifference = first.r - second.r
-
-  return (
-    Math.abs(qDifference) +
-    Math.abs(rDifference) +
-    Math.abs(qDifference + rDifference)
-  ) / 2
-}
 
 function createAgentContext(
   currentState: GameState,
@@ -108,7 +100,11 @@ export function getAutonomousRivalLandDecision(
       ore: tile.ore ?? 0,
       adjacencyBonus: rivalTiles.filter(
         (ownedTile) =>
-          getHexDistance(tile, ownedTile) === 1,
+          areTilesAdjacent(
+            prototypePlanetMap,
+            tile.id,
+            ownedTile.id,
+          ),
       ).length,
     }))
 

@@ -15,7 +15,9 @@ E.L.U.M. ist ein rundenbasiertes Strategiespiel für Smartphones, inspiriert vom
 
 Die Spieler entwickeln auf dem Planeten **Agima** die erfolgreichste Kolonie. Durch geschickte Expansion, Ressourcenmanagement und wirtschaftliche Entscheidungen wächst ihre Bevölkerung und damit ihre Kolonie.
 
-Eine Partie dauert etwa **20–30 Minuten**.
+Eine Partie mit 20 Runden dauert nach aktueller Schätzung etwa
+**35–45 Minuten**. Die tatsächliche Zielspielzeit wird mit Playtests
+neu gemessen.
 
 Das Spiel soll leicht zu erlernen, aber schwer zu meistern sein.
 
@@ -45,8 +47,10 @@ Die Bevölkerung ist der wichtigste Indikator für den Erfolg einer Kolonie.
 
 Alle anderen Spielmechaniken dienen letztlich dazu, das Wachstum der Kolonie zu fördern.
 
-Bei Gleichstand entscheiden Credits, anschließend die Summe aller
-Ressourcen und zuletzt die Anzahl der Harvester.
+Bei Gleichstand entscheidet zuerst das abrechenbare Vermögen aus
+Credits und dem Kurswert nicht verkaufter Kristalle. Danach folgen
+die Summe der übrigen Ressourcen ohne Kristalle und zuletzt die
+Anzahl der Harvester.
 
 ---
 
@@ -411,7 +415,10 @@ Vorläufige Versorgungsstufen je 10 Einwohner:
 
 Die Werte dienen zunächst als sinnvolle Ausgangsbasis für Playtests.
 
-Beide Ressourcen sind für die Bevölkerungsentwicklung erforderlich. Die genaue Berechnung des gemeinsamen Effekts sowie die exakten Wachstums- und Schrumpfungsraten werden im Balancing festgelegt.
+Für je angefangene zehn Einwohner wird die tatsächlich erreichte
+Stufe beider Ressourcen berechnet. Die niedrigere Stufe bestimmt den
+gemeinsamen Effekt: Stufe 0 verändert die Bevölkerung um −1, Stufe 1
+um 0, Stufe 2 um +1 und Stufe 3 um +2 Einwohner.
 
 Der Spieler kann die Versorgung im Notfall bewusst reduzieren, um Nahrung oder Energie für andere Zwecke zurückzuhalten.
 
@@ -486,20 +493,21 @@ Für die Erprobung des Vierer-Layouts werden Nova und Vega zunächst als sichtba
 Nach „Runde ausführen“ wird die Runde vollständig abgerechnet. Anschließend sehen alle Spieler vor Beginn der nächsten Planung denselben Zwischenstand. Die Rangliste vergleicht in dieser Reihenfolge:
 
 1. Bevölkerung
-2. Credits
-3. Gesamtzahl der eingelagerten Ressourcen
+2. abrechenbares Vermögen aus Credits und Kristallkurswert
+3. Gesamtzahl der übrigen Ressourcen ohne Kristalle
 4. Anzahl der eigenen Harvester
 
 Die Reihenfolge entspricht zugleich der Rangfolge bei Gleichstand:
-Bevölkerung besitzt die höchste Bedeutung, danach entscheiden Credits,
-Ressourcen und Harvester. Die eigene Kolonie wird deutlich
+Bevölkerung besitzt die höchste Bedeutung, danach entscheiden
+abrechenbares Vermögen, übrige Ressourcen und Harvester. Die eigene
+Kolonie wird deutlich
 hervorgehoben. Die Plätze werden vom letzten bis zum ersten Rang im
 Abstand von jeweils einer Sekunde aufgedeckt. Der Erstplatzierte erhält
 zusätzlich ein kleines Kronensymbol. Sobald alle Plätze sichtbar sind,
-bleibt die vollständige Rangliste weitere drei Sekunden stehen und
-wechselt danach ohne Bestätigung in den Rundenbericht der nächsten
-Runde. Nach Runde 20 entfällt dieser automatische Wechsel; die
-Abschlussrangliste bleibt bis zum Start einer neuen Partie sichtbar.
+bleibt die vollständige Rangliste stehen. In den Runden 1 bis 19 wird
+nun eine Weiter-Schaltfläche aktiv, über die alle Spieler in den
+Rundenbericht der nächsten Runde wechseln. Nach Runde 20 bleibt die
+Abschlussrangliste bis zum Start einer neuen Partie sichtbar.
 Dieser gemeinsame Ablauf dient später im Mehrspielermodus zugleich als
 synchroner Übergang für alle Teilnehmer.
 
@@ -653,17 +661,20 @@ Meteoriten sind besondere globale Ereignisse am Rundenende:
 Das Zentrum muss unverkauft sein und darf weder HQ, Startfeld noch
 zunächst ein Pentagon sein. Nur das Zentrum muss frei sein.
 
-Der konfigurierbare Standardkrater erhöht:
+Die konservative, konfigurierbare Standardbasis erhöht:
 
 - das Zentrum um drei Kristallsterne,
-- drei bis fünf direkte Nachbarn, Standard vier, um zwei Sterne,
-- vier bis acht weitere zusammenhängende Felder, Standard sechs,
-  um einen Stern.
+- drei direkte Nachbarn um zwei Sterne,
+- vier weitere zusammenhängende Felder um einen Stern.
 
 Kein Feld steigt über fünf Sterne. Alle Spieler sehen Ort,
 Animation und Geländeveränderung am Zentrum. Die genauen Aufwertungen
 bleiben verborgen; Besitzer bereits untersuchter oder aktiv abgebauter
 Felder sehen den neuen Wert sofort.
+
+Größere Testvarianten mit vier direkten und sechs äußeren
+beziehungsweise fünf direkten und acht äußeren Feldern bleiben
+konfigurierbar. Sie sind nicht die Standardbasis.
 
 # 13. Spielende
 
@@ -677,13 +688,19 @@ Gewonnen hat der Spieler mit der größten Bevölkerung.
 
 Bei Gleichstand entscheiden:
 
-1. Credits
-2. Summe aller gelagerten Ressourcen
-3. Anzahl der Harvester
+1. abrechenbares Vermögen aus Credits plus Kurswert der nicht
+   verkauften Kristalle,
+2. Summe aller übrigen gelagerten Ressourcen ohne Kristalle,
+3. Anzahl der Harvester.
 
-Nicht verkaufte Kristalle werden zum zuletzt gültigen Kristallkurs
-bewertet. Gab es in der letzten Runde keinen Abschluss, bleibt der
-letzte zuvor gültige Kurs bestehen.
+Der offizielle Kristallkurs ist der zuletzt veröffentlichte
+Orientierungspreis des Kristallmarkts. Er startet bei 40 Credits je
+Kristall und wird nicht aus der zeitlich letzten Einzeltransaktion
+abgeleitet. Findet in einer Runde kein Kristallhandel statt, bleibt
+der Kurs unverändert. Kommt während der gesamten Partie kein
+Kristallhandel zustande, gilt am Spielende der Referenzkurs von
+40 Credits. Kristalle werden nicht zusätzlich als normale
+Ressourceneinheiten gewertet.
 
 Nach Runde 20 bleibt die Abschlussrangliste stehen, zeichnet den
 Sieger aus und bietet eine neue Partie an. Es wird keine Runde 21
@@ -733,9 +750,6 @@ Diese Ideen gehören bewusst nicht zu Version 1.
 - Harvesterkosten
 - Marktpreise und Preisentwicklung
 - Produktionsmengen
-- exakte Wachstums- und Schrumpfungsraten der Bevölkerung
-- Zusammenspiel von Nahrungs- und Energieversorgung
-- Rundung der Versorgung bei Bevölkerungszahlen außerhalb voller Zehnerschritte
 - Übertragungsgeschwindigkeit im Markt
 - Startwerte
 

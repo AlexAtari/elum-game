@@ -54,6 +54,12 @@ Jeder der vier Spieler erhält zwei zusammenhängende Startgrundstücke:
 Damit entstehen vier radiale Startkorridore mit insgesamt acht
 Startgrundstücken.
 
+Der Graph definiert vier feste, vorab auf Gleichwertigkeit geprüfte
+Startkorridore. Von den sechs direkten HQ-Nachbarn bilden vier den
+Beginn dieser Korridore; die beiden übrigen bleiben zu Spielbeginn als
+neutrale frühe Konflikt- und Expansionsfelder frei. Die vier
+Startkorridore werden den Kolonien pro Partie zufällig zugeordnet.
+
 Für alle Startgrundstücke gilt:
 
 - kein Pentagon,
@@ -71,8 +77,7 @@ Entscheidend sind möglichst gleiche Bedingungen im Graphen:
 - ähnliche Erreichbarkeit strategischer Regionen,
 - keine einseitige frühe Sackgasse.
 
-Die vier Startpositionen werden den Kolonien pro Partie zufällig
-zugeordnet. Einschließen anderer Spieler ist erlaubt.
+Einschließen anderer Spieler ist erlaubt.
 
 ## 4. Grundstückserwerb
 
@@ -169,9 +174,12 @@ Das Versorgungsschiff:
 - bringt die Ablösung der aktuellen Kolonieleitung,
 - markiert das Ende der Partie.
 
-Nicht verkaufte Kristalle werden am Spielende zum zuletzt gültigen
-Kristallkurs bewertet. Gab es in der letzten Runde keinen Abschluss,
-bleibt der letzte zuvor gültige Kurs bestehen.
+Nicht verkaufte Kristalle werden am Spielende zum offiziellen
+Kristallkurs bewertet. Dieser entspricht dem zuletzt veröffentlichten
+Orientierungspreis des Kristallmarkts und startet bei 40 Credits je
+Kristall. Eine einzelne Transaktion setzt ihn nicht direkt. Gab es in
+einer Runde keinen Kristallhandel, bleibt der Kurs unverändert; gab es
+in der gesamten Partie keinen, gilt der Referenzkurs von 40 Credits.
 
 ## 9. Meteoriten
 
@@ -207,15 +215,19 @@ Falls kein gültiges Zentrum gefunden wird:
 
 ### Unregelmäßiger Krater
 
-Alle Werte bleiben konfigurierbar. Vorläufiger Standard:
+Alle Werte bleiben konfigurierbar. Konservative Standardbasis:
 
 - Zentrum: `+3` Kristallsterne,
-- drei bis fünf direkte Nachbarn, Standard vier: jeweils `+2`,
-- vier bis acht weitere Felder, Standard sechs: jeweils `+1`,
+- drei direkte Nachbarn: jeweils `+2`,
+- vier weitere Felder: jeweils `+1`,
 - äußere Felder höchstens zwei Graphschritte entfernt,
 - jedes Feld höchstens fünf Sterne,
 - kein Feld wird doppelt ausgewählt,
 - der Krater bleibt zusammenhängend und unregelmäßig.
+
+Erweiterte Testvarianten dürfen vier direkte und sechs äußere
+beziehungsweise fünf direkte und acht äußere Felder betreffen. Ihre
+Verteilung wird erst nach Simulationen festgelegt.
 
 ### Sichtbarkeit
 
@@ -248,15 +260,20 @@ Vorläufig ausgeschlossen sind:
 
 ## 11. Umsetzungsreihenfolge
 
+Abgeschlossen:
+
 1. Dokumentation konsolidieren.
 2. Kartenmodell von der Darstellung lösen.
-3. 92-Felder-Graph einführen und validieren.
-4. faire Startkorridore auswählen.
-5. Graph zunächst flach darstellen.
-6. Entfernungszonen berechnen.
-7. Kristalladern erzeugen.
-8. Meteoriten implementieren.
-9. interstellaren Käufer ergänzen.
-10. Countdown und Storytexte ergänzen.
-11. Simulation und Balancing.
-12. später 3D-Kugel.
+
+Als Nächstes:
+
+1. 92-Felder-Graph einführen und validieren.
+2. faire Startkorridore auswählen.
+3. Graph zunächst flach darstellen.
+4. Entfernungszonen berechnen.
+5. Kristalladern erzeugen.
+6. Meteoriten implementieren.
+7. interstellaren Käufer ergänzen.
+8. Countdown und Storytexte ergänzen.
+9. Simulation und Balancing.
+10. später 3D-Kugel.

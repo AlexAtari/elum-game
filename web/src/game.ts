@@ -6,6 +6,10 @@ import {
 } from './rivalHarvesterOperations'
 
 import { createAgentPlan } from './agents'
+import {
+  prototypePlanetMap,
+  type PlanetTile,
+} from './planetMap'
 
 export type ProductionType = 'food' | 'energy' | 'ore'
 
@@ -149,10 +153,7 @@ export type LandAuctionResult = {
 
 export type TileOwner = 'hq' | 'player' | 'free'
 
-export type Tile = {
-  id: string
-  q: number
-  r: number
+export type Tile = PlanetTile & {
   owner: TileOwner
   food?: number
   energy?: number
@@ -1088,8 +1089,6 @@ export const productionTypes: Record<
   },
 }
 
-const MAP_RADIUS = 4
-
 const firstRingRatings: Array<
   Pick<Tile, 'food' | 'energy' | 'ore'>
 > = [
@@ -1100,28 +1099,6 @@ const firstRingRatings: Array<
   { food: 5, energy: 2, ore: 2 },
   { food: 2, energy: 3, ore: 4 },
 ]
-
-const clockwiseHexDirections = [
-  { q: 1, r: 0 },
-  { q: 0, r: 1 },
-  { q: -1, r: 1 },
-  { q: -1, r: 0 },
-  { q: 0, r: -1 },
-  { q: 1, r: -1 },
-]
-
-function createTileId(index: number) {
-  let remainingIndex = index
-  let id = ''
-
-  do {
-    id =
-      String.fromCharCode(65 + (remainingIndex % 26)) + id
-    remainingIndex = Math.floor(remainingIndex / 26) - 1
-  } while (remainingIndex >= 0)
-
-  return id
-}
 
 function getGeneratedRating(
   q: number,
@@ -1138,61 +1115,44 @@ function getGeneratedRating(
   return (value % 5) + 1
 }
 
-function createMapTiles(radius: number): Tile[] {
-  const generatedTiles: Tile[] = [
-    { id: 'HQ', q: 0, r: 0, owner: 'hq' },
-  ]
-  let tileIndex = 0
+function createMapTiles(): Tile[] {
+  return prototypePlanetMap.tiles.map((planetTile, tileIndex) => {
+    const position =
+      prototypePlanetMap.flatPositions[planetTile.id]
+    const preservedRatings =
+      planetTile.distanceFromHq === 1
+        ? firstRingRatings[tileIndex - 1]
+        : undefined
 
-  for (
-    let ringRadius = 1;
-    ringRadius <= radius;
-    ringRadius += 1
-  ) {
-    let q = 0
-    let r = -ringRadius
-
-    clockwiseHexDirections.forEach((direction) => {
-      for (let step = 0; step < ringRadius; step += 1) {
-        const preservedRatings =
-          ringRadius === 1
-            ? firstRingRatings[tileIndex]
-            : undefined
-
-        generatedTiles.push({
-          id: createTileId(tileIndex),
-          q,
-          r,
-          owner: tileIndex < 2 ? 'player' : 'free',
-          food:
-            preservedRatings?.food ??
-            getGeneratedRating(q, r, 0),
-          energy:
-            preservedRatings?.energy ??
-            getGeneratedRating(q, r, 1),
-          ore:
-            preservedRatings?.ore ??
-            getGeneratedRating(q, r, 2),
-        })
-
-        tileIndex += 1
-        q += direction.q
-        r += direction.r
-      }
-    })
-  }
-
-  return generatedTiles
+    return {
+      ...planetTile,
+      owner:
+        planetTile.id === prototypePlanetMap.hqTileId
+          ? 'hq'
+          : tileIndex <= 2
+            ? 'player'
+            : 'free',
+      ...(planetTile.id === prototypePlanetMap.hqTileId
+        ? {}
+        : {
+            food:
+              preservedRatings?.food ??
+              getGeneratedRating(position.q, position.r, 0),
+            energy:
+              preservedRatings?.energy ??
+              getGeneratedRating(position.q, position.r, 1),
+            ore:
+              preservedRatings?.ore ??
+              getGeneratedRating(position.q, position.r, 2),
+          }),
+    }
+  })
 }
 
-export const tiles: Tile[] = createMapTiles(MAP_RADIUS)
+export const tiles: Tile[] = createMapTiles()
 
 export function getHexDistanceFromHq(tile: Tile) {
-  return (
-    Math.abs(tile.q) +
-    Math.abs(tile.r) +
-    Math.abs(tile.q + tile.r)
-  ) / 2
+  return tile.distanceFromHq
 }
 
 export function createInitialGameState(): GameState {

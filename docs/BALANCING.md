@@ -27,9 +27,6 @@ Grundsatz:
 | Runden Standardmodus | 20 |
 | Zielspielzeit | zunächst 35–45 Minuten, neu zu messen |
 | möglicher Schnellmodus | 15 Runden, später festzulegen |
-| Aktionspunkte pro Runde | 3 |
-| maximal ansparbare Aktionspunkte | 5 |
-| Aktionspunkte in Runde 1 | unbegrenzt |
 
 ---
 
@@ -39,15 +36,13 @@ Grundsatz:
 |---|---:|
 | Hauptquartier | 1 |
 | Harvester | 2 |
-| Grundstücke | 0 |
+| Grundstücke | 2 |
 | Credits | 100 |
 | Bevölkerung | 20 |
 | Nahrung | 4 |
 | Energie | 4 |
 | Erz | 2 |
 | Kristalle | 0 |
-| Sichtbare Startfelder | 4 |
-| In Runde 1 kaufbare Startfelder | 2 |
 
 ---
 
@@ -57,10 +52,6 @@ Grundsatz:
 |---|---:|
 | Grundstück | 25 Credits |
 | Harvester | 30 Credits + 3 Erz |
-| Produktion eines Harvesters ändern | 1 AP |
-| Harvester auf anderes eigenes Feld versetzen | 2 AP |
-| Grundstück kaufen | 1 AP |
-| Marktauftrag abgeben | 0 AP |
 
 Für Version 0.1 können Grundstücke nicht verkauft werden.
 
@@ -142,15 +133,14 @@ Fehlt die benötigte Energie, pausiert die Umrüstung oder Einrichtung und wird 
 
 ## Bevölkerung
 
-| Parameter | Startwert |
-|---|---:|
-| Nahrung je 10 Einwohner | 1 |
-| Energie je 20 Einwohner | 1 |
+Für je angefangene zehn Einwohner wählt der Spieler für Nahrung und
+HQ-Energie unabhängig eine Versorgungsstufe von 0 bis 3. Die geplante
+Menge einer Ressource ist:
 
-Bei 20 Einwohnern benötigt das HQ daher:
+`aufgerundete Bevölkerungsgruppen × gewählte Versorgungsstufe`
 
-- 2 Nahrung
-- 1 Energie
+Bei 20 Einwohnern verbraucht eine normale Versorgung der Stufe 2
+daher vier Nahrung und vier HQ-Energie.
 
 ## Harvester
 
@@ -164,37 +154,36 @@ Versorgungsreihenfolge:
 2. aktive Harvester
 3. verbleibende Energie zählt als Überschuss
 
-Bei Energiemangel entscheidet der Spieler, welche Harvester stillstehen.
+Bei Energiemangel werden Harvester automatisch nach der im GDD
+festgelegten Prioritätsregel deaktiviert.
 
 ---
 
-# 7. Bevölkerungswachstum
+# 7. Bevölkerungsentwicklung
 
-Wachstum entsteht nur bei einem Überschuss an Nahrung und Energie.
+Für Nahrung und HQ-Energie wird nach dem tatsächlichen Verbrauch die
+erreichte Stufe je angefangene zehn Einwohner ermittelt. Die niedrigere
+der beiden Stufen bestimmt die Bevölkerungsentwicklung:
 
-| Überschuss nach Versorgung | Wachstumspunkte |
-|---|---:|
-| mindestens 2 Nahrung und 1 Energie | 1 |
-| mindestens 4 Nahrung und 2 Energie | 2 |
-| mindestens 6 Nahrung und 3 Energie | 3 |
+| wirksame Versorgungsstufe | Bevölkerungsänderung |
+|---:|---:|
+| 0 | −1 |
+| 1 | 0 |
+| 2 | +1 |
+| 3 | +2 |
 
-Für jeweils 5 Wachstumspunkte erhält die Kolonie:
-
-- +5 Einwohner
-
-Nicht genutzte Wachstumspunkte bleiben erhalten.
+Es gibt kein separates Wachstumspunktekonto.
 
 ---
 
 # 8. Hunger und Energiemangel
 
-## Nahrungsmangel
+## Nahrungs- oder HQ-Energiemangel
 
-| Dauer | Folge |
-|---|---|
-| 1 Runde | kein Bevölkerungswachstum |
-| 2 Runden in Folge | −5 Einwohner |
-| jede weitere Runde | weitere −5 Einwohner |
+Die knappere der beiden Ressourcen bestimmt die wirksame
+Versorgungsstufe. Bei Stufe 1 stagniert die Bevölkerung, bei Stufe 0
+sinkt sie in dieser Runde um einen Einwohner. Mangelserien besitzen
+keine zusätzliche, separat gespeicherte Strafstufe.
 
 ## Energiemangel
 
@@ -328,6 +317,16 @@ Die 92-Felder-Struktur ist beschlossen, aber noch nicht implementiert.
 | Explorationszone | ungefähr 29 |
 | planetare Fernzone | ungefähr 36 |
 
+Die endgültige Zuordnung folgt vollständigen Graphdistanzebenen.
+Zielgrößen dürfen keine Entfernungsebene künstlich teilen.
+
+## Startkorridore
+
+Vier feste Korridore werden vorab auf vergleichbare Expansionswege,
+Entfernung zur Fernzone, Nähe zu Pentagonen und Engpässen sowie die
+Erreichbarkeit strategischer Regionen geprüft. Zwei der sechs direkten
+HQ-Nachbarn bleiben zu Spielbeginn neutral.
+
 ## Natürliche Kristalladern
 
 - vier natürliche 5-Sterne-Kerne,
@@ -362,7 +361,10 @@ angebotsabhängige Variante.
 | maximale Entfernung | 2 | 2 | 2 |
 | maximaler Feldwert | 5 | 5 | 5 |
 
-Erste optionale Testverteilung der Kratergrößen: 25/60/15.
+Die kleine Variante mit drei direkten und vier äußeren Feldern ist
+die konservative Standardbasis. Die mittlere und große Variante
+bleiben konfigurierbare Tests. Eine Größenverteilung wird erst nach
+Simulationen festgelegt.
 
 ---
 
@@ -374,12 +376,18 @@ Runden**.
 Die Rangfolge wird lexikografisch ermittelt:
 
 1. höhere Bevölkerung
-2. mehr Credits
-3. höhere Summe aller gelagerten Ressourcen
+2. höheres abrechenbares Vermögen aus Credits plus
+   `Kristallbestand × offizieller Kristallkurs`
+3. höhere Summe aller übrigen Ressourcen ohne Kristalle
 4. mehr Harvester
 
-Nicht verkaufte Kristalle werden zum zuletzt gültigen Kurs bewertet.
-Nach Runde 20 beginnt keine Runde 21.
+Der offizielle Kristallkurs entspricht dem zuletzt veröffentlichten
+Orientierungspreis. Sein Start- und Rückfallwert beträgt 40 Credits je
+Kristall. Eine einzelne Transaktion setzt diesen Kurs nicht direkt.
+Ohne Handel in einer Runde bleibt er unverändert; ohne einen einzigen
+Kristallhandel in der gesamten Partie gilt am Spielende der
+Referenzkurs von 40 Credits. Kristalle werden in Stufe 3 nicht noch
+einmal gezählt. Nach Runde 20 beginnt keine Runde 21.
 
 ---
 

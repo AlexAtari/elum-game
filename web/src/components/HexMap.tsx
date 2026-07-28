@@ -14,6 +14,7 @@ import {
   type LandBid,
   type ProductionType,
 } from '../game'
+import { prototypePlanetMap } from '../planetMap'
 import './HexMap.css'
 
 type HexMapProps = {
@@ -89,6 +90,12 @@ function axialToPixel(q: number, r: number) {
     x: HEX_RADIUS * 1.5 * q,
     y: HEX_RADIUS * Math.sqrt(3) * (r + q / 2),
   }
+}
+
+function getTilePixelPosition(tileId: string) {
+  const position = prototypePlanetMap.flatPositions[tileId]
+
+  return axialToPixel(position.q, position.r)
 }
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -176,12 +183,9 @@ function HexMap({
     (tile) => tile.id === hoveredId,
   )
   const hoveredPosition = hoveredTile
-    ? axialToPixel(hoveredTile.q, hoveredTile.r)
+    ? getTilePixelPosition(hoveredTile.id)
     : null
-  const selectedPosition = axialToPixel(
-    selectedTile.q,
-    selectedTile.r,
-  )
+  const selectedPosition = getTilePixelPosition(selectedTile.id)
 
   const selectedHarvester = harvesters[selectedTile.id]
   const selectedProduction = selectedHarvester?.production
@@ -584,7 +588,7 @@ function HexMap({
               transform={`translate(${cameraState.x} ${cameraState.y}) scale(${cameraState.zoom})`}
             >
               {tiles.map((tile) => {
-                const position = axialToPixel(tile.q, tile.r)
+                const position = getTilePixelPosition(tile.id)
                 const polygonPoints = createHexPoints(
                   position.x,
                   position.y,

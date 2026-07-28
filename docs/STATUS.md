@@ -21,6 +21,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 ## Implementiert
 
 - Hexkarte mit zentralem HQ und 60 Grundstücken
+- UI-unabhängiges Kartenmodell mit Feld-IDs, symmetrischen
+  Nachbarlisten und berechneten Graphdistanzen
+- getrennte flache Layoutpositionen für die bestehende Hexdarstellung
 - zwei Startfelder je Kolonie
 - Nahrung, Energie, Erz, Kristalle und Credits
 - Harvesterbau und mehrere parallele Bauaufträge
@@ -123,19 +126,21 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 - regelmäßige Hochsicherheits-Kristalltransporter
 - zwei garantierte und ein möglicher dritter Meteorit
 - unregelmäßige, konfigurierbare Meteor-Krater
-- Bewertung nicht verkaufter Kristalle zum letzten gültigen Kurs
+- Bewertung nicht verkaufter Kristalle zum offiziellen
+  Orientierungspreis; Start- und Rückfallwert 40 Credits
+- konservative Meteor-Basis mit Zentrum `+3`, drei direkten
+  `+2`-Feldern und vier äußeren `+1`-Feldern
 
 Der Browserprototyp bleibt bis zur schrittweisen Umstellung bei
 15 Runden und 60 Grundstücken.
 
 Nächste technische Reihenfolge:
 
-1. Kartenmodell von der Darstellung lösen.
-2. 92-Felder-Graph mit Tests einführen.
-3. Startpositionen und Zonen validieren.
-4. Kristalladern und Meteoriten ergänzen.
-5. interstellaren Käufer ergänzen.
-6. danach erneut simulieren und balancieren.
+1. 92-Felder-Graph mit Tests einführen.
+2. Startpositionen und Zonen validieren.
+3. Kristalladern und Meteoriten ergänzen.
+4. interstellaren Käufer ergänzen.
+5. danach erneut simulieren und balancieren.
 
 Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-STATUS:END -->

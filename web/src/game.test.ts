@@ -40,6 +40,7 @@ import {
   type GameState,
   type HarvesterAssignments,
 } from './game'
+import { prototypePlanetMap } from './planetMap'
 
 const normalSupply = {
   foodLevel: 2,
@@ -51,22 +52,25 @@ describe('Hexkarte', () => {
     expect(tiles).toHaveLength(61)
     expect(tiles[0]).toMatchObject({
       id: 'HQ',
-      q: 0,
-      r: 0,
       owner: 'hq',
+      distanceFromHq: 0,
+      shape: 'hexagon',
     })
     expect(new Set(tiles.map((tile) => tile.id)).size).toBe(61)
     expect(
-      new Set(tiles.map((tile) => `${tile.q}:${tile.r}`)).size,
+      new Set(
+        Object.values(prototypePlanetMap.flatPositions).map(
+          (position) => `${position.q}:${position.r}`,
+        ),
+      ).size,
     ).toBe(61)
   })
 
   it('behält die sechs bisherigen Startfelder im ersten Ring', () => {
     expect(
-      tiles.slice(1, 7).map(({ id, q, r }) => ({
+      tiles.slice(1, 7).map(({ id }) => ({
         id,
-        q,
-        r,
+        ...prototypePlanetMap.flatPositions[id],
       })),
     ).toEqual([
       { id: 'A', q: 0, r: -1 },
