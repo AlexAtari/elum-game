@@ -14,6 +14,8 @@ import {
   type LandAuctionTie,
   type LandBid,
   type ProductionType,
+  type RivalColonies,
+  type RivalColonyState,
 } from '../game'
 import {
   combineMeteorBonuses,
@@ -30,11 +32,13 @@ import { PlanetSurface } from './PlanetSurface'
 import './HexMap.css'
 
 type HexMapProps = {
+  round: number
   population: number
   credits: number
   ore: number
   ownedTileIds: string[]
   opponentTileIds: string[]
+  rivals: RivalColonies
   meteorImpacts: MeteorImpact[]
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
@@ -90,6 +94,25 @@ const INITIAL_MAP_CAMERA: MapCamera = {
 const planetSurfaceCells =
   createPlanetSurfaceCells(targetPlanetMap)
 
+function getRivalOwner(
+  tileId: string,
+  rivals: RivalColonies,
+): RivalColonyState | null {
+  return (
+    Object.values(rivals).find((rival) =>
+      rival.ownedTileIds?.includes(tileId),
+    ) ?? null
+  )
+}
+
+function getRivalMapLabel(rival: RivalColonyState | null) {
+  if (!rival) {
+    return 'RIVALE'
+  }
+
+  return rival.id.toUpperCase()
+}
+
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
 }
@@ -131,11 +154,13 @@ function formatStars(value = 0) {
 }
 
 function HexMap({
+  round,
   population,
   credits,
   ore,
   ownedTileIds,
   opponentTileIds,
+  rivals,
   meteorImpacts,
   pendingLandBid,
   landAuctionTie,
@@ -213,6 +238,10 @@ function HexMap({
 
   const selectedHarvester = harvesters[selectedTile.id]
   const selectedProduction = selectedHarvester?.production
+  const selectedRivalOwner = getRivalOwner(
+    selectedTile.id,
+    rivals,
+  )
   const selectedIsPlayerOwned = ownedTileIds.includes(
     selectedTile.id,
   )
@@ -490,6 +519,7 @@ function HexMap({
           <PlanetSurface
             radius={PLANET_RADIUS * cameraState.zoom}
             rotation={cameraState}
+            round={round}
             tiles={tiles}
             viewSize={MAP_VIEW_SIZE}
           />
@@ -615,6 +645,10 @@ function HexMap({
                 const isOpponentOwned = opponentTileIds.includes(
                   tile.id,
                 )
+                const rivalOwner = getRivalOwner(
+                  tile.id,
+                  rivals,
+                )
                 const hasPendingBid =
                   pendingLandBid?.tileId === tile.id
                 const hasAuctionTie =
@@ -638,6 +672,9 @@ function HexMap({
                       'hex-tile',
                       tile.shape,
                       ownershipClass,
+                      rivalOwner
+                        ? `opponent-${rivalOwner.id}`
+                        : '',
                       isMeteorCenter ? 'meteor-center' : '',
                       isSelected ? 'selected' : '',
                     ].join(' ')}
@@ -708,12 +745,17 @@ function HexMap({
 
                     {isOpponentOwned && (
                       <text
-                        className="hex-opponent-label"
+                        className={[
+                          'hex-opponent-label',
+                          rivalOwner
+                            ? `rival-${rivalOwner.id}`
+                            : '',
+                        ].join(' ')}
                         x={position.x}
                         y={position.y + 14 * cameraState.zoom}
                         textAnchor="middle"
                       >
-                        ORION
+                        {getRivalMapLabel(rivalOwner)}
                       </text>
                     )}
 
@@ -833,7 +875,8 @@ function HexMap({
                 {selectedIsPlayerOwned
                   ? 'Eigenes Grundstück'
                   : selectedIsOpponentOwned
-                    ? 'Konsortium Orion'
+                    ? selectedRivalOwner?.name ??
+                      'Rivalenkolonie'
                     : selectedAuctionTie
                       ? 'Stichauktion'
                       : selectedPendingBid
@@ -1078,7 +1121,11 @@ function HexMap({
               {selectedIsOpponentOwned && (
                 <div className="opponent-land-status">
                   <span>🏢 Grundstück vergeben</span>
-                  <strong>Besitzer: Konsortium Orion</strong>
+                  <strong>
+                    Besitzer:{' '}
+                    {selectedRivalOwner?.name ??
+                      'Rivalenkolonie'}
+                  </strong>
                   <p>
                     Dieses Feld steht für weitere Gebote nicht mehr
                     zur Verfügung.

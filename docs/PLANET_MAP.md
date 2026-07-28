@@ -32,6 +32,13 @@ Grundstückskanten abbrechen. Eine Rückprojektion ordnet die
 sichtbaren Kugelpixel festen Weltkoordinaten zu; die Textur bleibt
 deshalb beim Drehen auf dem Planeten verankert.
 
+Der Grünanteil der Nahrungsnuance wächst von Runde 1 bis Runde 20
+gleichmäßig und moderat. Dies ist eine rein visuelle
+Kultivierungsanzeige und ändert keine Ressourcensterne. Rivalenfelder
+werden anhand der getrennten Besitzlisten als Orion, Nova oder Vega
+gekennzeichnet; jede Kolonie beginnt weiterhin mit genau zwei
+Grundstücken.
+
 Die Grundstücksflächen werden weiterhin als sphärische Dualzellen
 aus den Mittelpunkten der angrenzenden Dreiecksflächen gebildet.
 Benachbarte Zellen teilen exakt dieselbe Kante, dienen aber nur als

@@ -4,7 +4,10 @@ import {
   useState,
 } from 'react'
 import planetSurfaceUrl from '../assets/planet-surface-v2.webp'
-import type { Tile } from '../game'
+import {
+  GAME_ROUND_LIMIT,
+  type Tile,
+} from '../game'
 import {
   targetPlanetMap,
 } from '../planetMap'
@@ -17,6 +20,7 @@ import { calculateResourceColorScale } from '../planetSurfaceTint'
 type PlanetSurfaceProps = {
   radius: number
   rotation: PlanetRotation
+  round: number
   tiles: Tile[]
   viewSize: number
 }
@@ -37,6 +41,7 @@ function clampByte(value: number) {
 function createResourceTexture(
   image: HTMLImageElement,
   tiles: Tile[],
+  round: number,
 ) {
   const canvas = document.createElement('canvas')
   canvas.width = TEXTURE_WIDTH
@@ -116,6 +121,8 @@ function createResourceTexture(
         energy,
         ore,
         weightTotal,
+        round,
+        GAME_ROUND_LIMIT,
       )
       const offset = (y * TEXTURE_WIDTH + x) * 4
 
@@ -137,6 +144,7 @@ function createResourceTexture(
 export function PlanetSurface({
   radius,
   rotation,
+  round,
   tiles,
   viewSize,
 }: PlanetSurfaceProps) {
@@ -194,7 +202,9 @@ export function PlanetSurface({
       }
 
       if (isActive) {
-        setTexture(createResourceTexture(image, tiles))
+        setTexture(
+          createResourceTexture(image, tiles, round),
+        )
       }
     }
 
@@ -204,7 +214,7 @@ export function PlanetSurface({
     return () => {
       isActive = false
     }
-  }, [tiles])
+  }, [round, tiles])
 
   useEffect(() => {
     const canvas = canvasRef.current

@@ -2288,6 +2288,11 @@ export function runRound(
             0,
             advancedRivals.orion.credits - landBid!.rivalBid,
           ),
+          ownedTileIds: [
+            ...(advancedRivals.orion.ownedTileIds ?? []),
+            landBid!.tileId,
+          ],
+          lastLandPurchaseRound: currentState.round,
         },
       }
     : advancedRivals

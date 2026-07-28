@@ -682,11 +682,13 @@ function App() {
         ) : (
           <>
             <HexMap
+              round={gameState.round}
               population={gameState.population}
               credits={gameState.credits}
               ore={gameState.resources.ore}
               ownedTileIds={gameState.ownedTileIds}
               opponentTileIds={gameState.opponentTileIds}
+              rivals={gameState.rivals}
               meteorImpacts={gameState.meteorImpacts ?? []}
               pendingLandBid={gameState.pendingLandBid}
               landAuctionTie={gameState.landAuctionTie}

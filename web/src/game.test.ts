@@ -1237,6 +1237,9 @@ describe('Grundstücksauktion', () => {
       PLAYER_START_TILE_IDS,
     )
     expect(result.nextState.opponentTileIds).toContain(freeAuctionTileId)
+    expect(
+      result.nextState.rivals.orion.ownedTileIds,
+    ).toContain(freeAuctionTileId)
     expect(result.nextState.credits).toBe(100)
     expect(result.nextState.rivals.orion.credits).toBe(61)
   })
@@ -1422,6 +1425,9 @@ describe('Grundstücksauktion', () => {
     expect(result.report.landAuction?.outcome).toBe('lost')
     expect(result.nextState.credits).toBe(30)
     expect(result.nextState.opponentTileIds).toContain(freeAuctionTileId)
+    expect(
+      result.nextState.rivals.orion.ownedTileIds,
+    ).toContain(freeAuctionTileId)
     expect(result.nextState.rivals.orion.credits).toBe(65)
   })
 

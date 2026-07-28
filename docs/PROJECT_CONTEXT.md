@@ -234,12 +234,16 @@ werden.
 - gemeinsame marsartige, fotorealistische Welttextur mit moderat
   differenzierten und räumlich geglätteten Ressourcenfarbnuancen;
   Polygonkonturen nur bei Interaktion oder notwendigem Spielstatus
+- über 20 Runden schrittweise grünere Nahrungsregionen als rein
+  visuelle Kultivierung
 - lückenlose sphärische Dualzellen als unsichtbare
   Interaktionsflächen und kugelrichtige Rückprojektion der fest auf
   dem Planeten verankerten Oberflächentextur
 - feste Sonnenbeleuchtung und atmosphärischer Rand; Feldnummern nur
   in Details und barrierefreien Namen, nicht auf der Kugeloberfläche
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
+- getrennte Kartenbeschriftung der jeweils zwei Startfelder von
+  Orion, Nova und Vega
 - vier natürliche Kristalladern im Zielgraphen aktiv; Werte bleiben
   bis zum Grundstückserwerb verdeckt
 - seedbasierte Meteore mit zwei garantierten und optional einem

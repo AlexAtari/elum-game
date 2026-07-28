@@ -246,13 +246,17 @@ marsartigen, fotorealistischen Welttextur und moderat
 differenzierten, räumlich geglätteten Ressourcenfarbnuancen eine
 diffuse Oberflächenkarte vor. `planetSurfaceTint.ts` hält die reine
 Farbzuordnung für Nahrung, Energie und Erz getrennt von Canvas und
-React testbar.
+React testbar. Der aktuelle Rundenwert verstärkt ausschließlich den
+Grünanteil der Nahrungsnuance bis Runde 20; die Spiellogik bleibt
+davon unberührt.
 `unprojectPlanetViewPosition` ordnet jeden sichtbaren Canvas-Pixel
 bei jeder Kameradrehung wieder einer festen Weltkoordinate zu. So
 dreht sich eine durchgehende Textur ohne Feldnähte mit der Kugel,
 während SVG-Zellen ausschließlich Interaktion, Auswahl und
 Statusmarkierungen tragen. Diese Geometrie bleibt reine Darstellung
 und verändert keine Spielregel.
+Rivalenbesitz wird in `HexMap.tsx` aus den getrennten
+`ownedTileIds` von Orion, Nova und Vega gelesen.
 `createRadialGraphLayout` bleibt als
 reproduzierbares flaches Hilfslayout verfügbar.
 

@@ -213,6 +213,12 @@ beziehungsweise Tastaturfokus und die Auswahl durch Antippen lassen
 die jeweilige Feldkontur aufscheinen. Gebote, Meteore und andere
 notwendige Spielzustände dürfen weiterhin klar markiert werden.
 
+Nahrungsregionen werden im Verlauf der 20 Runden behutsam grüner.
+Diese visuelle Entwicklung stellt die fortschreitende Kultivierung
+dar, verändert aber weder Sternebewertung noch Produktion.
+Grundstücke von Orion, Nova und Vega werden ihrem tatsächlichen
+Besitzer zugeordnet und mit dessen Namen angezeigt.
+
 Die Kugel besitzt eine feste, von links oben einfallende Beleuchtung
 mit weich abgedunkelter Gegenseite und sichtbarem atmosphärischem
 Rand. Feldnummern werden nicht direkt auf der Kugel gezeigt. Nach der
