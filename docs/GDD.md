@@ -212,6 +212,12 @@ beziehungsweise Tastaturfokus und die Auswahl durch Antippen lassen
 die Feldkontur aufscheinen. Gebote, Meteore und andere notwendige
 Spielzustände dürfen weiterhin klar markiert werden.
 
+Die Kugel besitzt eine feste, von links oben einfallende Beleuchtung
+mit weich abgedunkelter Gegenseite und sichtbarem atmosphärischem
+Rand. Feldnummern werden nicht direkt auf der Kugel gezeigt. Nach der
+Auswahl nennt die Detailansicht weiterhin die eindeutige Feld-ID;
+dieselbe Bezeichnung bleibt für assistive Bedienung verfügbar.
+
 ---
 
 # 6. Grundstücke

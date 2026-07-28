@@ -34,6 +34,12 @@ Umrandung; Hover, Tastaturfokus und Auswahl blenden eine Kontur ein.
 Statusmarkierungen für Gebote und Meteorzentren bleiben davon
 ausgenommen.
 
+Eine globale, im Ansichtsraum feste Lichtverteilung überlagert alle
+Zelltexturen gemeinsam. Sie erzeugt eine helle Einfallsseite, eine
+weich abgedunkelte Gegenseite und ergänzt den atmosphärischen Rand.
+Feld-IDs erscheinen nicht als Text auf der Kugel, bleiben aber in der
+Felddetailansicht und als barrierefreie Interaktionsnamen erhalten.
+
 Alle Grundstücke sind wirtschaftlich gleich große Spieleinheiten.
 Sichtbare Größenunterschiede beeinflussen weder Produktion noch Preis.
 

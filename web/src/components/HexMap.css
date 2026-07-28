@@ -79,6 +79,11 @@
   stroke-width: 2;
 }
 
+.planet-cell-lighting {
+  pointer-events: none;
+  fill: url('#planet-lighting');
+}
+
 .map-controls {
   position: absolute;
   z-index: 4;
@@ -304,13 +309,6 @@
   stroke: rgba(225, 255, 244, 0.92);
   stroke-width: 4;
   filter: drop-shadow(0 0 8px rgba(121, 221, 185, 0.58));
-}
-
-.hex-label {
-  pointer-events: none;
-  fill: #f4f7ff;
-  font-size: 9px;
-  font-weight: 800;
 }
 
 .hex-owner-label {

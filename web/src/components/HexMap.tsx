@@ -620,6 +620,39 @@ function HexMap({
                 <stop offset="0.55" stopColor="#132e50" />
                 <stop offset="1" stopColor="#07111f" />
               </radialGradient>
+              <radialGradient
+                id="planet-lighting"
+                gradientUnits="userSpaceOnUse"
+                cx={-PLANET_RADIUS * cameraState.zoom * 0.42}
+                cy={-PLANET_RADIUS * cameraState.zoom * 0.46}
+                r={PLANET_RADIUS * cameraState.zoom * 1.55}
+              >
+                <stop
+                  offset="0"
+                  stopColor="#e8f7ff"
+                  stopOpacity="0.2"
+                />
+                <stop
+                  offset="0.32"
+                  stopColor="#b9ddf2"
+                  stopOpacity="0.06"
+                />
+                <stop
+                  offset="0.58"
+                  stopColor="#09111e"
+                  stopOpacity="0"
+                />
+                <stop
+                  offset="0.82"
+                  stopColor="#03070e"
+                  stopOpacity="0.22"
+                />
+                <stop
+                  offset="1"
+                  stopColor="#010308"
+                  stopOpacity="0.56"
+                />
+              </radialGradient>
               <clipPath id="planet-clip">
                 <circle
                   r={PLANET_RADIUS * cameraState.zoom}
@@ -697,6 +730,11 @@ function HexMap({
                       ),
                     }}
                     role="button"
+                    aria-label={
+                      tile.owner === 'hq'
+                        ? 'Hauptquartier'
+                        : `Feld ${tile.id}`
+                    }
                     tabIndex={0}
                     onClick={() => selectTile(tile.id)}
                     onPointerEnter={() => setHoveredId(tile.id)}
@@ -742,18 +780,13 @@ function HexMap({
                       </g>
                     </g>
                     <polygon
+                      className="planet-cell-lighting"
+                      points={polygonPoints}
+                    />
+                    <polygon
                       className="hex-border"
                       points={polygonPoints}
                     />
-
-                    <text
-                      className="hex-label"
-                      x={position.x}
-                      y={position.y + 5 * cameraState.zoom}
-                      textAnchor="middle"
-                    >
-                      {tile.id}
-                    </text>
 
                     {isMeteorCenter && (
                       <text

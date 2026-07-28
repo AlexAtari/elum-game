@@ -236,6 +236,8 @@ werden.
   Spielstatus
 - lückenlose sphärische Dualzellen und lokal auf der Kugel verankerte
   Texturmotive statt regelmäßig verkleinerter Bildschirm-Polygone
+- feste Sonnenbeleuchtung und atmosphärischer Rand; Feldnummern nur
+  in Details und barrierefreien Namen, nicht auf der Kugeloberfläche
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - vier natürliche Kristalladern im Zielgraphen aktiv; Werte bleiben
   bis zum Grundstückserwerb verdeckt

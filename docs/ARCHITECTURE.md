@@ -250,6 +250,12 @@ bleibt reine Darstellung und verändert keine Spielregel.
 `createRadialGraphLayout` bleibt als
 reproduzierbares flaches Hilfslayout verfügbar.
 
+Eine gemeinsame SVG-Lichtmaske verwendet absolute
+Kugelansichtskoordinaten und bleibt deshalb beim Drehen im
+Ansichtsraum fest. Sichtbare Feldnummern werden nicht gerendert;
+`aria-label` und die Detailansicht bewahren die Feld-ID für Bedienung
+und Diagnose.
+
 `createNaturalCrystalVeins` wählt vier voneinander entfernte
 Hexagonkerne in der Fernzone und erweitert sie schrittweise zu
 zusammenhängenden 5/4/3/2-Sterne-Adern. Die zusammengeführten Werte

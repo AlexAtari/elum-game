@@ -47,6 +47,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   gemeinsamen Dreiecksflächen des Planetengraphen
 - fest an jeder Kugelzelle verankerte Texturmotive, die beim Drehen
   ihre lokale Ausrichtung und Position auf dem Planeten behalten
+- feste gerichtete Beleuchtung mit heller Einfallsseite, weich
+  abgedunkelter Gegenseite und atmosphärischem Kugelrand
+- keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in
+  Detailansicht und barrierefreien Bezeichnungen erhalten
 - ruhige Felder ohne permanente Polygonrahmen; Konturen erscheinen
   bei Hover, Tastaturfokus oder Auswahl, notwendige Spielmarkierungen
   bleiben sichtbar
