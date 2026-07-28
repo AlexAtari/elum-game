@@ -22,6 +22,13 @@ Das HQ liegt auf einem Hexagon. Die Browserpartie zeigt eine drehbare
 orthografische Kugelprojektion desselben Graphen. Rückseitenfelder
 werden erst nach einer Drehung sichtbar und anklickbar.
 
+Die Felder erhalten prozedurale kartografische Texturen nach ihrer
+stärksten Ressourceneignung. Die Texturintensität folgt der
+Sternstärke. Standardfelder besitzen keine permanente harte
+Umrandung; Hover, Tastaturfokus und Auswahl blenden eine Kontur ein.
+Statusmarkierungen für Gebote und Meteorzentren bleiben davon
+ausgenommen.
+
 Alle Grundstücke sind wirtschaftlich gleich große Spieleinheiten.
 Sichtbare Größenunterschiede beeinflussen weder Produktion noch Preis.
 

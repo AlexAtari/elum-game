@@ -200,6 +200,15 @@ Pentagone erkennbar und alle Felder durch Drehen erreichbar und
 auswählbar. Eine mögliche spätere Polyederentfaltung würde denselben
 Graphen verwenden.
 
+Die Oberflächentextur eines Grundstücks folgt seiner stärksten
+Ressourceneignung. Nahrung verwendet eine grüne Wiesen- und
+Vegetationsstruktur, Energie Windströmungen und Windräder, Erz eine
+braune Berg- und Höhenlinienstruktur. Die jeweilige Sternstärke
+bestimmt die Sichtbarkeit der Textur. Permanente Polygonrahmen werden
+vermieden; Hover beziehungsweise Tastaturfokus und die Auswahl durch
+Antippen lassen die Feldkontur aufscheinen. Gebote, Meteore und andere
+notwendige Spielzustände dürfen weiterhin klar markiert werden.
+
 ---
 
 # 6. Grundstücke

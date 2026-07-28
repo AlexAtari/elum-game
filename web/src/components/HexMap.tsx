@@ -157,6 +157,10 @@ function getTerrainClass(
       : strongest,
   )
 
+  if (dominantResource.rating === 0) {
+    return 'terrain-barren terrain-strength-0'
+  }
+
   return `terrain-${dominantResource.resource} terrain-strength-${dominantResource.rating}`
 }
 
@@ -554,68 +558,100 @@ function HexMap({
             <defs>
               <pattern
                 id="terrain-food"
-                width="30"
-                height="30"
+                width="64"
+                height="64"
                 patternUnits="userSpaceOnUse"
               >
-                <rect width="30" height="30" fill="#174839" />
+                <rect width="64" height="64" fill="#234d35" />
                 <path
-                  d="M3 29 Q7 15 15 4 M13 30 Q18 17 27 8"
+                  d="M-5 18 Q14 5 36 17 T72 12 M-8 42 Q14 28 37 41 T72 36 M-4 59 Q18 47 38 58 T70 54"
                   fill="none"
-                  stroke="#59b889"
-                  strokeWidth="3"
+                  stroke="#6ca66f"
+                  strokeWidth="3.2"
                   strokeLinecap="round"
-                  opacity="0.7"
+                  opacity="0.48"
                 />
-                <circle
-                  cx="22"
-                  cy="23"
-                  r="3"
-                  fill="#8fd39a"
-                  opacity="0.55"
+                <path
+                  d="M8 52 11 39 14 52 M28 31 31 17 34 31 M49 55 52 39 55 55"
+                  fill="none"
+                  stroke="#a0cf86"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  opacity="0.66"
                 />
+                <circle cx="12" cy="35" r="2.5" fill="#d1dfa1" opacity="0.42" />
+                <circle cx="31" cy="13" r="2.5" fill="#d1dfa1" opacity="0.42" />
+                <circle cx="52" cy="35" r="2.5" fill="#d1dfa1" opacity="0.42" />
               </pattern>
 
               <pattern
                 id="terrain-energy"
-                width="32"
-                height="32"
+                width="72"
+                height="64"
                 patternUnits="userSpaceOnUse"
               >
-                <rect width="32" height="32" fill="#4b4720" />
+                <rect width="72" height="64" fill="#1e4650" />
                 <path
-                  d="M19 1 9 15h8l-5 16 12-19h-8z"
-                  fill="#e6c75c"
-                  opacity="0.55"
+                  d="M-8 12 Q13 2 36 12 T80 8 M-8 31 Q16 20 39 31 T80 26 M-8 51 Q15 40 37 50 T80 45"
+                  fill="none"
+                  stroke="#72c9c9"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  opacity="0.5"
                 />
                 <path
-                  d="M0 27 32 5"
-                  stroke="#8fcbca"
-                  strokeWidth="2"
-                  opacity="0.35"
+                  d="M20 57 V30 M20 30 9 22 M20 30 33 24 M20 30 21 16 M55 58 V40 M55 40 47 34 M55 40 65 36 M55 40 56 29"
+                  fill="none"
+                  stroke="#b9e7dc"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity="0.72"
                 />
+                <circle cx="20" cy="30" r="3.2" fill="#e3f7e9" opacity="0.84" />
+                <circle cx="55" cy="40" r="2.6" fill="#e3f7e9" opacity="0.78" />
               </pattern>
 
               <pattern
                 id="terrain-ore"
-                width="34"
-                height="30"
+                width="72"
+                height="64"
                 patternUnits="userSpaceOnUse"
               >
-                <rect width="34" height="30" fill="#403c3a" />
+                <rect width="72" height="64" fill="#4c3729" />
                 <path
-                  d="m1 28 8-13 7 8 6-16 11 21z"
-                  fill="#73665d"
-                  stroke="#a08c78"
-                  strokeWidth="1.5"
-                  opacity="0.78"
+                  d="M-8 62 11 31 25 47 42 14 79 63Z"
+                  fill="#6d4d35"
+                  stroke="#b17b4f"
+                  strokeWidth="2.2"
+                  opacity="0.82"
                 />
-                <circle
-                  cx="8"
-                  cy="7"
-                  r="3"
-                  fill="#b9a184"
+                <path
+                  d="M-5 53 Q16 43 33 51 T78 48 M4 61 Q26 50 46 58 T78 55 M27 39 Q42 30 57 38"
+                  fill="none"
+                  stroke="#d1a36c"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
                   opacity="0.5"
+                />
+                <path d="m42 14-7 24 9-5 8 15" fill="none" stroke="#ddb47c" strokeWidth="2" opacity="0.5" />
+                <circle cx="14" cy="17" r="3" fill="#c88d56" opacity="0.52" />
+                <circle cx="62" cy="13" r="2.3" fill="#d4a06a" opacity="0.45" />
+              </pattern>
+
+              <pattern
+                id="terrain-barren"
+                width="56"
+                height="56"
+                patternUnits="userSpaceOnUse"
+              >
+                <rect width="56" height="56" fill="#29323c" />
+                <path
+                  d="M-4 18 Q12 10 29 18 T61 15 M-5 43 Q14 34 30 43 T62 39"
+                  fill="none"
+                  stroke="#596573"
+                  strokeWidth="2"
+                  opacity="0.42"
                 />
               </pattern>
 

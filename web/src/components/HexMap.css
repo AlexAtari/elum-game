@@ -140,15 +140,14 @@
 }
 
 .map-neighbor-links line {
-  stroke: rgba(142, 183, 216, 0.34);
+  stroke: rgba(142, 183, 216, 0.06);
   stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
 }
 
 .hex-tile.pentagon .hex-border {
-  fill: rgba(90, 69, 117, 0.48);
-  stroke: rgba(225, 177, 255, 0.78);
-  stroke-width: 3;
+  fill: rgba(117, 86, 139, 0.08);
+  stroke: transparent;
 }
 
 .hex-landscape {
@@ -168,57 +167,63 @@
   fill: url('#terrain-ore');
 }
 
+.terrain-barren {
+  fill: url('#terrain-barren');
+}
+
 .terrain-hq {
   fill: url('#terrain-hq');
 }
 
+.terrain-strength-0 {
+  opacity: 0.28;
+}
+
 .terrain-strength-1 {
-  opacity: 0.42;
+  opacity: 0.48;
 }
 
 .terrain-strength-2 {
-  opacity: 0.5;
+  opacity: 0.58;
 }
 
 .terrain-strength-3 {
-  opacity: 0.6;
+  opacity: 0.69;
 }
 
 .terrain-strength-4 {
-  opacity: 0.72;
+  opacity: 0.82;
 }
 
 .terrain-strength-5 {
-  opacity: 0.86;
+  opacity: 0.96;
 }
 
 .hex-border {
-  fill: rgba(18, 27, 45, 0.38);
-  stroke: rgba(176, 190, 214, 0.4);
-  stroke-width: 2.5;
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 2;
   transition:
     fill 160ms ease,
-    stroke 160ms ease;
+    stroke 160ms ease,
+    filter 160ms ease;
 }
 
 .hex-tile.player .hex-border {
-  fill: rgba(43, 105, 93, 0.35);
-  stroke: rgba(121, 221, 185, 0.75);
+  fill: rgba(48, 141, 113, 0.1);
 }
 
 .hex-tile.pending .hex-border {
-  fill: rgba(116, 82, 31, 0.48);
+  fill: rgba(116, 82, 31, 0.22);
   stroke: rgba(255, 199, 102, 0.85);
 }
 
 .hex-tile.opponent .hex-border {
-  fill: rgba(91, 55, 112, 0.52);
-  stroke: rgba(207, 145, 235, 0.82);
+  fill: rgba(112, 61, 139, 0.1);
 }
 
 .hex-tile.hq .hex-border {
-  fill: rgba(48, 82, 148, 0.38);
-  stroke: rgba(139, 177, 255, 0.85);
+  fill: rgba(48, 82, 148, 0.18);
 }
 
 .hex-tile.meteor-center .hex-border {
@@ -242,15 +247,15 @@
 }
 
 .hex-interaction-outline.is-hovered {
-  stroke: #79ddb9;
-  stroke-width: 4;
-  filter: drop-shadow(0 0 7px rgba(121, 221, 185, 0.6));
+  stroke: rgba(174, 244, 219, 0.72);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 6px rgba(121, 221, 185, 0.46));
 }
 
 .hex-interaction-outline.is-selected {
-  stroke: #ffffff;
-  stroke-width: 5;
-  filter: drop-shadow(0 0 9px rgba(121, 221, 185, 0.62));
+  stroke: rgba(225, 255, 244, 0.92);
+  stroke-width: 4;
+  filter: drop-shadow(0 0 8px rgba(121, 221, 185, 0.58));
 }
 
 .hex-label {

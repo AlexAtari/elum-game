@@ -239,8 +239,11 @@ normalisierten Positionen und projiziert sie orthografisch in den
 SVG-Raum. Rückseitenfelder werden nicht interaktiv gerendert.
 `HexMap.tsx` zeichnet daraus die echten Nachbarverbindungen, Hexagone
 und Pentagone und verwaltet Touch-Drehung, Zoom sowie
-HQ-Zentrierung. Diese Geometrie bleibt reine Darstellung und verändert
-keine Spielregel. `createRadialGraphLayout` bleibt als
+HQ-Zentrierung. SVG-Muster und CSS-Intensitätsklassen bilden die
+stärkste Ressourceneignung und deren Sternwert ab; Interaktionskonturen
+werden getrennt von Gelände- und Statusflächen gezeichnet. Diese
+Geometrie bleibt reine Darstellung und verändert keine Spielregel.
+`createRadialGraphLayout` bleibt als
 reproduzierbares flaches Hilfslayout verfügbar.
 
 `createNaturalCrystalVeins` wählt vier voneinander entfernte

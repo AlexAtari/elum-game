@@ -40,6 +40,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sichtbaren Nachbarverbindungen und erkennbaren Pentagonen
 - Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
   auf dem Zielgraphen
+- ressourcenabhängige kartografische Feldtexturen: Wiesen für
+  Nahrung, Windströmungen und Windräder für Energie sowie
+  Berg- und Höhenlinien für Erz
+- ruhige Felder ohne permanente Polygonrahmen; Konturen erscheinen
+  bei Hover, Tastaturfokus oder Auswahl, notwendige Spielmarkierungen
+  bleiben sichtbar
 - Ziel-Startfelder im normalen Browser-Spielzustand
 - zwei Startfelder je Kolonie
 - Nahrung, Energie, Erz, Kristalle und Credits
