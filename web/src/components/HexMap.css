@@ -206,6 +206,19 @@
   stroke: rgba(139, 177, 255, 0.85);
 }
 
+.hex-tile.meteor-center .hex-border {
+  stroke: #ff9b65;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 8px rgba(255, 119, 73, 0.7));
+}
+
+.hex-meteor-label {
+  pointer-events: none;
+  fill: #ffd3b8;
+  font-size: 13px;
+  filter: drop-shadow(0 0 4px rgba(255, 111, 58, 0.9));
+}
+
 .hex-interaction-outline {
   pointer-events: none;
   fill: none;
@@ -295,6 +308,26 @@
 
 .resource-rating.crystal-rating strong {
   color: #d8adff;
+}
+
+.meteor-crater-notice {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(255, 137, 91, 0.38);
+  border-radius: 12px;
+  background: rgba(152, 61, 32, 0.14);
+}
+
+.meteor-crater-notice strong {
+  color: #ffb489;
+}
+
+.meteor-crater-notice span {
+  color: #bfc7d6;
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .field-button {

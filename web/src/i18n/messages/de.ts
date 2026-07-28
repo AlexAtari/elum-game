@@ -15,6 +15,9 @@ export const de = {
   'resource.energy': 'Energie',
   'resource.ore': 'Erz',
   'resource.crystals': 'Kristalle',
+  'meteor.impactTitle': 'Meteoriteneinschlag auf Feld {{tileId}}',
+  'meteor.impactDescription':
+    'Der Krater ist öffentlich sichtbar. Die genaue Kristallaufwertung bleibt verdeckt.',
 
   'supply.none': 'Keine Versorgung',
   'supply.minimum': 'Mindestversorgung',

@@ -7,6 +7,11 @@ import {
 
 import { createAgentPlan } from './agents'
 import {
+  createMeteorImpact,
+  createMeteorSchedule,
+  type MeteorImpact,
+} from './meteor'
+import {
   areTilesAdjacent,
   assignStartCorridors,
   targetCrystalRatings,
@@ -118,6 +123,9 @@ export type GameState = {
   initiatedMarketResources: MarketResource[]
   activeGlobalEvent: GlobalEventId | null
   activeLocalEvent: LocalEventId | null
+  meteorSeed?: number
+  meteorSchedule?: number[]
+  meteorImpacts?: MeteorImpact[]
   market: MarketState
   rivals: RivalColonies
 }
@@ -209,6 +217,7 @@ export type RoundReport = {
   landAuction: LandAuctionResult | null
   completedHarvesters: number
   globalEvent: GlobalEventId | null
+  meteorImpact: MeteorImpact | null
 }
 
 export type LeaderboardEntry = {
@@ -1205,6 +1214,9 @@ export function createInitialGameState(): GameState {
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,
+    meteorSeed: 1,
+    meteorSchedule: createMeteorSchedule(1),
+    meteorImpacts: [],
     market: {
       food: {
         referencePrice: MARKET_PRICES.food,
@@ -1277,12 +1289,17 @@ export function createInitialGameState(): GameState {
 export const STARTING_CREDITS = 150
 export const STARTING_HARVESTERS = 2
 
-export function createPlayableInitialGameState(): GameState {
+export function createPlayableInitialGameState(
+  meteorSeed: number = 1,
+): GameState {
   const state = createInitialGameState()
   const sharedResources = { ...state.resources }
 
   return {
     ...state,
+    meteorSeed,
+    meteorSchedule: createMeteorSchedule(meteorSeed),
+    meteorImpacts: [],
     credits: STARTING_CREDITS,
     resources: { ...sharedResources },
     opponentTileIds: Object.values(rivalStartTileIds).flat(),
@@ -2165,6 +2182,27 @@ export function runRound(
         },
       }
     : advancedRivals
+  const nextOwnedTileIds = playerWonLand
+    ? [...currentState.ownedTileIds, landBid!.tileId]
+    : currentState.ownedTileIds
+  const nextOpponentTileIds = rivalWonLand
+    ? [...currentState.opponentTileIds, landBid!.tileId]
+    : currentState.opponentTileIds
+  const previousMeteorImpacts =
+    currentState.meteorImpacts ?? []
+  const meteorImpact = (
+    currentState.meteorSchedule ?? []
+  ).includes(currentState.round)
+    ? createMeteorImpact(
+        targetPlanetMap,
+        targetStartConfiguration,
+        targetCrystalRatings,
+        [...nextOwnedTileIds, ...nextOpponentTileIds],
+        previousMeteorImpacts,
+        currentState.round,
+        currentState.meteorSeed ?? 1,
+      )
+    : null
 
   const nextState: GameState = {
     round: currentState.round + 1,
@@ -2190,15 +2228,8 @@ export function runRound(
       ore: currentState.resources.ore + produced.ore,
       crystals: currentState.resources.crystals,
     },
-    ownedTileIds: playerWonLand
-      ? [
-          ...currentState.ownedTileIds,
-          landBid!.tileId,
-        ]
-      : currentState.ownedTileIds,
-    opponentTileIds: rivalWonLand
-      ? [...currentState.opponentTileIds, landBid!.tileId]
-      : currentState.opponentTileIds,
+    ownedTileIds: nextOwnedTileIds,
+    opponentTileIds: nextOpponentTileIds,
     pendingLandBid: null,
     landAuctionTie: tiedLandAuction
       ? {
@@ -2226,6 +2257,11 @@ export function runRound(
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,
+    meteorSeed: currentState.meteorSeed,
+    meteorSchedule: currentState.meteorSchedule,
+    meteorImpacts: meteorImpact
+      ? [...previousMeteorImpacts, meteorImpact]
+      : previousMeteorImpacts,
     market: currentState.market,
     rivals: rivalsAfterLandAuction,
   }
@@ -2247,6 +2283,7 @@ export function runRound(
       completedHarvesters:
         currentState.harvestersInConstruction,
       globalEvent: currentState.activeGlobalEvent,
+      meteorImpact,
     },
   }
 }

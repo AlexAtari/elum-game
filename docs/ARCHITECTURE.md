@@ -238,6 +238,14 @@ werden über `targetCrystalRatings` in das Feldmodell übernommen. Die
 Darstellung liest diese Werte erst für eigene Grundstücke aus; freie
 und gegnerische Felder bleiben verdeckt.
 
+`meteor.ts` kapselt den seedbasierten Einschlagsplan, die Auswahl
+gültiger freier Hexagonzentren, den konservativen unregelmäßigen
+Krater und die gedeckelte Addition der Kristallboni. `GameState`
+speichert Seed, Plan und erfolgte Einschläge. `runRound` erzeugt einen
+fälligen Einschlag erst nach der Grundstücksauswertung und gibt ihn
+zusätzlich im `RoundReport` zurück. Dadurch bleiben Rundenprognosen
+rein und wiederholbar.
+
 Kernprinzip:
 
 > Spielregeln arbeiten mit Feld-IDs, Nachbarlisten und
@@ -266,7 +274,7 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. Meteoriten anbinden,
+1. interstellaren Kristallkäufer anbinden,
 2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und

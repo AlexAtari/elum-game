@@ -230,6 +230,8 @@ werden.
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - vier natürliche Kristalladern im Zielgraphen aktiv; Werte bleiben
   bis zum Grundstückserwerb verdeckt
+- seedbasierte Meteore mit zwei garantierten und optional einem
+  dritten konservativen Krater aktiv
 - vier faire Startkorridore und vollständige Distanzzonen intern
   festgelegt; eine reproduzierbare seedbasierte Zuordnung ist an den
   Browser-Spielzustand angebunden
@@ -251,11 +253,10 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. Meteoriten
-3. interstellarer Käufer
-4. Countdown
-5. Simulation
-6. später grafische Entfaltung oder 3D-Kugel
+2. interstellarer Käufer
+3. Countdown
+4. Simulation
+5. später grafische Entfaltung oder 3D-Kugel
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

@@ -677,6 +677,12 @@ Größere Testvarianten mit vier direkten und sechs äußeren
 beziehungsweise fünf direkten und acht äußeren Feldern bleiben
 konfigurierbar. Sie sind nicht die Standardbasis.
 
+Die konservative Variante ist im Browser implementiert. Der
+seedbasierte Einschlagsplan enthält zwei garantierte und mit
+50-prozentiger Wahrscheinlichkeit einen dritten Einschlag. Das
+öffentliche Zentrum erscheint nach der Rundenabrechnung in der
+Zwischenrangliste und bleibt anschließend auf der Karte markiert.
+
 # 13. Spielende
 
 Die Standardpartie endet nach **20 vollständig abgerechneten Runden**.

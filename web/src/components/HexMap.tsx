@@ -15,6 +15,10 @@ import {
   type LandBid,
   type ProductionType,
 } from '../game'
+import {
+  combineMeteorBonuses,
+  type MeteorImpact,
+} from '../meteor'
 import { targetPlanetMap } from '../planetMap'
 import './HexMap.css'
 
@@ -24,6 +28,7 @@ type HexMapProps = {
   ore: number
   ownedTileIds: string[]
   opponentTileIds: string[]
+  meteorImpacts: MeteorImpact[]
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
   freeHarvesters: number
@@ -65,7 +70,7 @@ type MapGesture = {
 }
 
 const HEX_RADIUS = 24
-const MAP_VIEW_WIDTH = 900
+const MAP_VIEW_WIDTH = 960
 const MAP_VIEW_HEIGHT = 640
 const MIN_MAP_ZOOM = 0.62
 const MAX_MAP_ZOOM = 1.8
@@ -161,6 +166,7 @@ function HexMap({
   ore,
   ownedTileIds,
   opponentTileIds,
+  meteorImpacts,
   pendingLandBid,
   landAuctionTie,
   freeHarvesters,
@@ -203,6 +209,15 @@ function HexMap({
     ? getTilePixelPosition(hoveredTile.id)
     : null
   const selectedPosition = getTilePixelPosition(selectedTile.id)
+  const meteorBonuses = combineMeteorBonuses(meteorImpacts)
+  const meteorCenterIds = new Set(
+    meteorImpacts.map((impact) => impact.centerTileId),
+  )
+  const selectedCrystalRating = Math.min(
+    5,
+    (selectedTile.crystals ?? 0) +
+      (meteorBonuses[selectedTile.id] ?? 0),
+  )
 
   const selectedHarvester = harvesters[selectedTile.id]
   const selectedProduction = selectedHarvester?.production
@@ -651,6 +666,7 @@ function HexMap({
                         : hasPendingBid || hasAuctionTie
                           ? 'pending'
                           : 'free'
+                const isMeteorCenter = meteorCenterIds.has(tile.id)
 
                 return (
                   <g
@@ -659,6 +675,7 @@ function HexMap({
                       'hex-tile',
                       tile.shape,
                       ownershipClass,
+                      isMeteorCenter ? 'meteor-center' : '',
                       isSelected ? 'selected' : '',
                     ].join(' ')}
                     role="button"
@@ -708,6 +725,18 @@ function HexMap({
                     >
                       {tile.id}
                     </text>
+
+                    {isMeteorCenter && (
+                      <text
+                        className="hex-meteor-label"
+                        x={position.x + 11}
+                        y={position.y - 9}
+                        textAnchor="middle"
+                        aria-label="Meteoritenkrater"
+                      >
+                        ☄
+                      </text>
+                    )}
 
                     {isPlayerOwned && !production && (
                       <text
@@ -879,12 +908,22 @@ function HexMap({
                 <span>💎 Kristalle</span>
                 <strong>
                   {selectedIsPlayerOwned
-                    ? selectedTile.crystals
-                      ? formatStars(selectedTile.crystals)
+                    ? selectedCrystalRating
+                      ? formatStars(selectedCrystalRating)
                       : 'Kein Vorkommen'
                     : 'Unbekannt'}
                 </strong>
               </div>
+
+              {meteorCenterIds.has(selectedTile.id) && (
+                <div className="meteor-crater-notice">
+                  <strong>☄ Meteoritenkrater</strong>
+                  <span>
+                    Der Einschlagsort ist öffentlich. Seine genaue
+                    Kristallaufwertung bleibt verdeckt.
+                  </span>
+                </div>
+              )}
 
               {selectedIsPlayerOwned &&
                 selectedHarvester && (

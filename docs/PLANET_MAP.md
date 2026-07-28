@@ -219,6 +219,11 @@ in der gesamten Partie keinen, gilt der Referenzkurs von 40 Credits.
 - optionaler dritter Einschlag ungefähr Runde 15 bis 16,
 - keine Einschläge in den letzten vier Runden.
 
+Der Einschlagsplan wird zu Partiebeginn aus einem Seed erzeugt und im
+Spielzustand gespeichert. Dadurch bleiben Vorschauen, Tests und
+Simulationen reproduzierbar. Browserpartien erhalten bei einem
+Neustart einen neuen Seed.
+
 ### Einschlagszentrum
 
 Das Zentrum:
@@ -267,6 +272,12 @@ Alle Spieler sehen:
 Die genaue Aufwertung bleibt verborgen. Besitzer bereits untersuchter
 oder aktiv abgebauter Felder sehen den neuen Wert sofort.
 
+Dieser Stand ist implementiert. Nach der Grundstücksauswertung einer
+betroffenen Runde erzeugt `runRound` den Einschlag ohne globale
+Seiteneffekte. Die Zwischenrangliste meldet das öffentliche Zentrum,
+und die Karte markiert es dauerhaft als Krater. Auf freien und
+gegnerischen Feldern bleiben die exakten Werte verborgen.
+
 ## 10. Pentagone
 
 Pentagone sind normale erwerbbare Grundstücke. Der einzige feste
@@ -297,8 +308,7 @@ Abgeschlossen:
 
 Als Nächstes:
 
-1. Meteoriten implementieren.
-2. interstellaren Käufer ergänzen.
-3. Countdown und Storytexte ergänzen.
-4. Simulation und Balancing.
-5. später grafische Entfaltung oder 3D-Kugel.
+1. interstellaren Käufer ergänzen.
+2. Countdown und Storytexte ergänzen.
+3. Simulation und Balancing.
+4. später grafische Entfaltung oder 3D-Kugel.

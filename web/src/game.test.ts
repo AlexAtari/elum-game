@@ -1302,6 +1302,42 @@ describe('Versorgung und Bevölkerung', () => {
   })
 })
 
+describe('Meteoriten am Rundenende', () => {
+  it('erzeugt einen geplanten Einschlag rein und übernimmt ihn in den Folgezustand', () => {
+    const state: GameState = {
+      ...createInitialGameState(),
+      round: 5,
+      meteorSeed: 42,
+      meteorSchedule: [5, 10],
+      meteorImpacts: [],
+    }
+
+    const firstPreview = runRound(state, {}, normalSupply)
+    const secondPreview = runRound(state, {}, normalSupply)
+
+    expect(firstPreview.report.meteorImpact).not.toBeNull()
+    expect(secondPreview.report.meteorImpact).toEqual(
+      firstPreview.report.meteorImpact,
+    )
+    expect(state.meteorImpacts).toEqual([])
+    expect(firstPreview.nextState.meteorImpacts).toEqual([
+      firstPreview.report.meteorImpact,
+    ])
+  })
+
+  it('erzeugt außerhalb des Einschlagsplans keinen Krater', () => {
+    const state: GameState = {
+      ...createInitialGameState(),
+      round: 4,
+      meteorSchedule: [5, 10],
+    }
+    const result = runRound(state, {}, normalSupply)
+
+    expect(result.report.meteorImpact).toBeNull()
+    expect(result.nextState.meteorImpacts).toEqual([])
+  })
+})
+
 describe('Harvesterproduktion', () => {
   it('produziert beim erstmaligen Einsatz sofort mit voller Leistung', () => {
     const harvesters: HarvesterAssignments = {

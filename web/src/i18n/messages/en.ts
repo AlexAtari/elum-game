@@ -17,6 +17,9 @@ export const en = {
   'resource.energy': 'Energy',
   'resource.ore': 'Ore',
   'resource.crystals': 'Crystals',
+  'meteor.impactTitle': 'Meteor impact on tile {{tileId}}',
+  'meteor.impactDescription':
+    'The crater is visible to everyone. Its exact crystal upgrade remains hidden.',
 
   'supply.none': 'No supply',
   'supply.minimum': 'Minimum supply',

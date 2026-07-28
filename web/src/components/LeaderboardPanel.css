@@ -25,6 +25,51 @@
   line-height: 1.55;
 }
 
+.meteor-impact-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 143, 91, 0.42);
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      circle at left,
+      rgba(255, 111, 58, 0.22),
+      transparent 50%
+    ),
+    rgba(95, 41, 25, 0.18);
+  animation: meteor-impact-arrival 700ms ease both;
+}
+
+.meteor-impact-banner > span {
+  font-size: 2.2rem;
+}
+
+.meteor-impact-banner strong {
+  color: #ffbd96;
+}
+
+.meteor-impact-banner p {
+  margin: 4px 0 0;
+  color: #bfc7d6;
+  line-height: 1.45;
+}
+
+@keyframes meteor-impact-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .leaderboard-scroll {
   margin-top: 28px;
   overflow-x: auto;
@@ -1038,4 +1083,3 @@
     animation-duration: 1ms !important;
   }
 }
-

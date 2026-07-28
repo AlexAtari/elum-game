@@ -134,24 +134,22 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 - Kartenregeln über Feld-IDs, Nachbarlisten und Graphdistanzen
 - interstellarer Käufer als zusätzlicher Kristallmarktteilnehmer
 - regelmäßige Hochsicherheits-Kristalltransporter
-- zwei garantierte und ein möglicher dritter Meteorit
-- unregelmäßige, konfigurierbare Meteor-Krater
 - Bewertung nicht verkaufter Kristalle zum offiziellen
   Orientierungspreis; Start- und Rückfallwert 40 Credits
-- konservative Meteor-Basis mit Zentrum `+3`, drei direkten
-  `+2`-Feldern und vier äußeren `+1`-Feldern
 
 Der Browserprototyp verwendet weiterhin 15 Runden, aber bereits den
 92-Felder-Graphen und vier natürliche, abgestufte Kristalladern.
 Kristallwerte werden erst auf eigenen Grundstücken offengelegt. Die
+konservative Meteorvariante mit zwei garantierten und einem optionalen
+dritten Einschlag ist ebenfalls aktiv; Kraterzentren werden öffentlich
+markiert und Aufwertungen bei fünf Sternen gedeckelt. Die
 zufällige Neuzuordnung der Startkorridore pro Browserpartie folgt in
 einem späteren Spielstart-Schritt.
 
 Nächste technische Reihenfolge:
 
-1. Meteoriten ergänzen.
-2. interstellaren Käufer ergänzen.
-3. danach erneut simulieren und balancieren.
+1. interstellaren Käufer ergänzen.
+2. danach erneut simulieren und balancieren.
 
 Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-STATUS:END -->

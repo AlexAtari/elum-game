@@ -80,7 +80,7 @@ function App() {
   const { number, t } = useI18n()
   const [gameStarted, setGameStarted] = useState(false)
   const [gameState, setGameState] = useState(
-    createPlayableInitialGameState,
+    () => createPlayableInitialGameState(Date.now()),
   )
   const [harvesters, setHarvesters] =
     useState<HarvesterAssignments>({})
@@ -152,7 +152,7 @@ function App() {
   )
 
   const startNewGame = () => {
-    setGameState(createPlayableInitialGameState())
+    setGameState(createPlayableInitialGameState(Date.now()))
     setHarvesters({})
     setFreeHarvesterPool(createStartingHarvesterPool())
     setLastReport(null)
@@ -648,6 +648,7 @@ function App() {
             nextRound={gameState.round}
             entries={leaderboardEntries}
             isFinal={gameFinished}
+            meteorImpact={lastReport.meteorImpact}
             onContinue={continueAfterLeaderboard}
             onRestart={startNewGame}
           />
@@ -667,6 +668,7 @@ function App() {
               ore={gameState.resources.ore}
               ownedTileIds={gameState.ownedTileIds}
               opponentTileIds={gameState.opponentTileIds}
+              meteorImpacts={gameState.meteorImpacts ?? []}
               pendingLandBid={gameState.pendingLandBid}
               landAuctionTie={gameState.landAuctionTie}
               freeHarvesters={freeHarvesters}

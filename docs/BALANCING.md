@@ -384,6 +384,11 @@ die konservative Standardbasis. Die mittlere und große Variante
 bleiben konfigurierbare Tests. Eine Größenverteilung wird erst nach
 Simulationen festgelegt.
 
+Die kleine Variante ist im Browser implementiert. Einschläge werden
+auf maximal fünf Kristallsterne gedeckelt. Frühere Aufwertungen werden
+kumuliert; ein bereits ausgeschöpftes Feld erhält keinen weiteren
+effektiven Bonus.
+
 ---
 
 # 12. Spielende

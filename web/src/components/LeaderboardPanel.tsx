@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { LeaderboardEntry } from '../game'
+import type { MeteorImpact } from '../meteor'
 import { useI18n } from '../i18n/I18nContext'
 import './LeaderboardPanel.css'
 
@@ -11,6 +12,7 @@ type LeaderboardPanelProps = {
   nextRound: number
   entries: LeaderboardEntry[]
   isFinal: boolean
+  meteorImpact: MeteorImpact | null
   onContinue: () => void
   onRestart: () => void
 }
@@ -20,6 +22,7 @@ function LeaderboardPanel({
   nextRound,
   entries,
   isFinal,
+  meteorImpact,
   onContinue,
   onRestart,
 }: LeaderboardPanelProps) {
@@ -111,6 +114,20 @@ function LeaderboardPanel({
 
         <p>{t('leaderboard.criteria')}</p>
       </div>
+
+      {meteorImpact && (
+        <div className="meteor-impact-banner" role="status">
+          <span aria-hidden="true">☄️</span>
+          <div>
+            <strong>
+              {t('meteor.impactTitle', {
+                tileId: meteorImpact.centerTileId,
+              })}
+            </strong>
+            <p>{t('meteor.impactDescription')}</p>
+          </div>
+        </div>
+      )}
 
       <div
         className="leaderboard-mobile-list"
