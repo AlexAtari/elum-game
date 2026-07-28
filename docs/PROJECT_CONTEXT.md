@@ -125,7 +125,7 @@ vermischt werden.
 
 - `web/src/game.ts`: Kernzustand und zentrale Regeln
 - `web/src/planetMap.ts`: Kartengraph, Graphdistanzen und getrennte
-  flache Layoutpositionen
+  Layoutpositionen; enthält Prototyp- und 92-Felder-Zielgraph
 - `web/src/App.tsx`: sichtbarer Ablauf
 - `web/src/components/`: UI
 - `web/src/agents.ts`: gemeinsame Agentenlogik
@@ -227,6 +227,8 @@ werden.
 - flache Hexkarte mit HQ und 60 Grundstücken
 - Kartenregeln für Nachbarschaft und Distanz bereits vom flachen
   Layout getrennt
+- 92-Felder-Zielgraph intern vorhanden und validiert, aber noch nicht
+  an Browserzustand oder Darstellung angeschlossen
 
 ### Nächster Regelstand
 
@@ -245,8 +247,8 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. 92-Felder-Graph
-3. Startpositionen und Zonen
+2. Startpositionen und Zonen
+3. flache Darstellung des 92-Felder-Graphen
 4. Kristalladern
 5. Meteoriten
 6. interstellarer Käufer

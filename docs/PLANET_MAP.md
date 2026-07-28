@@ -264,16 +264,16 @@ Abgeschlossen:
 
 1. Dokumentation konsolidieren.
 2. Kartenmodell von der Darstellung lösen.
+3. 92-Felder-Graph einführen und validieren.
 
 Als Nächstes:
 
-1. 92-Felder-Graph einführen und validieren.
-2. faire Startkorridore auswählen.
-3. Graph zunächst flach darstellen.
-4. Entfernungszonen berechnen.
-5. Kristalladern erzeugen.
-6. Meteoriten implementieren.
-7. interstellaren Käufer ergänzen.
-8. Countdown und Storytexte ergänzen.
-9. Simulation und Balancing.
-10. später 3D-Kugel.
+1. faire Startkorridore auswählen.
+2. Graph zunächst flach darstellen.
+3. Entfernungszonen berechnen.
+4. Kristalladern erzeugen.
+5. Meteoriten implementieren.
+6. interstellaren Käufer ergänzen.
+7. Countdown und Storytexte ergänzen.
+8. Simulation und Balancing.
+9. später 3D-Kugel.

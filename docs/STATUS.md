@@ -24,6 +24,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - UI-unabhängiges Kartenmodell mit Feld-IDs, symmetrischen
   Nachbarlisten und berechneten Graphdistanzen
 - getrennte flache Layoutpositionen für die bestehende Hexdarstellung
+- interner, deterministischer 92-Felder-Graph mit einem HQ,
+  91 Grundstücken, zwölf Pentagonen und 80 Hexagonen
+- validierte Nachbarzahlen, vollständige Verbindung und
+  reproduzierbare Feld-IDs des Zielgraphen
 - zwei Startfelder je Kolonie
 - Nahrung, Energie, Erz, Kristalle und Credits
 - Harvesterbau und mehrere parallele Bauaufträge
@@ -113,11 +117,11 @@ Diese Punkte stehen unter Vorbehalt und dürfen den kleinen,
 vollständigen Kern von Version 1 nicht unnötig vergrößern.
 
 <!-- ELUM-PLANET-STATUS:BEGIN -->
-## Beschlossenes Zielbild – noch nicht implementiert
+## Beschlossenes Zielbild – noch nicht vollständig implementiert
 
 - 20 Runden mit sichtbarem Countdown bis zum Versorgungsschiff
-- 92 Kartenfelder: ein HQ und 91 Grundstücke
-- 80 Hexagone und zwölf Pentagone
+- Aktivierung des intern vorhandenen 92-Felder-Graphen in der
+  Browserpartie und der flachen Kartendarstellung
 - vier radiale Startkorridore mit je zwei kristallfreien Feldern
 - Kartenregeln über Feld-IDs, Nachbarlisten und Graphdistanzen
 - zunächst flache Darstellung
@@ -131,13 +135,14 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 - konservative Meteor-Basis mit Zentrum `+3`, drei direkten
   `+2`-Feldern und vier äußeren `+1`-Feldern
 
-Der Browserprototyp bleibt bis zur schrittweisen Umstellung bei
-15 Runden und 60 Grundstücken.
+Der Browserprototyp bleibt bis zur schrittweisen Anbindung bei
+15 Runden und 60 Grundstücken. Der neue Graph verändert die sichtbare
+Karte und den laufenden `GameState` noch nicht.
 
 Nächste technische Reihenfolge:
 
-1. 92-Felder-Graph mit Tests einführen.
-2. Startpositionen und Zonen validieren.
+1. Startpositionen und Zonen validieren.
+2. flache Darstellung des Zielgraphen ergänzen.
 3. Kristalladern und Meteoriten ergänzen.
 4. interstellaren Käufer ergänzen.
 5. danach erneut simulieren und balancieren.

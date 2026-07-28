@@ -202,15 +202,27 @@ beschlossene Zielbild ist ein 92-Felder-Planetengraph.
 - Graphvalidierung,
 - eine davon getrennte flache Positionstabelle.
 
+Zusätzlich erzeugt `targetPlanetMap` deterministisch den beschlossenen
+92-Felder-Graphen durch eine Icosaeder-Unterteilung der Frequenz 3:
+
+- ein HQ auf einem Hexagon,
+- 91 weitere Felder,
+- zwölf Pentagonknoten mit fünf Nachbarn,
+- 80 Hexagonknoten mit sechs Nachbarn,
+- normalisierte Kugelpositionen als geometrische Referenz,
+- noch keine 3D-Darstellung.
+
 Agentennachbarschaft, Simulation und Harvesterpriorisierung verwenden
 keine axialen Koordinaten mehr. `HexMap.tsx` liest die bisherigen
 Axialkoordinaten ausschließlich aus `flatPositions`.
 
 Die alte 61-Felder-Prototypkarte und ihre sichtbare Anordnung bleiben
 unverändert. Ihre bestehenden Gelände-Eignungen werden beim Aufbau
-vorübergehend über die alte flache Position reproduziert. Mit dem
-92-Felder-Graphen wird dieser Adapter durch explizite beziehungsweise
-seedbasiert erzeugte Kartendaten ersetzt.
+vorübergehend über die alte flache Position reproduziert. Der
+92-Felder-Graph ist noch nicht an `GameState`, Gelände-Eignungen,
+Startpositionen oder `HexMap.tsx` angeschlossen. Beim Anschluss wird
+der alte Adapter durch explizite beziehungsweise seedbasiert erzeugte
+Kartendaten ersetzt.
 
 Kernprinzip:
 
@@ -240,11 +252,10 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. 92-Felder-Graph hinzufügen und validieren,
-2. Startpositionen und Zonen berechnen,
-3. Graph zunächst flach darstellen,
-4. Kristalladern und Meteoriten anbinden,
-5. später eine 3D-Kugel ergänzen.
+1. Startpositionen und Zonen berechnen,
+2. Graph zunächst flach darstellen,
+3. Kristalladern und Meteoriten anbinden,
+4. später eine 3D-Kugel ergänzen.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und
 Simulationen reproduzierbar bleiben.
