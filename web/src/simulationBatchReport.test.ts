@@ -58,11 +58,19 @@ function formatParticipant(
       7,
     ),
     pad(
-      participant.averageWealth.toFixed(1),
+      participant.averageSettlementWealth.toFixed(1),
       10,
     ),
     pad(
-      `${participant.minimumWealth}–${participant.maximumWealth}`,
+      participant.averageRemainingResources.toFixed(1),
+      8,
+    ),
+    pad(
+      participant.averageEconomicValue.toFixed(1),
+      10,
+    ),
+    pad(
+      `${participant.minimumEconomicValue}–${participant.maximumEconomicValue}`,
       11,
     ),
     pad(
@@ -89,8 +97,8 @@ export function formatSimulationBatchReport(
     (first, second) =>
       second.winRate - first.winRate ||
       first.averageRank - second.averageRank ||
-      second.averageWealth -
-        first.averageWealth,
+      second.averageSettlementWealth -
+        first.averageSettlementWealth,
   )
   const warningSummary = Object.entries(
     result.warningCounts,
@@ -110,10 +118,11 @@ export function formatSimulationBatchReport(
       `${result.seedStart}–${result.seedStart + result.games - 1}`,
     `Markt einbezogen: ${result.includeMarket ? 'ja' : 'nein'}`,
     `Unterschiedliche Endergebnisse: ${result.uniqueOutcomes}`,
+    'Wertung: Bevölkerung → Abrechnungsvermögen → Restressourcen → Harvester',
     '',
     'KOLONIEN',
-    'Kolonie              Siegquote  Ø Rang Ø Vermögen     Spanne  Ø Bev Ø Credits Ø Warn.',
-    '------------------ -------- ------- ---------- ----------- ------- --------- ---------',
+    'Kolonie              Siegquote  Ø Rang Ø Abrech. Ø Rest  Ø Ökon.     Spanne  Ø Bev Ø Credits Ø Warn.',
+    '------------------ -------- ------- ---------- -------- ---------- ----------- ------- --------- ---------',
     ...orderedParticipants.map(
       formatParticipant,
     ),
@@ -138,6 +147,8 @@ describe('Terminalbericht der Seriensimulation', () => {
     const result = runHeadlessSimulationBatch({
       games,
       seedStart: 1,
+      includeMarket:
+        environment.ELUM_SIMULATION_MARKET !== '0',
     })
     const report =
       formatSimulationBatchReport(result)
@@ -147,6 +158,7 @@ describe('Terminalbericht der Seriensimulation', () => {
       'BALANCING-SERIENSIMULATION',
     )
     expect(report).toContain('Siegquote')
+    expect(report).toContain('Wertung:')
     expect(report).toContain('Spielerhandel')
     expect(report).toContain('Agima')
     expect(report).toContain('Orion')

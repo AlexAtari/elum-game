@@ -61,13 +61,19 @@ describe('Balancing-Seriensimulation', () => {
         participant.averageRank,
       ).toBeLessThanOrEqual(4)
       expect(
-        participant.averageWealth,
+        participant.averageEconomicValue,
       ).toBeGreaterThan(0)
       expect(
-        participant.maximumWealth,
+        participant.maximumEconomicValue,
       ).toBeGreaterThanOrEqual(
-        participant.minimumWealth,
+        participant.minimumEconomicValue,
       )
+      expect(
+        participant.averageSettlementWealth,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.averageRemainingResources,
+      ).toBeGreaterThanOrEqual(0)
       expect(
         participant.winRate,
       ).toBeGreaterThanOrEqual(0)

@@ -5,6 +5,7 @@ import {
 } from './game'
 import {
   calculateSimulationWealth,
+  compareSimulationFinalScores,
   createBalancedSimulationStartingLand,
   runHeadlessEconomicSimulation,
 } from './simulation'
@@ -51,8 +52,67 @@ describe('Interne Wirtschaftssimulation', () => {
         expect(participant.harvesters).toBeGreaterThanOrEqual(0)
         expect(participant.ownedTiles).toBeGreaterThanOrEqual(0)
         expect(participant.wealth).toBeGreaterThanOrEqual(0)
+        expect(
+          participant.settlementWealth,
+        ).toBeGreaterThanOrEqual(0)
+        expect(
+          participant.remainingResources,
+        ).toBeGreaterThanOrEqual(0)
       }
     }
+  })
+
+  it('ordnet den Endstand lexikografisch wie die Browserpartie', () => {
+    const result = runHeadlessEconomicSimulation({
+      rounds: 4,
+      seed: 8,
+    })
+
+    for (
+      let index = 1;
+      index < result.finalStandings.length;
+      index += 1
+    ) {
+      expect(
+        compareSimulationFinalScores(
+          result.finalStandings[index - 1]!,
+          result.finalStandings[index]!,
+        ),
+      ).toBeLessThanOrEqual(0)
+    }
+  })
+
+  it('wendet alle vier Gleichstandsstufen in der richtigen Reihenfolge an', () => {
+    const base =
+      runHeadlessEconomicSimulation({
+        rounds: 1,
+        seed: 3,
+      }).finalStandings[0]!
+
+    expect(
+      compareSimulationFinalScores(
+        { ...base, population: 21, settlementWealth: 0 },
+        { ...base, population: 20, settlementWealth: 999 },
+      ),
+    ).toBeLessThan(0)
+    expect(
+      compareSimulationFinalScores(
+        { ...base, settlementWealth: 101, remainingResources: 0 },
+        { ...base, settlementWealth: 100, remainingResources: 999 },
+      ),
+    ).toBeLessThan(0)
+    expect(
+      compareSimulationFinalScores(
+        { ...base, remainingResources: 11, harvesters: 0 },
+        { ...base, remainingResources: 10, harvesters: 99 },
+      ),
+    ).toBeLessThan(0)
+    expect(
+      compareSimulationFinalScores(
+        { ...base, harvesters: 3 },
+        { ...base, harvesters: 2 },
+      ),
+    ).toBeLessThan(0)
   })
 
   it('ist für Balancing-Vergleiche reproduzierbar', () => {

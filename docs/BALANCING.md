@@ -3,7 +3,7 @@
 
 **Version:** 0.2
 **Status:** Draft  
-**Last Updated:** 2026-07-23
+**Last Updated:** 2026-07-28
 
 ---
 
@@ -31,6 +31,34 @@ Grundsatz:
 Der Standardmodus mit 20 Runden ist im Browser und in der
 Headless-Simulation aktiv. Die bisherige 15-Runden-Basis ist damit nur
 noch ein möglicher, nicht implementierter Schnellmodus.
+
+## Aktuelle Simulationsbasis
+
+Der reproduzierbare Referenzlauf umfasst 200 vollständige Partien mit
+Markt und den Seeds 1 bis 200. Die Siegquote wird mit derselben
+lexikografischen Wertung wie im Browser bestimmt.
+
+| Kolonie | Siegquote | Ø Rang | Ø Bevölkerung | Ø Abrechnungsvermögen |
+|---|---:|---:|---:|---:|
+| Nova | 28,5 % | 2,10 | 11,8 | 180,8 |
+| Orion | 28,5 % | 2,31 | 11,2 | 214,0 |
+| Agima | 28,0 % | 2,91 | 10,6 | 196,8 |
+| Vega | 15,0 % | 2,69 | 10,8 | 133,9 |
+
+Der breitere Ökonomiewert aus Ressourcen, Bevölkerung, Harvestern und
+Land dient ausschließlich der Diagnose. Er ist kein
+Gleichstandskriterium.
+
+Der Lauf erzeugt durchschnittlich 127,5 Markttransaktionen und 52,25
+Versorgungssignale je Partie. Nur 1,0 % des Volumens sind direkte
+Geschäfte zwischen Kolonien. Ohne Markt steigen die Versorgungssignale
+auf 56,52; das HQ darf deshalb nicht isoliert reduziert werden.
+
+Profilwerte bleiben vorläufig unverändert. Besonders Vegas
+`reserveRounds` reagiert wegen ganzzahliger Zielbestände
+schwellenartig; der nächste wirksame Einzelschritt überkompensiert die
+Schwäche deutlich. Vor einer Zahlenänderung müssen Produktionsmix und
+Marktrollen stärker auseinanderlaufen.
 
 ---
 

@@ -1,5 +1,6 @@
 import { GAME_ROUND_LIMIT } from './game'
 import {
+  compareSimulationFinalScores,
   runHeadlessEconomicSimulation,
   type SimulationParticipantId,
   type SimulationParticipantSnapshot,
@@ -19,9 +20,11 @@ export type SimulationBatchParticipantStats = {
   winShare: number
   winRate: number
   averageRank: number
-  averageWealth: number
-  minimumWealth: number
-  maximumWealth: number
+  averageEconomicValue: number
+  minimumEconomicValue: number
+  maximumEconomicValue: number
+  averageSettlementWealth: number
+  averageRemainingResources: number
   averagePopulation: number
   averageCredits: number
   averageWarnings: number
@@ -55,9 +58,11 @@ type MutableParticipantStats = {
   name: string
   winShare: number
   rankTotal: number
-  wealthTotal: number
-  minimumWealth: number
-  maximumWealth: number
+  economicValueTotal: number
+  minimumEconomicValue: number
+  maximumEconomicValue: number
+  settlementWealthTotal: number
+  remainingResourcesTotal: number
   populationTotal: number
   creditsTotal: number
   warningTotal: number
@@ -115,9 +120,11 @@ function createMutableStats():
       name: 'Agima',
       winShare: 0,
       rankTotal: 0,
-      wealthTotal: 0,
-      minimumWealth: Number.POSITIVE_INFINITY,
-      maximumWealth: Number.NEGATIVE_INFINITY,
+      economicValueTotal: 0,
+      minimumEconomicValue: Number.POSITIVE_INFINITY,
+      maximumEconomicValue: Number.NEGATIVE_INFINITY,
+      settlementWealthTotal: 0,
+      remainingResourcesTotal: 0,
       populationTotal: 0,
       creditsTotal: 0,
       warningTotal: 0,
@@ -127,9 +134,11 @@ function createMutableStats():
       name: 'Orion',
       winShare: 0,
       rankTotal: 0,
-      wealthTotal: 0,
-      minimumWealth: Number.POSITIVE_INFINITY,
-      maximumWealth: Number.NEGATIVE_INFINITY,
+      economicValueTotal: 0,
+      minimumEconomicValue: Number.POSITIVE_INFINITY,
+      maximumEconomicValue: Number.NEGATIVE_INFINITY,
+      settlementWealthTotal: 0,
+      remainingResourcesTotal: 0,
       populationTotal: 0,
       creditsTotal: 0,
       warningTotal: 0,
@@ -139,9 +148,11 @@ function createMutableStats():
       name: 'Nova',
       winShare: 0,
       rankTotal: 0,
-      wealthTotal: 0,
-      minimumWealth: Number.POSITIVE_INFINITY,
-      maximumWealth: Number.NEGATIVE_INFINITY,
+      economicValueTotal: 0,
+      minimumEconomicValue: Number.POSITIVE_INFINITY,
+      maximumEconomicValue: Number.NEGATIVE_INFINITY,
+      settlementWealthTotal: 0,
+      remainingResourcesTotal: 0,
       populationTotal: 0,
       creditsTotal: 0,
       warningTotal: 0,
@@ -151,9 +162,11 @@ function createMutableStats():
       name: 'Vega',
       winShare: 0,
       rankTotal: 0,
-      wealthTotal: 0,
-      minimumWealth: Number.POSITIVE_INFINITY,
-      maximumWealth: Number.NEGATIVE_INFINITY,
+      economicValueTotal: 0,
+      minimumEconomicValue: Number.POSITIVE_INFINITY,
+      maximumEconomicValue: Number.NEGATIVE_INFINITY,
+      settlementWealthTotal: 0,
+      remainingResourcesTotal: 0,
       populationTotal: 0,
       creditsTotal: 0,
       warningTotal: 0,
@@ -216,14 +229,14 @@ export function runHeadlessSimulationBatch(
       SimulationParticipantId,
       SimulationParticipantSnapshot
     >
-    const highestWealth = Math.max(
-      ...result.finalStandings.map(
-        (participant) => participant.wealth,
-      ),
-    )
+    const leadingParticipant = result.finalStandings[0]
     const winners = result.finalStandings.filter(
       (participant) =>
-        participant.wealth === highestWealth,
+        leadingParticipant !== undefined &&
+        compareSimulationFinalScores(
+          participant,
+          leadingParticipant,
+        ) === 0,
     )
     const sharedWin = 1 / winners.length
 
@@ -238,7 +251,10 @@ export function runHeadlessSimulationBatch(
         1 +
         result.finalStandings.filter(
           (entry) =>
-            entry.wealth > participant.wealth,
+            compareSimulationFinalScores(
+              entry,
+              participant,
+            ) < 0,
         ).length
       const participantWarnings =
         result.warnings.filter(
@@ -249,15 +265,19 @@ export function runHeadlessSimulationBatch(
 
       stats.name = participant.name
       stats.rankTotal += rank
-      stats.wealthTotal += participant.wealth
-      stats.minimumWealth = Math.min(
-        stats.minimumWealth,
+      stats.economicValueTotal += participant.wealth
+      stats.minimumEconomicValue = Math.min(
+        stats.minimumEconomicValue,
         participant.wealth,
       )
-      stats.maximumWealth = Math.max(
-        stats.maximumWealth,
+      stats.maximumEconomicValue = Math.max(
+        stats.maximumEconomicValue,
         participant.wealth,
       )
+      stats.settlementWealthTotal +=
+        participant.settlementWealth
+      stats.remainingResourcesTotal +=
+        participant.remainingResources
       stats.populationTotal +=
         participant.population
       stats.creditsTotal += participant.credits
@@ -279,7 +299,10 @@ export function runHeadlessSimulationBatch(
       result.finalStandings
         .map(
           (participant) =>
-            `${participant.id}:${participant.wealth}`,
+            `${participant.id}:${participant.population}:` +
+            `${participant.settlementWealth}:` +
+            `${participant.remainingResources}:` +
+            `${participant.harvesters}`,
         )
         .join('|'),
     )
@@ -301,11 +324,19 @@ export function runHeadlessSimulationBatch(
           averageRank: round(
             stats.rankTotal / games,
           ),
-          averageWealth: round(
-            stats.wealthTotal / games,
+          averageEconomicValue: round(
+            stats.economicValueTotal / games,
           ),
-          minimumWealth: stats.minimumWealth,
-          maximumWealth: stats.maximumWealth,
+          minimumEconomicValue:
+            stats.minimumEconomicValue,
+          maximumEconomicValue:
+            stats.maximumEconomicValue,
+          averageSettlementWealth: round(
+            stats.settlementWealthTotal / games,
+          ),
+          averageRemainingResources: round(
+            stats.remainingResourcesTotal / games,
+          ),
           averagePopulation: round(
             stats.populationTotal / games,
           ),

@@ -70,32 +70,43 @@ Treffen mindestens zwei Gebote auf ein Grundstück:
 
 ## Agenten-Balancing
 
-Letzter bekannter 100-Partien-Stand der Profilabstimmung:
+Aktueller 200-Partien-Stand mit 20 Runden, Markt und den Seeds
+1 bis 200:
 
-| Kolonie | Siegquote | Durchschnittsrang | Ø Vermögen |
-|---|---:|---:|---:|
-| Agima | 28,0 % | 2,28 | 598,4 |
-| Nova | 27,5 % | 2,51 | 577,5 |
-| Vega | 23,0 % | 2,49 | 592,1 |
-| Orion | 21,5 % | 2,63 | 586,6 |
+| Kolonie | Siegquote | Durchschnittsrang | Ø Bevölkerung | Ø Abrechnungsvermögen |
+|---|---:|---:|---:|---:|
+| Nova | 28,5 % | 2,10 | 11,8 | 180,8 |
+| Orion | 28,5 % | 2,31 | 11,2 | 214,0 |
+| Agima | 28,0 % | 2,91 | 10,6 | 196,8 |
+| Vega | 15,0 % | 2,69 | 10,8 | 133,9 |
 
-Die Profile gelten vorläufig als ausreichend ausgeglichen und
-sollten nicht ohne neue Seriensimulation verändert werden.
+Die Seriensimulation verwendet jetzt dieselbe lexikografische
+Schlusswertung wie die Browserpartie: Bevölkerung,
+Abrechnungsvermögen, übrige Ressourcen und Harvester. Der separat
+ausgewiesene Ökonomiewert bleibt nur eine Diagnosegröße und
+entscheidet keine Partie.
 
-Diese Kennzahlen stammen noch aus der früheren 15-Runden-Basis und
-sind nach der Umstellung auf 20 Runden nicht mehr als aktueller
-Balancingstand zu lesen. Eine neue Seriensimulation ist der nächste
-technische Schritt.
+Systemische Beobachtungen aus dem aktuellen Lauf:
 
-Systemische Beobachtungen aus demselben Lauf:
+- 82 unterschiedliche Endergebnisse
+- 127,5 Markttransaktionen je Partie
+- 1,3 direkte Spielertransaktionen je Partie
+- direkter Handelsanteil 1,0 %
+- 126,2 HQ-Lagertransaktionen je Partie
+- 52,25 Versorgungssignale je Partie
+- davon 4.989 Bevölkerungsrückgänge, 2.276 leere Nahrungs- und
+  3.181 leere Energiebestände
 
-- 108,7 Markttransaktionen je Partie
-- 3,6 direkte Spielertransaktionen je Partie
-- direkter Handelsanteil 3,3 %
-- 105 HQ-Lagertransaktionen je Partie
-- 27,40 Versorgungswarnungen je Partie
-- häufigste Warnungen: Bevölkerungsrückgang, leere Nahrung,
-  leere Energie
+Ein Kontrolllauf ohne Markt erhöht die Versorgungssignale auf 56,52
+je Partie und senkt Vegas durchschnittliche Bevölkerung von 10,8 auf
+8,8. Das HQ ist damit derzeit ein Sicherheitsnetz; der geringe direkte
+Handel entsteht vor allem, weil mehrere Kolonien gleichzeitig
+dieselben Ressourcen benötigen.
+
+Konservative Einzeländerungen an Vegas Profil zeigten
+Rundungsschwellen: oberhalb der Schwelle blieb das Ergebnis
+unverändert, der nächste Schritt hob Vega auf 42 % und drückte Nova
+auf 8 %. Deshalb wurden in diesem Paket keine Profilwerte geändert.
 
 ## Aktuelle UI-Akzeptanzkriterien
 
@@ -116,10 +127,14 @@ Patchdateien sind nicht automatisch Teil des Projektstands.
 
 Nach UI- und Dokumentationsarbeiten:
 
-1. direkten Spielerhandel gegenüber HQ-Handel erhöhen,
-2. Versorgungswarnungen reduzieren,
-3. dabei die ausgeglichenen Siegquoten erhalten,
-4. Mehrspieler-Markt und sichtbare Rivalen weiter verfeinern,
+1. Produktions- und Marktentscheidungen stärker differenzieren,
+   damit Angebot und Nachfrage nicht synchron verlaufen,
+2. Versorgungssignale reduzieren, ohne das HQ-Sicherheitsnetz
+   pauschal zu vergrößern,
+3. Vegas Schwäche systemisch statt über eine Rundungsschwelle im
+   Profil korrigieren,
+4. Kristallförderung, Meteore und interstellaren Käufer in die
+   Headless-Simulation aufnehmen,
 5. Karten- und Ereignisbalancing mit Playtests prüfen.
 
 ## Später, nicht Teil des aktuellen Kerns

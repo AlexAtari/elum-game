@@ -533,6 +533,11 @@ Planung eingeblendet.
 
 Alle vier Ranglistenplätze stammen aus dauerhaft gespeicherten Koloniezuständen. Orion, Nova und Vega besitzen jeweils eine eigene Bevölkerung, Credits, Ressourcenbestände und Harvesterzahl. In der ersten KI-Ausbaustufe werden ihre Versorgung und Produktion mit einer einfachen deterministischen Rundenroutine abgerechnet. Dadurch reagieren ihre Ranglistenwerte auf ihren tatsächlichen Vorrat und nicht mehr auf reine Anzeigeformeln. Grundstückserwerb, Harvesterbau und die vollständige Teilnahme der KI-Kolonien am Markt werden in den folgenden Ausbaustufen an denselben Zustand angeschlossen.
 
+Die Headless-Seriensimulation verwendet für Sieger und Ränge exakt
+dieselbe lexikografische Schlusswertung wie die Browserpartie. Ein
+zusätzlicher umfassender Ökonomiewert darf nur als Diagnosekennzahl
+erscheinen und die Rangfolge nicht verändern.
+
 ## Direkter Handel
 
 Berühren sich die Preislinien von Käufer und Verkäufer, beginnt der Handel. Jede abgeschlossene Transaktion überträgt genau eine Einheit.

@@ -282,7 +282,8 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. Simulation und Balancing für 20 Runden aktualisieren,
+1. Kristallförderung und Ereignisse in der Headless-Simulation
+   abbilden,
 2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
 
 `GAME_ROUND_LIMIT` begrenzt Browserpartie und Simulation auf 20
@@ -292,6 +293,11 @@ Runde 21 beginnen. `getRoundsUntilSupplyShip` liefert den sichtbaren
 Countdown. Die Abschlussrangliste bewertet nach Bevölkerung,
 Vermögen aus Credits plus Kristallkurs, übrigen Ressourcen ohne
 Kristalle und Harvesterzahl.
+
+`compareSimulationFinalScores` bildet dieselbe Reihenfolge in der
+Headless-Simulation ab. Seriensimulationen bestimmen gemeinsame Sieger
+und Ränge mit diesem Vergleich. Der weiterhin berechnete umfassendere
+Ökonomiewert ist ausdrücklich nur eine Diagnosekennzahl.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und
 Simulationen reproduzierbar bleiben.

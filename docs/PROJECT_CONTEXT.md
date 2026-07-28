@@ -253,9 +253,16 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. Simulation
+2. Kristallförderung und Ereignisse in der Simulation
 3. Hochsicherheits-Kristalltransporter
 4. später grafische Entfaltung oder 3D-Kugel
+
+Die 20-Runden-Seriensimulation wertet inzwischen nach derselben
+Reihenfolge wie die Browserpartie. Der Referenzlauf mit 200 Partien
+zeigt Vega bei 15,0 % Siegen sowie synchronisierte Versorgungsbedarfe:
+Nur 1,0 % des Marktvolumens findet direkt zwischen Kolonien statt.
+Profilwerte wurden wegen nachgewiesener Rundungsschwellen nicht
+isoliert verändert.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

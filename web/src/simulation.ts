@@ -41,6 +41,8 @@ export type SimulationParticipantSnapshot = {
   harvesters: number
   ownedTiles: number
   wealth: number
+  settlementWealth: number
+  remainingResources: number
 }
 
 export type SimulationRoundSnapshot = {
@@ -1232,6 +1234,7 @@ export function calculateSimulationWealth(
 function createParticipantSnapshot(
   id: SimulationParticipantId,
   colony: RivalColonyState,
+  crystalReferencePrice: number,
 ): SimulationParticipantSnapshot {
   const base = {
     id,
@@ -1246,6 +1249,13 @@ function createParticipantSnapshot(
   return {
     ...base,
     wealth: calculateSimulationWealth(base),
+    settlementWealth:
+      colony.credits +
+      colony.resources.crystals * crystalReferencePrice,
+    remainingResources:
+      colony.resources.food +
+      colony.resources.energy +
+      colony.resources.ore,
   }
 }
 
@@ -1259,18 +1269,22 @@ function createRoundSnapshot(
       agima: createParticipantSnapshot(
         'agima',
         state.agima,
+        state.market.prices.crystals,
       ),
       orion: createParticipantSnapshot(
         'orion',
         state.game.rivals.orion,
+        state.market.prices.crystals,
       ),
       nova: createParticipantSnapshot(
         'nova',
         state.game.rivals.nova,
+        state.market.prices.crystals,
       ),
       vega: createParticipantSnapshot(
         'vega',
         state.game.rivals.vega,
+        state.market.prices.crystals,
       ),
     },
     marketTransactions:
@@ -1531,7 +1545,7 @@ export function runHeadlessEconomicSimulation(
     finalSnapshot.participants,
   ).sort(
     (first, second) =>
-      second.wealth - first.wealth ||
+      compareSimulationFinalScores(first, second) ||
       first.id.localeCompare(second.id),
   )
 
@@ -1549,4 +1563,16 @@ export function runHeadlessEconomicSimulation(
     marketSummary:
       createSimulationMarketSummary(state),
   }
+}
+
+export function compareSimulationFinalScores(
+  first: SimulationParticipantSnapshot,
+  second: SimulationParticipantSnapshot,
+): number {
+  return (
+    second.population - first.population ||
+    second.settlementWealth - first.settlementWealth ||
+    second.remainingResources - first.remainingResources ||
+    second.harvesters - first.harvesters
+  )
 }
