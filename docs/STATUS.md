@@ -132,7 +132,6 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 - Aktivierung der intern vorbereiteten zufälligen
   Startkorridor-Zuordnung im späteren Browser-Spielstart
 - Kartenregeln über Feld-IDs, Nachbarlisten und Graphdistanzen
-- vier natürliche Kristalladern
 - interstellarer Käufer als zusätzlicher Kristallmarktteilnehmer
 - regelmäßige Hochsicherheits-Kristalltransporter
 - zwei garantierte und ein möglicher dritter Meteorit
@@ -143,12 +142,14 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
   `+2`-Feldern und vier äußeren `+1`-Feldern
 
 Der Browserprototyp verwendet weiterhin 15 Runden, aber bereits den
-92-Felder-Graphen. Die zufällige Neuzuordnung der Startkorridore pro
-Browserpartie folgt in einem späteren Spielstart-Schritt.
+92-Felder-Graphen und vier natürliche, abgestufte Kristalladern.
+Kristallwerte werden erst auf eigenen Grundstücken offengelegt. Die
+zufällige Neuzuordnung der Startkorridore pro Browserpartie folgt in
+einem späteren Spielstart-Schritt.
 
 Nächste technische Reihenfolge:
 
-1. Kristalladern und Meteoriten ergänzen.
+1. Meteoriten ergänzen.
 2. interstellaren Käufer ergänzen.
 3. danach erneut simulieren und balancieren.
 

@@ -342,6 +342,17 @@ Abstand zum nächsten Pentagon und zur Fernzone.
 - unregelmäßige Abstufung über vier, drei und zwei Sterne,
 - keine natürlichen 5-Sterne-Zufallsfelder außerhalb der Adern.
 
+Implementierte Ausgangsgröße je Ader:
+
+- ein Feld mit fünf Sternen,
+- zwei Felder mit vier Sternen,
+- drei Felder mit drei Sternen,
+- vier Felder mit zwei Sternen.
+
+Die vier Kerne liegen in der Fernzone und halten untereinander
+mindestens vier Graphschritte Abstand. Überlappende Ausläufer werden
+nicht addiert; der höhere Feldwert gilt.
+
 ## Interstellarer Kristallkäufer
 
 | Parameter | erste Simulationsbasis |

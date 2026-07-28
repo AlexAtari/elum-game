@@ -66,6 +66,9 @@ const freeAuctionTileId = targetPlanetMap.tiles
 describe('Planetengraph-Karte', () => {
   it('verwendet das HQ und 91 eindeutige Spielfelder', () => {
     expect(tiles).toHaveLength(92)
+    expect(
+      tiles.filter((tile) => tile.crystals === 5),
+    ).toHaveLength(4)
     expect(tiles.find((tile) => tile.id === 'HQ')).toMatchObject({
       id: 'HQ',
       owner: 'hq',
@@ -80,6 +83,12 @@ describe('Planetengraph-Karte', () => {
 
   it('gibt Agima zwei faire Startfelder', () => {
     expect(PLAYER_START_TILE_IDS).toEqual(['P021', 'P060'])
+    expect(
+      PLAYER_START_TILE_IDS.every(
+        (tileId) =>
+          tiles.find((tile) => tile.id === tileId)?.crystals === 0,
+      ),
+    ).toBe(true)
     expect(tiles.find((tile) => tile.id === firstStartTileId))
       .toMatchObject({
       id: firstStartTileId,

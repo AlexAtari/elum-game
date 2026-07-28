@@ -228,9 +228,11 @@ werden.
 - Kartenregeln für Nachbarschaft und Distanz bereits vom flachen
   Layout getrennt
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
+- vier natürliche Kristalladern im Zielgraphen aktiv; Werte bleiben
+  bis zum Grundstückserwerb verdeckt
 - vier faire Startkorridore und vollständige Distanzzonen intern
-  festgelegt; seedbasierte Zuordnung ist vorbereitet, die Anbindung
-  an den Spielzustand folgt später
+  festgelegt; eine reproduzierbare seedbasierte Zuordnung ist an den
+  Browser-Spielzustand angebunden
 
 ### Nächster Regelstand
 
@@ -249,12 +251,11 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. Kristalladern
-3. Meteoriten
-4. interstellarer Käufer
-5. Countdown
-6. Simulation
-7. später grafische Entfaltung oder 3D-Kugel
+2. Meteoriten
+3. interstellarer Käufer
+4. Countdown
+5. Simulation
+6. später grafische Entfaltung oder 3D-Kugel
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

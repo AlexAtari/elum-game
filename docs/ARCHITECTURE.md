@@ -231,6 +231,13 @@ Spielregel zu verwenden. Gelände-Eignungen werden derzeit
 deterministisch aus stabilen Feld-IDs erzeugt; alle Startkorridore
 erhalten identische Startprofile.
 
+`createNaturalCrystalVeins` wählt vier voneinander entfernte
+Hexagonkerne in der Fernzone und erweitert sie schrittweise zu
+zusammenhängenden 5/4/3/2-Sterne-Adern. Die zusammengeführten Werte
+werden über `targetCrystalRatings` in das Feldmodell übernommen. Die
+Darstellung liest diese Werte erst für eigene Grundstücke aus; freie
+und gegnerische Felder bleiben verdeckt.
+
 Kernprinzip:
 
 > Spielregeln arbeiten mit Feld-IDs, Nachbarlisten und
@@ -259,7 +266,7 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. Kristalladern und Meteoriten anbinden,
+1. Meteoriten anbinden,
 2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und

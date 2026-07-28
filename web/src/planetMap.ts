@@ -54,6 +54,30 @@ export type PlanetZone =
   | 'exploration'
   | 'far'
 
+export type CrystalVein = {
+  id: string
+  coreTileId: string
+  tileRatings: Record<string, number>
+}
+
+export type CrystalVeinConfiguration = {
+  veinCount: number
+  minimumCoreDistance: number
+  ratingCounts: Record<2 | 3 | 4 | 5, number>
+}
+
+export const DEFAULT_CRYSTAL_VEIN_CONFIGURATION: CrystalVeinConfiguration =
+  {
+    veinCount: 4,
+    minimumCoreDistance: 4,
+    ratingCounts: {
+      2: 4,
+      3: 3,
+      4: 2,
+      5: 1,
+    },
+  }
+
 const clockwiseHexDirections: FlatHexPosition[] = [
   { q: 1, r: 0 },
   { q: 0, r: 1 },
@@ -342,6 +366,164 @@ export function createTargetPlanetZones(
       return [tile.id, 'far']
     }),
   )
+}
+
+function createStableTileValue(tileId: string) {
+  return [...tileId].reduce(
+    (total, character, index) =>
+      total + character.charCodeAt(0) * (index + 7),
+    0,
+  )
+}
+
+export function createNaturalCrystalVeins(
+  map: PlanetMap,
+  zones: Record<string, PlanetZone>,
+  startConfiguration: StartConfiguration,
+  configuration: CrystalVeinConfiguration =
+    DEFAULT_CRYSTAL_VEIN_CONFIGURATION,
+): CrystalVein[] {
+  const tilesById = new Map(
+    map.tiles.map((tile) => [tile.id, tile]),
+  )
+  const excludedTileIds = new Set([
+    map.hqTileId,
+    ...startConfiguration.crystalFreeTileIds,
+  ])
+  const coreCandidates = map.tiles
+    .filter(
+      (tile) =>
+        zones[tile.id] === 'far' &&
+        tile.shape === 'hexagon' &&
+        !excludedTileIds.has(tile.id),
+    )
+    .sort(
+      (first, second) =>
+        second.distanceFromHq - first.distanceFromHq ||
+        first.id.localeCompare(second.id),
+    )
+  const distancesByCandidate = new Map(
+    coreCandidates.map((candidate) => [
+      candidate.id,
+      calculateGraphDistances(map.tiles, candidate.id),
+    ]),
+  )
+  const coreTileIds: string[] = []
+
+  while (coreTileIds.length < configuration.veinCount) {
+    const nextCore = coreCandidates
+      .filter(
+        (candidate) =>
+          !coreTileIds.includes(candidate.id) &&
+          coreTileIds.every(
+            (coreTileId) =>
+              distancesByCandidate.get(candidate.id)![
+                coreTileId
+              ] >= configuration.minimumCoreDistance,
+          ),
+      )
+      .map((candidate) => ({
+        candidate,
+        nearestCoreDistance:
+          coreTileIds.length === 0
+            ? Number.POSITIVE_INFINITY
+            : Math.min(
+                ...coreTileIds.map(
+                  (coreTileId) =>
+                    distancesByCandidate.get(candidate.id)![
+                      coreTileId
+                    ],
+                ),
+              ),
+      }))
+      .sort(
+        (first, second) =>
+          second.nearestCoreDistance -
+            first.nearestCoreDistance ||
+          second.candidate.distanceFromHq -
+            first.candidate.distanceFromHq ||
+          first.candidate.id.localeCompare(second.candidate.id),
+      )[0]?.candidate
+
+    if (!nextCore) {
+      throw new Error(
+        'not enough valid crystal vein cores for configuration',
+      )
+    }
+
+    coreTileIds.push(nextCore.id)
+  }
+
+  const protectedCoreIds = new Set(coreTileIds)
+
+  return coreTileIds.map((coreTileId, veinIndex) => {
+    const tileRatings: Record<string, number> = {
+      [coreTileId]: 5,
+    }
+    let frontier = [coreTileId]
+
+    for (const rating of [4, 3, 2] as const) {
+      const candidates = [
+        ...new Set(
+          frontier.flatMap(
+            (tileId) => tilesById.get(tileId)!.neighborIds,
+          ),
+        ),
+      ]
+        .filter(
+          (tileId) =>
+            !excludedTileIds.has(tileId) &&
+            !protectedCoreIds.has(tileId) &&
+            tileRatings[tileId] === undefined,
+        )
+        .sort(
+          (firstId, secondId) =>
+            ((createStableTileValue(firstId) + veinIndex * 17) %
+              97) -
+              ((createStableTileValue(secondId) +
+                veinIndex * 17) %
+                97) ||
+            firstId.localeCompare(secondId),
+        )
+        .slice(0, configuration.ratingCounts[rating])
+
+      if (
+        candidates.length <
+        configuration.ratingCounts[rating]
+      ) {
+        throw new Error(
+          `crystal vein ${veinIndex + 1} cannot reach its ${rating}-star size`,
+        )
+      }
+
+      for (const tileId of candidates) {
+        tileRatings[tileId] = rating
+      }
+      frontier = candidates
+    }
+
+    return {
+      id: `crystal-vein-${veinIndex + 1}`,
+      coreTileId,
+      tileRatings,
+    }
+  })
+}
+
+export function combineCrystalVeinRatings(
+  veins: CrystalVein[],
+): Record<string, number> {
+  const ratings: Record<string, number> = {}
+
+  for (const vein of veins) {
+    for (const [tileId, rating] of Object.entries(
+      vein.tileRatings,
+    )) {
+      ratings[tileId] = Math.max(ratings[tileId] ?? 0, rating)
+    }
+  }
+
+  return ratings
 }
 
 export function createRadialGraphLayout(
@@ -772,3 +954,12 @@ export const targetPlanetZones = createTargetPlanetZones(
   targetPlanetMap,
   targetStartConfiguration,
 )
+
+export const targetCrystalVeins = createNaturalCrystalVeins(
+  targetPlanetMap,
+  targetPlanetZones,
+  targetStartConfiguration,
+)
+
+export const targetCrystalRatings =
+  combineCrystalVeinRatings(targetCrystalVeins)

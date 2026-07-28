@@ -9,6 +9,7 @@ import { createAgentPlan } from './agents'
 import {
   areTilesAdjacent,
   assignStartCorridors,
+  targetCrystalRatings,
   targetPlanetMap,
   targetStartConfiguration,
   type PlanetTile,
@@ -161,6 +162,7 @@ export type Tile = PlanetTile & {
   food?: number
   energy?: number
   ore?: number
+  crystals?: number
 }
 
 export type HarvesterAssignment = {
@@ -1172,6 +1174,7 @@ function createMapTiles(): Tile[] {
             ore:
               preservedRatings?.ore ??
               getGeneratedRating(planetTile.id, 2),
+            crystals: targetCrystalRatings[planetTile.id] ?? 0,
           }),
     }
   })

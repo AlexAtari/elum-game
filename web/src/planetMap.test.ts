@@ -3,12 +3,16 @@ import {
   areTilesAdjacent,
   assignStartCorridors,
   calculateGraphDistances,
+  combineCrystalVeinRatings,
   createGeodesicPlanetMap,
+  createNaturalCrystalVeins,
   createPrototypePlanetMap,
   createRadialGraphLayout,
   createTargetPlanetZones,
   createTargetStartConfiguration,
   prototypePlanetMap,
+  targetCrystalRatings,
+  targetCrystalVeins,
   targetPlanetMap,
   targetPlanetZones,
   targetStartConfiguration,
@@ -183,6 +187,113 @@ describe('92-Felder-Planetengraph', () => {
     expect(() => createGeodesicPlanetMap(1.5)).toThrow(
       'frequency must be a positive integer',
     )
+  })
+})
+
+describe('Natürliche Kristalladern', () => {
+  const tilesById = new Map(
+    targetPlanetMap.tiles.map((tile) => [tile.id, tile]),
+  )
+
+  it('erzeugt vier reproduzierbare, abgestufte Adern', () => {
+    expect(targetCrystalVeins).toHaveLength(4)
+    expect(
+      createNaturalCrystalVeins(
+        targetPlanetMap,
+        targetPlanetZones,
+        targetStartConfiguration,
+      ),
+    ).toEqual(targetCrystalVeins)
+
+    for (const vein of targetCrystalVeins) {
+      const ratings = Object.values(vein.tileRatings)
+
+      expect(ratings.filter((rating) => rating === 5)).toHaveLength(
+        1,
+      )
+      expect(ratings.filter((rating) => rating === 4)).toHaveLength(
+        2,
+      )
+      expect(ratings.filter((rating) => rating === 3)).toHaveLength(
+        3,
+      )
+      expect(ratings.filter((rating) => rating === 2)).toHaveLength(
+        4,
+      )
+    }
+  })
+
+  it('setzt weit entfernte Hexagon-Kerne mit Mindestabstand', () => {
+    const coreTileIds = targetCrystalVeins.map(
+      (vein) => vein.coreTileId,
+    )
+
+    for (const coreTileId of coreTileIds) {
+      expect(tilesById.get(coreTileId)).toMatchObject({
+        shape: 'hexagon',
+      })
+      expect(targetPlanetZones[coreTileId]).toBe('far')
+    }
+
+    for (
+      let firstIndex = 0;
+      firstIndex < coreTileIds.length;
+      firstIndex += 1
+    ) {
+      const distances = calculateGraphDistances(
+        targetPlanetMap.tiles,
+        coreTileIds[firstIndex]!,
+      )
+
+      for (
+        let secondIndex = firstIndex + 1;
+        secondIndex < coreTileIds.length;
+        secondIndex += 1
+      ) {
+        expect(
+          distances[coreTileIds[secondIndex]!],
+        ).toBeGreaterThanOrEqual(4)
+      }
+    }
+  })
+
+  it('hält alle Startgrundstücke kristallfrei und begrenzt natürliche Spitzen auf Kerne', () => {
+    expect(
+      targetStartConfiguration.crystalFreeTileIds.every(
+        (tileId) => targetCrystalRatings[tileId] === undefined,
+      ),
+    ).toBe(true)
+    expect(
+      Object.values(targetCrystalRatings).filter(
+        (rating) => rating === 5,
+      ),
+    ).toHaveLength(4)
+    expect(combineCrystalVeinRatings(targetCrystalVeins)).toEqual(
+      targetCrystalRatings,
+    )
+  })
+
+  it('bildet jede Ader als zusammenhängende Feldgruppe', () => {
+    for (const vein of targetCrystalVeins) {
+      const veinTileIds = new Set(Object.keys(vein.tileRatings))
+      const reached = new Set([vein.coreTileId])
+      const queue = [vein.coreTileId]
+
+      for (let index = 0; index < queue.length; index += 1) {
+        for (const neighborId of tilesById.get(queue[index]!)!
+          .neighborIds) {
+          if (
+            veinTileIds.has(neighborId) &&
+            !reached.has(neighborId)
+          ) {
+            reached.add(neighborId)
+            queue.push(neighborId)
+          }
+        }
+      }
+
+      expect(reached).toEqual(veinTileIds)
+    }
   })
 })
 

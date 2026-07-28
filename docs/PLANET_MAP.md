@@ -131,14 +131,16 @@ Zone und wird später in Simulationen überprüft.
 
 ## 6. Natürliche Kristalladern
 
-Die Karte enthält vorläufig vier natürliche Kristalladern.
+Die Karte enthält vier deterministisch erzeugte natürliche
+Kristalladern. Jede Ader umfasst in der ersten Implementierung zehn
+Felder.
 
 Jede Ader besitzt:
 
 - einen 5-Sterne-Kern,
-- unregelmäßige 4-Sterne-Felder,
-- anschließende 3-Sterne-Felder,
-- auslaufende 2-Sterne-Felder.
+- zwei unregelmäßige 4-Sterne-Felder,
+- drei anschließende 3-Sterne-Felder,
+- vier auslaufende 2-Sterne-Felder.
 
 Regeln:
 
@@ -149,6 +151,10 @@ Regeln:
 - Adern dürfen sich berühren, aber nicht vollständig überlagern,
 - außerhalb der Adern entstehen natürlich keine zufälligen
   5-Sterne-Felder.
+
+Die Adern sind im 92-Felder-Graphen implementiert. Überlappende
+Ausläufer behalten jeweils den höheren Wert. Im Browser bleibt der
+Kristallwert bis zum Erwerb eines Grundstücks verdeckt.
 
 ## 7. Kristallmarkt und Transporte
 
@@ -291,9 +297,8 @@ Abgeschlossen:
 
 Als Nächstes:
 
-1. Kristalladern erzeugen.
-2. Meteoriten implementieren.
-3. interstellaren Käufer ergänzen.
-4. Countdown und Storytexte ergänzen.
-5. Simulation und Balancing.
-6. später grafische Entfaltung oder 3D-Kugel.
+1. Meteoriten implementieren.
+2. interstellaren Käufer ergänzen.
+3. Countdown und Storytexte ergänzen.
+4. Simulation und Balancing.
+5. später grafische Entfaltung oder 3D-Kugel.

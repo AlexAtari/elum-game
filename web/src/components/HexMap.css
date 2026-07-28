@@ -293,6 +293,10 @@
   letter-spacing: 0.05em;
 }
 
+.resource-rating.crystal-rating strong {
+  color: #d8adff;
+}
+
 .field-button {
   width: 100%;
   margin-top: 24px;

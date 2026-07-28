@@ -875,6 +875,17 @@ function HexMap({
                 <strong>{formatStars(selectedTile.ore)}</strong>
               </div>
 
+              <div className="resource-rating crystal-rating">
+                <span>💎 Kristalle</span>
+                <strong>
+                  {selectedIsPlayerOwned
+                    ? selectedTile.crystals
+                      ? formatStars(selectedTile.crystals)
+                      : 'Kein Vorkommen'
+                    : 'Unbekannt'}
+                </strong>
+              </div>
+
               {selectedIsPlayerOwned &&
                 selectedHarvester && (
                   <div className="harvester-status">
