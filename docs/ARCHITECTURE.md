@@ -234,15 +234,19 @@ Agentennachbarschaft, Simulation und Harvesterpriorisierung verwenden
 keine axialen Koordinaten mehr. Der normale Browser-Spielzustand
 verwendet den 92-Felder-Graphen und die acht Ziel-Startfelder.
 
-`planetProjection.ts` richtet die Kugel am HQ aus, rotiert die
-normalisierten Positionen und projiziert sie orthografisch in den
-SVG-Raum. Rückseitenfelder werden nicht interaktiv gerendert.
-`HexMap.tsx` zeichnet daraus die echten Nachbarverbindungen, Hexagone
-und Pentagone und verwaltet Touch-Drehung, Zoom sowie
+`planetProjection.ts` richtet die Kugel am HQ aus, erzeugt aus
+gemeinsamen Dreiecksflächen lückenlose sphärische Dualzellen, rotiert
+die normalisierten Positionen und projiziert sie orthografisch in den
+SVG-Raum. Zellen am Horizont werden gegen die Vorderseite der Kugel
+geschnitten; Rückseitenfelder werden nicht interaktiv gerendert.
+`HexMap.tsx` zeichnet daraus die zusammenhängenden Hexagon- und
+Pentagonzellen und verwaltet Touch-Drehung, Zoom sowie
 HQ-Zentrierung. SVG-Muster und CSS-Intensitätsklassen bilden die
-stärkste Ressourceneignung und deren Sternwert ab; Interaktionskonturen
-werden getrennt von Gelände- und Statusflächen gezeichnet. Diese
-Geometrie bleibt reine Darstellung und verändert keine Spielregel.
+stärkste Ressourceneignung und deren Sternwert ab. Eine aus der
+Kugeltangente projizierte Transformationsmatrix verankert jedes
+Texturmotiv dauerhaft an seiner Zelle. Interaktionskonturen werden
+getrennt von Gelände- und Statusflächen gezeichnet. Diese Geometrie
+bleibt reine Darstellung und verändert keine Spielregel.
 `createRadialGraphLayout` bleibt als
 reproduzierbares flaches Hilfslayout verfügbar.
 

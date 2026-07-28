@@ -234,6 +234,8 @@ werden.
 - prozedurale Feldtexturen nach stärkster Ressourceneignung und
   Sternstärke; Polygonkonturen nur bei Interaktion oder notwendigem
   Spielstatus
+- lückenlose sphärische Dualzellen und lokal auf der Kugel verankerte
+  Texturmotive statt regelmäßig verkleinerter Bildschirm-Polygone
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - vier natürliche Kristalladern im Zielgraphen aktiv; Werte bleiben
   bis zum Grundstückserwerb verdeckt

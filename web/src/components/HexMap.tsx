@@ -21,7 +21,9 @@ import {
 } from '../meteor'
 import { targetPlanetMap } from '../planetMap'
 import {
+  createPlanetSurfaceCells,
   projectPlanetMap,
+  projectPlanetSurfaceCells,
   type PlanetRotation,
 } from '../planetProjection'
 import './HexMap.css'
@@ -73,7 +75,6 @@ type MapGesture = {
   distance: number
 }
 
-const HEX_RADIUS = 43
 const MAP_VIEW_SIZE = 720
 const PLANET_RADIUS = 280
 const MIN_MAP_ZOOM = 0.72
@@ -85,32 +86,8 @@ const INITIAL_MAP_CAMERA: MapCamera = {
   zoom: 1,
 }
 
-function createTilePoints(
-  x: number,
-  y: number,
-  radius: number,
-  sides: number,
-) {
-  return Array.from({ length: sides }, (_, index) => {
-    const angle =
-      ((360 / sides) * index * Math.PI) / 180 -
-      Math.PI / 2
-
-    return `${x + radius * Math.cos(angle)},${
-      y + radius * Math.sin(angle)
-    }`
-  }).join(' ')
-}
-
-const mapNeighborLinks = tiles.flatMap((tile) =>
-  tile.neighborIds
-    .filter((neighborId) => tile.id < neighborId)
-    .map((neighborId) => ({
-      id: `${tile.id}:${neighborId}`,
-      firstId: tile.id,
-      secondId: neighborId,
-    })),
-)
+const planetSurfaceCells =
+  createPlanetSurfaceCells(targetPlanetMap)
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
@@ -140,11 +117,18 @@ function getMidpoint(first: Point, second: Point) {
   }
 }
 
-function getTerrainClass(
+type TerrainKind =
+  | 'food'
+  | 'energy'
+  | 'ore'
+  | 'barren'
+  | 'hq'
+
+function getTerrain(
   tile: (typeof tiles)[number],
 ) {
   if (tile.owner === 'hq') {
-    return 'terrain-hq terrain-strength-5'
+    return { kind: 'hq' as const, strength: 5 }
   }
 
   const dominantResource = [
@@ -158,10 +142,67 @@ function getTerrainClass(
   )
 
   if (dominantResource.rating === 0) {
-    return 'terrain-barren terrain-strength-0'
+    return { kind: 'barren' as const, strength: 0 }
   }
 
-  return `terrain-${dominantResource.resource} terrain-strength-${dominantResource.rating}`
+  return {
+    kind: dominantResource.resource as Exclude<
+      TerrainKind,
+      'barren' | 'hq'
+    >,
+    strength: dominantResource.rating,
+  }
+}
+
+function formatPolygonPoints(
+  points: Array<{ x: number; y: number }>,
+) {
+  return points
+    .map((point) => `${point.x},${point.y}`)
+    .join(' ')
+}
+
+function renderTerrainMotif(kind: TerrainKind) {
+  if (kind === 'food') {
+    return (
+      <>
+        <path d="M-1.35-.62Q-.72-.98-.08-.6T1.35-.68M-1.35.02Q-.7-.34 0 .02T1.35-.06M-1.35.66Q-.68.3-.02.64T1.35.58" />
+        <path d="M-.78.92-.7.3-.61.92M-.12.25-.03-.48.06.25M.61.92.7.25.8.92" />
+        <circle cx="-.7" cy=".16" r=".08" />
+        <circle cx="-.03" cy="-.6" r=".08" />
+        <circle cx=".7" cy=".11" r=".08" />
+      </>
+    )
+  }
+
+  if (kind === 'energy') {
+    return (
+      <>
+        <path className="terrain-flow" d="M-1.4-.72Q-.7-1.05.02-.7T1.4-.78M-1.4.15Q-.68-.18.05.14T1.4.05M-1.4.82Q-.72.49 0 .8T1.4.69" />
+        <path d="M-.58.96V-.02M-.58-.02-.97-.35M-.58-.02-.08-.29M-.58-.02-.54-.57M.66.98V.34M.66.34.37.08M.66.34 1.02.2M.66.34.69-.05" />
+        <circle cx="-.58" cy="-.02" r=".1" />
+        <circle cx=".66" cy=".34" r=".08" />
+      </>
+    )
+  }
+
+  if (kind === 'ore') {
+    return (
+      <>
+        <path className="terrain-mass" d="M-1.38 1.05-.82-.22-.37.42.14-.86 1.38 1.05Z" />
+        <path d="M-1.4.72Q-.73.37-.16.68T1.4.55M-1.27 1Q-.53.61.14.91T1.42.82M-.42.3Q.1-.08.69.25" />
+        <path d="M.14-.86-.08.24.24.02.52.61" />
+      </>
+    )
+  }
+
+  if (kind === 'barren') {
+    return (
+      <path d="M-1.35-.5Q-.72-.78-.06-.48T1.35-.57M-1.35.5Q-.66.16.02.48T1.35.38" />
+    )
+  }
+
+  return null
 }
 
 function formatStars(value = 0) {
@@ -218,12 +259,21 @@ function HexMap({
     cameraState,
     PLANET_RADIUS * cameraState.zoom,
   )
-  const hoveredPosition = hoveredTile
-    ? projectedTiles[hoveredTile.id]
+  const projectedCells = projectPlanetSurfaceCells(
+    targetPlanetMap,
+    planetSurfaceCells,
+    cameraState,
+    PLANET_RADIUS * cameraState.zoom,
+  )
+  const hoveredCell = hoveredTile
+    ? projectedCells[hoveredTile.id]
     : null
-  const selectedPosition = projectedTiles[selectedTile.id]
+  const selectedCell = projectedCells[selectedTile.id]
   const visibleTiles = tiles
-    .filter((tile) => projectedTiles[tile.id].visible)
+    .filter(
+      (tile) =>
+        projectedCells[tile.id].points.length >= 3,
+    )
     .sort(
       (first, second) =>
         projectedTiles[first.id].depth -
@@ -556,105 +606,6 @@ function HexMap({
             onWheel={handleWheel}
           >
             <defs>
-              <pattern
-                id="terrain-food"
-                width="64"
-                height="64"
-                patternUnits="userSpaceOnUse"
-              >
-                <rect width="64" height="64" fill="#234d35" />
-                <path
-                  d="M-5 18 Q14 5 36 17 T72 12 M-8 42 Q14 28 37 41 T72 36 M-4 59 Q18 47 38 58 T70 54"
-                  fill="none"
-                  stroke="#6ca66f"
-                  strokeWidth="3.2"
-                  strokeLinecap="round"
-                  opacity="0.48"
-                />
-                <path
-                  d="M8 52 11 39 14 52 M28 31 31 17 34 31 M49 55 52 39 55 55"
-                  fill="none"
-                  stroke="#a0cf86"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  opacity="0.66"
-                />
-                <circle cx="12" cy="35" r="2.5" fill="#d1dfa1" opacity="0.42" />
-                <circle cx="31" cy="13" r="2.5" fill="#d1dfa1" opacity="0.42" />
-                <circle cx="52" cy="35" r="2.5" fill="#d1dfa1" opacity="0.42" />
-              </pattern>
-
-              <pattern
-                id="terrain-energy"
-                width="72"
-                height="64"
-                patternUnits="userSpaceOnUse"
-              >
-                <rect width="72" height="64" fill="#1e4650" />
-                <path
-                  d="M-8 12 Q13 2 36 12 T80 8 M-8 31 Q16 20 39 31 T80 26 M-8 51 Q15 40 37 50 T80 45"
-                  fill="none"
-                  stroke="#72c9c9"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  opacity="0.5"
-                />
-                <path
-                  d="M20 57 V30 M20 30 9 22 M20 30 33 24 M20 30 21 16 M55 58 V40 M55 40 47 34 M55 40 65 36 M55 40 56 29"
-                  fill="none"
-                  stroke="#b9e7dc"
-                  strokeWidth="2.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity="0.72"
-                />
-                <circle cx="20" cy="30" r="3.2" fill="#e3f7e9" opacity="0.84" />
-                <circle cx="55" cy="40" r="2.6" fill="#e3f7e9" opacity="0.78" />
-              </pattern>
-
-              <pattern
-                id="terrain-ore"
-                width="72"
-                height="64"
-                patternUnits="userSpaceOnUse"
-              >
-                <rect width="72" height="64" fill="#4c3729" />
-                <path
-                  d="M-8 62 11 31 25 47 42 14 79 63Z"
-                  fill="#6d4d35"
-                  stroke="#b17b4f"
-                  strokeWidth="2.2"
-                  opacity="0.82"
-                />
-                <path
-                  d="M-5 53 Q16 43 33 51 T78 48 M4 61 Q26 50 46 58 T78 55 M27 39 Q42 30 57 38"
-                  fill="none"
-                  stroke="#d1a36c"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  opacity="0.5"
-                />
-                <path d="m42 14-7 24 9-5 8 15" fill="none" stroke="#ddb47c" strokeWidth="2" opacity="0.5" />
-                <circle cx="14" cy="17" r="3" fill="#c88d56" opacity="0.52" />
-                <circle cx="62" cy="13" r="2.3" fill="#d4a06a" opacity="0.45" />
-              </pattern>
-
-              <pattern
-                id="terrain-barren"
-                width="56"
-                height="56"
-                patternUnits="userSpaceOnUse"
-              >
-                <rect width="56" height="56" fill="#29323c" />
-                <path
-                  d="M-4 18 Q12 10 29 18 T61 15 M-5 43 Q14 34 30 43 T62 39"
-                  fill="none"
-                  stroke="#596573"
-                  strokeWidth="2"
-                  opacity="0.42"
-                />
-              </pattern>
-
               <radialGradient id="terrain-hq">
                 <stop offset="0" stopColor="#638bd9" />
                 <stop offset="1" stopColor="#24477f" />
@@ -674,6 +625,18 @@ function HexMap({
                   r={PLANET_RADIUS * cameraState.zoom}
                 />
               </clipPath>
+              {visibleTiles.map((tile) => (
+                <clipPath
+                  id={`terrain-clip-${tile.id}`}
+                  key={tile.id}
+                >
+                  <polygon
+                    points={formatPolygonPoints(
+                      projectedCells[tile.id].points,
+                    )}
+                  />
+                </clipPath>
+              ))}
             </defs>
 
             <circle
@@ -686,39 +649,13 @@ function HexMap({
             />
 
             <g clipPath="url(#planet-clip)">
-              <g className="map-neighbor-links" aria-hidden="true">
-                {mapNeighborLinks.flatMap((link) => {
-                  const first = projectedTiles[link.firstId]
-                  const second = projectedTiles[link.secondId]
-
-                  if (!first.visible || !second.visible) {
-                    return []
-                  }
-
-                  return [
-                    <line
-                      key={link.id}
-                      x1={first.x}
-                      y1={first.y}
-                      x2={second.x}
-                      y2={second.y}
-                    />,
-                  ]
-                })}
-              </g>
-
               {visibleTiles.map((tile) => {
                 const position = projectedTiles[tile.id]
-                const tileRadius =
-                  HEX_RADIUS *
-                  position.scale *
-                  cameraState.zoom
-                const polygonPoints = createTilePoints(
-                  position.x,
-                  position.y,
-                  tileRadius,
-                  tile.shape === 'pentagon' ? 5 : 6,
+                const cell = projectedCells[tile.id]
+                const polygonPoints = formatPolygonPoints(
+                  cell.points,
                 )
+                const terrain = getTerrain(tile)
                 const isSelected = tile.id === selectedId
                 const harvester = harvesters[tile.id]
                 const production = harvester?.production
@@ -788,11 +725,22 @@ function HexMap({
                     }}
                   >
                     <polygon
-                      className={`hex-landscape ${getTerrainClass(
-                        tile,
-                      )}`}
+                      className={`hex-landscape terrain-${terrain.kind}`}
                       points={polygonPoints}
                     />
+                    <g
+                      className={[
+                        'terrain-texture',
+                        `terrain-${terrain.kind}-motif`,
+                        `terrain-strength-${terrain.strength}`,
+                      ].join(' ')}
+                      clipPath={`url(#terrain-clip-${tile.id})`}
+                      aria-hidden="true"
+                    >
+                      <g transform={cell.textureTransform}>
+                        {renderTerrainMotif(terrain.kind)}
+                      </g>
+                    </g>
                     <polygon
                       className="hex-border"
                       points={polygonPoints}
@@ -877,34 +825,22 @@ function HexMap({
               })}
 
               {hoveredTile &&
-                hoveredPosition &&
-                hoveredPosition.visible &&
+                hoveredCell &&
+                hoveredCell.points.length >= 3 &&
                 hoveredTile.id !== selectedTile.id && (
                   <polygon
                     className="hex-interaction-outline is-hovered"
-                    points={createTilePoints(
-                      hoveredPosition.x,
-                      hoveredPosition.y,
-                      HEX_RADIUS *
-                        hoveredPosition.scale *
-                        cameraState.zoom -
-                        1.5,
-                      hoveredTile.shape === 'pentagon' ? 5 : 6,
+                    points={formatPolygonPoints(
+                      hoveredCell.points,
                     )}
                   />
                 )}
 
-              {selectedPosition.visible && (
+              {selectedCell.points.length >= 3 && (
                 <polygon
                   className="hex-interaction-outline is-selected"
-                  points={createTilePoints(
-                    selectedPosition.x,
-                    selectedPosition.y,
-                    HEX_RADIUS *
-                      selectedPosition.scale *
-                      cameraState.zoom -
-                      1.5,
-                    selectedTile.shape === 'pentagon' ? 5 : 6,
+                  points={formatPolygonPoints(
+                    selectedCell.points,
                   )}
                 />
               )}

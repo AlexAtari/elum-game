@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { targetPlanetMap } from './planetMap'
-import { projectPlanetMap } from './planetProjection'
+import {
+  createPlanetSurfaceCells,
+  projectPlanetMap,
+  projectPlanetSurfaceCells,
+} from './planetProjection'
+
+function positionKey(position: {
+  x: number
+  y: number
+  z: number
+}) {
+  return [position.x, position.y, position.z]
+    .map((value) => value.toFixed(8))
+    .join(':')
+}
 
 describe('Kugelprojektion der Planetenkarte', () => {
   it('zentriert das HQ in der Ausgangsansicht', () => {
@@ -43,5 +57,77 @@ describe('Kugelprojektion der Planetenkarte', () => {
 
     expect(projection.HQ.depth).toBeCloseTo(-1)
     expect(projection.HQ.visible).toBe(false)
+  })
+
+  it('erzeugt lückenlose gemeinsame Zellkanten', () => {
+    const cells =
+      createPlanetSurfaceCells(targetPlanetMap)
+
+    for (const tile of targetPlanetMap.tiles) {
+      expect(cells[tile.id]).toHaveLength(
+        tile.neighborIds.length,
+      )
+
+      for (const neighborId of tile.neighborIds) {
+        const ownVertices = new Set(
+          cells[tile.id].map(positionKey),
+        )
+        const sharedVertices = cells[neighborId].filter(
+          (vertex) =>
+            ownVertices.has(positionKey(vertex)),
+        )
+
+        expect(sharedVertices).toHaveLength(2)
+      }
+    }
+  })
+
+  it('schneidet Zellflächen an der Kugelsilhouette', () => {
+    const radius = 280
+    const cells =
+      createPlanetSurfaceCells(targetPlanetMap)
+    const projection = projectPlanetSurfaceCells(
+      targetPlanetMap,
+      cells,
+      { yaw: 0.8, pitch: -0.35 },
+      radius,
+    )
+    const visibleCells = Object.values(
+      projection,
+    ).filter((cell) => cell.points.length >= 3)
+
+    expect(visibleCells.length).toBeGreaterThan(40)
+    expect(visibleCells.length).toBeLessThan(60)
+    for (const cell of visibleCells) {
+      for (const point of cell.points) {
+        expect(
+          Math.hypot(point.x, point.y),
+        ).toBeLessThanOrEqual(radius + 0.0001)
+      }
+    }
+  })
+
+  it('verankert die Texturausrichtung an der Kugel', () => {
+    const cells =
+      createPlanetSurfaceCells(targetPlanetMap)
+    const initial = projectPlanetSurfaceCells(
+      targetPlanetMap,
+      cells,
+      { yaw: 0, pitch: 0 },
+      280,
+    )
+    const rotated = projectPlanetSurfaceCells(
+      targetPlanetMap,
+      cells,
+      { yaw: 0.7, pitch: 0.2 },
+      280,
+    )
+
+    expect(initial.P021.textureTransform).not.toBe(
+      rotated.P021.textureTransform,
+    )
+    expect(initial.P021.textureTransform).toContain(
+      'matrix(',
+    )
   })
 })

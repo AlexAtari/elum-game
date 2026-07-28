@@ -24,7 +24,12 @@ werden erst nach einer Drehung sichtbar und anklickbar.
 
 Die Felder erhalten prozedurale kartografische Texturen nach ihrer
 stärksten Ressourceneignung. Die Texturintensität folgt der
-Sternstärke. Standardfelder besitzen keine permanente harte
+Sternstärke. Die sichtbaren Grundstücksflächen werden als sphärische
+Dualzellen aus den Mittelpunkten der angrenzenden Dreiecksflächen
+gebildet. Benachbarte Zellen teilen dadurch exakt dieselbe Kante und
+lassen keine untexturierte Kugelfläche frei. Jedes Texturmotiv besitzt
+eine feste lokale Tangentenausrichtung und wird gemeinsam mit seiner
+Zelle projiziert. Standardfelder besitzen keine permanente harte
 Umrandung; Hover, Tastaturfokus und Auswahl blenden eine Kontur ein.
 Statusmarkierungen für Gebote und Meteorzentren bleiben davon
 ausgenommen.

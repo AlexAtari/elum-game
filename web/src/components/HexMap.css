@@ -139,12 +139,6 @@
   outline: none;
 }
 
-.map-neighbor-links line {
-  stroke: rgba(142, 183, 216, 0.06);
-  stroke-width: 1.4;
-  vector-effect: non-scaling-stroke;
-}
-
 .hex-tile.pentagon .hex-border {
   fill: rgba(117, 86, 139, 0.08);
   stroke: transparent;
@@ -152,27 +146,81 @@
 
 .hex-landscape {
   pointer-events: none;
-  stroke: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
 }
 
 .terrain-food {
-  fill: url('#terrain-food');
+  fill: #234d35;
+  stroke: #234d35;
 }
 
 .terrain-energy {
-  fill: url('#terrain-energy');
+  fill: #1e4650;
+  stroke: #1e4650;
 }
 
 .terrain-ore {
-  fill: url('#terrain-ore');
+  fill: #4c3729;
+  stroke: #4c3729;
 }
 
 .terrain-barren {
-  fill: url('#terrain-barren');
+  fill: #29323c;
+  stroke: #29323c;
 }
 
 .terrain-hq {
   fill: url('#terrain-hq');
+  stroke: #315689;
+}
+
+.terrain-texture {
+  pointer-events: none;
+  fill: none;
+  stroke-width: 0.055;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.terrain-food-motif {
+  stroke: #a0cf86;
+}
+
+.terrain-energy-motif {
+  stroke: #b9e7dc;
+}
+
+.terrain-energy-motif .terrain-flow {
+  stroke: #72c9c9;
+  stroke-width: 0.045;
+}
+
+.terrain-ore-motif {
+  stroke: #d1a36c;
+}
+
+.terrain-ore-motif .terrain-mass {
+  fill: #6d4d35;
+  stroke: #b17b4f;
+}
+
+.terrain-barren-motif {
+  stroke: #707c89;
+  stroke-width: 0.045;
+}
+
+.terrain-texture circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+.terrain-food-motif circle {
+  color: #d1dfa1;
+}
+
+.terrain-energy-motif circle {
+  color: #e3f7e9;
 }
 
 .terrain-strength-0 {

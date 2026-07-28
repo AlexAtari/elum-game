@@ -43,6 +43,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - ressourcenabhängige kartografische Feldtexturen: Wiesen für
   Nahrung, Windströmungen und Windräder für Energie sowie
   Berg- und Höhenlinien für Erz
+- lückenlos aneinander anschließende sphärische Dualzellen aus den
+  gemeinsamen Dreiecksflächen des Planetengraphen
+- fest an jeder Kugelzelle verankerte Texturmotive, die beim Drehen
+  ihre lokale Ausrichtung und Position auf dem Planeten behalten
 - ruhige Felder ohne permanente Polygonrahmen; Konturen erscheinen
   bei Hover, Tastaturfokus oder Auswahl, notwendige Spielmarkierungen
   bleiben sichtbar
