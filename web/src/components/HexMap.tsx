@@ -83,7 +83,7 @@ type MapGesture = {
 const MAP_VIEW_SIZE = 720
 const PLANET_RADIUS = 280
 const MIN_MAP_ZOOM = 0.72
-const MAX_MAP_ZOOM = 1.35
+const MAX_MAP_ZOOM = 2.2
 const MAX_MAP_PITCH = Math.PI * 0.48
 const INITIAL_MAP_CAMERA: MapCamera = {
   yaw: 0,

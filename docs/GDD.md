@@ -225,6 +225,10 @@ Rand. Feldnummern werden nicht direkt auf der Kugel gezeigt. Nach der
 Auswahl nennt die Detailansicht weiterhin die eindeutige Feld-ID;
 dieselbe Bezeichnung bleibt für assistive Bedienung verfügbar.
 
+Auf Smartphones nutzt das Kartenpanel den verfügbaren Bildschirm
+mit schmalen Seitenabständen. Pinch und die Zoomtasten erlauben eine
+Nahansicht bis zum 2,2-Fachen der Ausgangsgröße.
+
 ---
 
 # 6. Grundstücke

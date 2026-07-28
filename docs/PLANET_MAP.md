@@ -53,6 +53,12 @@ weich abgedunkelte Gegenseite und ergänzt den atmosphärischen Rand.
 Feld-IDs erscheinen nicht als Text auf der Kugel, bleiben aber in der
 Felddetailansicht und als barrierefreie Interaktionsnamen erhalten.
 
+Die mobile Darstellung reduziert äußere und innere Seitenabstände,
+damit der Kugelviewport möglichst viel Bildschirmbreite erhält. Der
+zulässige Nahzoom beträgt 2,2 gegenüber der Ausgangsansicht; die
+Kugel bleibt dabei zentriert und wird weiterhin durch Drehen
+navigiert.
+
 Alle Grundstücke sind wirtschaftlich gleich große Spieleinheiten.
 Sichtbare Größenunterschiede beeinflussen weder Produktion noch Preis.
 

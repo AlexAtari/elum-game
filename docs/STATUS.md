@@ -40,6 +40,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sichtbaren Nachbarverbindungen und erkennbaren Pentagonen
 - Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
   auf dem Zielgraphen
+- mobile Kartenansicht mit reduziertem seitlichem Außenabstand und
+  Nahzoom bis 2,2-facher Ausgangsgröße
 - durchgehende fotorealistische, marsartige Oberflächentextur aus
   Rostboden, Terrakotta, Ocker und dunklem Basalt ohne gezeichnete
   Ressourcenmotive oder harte Biome

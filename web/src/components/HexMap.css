@@ -492,7 +492,8 @@
 
 @media (max-width: 820px) {
   .map-panel {
-    padding: 16px;
+    padding: 10px;
+    border-radius: 16px;
   }
 
   .map-heading {
