@@ -7,6 +7,7 @@ import {
 import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
+  PLAYER_START_TILE_IDS,
   productionTypes,
   tiles,
   type HarvesterAssignments,
@@ -14,7 +15,7 @@ import {
   type LandBid,
   type ProductionType,
 } from '../game'
-import { prototypePlanetMap } from '../planetMap'
+import { targetPlanetMap } from '../planetMap'
 import './HexMap.css'
 
 type HexMapProps = {
@@ -63,7 +64,7 @@ type MapGesture = {
   distance: number
 }
 
-const HEX_RADIUS = 58
+const HEX_RADIUS = 24
 const MAP_VIEW_WIDTH = 900
 const MAP_VIEW_HEIGHT = 640
 const MIN_MAP_ZOOM = 0.62
@@ -72,12 +73,19 @@ const MAP_PAN_LIMIT = 700
 const INITIAL_MAP_CAMERA: MapCamera = {
   x: 0,
   y: 0,
-  zoom: 0.68,
+  zoom: 1,
 }
 
-function createHexPoints(x: number, y: number, radius: number) {
-  return Array.from({ length: 6 }, (_, index) => {
-    const angle = (60 * index * Math.PI) / 180
+function createTilePoints(
+  x: number,
+  y: number,
+  radius: number,
+  sides: number,
+) {
+  return Array.from({ length: sides }, (_, index) => {
+    const angle =
+      ((360 / sides) * index * Math.PI) / 180 -
+      Math.PI / 2
 
     return `${x + radius * Math.cos(angle)},${
       y + radius * Math.sin(angle)
@@ -85,18 +93,25 @@ function createHexPoints(x: number, y: number, radius: number) {
   }).join(' ')
 }
 
-function axialToPixel(q: number, r: number) {
-  return {
-    x: HEX_RADIUS * 1.5 * q,
-    y: HEX_RADIUS * Math.sqrt(3) * (r + q / 2),
-  }
-}
-
 function getTilePixelPosition(tileId: string) {
-  const position = prototypePlanetMap.flatPositions[tileId]
+  const position = targetPlanetMap.displayPositions?.[tileId]
 
-  return axialToPixel(position.q, position.r)
+  if (!position) {
+    throw new Error(`missing display position for ${tileId}`)
+  }
+
+  return position
 }
+
+const mapNeighborLinks = tiles.flatMap((tile) =>
+  tile.neighborIds
+    .filter((neighborId) => tile.id < neighborId)
+    .map((neighborId) => ({
+      id: `${tile.id}:${neighborId}`,
+      first: getTilePixelPosition(tile.id),
+      second: getTilePixelPosition(neighborId),
+    })),
+)
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
@@ -163,7 +178,9 @@ function HexMap({
   onChangeHarvesterProduction,
   onRemoveHarvester,
 }: HexMapProps) {
-  const [selectedId, setSelectedId] = useState('A')
+  const [selectedId, setSelectedId] = useState(
+    PLAYER_START_TILE_IDS[0],
+  )
   const [isChoosingProduction, setIsChoosingProduction] =
     useState(false)
   const [bidAmount, setBidAmount] = useState(LAND_MINIMUM_BID)
@@ -194,6 +211,12 @@ function HexMap({
   )
   const selectedIsOpponentOwned = opponentTileIds.includes(
     selectedTile.id,
+  )
+  const selectedIsAdjacentToPlayer = ownedTileIds.some(
+    (tileId) =>
+      tiles
+        .find((tile) => tile.id === tileId)
+        ?.neighborIds.includes(selectedTile.id) ?? false,
   )
   const selectedPendingBid =
     pendingLandBid?.tileId === selectedTile.id
@@ -503,7 +526,7 @@ function HexMap({
             viewBox={`${-MAP_VIEW_WIDTH / 2} ${
               -MAP_VIEW_HEIGHT / 2
             } ${MAP_VIEW_WIDTH} ${MAP_VIEW_HEIGHT}`}
-            aria-label="Bewegbare Hexkarte der Kolonie"
+            aria-label="Bewegbare Planetengraph-Karte der Kolonie"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerEnd}
@@ -587,12 +610,25 @@ function HexMap({
             <g
               transform={`translate(${cameraState.x} ${cameraState.y}) scale(${cameraState.zoom})`}
             >
+              <g className="map-neighbor-links" aria-hidden="true">
+                {mapNeighborLinks.map((link) => (
+                  <line
+                    key={link.id}
+                    x1={link.first.x}
+                    y1={link.first.y}
+                    x2={link.second.x}
+                    y2={link.second.y}
+                  />
+                ))}
+              </g>
+
               {tiles.map((tile) => {
                 const position = getTilePixelPosition(tile.id)
-                const polygonPoints = createHexPoints(
+                const polygonPoints = createTilePoints(
                   position.x,
                   position.y,
                   HEX_RADIUS,
+                  tile.shape === 'pentagon' ? 5 : 6,
                 )
                 const isSelected = tile.id === selectedId
                 const harvester = harvesters[tile.id]
@@ -621,6 +657,7 @@ function HexMap({
                     key={tile.id}
                     className={[
                       'hex-tile',
+                      tile.shape,
                       ownershipClass,
                       isSelected ? 'selected' : '',
                     ].join(' ')}
@@ -676,7 +713,7 @@ function HexMap({
                       <text
                         className="hex-owner-label"
                         x={position.x}
-                        y={position.y + 23}
+                        y={position.y + 14}
                         textAnchor="middle"
                       >
                         DEIN FELD
@@ -687,7 +724,7 @@ function HexMap({
                       <text
                         className="hex-opponent-label"
                         x={position.x}
-                        y={position.y + 23}
+                        y={position.y + 14}
                         textAnchor="middle"
                       >
                         ORION
@@ -698,7 +735,7 @@ function HexMap({
                       <text
                         className="hex-pending-label"
                         x={position.x}
-                        y={position.y + 23}
+                        y={position.y + 14}
                         textAnchor="middle"
                       >
                         {hasAuctionTie
@@ -711,7 +748,7 @@ function HexMap({
                       <text
                         className="hex-production-label"
                         x={position.x}
-                        y={position.y + 28}
+                        y={position.y + 18}
                         textAnchor="middle"
                       >
                         {harvester.pendingProduction
@@ -734,20 +771,22 @@ function HexMap({
                 hoveredTile.id !== selectedTile.id && (
                   <polygon
                     className="hex-interaction-outline is-hovered"
-                    points={createHexPoints(
+                    points={createTilePoints(
                       hoveredPosition.x,
                       hoveredPosition.y,
                       HEX_RADIUS - 1.5,
+                      hoveredTile.shape === 'pentagon' ? 5 : 6,
                     )}
                   />
                 )}
 
               <polygon
                 className="hex-interaction-outline is-selected"
-                points={createHexPoints(
+                points={createTilePoints(
                   selectedPosition.x,
                   selectedPosition.y,
                   HEX_RADIUS - 1.5,
+                  selectedTile.shape === 'pentagon' ? 5 : 6,
                 )}
               />
             </g>
@@ -1095,7 +1134,9 @@ function HexMap({
                       step="1"
                       value={effectiveBidAmount}
                       disabled={
-                        isLandBidBlocked || credits < minimumBid
+                        isLandBidBlocked ||
+                        !selectedIsAdjacentToPlayer ||
+                        credits < minimumBid
                       }
                       onChange={(event) =>
                         setBidAmount(Number(event.target.value))
@@ -1106,7 +1147,9 @@ function HexMap({
                       className="field-button"
                       type="button"
                       disabled={
-                        isLandBidBlocked || credits < minimumBid
+                        isLandBidBlocked ||
+                        !selectedIsAdjacentToPlayer ||
+                        credits < minimumBid
                       }
                       onClick={() =>
                         onPlaceLandBid(
@@ -1117,6 +1160,8 @@ function HexMap({
                     >
                       {isLandBidBlocked
                         ? 'Grundstückserwerb gesperrt'
+                        : !selectedIsAdjacentToPlayer
+                          ? 'Nicht angrenzend'
                         : credits < minimumBid
                         ? 'Nicht genügend Credits'
                         : selectedAuctionTie

@@ -221,16 +221,15 @@ Distanzringe den inneren, Explorations- und Fernzonen zu.
 reproduzierbar genau einmal auf vier Teilnehmer.
 
 Agentennachbarschaft, Simulation und Harvesterpriorisierung verwenden
-keine axialen Koordinaten mehr. `HexMap.tsx` liest die bisherigen
-Axialkoordinaten ausschließlich aus `flatPositions`.
+keine axialen Koordinaten mehr. Der normale Browser-Spielzustand
+verwendet den 92-Felder-Graphen und die acht Ziel-Startfelder.
 
-Die alte 61-Felder-Prototypkarte und ihre sichtbare Anordnung bleiben
-unverändert. Ihre bestehenden Gelände-Eignungen werden beim Aufbau
-vorübergehend über die alte flache Position reproduziert. Der
-92-Felder-Graph ist noch nicht an `GameState`, Gelände-Eignungen,
-Startpositionen oder `HexMap.tsx` angeschlossen. Beim Anschluss wird
-der alte Adapter durch explizite beziehungsweise seedbasiert erzeugte
-Kartendaten ersetzt.
+`createRadialGraphLayout` erzeugt eine reproduzierbare flache
+Darstellungsposition je Feld. `HexMap.tsx` zeichnet die echten
+Nachbarverbindungen, Hexagone und Pentagone, ohne diese Geometrie als
+Spielregel zu verwenden. Gelände-Eignungen werden derzeit
+deterministisch aus stabilen Feld-IDs erzeugt; alle Startkorridore
+erhalten identische Startprofile.
 
 Kernprinzip:
 
@@ -260,9 +259,8 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. Graph zunächst flach darstellen,
-2. Kristalladern und Meteoriten anbinden,
-3. später eine 3D-Kugel ergänzen.
+1. Kristalladern und Meteoriten anbinden,
+2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und
 Simulationen reproduzierbar bleiben.

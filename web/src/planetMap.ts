@@ -18,10 +18,16 @@ export type SpherePosition = {
   z: number
 }
 
+export type FlatDisplayPosition = {
+  x: number
+  y: number
+}
+
 export type PlanetMap = {
   hqTileId: string
   tiles: PlanetTile[]
   flatPositions: Record<string, FlatHexPosition>
+  displayPositions?: Record<string, FlatDisplayPosition>
   spherePositions?: Record<string, SpherePosition>
 }
 
@@ -336,6 +342,97 @@ export function createTargetPlanetZones(
       return [tile.id, 'far']
     }),
   )
+}
+
+export function createRadialGraphLayout(
+  map: PlanetMap,
+  ringSpacing: number = 55,
+): Record<string, FlatDisplayPosition> {
+  const positions = map.spherePositions
+  const hqPosition = positions?.[map.hqTileId]
+
+  if (!positions || !hqPosition) {
+    throw new Error('radial layout requires sphere positions')
+  }
+
+  const reference =
+    Math.abs(hqPosition.z) < 0.9
+      ? { x: 0, y: 0, z: 1 }
+      : { x: 1, y: 0, z: 0 }
+  const firstAxis = normalizeSpherePosition({
+    x:
+      reference.y * hqPosition.z -
+      reference.z * hqPosition.y,
+    y:
+      reference.z * hqPosition.x -
+      reference.x * hqPosition.z,
+    z:
+      reference.x * hqPosition.y -
+      reference.y * hqPosition.x,
+  })
+  const secondAxis = normalizeSpherePosition({
+    x:
+      hqPosition.y * firstAxis.z -
+      hqPosition.z * firstAxis.y,
+    y:
+      hqPosition.z * firstAxis.x -
+      hqPosition.x * firstAxis.z,
+    z:
+      hqPosition.x * firstAxis.y -
+      hqPosition.y * firstAxis.x,
+  })
+  const angleByTileId = Object.fromEntries(
+    map.tiles.map((tile) => {
+      const position = positions[tile.id]
+      const firstProjection =
+        position.x * firstAxis.x +
+        position.y * firstAxis.y +
+        position.z * firstAxis.z
+      const secondProjection =
+        position.x * secondAxis.x +
+        position.y * secondAxis.y +
+        position.z * secondAxis.z
+
+      return [
+        tile.id,
+        Math.atan2(secondProjection, firstProjection),
+      ]
+    }),
+  )
+  const distanceGroups = new Map<number, PlanetTile[]>()
+
+  for (const tile of map.tiles) {
+    distanceGroups.set(tile.distanceFromHq, [
+      ...(distanceGroups.get(tile.distanceFromHq) ?? []),
+      tile,
+    ])
+  }
+  const displayPositions: Record<string, FlatDisplayPosition> = {
+    [map.hqTileId]: { x: 0, y: 0 },
+  }
+
+  for (const [distance, distanceTiles] of distanceGroups) {
+    if (distance === 0) {
+      continue
+    }
+
+    const orderedTiles = [...distanceTiles].sort(
+      (first, second) =>
+        angleByTileId[first.id] - angleByTileId[second.id] ||
+        first.id.localeCompare(second.id),
+    )
+
+    for (const tile of orderedTiles) {
+      const angle = angleByTileId[tile.id]
+      const radius = distance * ringSpacing
+      displayPositions[tile.id] = {
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+      }
+    }
+  }
+
+  return displayPositions
 }
 
 export function assignStartCorridors(
@@ -665,6 +762,8 @@ export const prototypePlanetMap =
   createPrototypePlanetMap(4)
 
 export const targetPlanetMap = createGeodesicPlanetMap(3)
+targetPlanetMap.displayPositions =
+  createRadialGraphLayout(targetPlanetMap)
 
 export const targetStartConfiguration =
   createTargetStartConfiguration(targetPlanetMap)

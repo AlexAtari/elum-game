@@ -39,4 +39,18 @@ describe('Gleiche Startwerte aller Spieler', () => {
       state.rivals.nova.resources,
     )
   })
+
+  it('gibt jeder Kolonie genau zwei eigene Startfelder', () => {
+    const state = createPlayableInitialGameState()
+    const rivalTileIds = Object.values(state.rivals).flatMap(
+      (rival) => rival.ownedTileIds ?? [],
+    )
+
+    expect(state.ownedTileIds).toHaveLength(2)
+    expect(rivalTileIds).toHaveLength(6)
+    expect(state.opponentTileIds).toEqual(rivalTileIds)
+    expect(
+      new Set([...state.ownedTileIds, ...rivalTileIds]).size,
+    ).toBe(8)
+  })
 })

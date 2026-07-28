@@ -5,6 +5,7 @@ import {
   calculateGraphDistances,
   createGeodesicPlanetMap,
   createPrototypePlanetMap,
+  createRadialGraphLayout,
   createTargetPlanetZones,
   createTargetStartConfiguration,
   prototypePlanetMap,
@@ -160,6 +161,8 @@ describe('92-Felder-Planetengraph', () => {
 
   it('erzeugt dieselben IDs, Nachbarn und Positionen reproduzierbar', () => {
     const recreatedMap = createGeodesicPlanetMap(3)
+    recreatedMap.displayPositions =
+      createRadialGraphLayout(recreatedMap)
 
     expect(recreatedMap).toEqual(targetPlanetMap)
     expect(
@@ -371,5 +374,49 @@ describe('Startkorridore und Entfernungszonen', () => {
     ).toThrow(
       'each participant must receive exactly one start corridor',
     )
+  })
+})
+
+describe('Flache Zielgraph-Darstellung', () => {
+  it('positioniert alle 92 Felder eindeutig um das HQ', () => {
+    const displayPositions =
+      targetPlanetMap.displayPositions ?? {}
+    const entries = Object.entries(displayPositions)
+
+    expect(entries).toHaveLength(92)
+    expect(displayPositions.HQ).toEqual({ x: 0, y: 0 })
+    expect(
+      new Set(
+        entries.map(
+          ([, position]) =>
+            `${position.x.toFixed(8)}:${position.y.toFixed(8)}`,
+        ),
+      ).size,
+    ).toBe(92)
+  })
+
+  it('hält genügend Abstand zwischen den Feldzentren', () => {
+    const positions = Object.values(
+      targetPlanetMap.displayPositions ?? {},
+    )
+    let minimumDistance = Number.POSITIVE_INFINITY
+
+    for (let firstIndex = 0; firstIndex < positions.length; firstIndex += 1) {
+      for (
+        let secondIndex = firstIndex + 1;
+        secondIndex < positions.length;
+        secondIndex += 1
+      ) {
+        minimumDistance = Math.min(
+          minimumDistance,
+          Math.hypot(
+            positions[firstIndex].x - positions[secondIndex].x,
+            positions[firstIndex].y - positions[secondIndex].y,
+          ),
+        )
+      }
+    }
+
+    expect(minimumDistance).toBeGreaterThan(48)
   })
 })

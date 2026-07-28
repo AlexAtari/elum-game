@@ -287,13 +287,13 @@ Abgeschlossen:
 2. Kartenmodell von der Darstellung lösen.
 3. 92-Felder-Graph einführen und validieren.
 4. faire Startkorridore und Entfernungszonen festlegen.
+5. Graph zunächst flach darstellen und an die Browserpartie anbinden.
 
 Als Nächstes:
 
-1. Graph zunächst flach darstellen.
-2. Kristalladern erzeugen.
-3. Meteoriten implementieren.
-4. interstellaren Käufer ergänzen.
-5. Countdown und Storytexte ergänzen.
-6. Simulation und Balancing.
-7. später 3D-Kugel.
+1. Kristalladern erzeugen.
+2. Meteoriten implementieren.
+3. interstellaren Käufer ergänzen.
+4. Countdown und Storytexte ergänzen.
+5. Simulation und Balancing.
+6. später grafische Entfaltung oder 3D-Kugel.

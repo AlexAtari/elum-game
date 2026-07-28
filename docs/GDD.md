@@ -187,9 +187,10 @@ Die vollständige Spezifikation steht in
 Konflikte und Expansion sollen primär durch Topologie, Entfernungen,
 Kristallverteilung und Engstellen entstehen.
 
-Der aktuelle Browserprototyp mit HQ und 60 Grundstücken bleibt bis zur
-schrittweisen Einführung des 92-Felder-Graphen der implementierte
-Stand. Diese Abweichung ist in `STATUS.md` dokumentiert.
+Der Browserprototyp verwendet inzwischen den 92-Felder-Graphen in
+einer flachen radialen Darstellung. Nachbarverbindungen sind sichtbar,
+Pentagone erkennbar und alle Felder bleiben auswählbar. Eine spätere
+grafische Polyederentfaltung oder 3D-Kugel verwendet denselben Graphen.
 
 ---
 

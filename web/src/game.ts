@@ -7,7 +7,10 @@ import {
 
 import { createAgentPlan } from './agents'
 import {
-  prototypePlanetMap,
+  areTilesAdjacent,
+  assignStartCorridors,
+  targetPlanetMap,
+  targetStartConfiguration,
   type PlanetTile,
 } from './planetMap'
 
@@ -1100,50 +1103,75 @@ const firstRingRatings: Array<
   { food: 2, energy: 3, ore: 4 },
 ]
 
+export const browserStartAssignments = assignStartCorridors(
+  targetStartConfiguration.corridors,
+  ['player', 'orion', 'nova', 'vega'],
+  1,
+)
+
+function getStartTileIds(participantId: string) {
+  const corridor = browserStartAssignments.find(
+    (assignment) => assignment.participantId === participantId,
+  )!.corridor
+
+  return [corridor.innerTileId, corridor.outerTileId]
+}
+
+export const PLAYER_START_TILE_IDS = getStartTileIds('player')
+
+const rivalStartTileIds = {
+  orion: getStartTileIds('orion'),
+  nova: getStartTileIds('nova'),
+  vega: getStartTileIds('vega'),
+}
+
+const startRatingsByTileId = new Map(
+  browserStartAssignments.flatMap(({ corridor }) => [
+    [corridor.innerTileId, firstRingRatings[0]],
+    [corridor.outerTileId, firstRingRatings[1]],
+  ]),
+)
+
 function getGeneratedRating(
-  q: number,
-  r: number,
+  tileId: string,
   resourceOffset: number,
 ) {
-  const value = Math.abs(
-    q * (3 + resourceOffset) +
-      r * (5 - resourceOffset) +
-      q * r * (resourceOffset + 1) +
-      resourceOffset * 7,
+  const value = [...tileId].reduce(
+    (total, character, index) =>
+      total +
+      character.charCodeAt(0) *
+        (index + 3 + resourceOffset * 5),
+    resourceOffset * 17,
   )
 
   return (value % 5) + 1
 }
 
 function createMapTiles(): Tile[] {
-  return prototypePlanetMap.tiles.map((planetTile, tileIndex) => {
-    const position =
-      prototypePlanetMap.flatPositions[planetTile.id]
+  return targetPlanetMap.tiles.map((planetTile) => {
     const preservedRatings =
-      planetTile.distanceFromHq === 1
-        ? firstRingRatings[tileIndex - 1]
-        : undefined
+      startRatingsByTileId.get(planetTile.id)
 
     return {
       ...planetTile,
       owner:
-        planetTile.id === prototypePlanetMap.hqTileId
+        planetTile.id === targetPlanetMap.hqTileId
           ? 'hq'
-          : tileIndex <= 2
+          : PLAYER_START_TILE_IDS.includes(planetTile.id)
             ? 'player'
             : 'free',
-      ...(planetTile.id === prototypePlanetMap.hqTileId
+      ...(planetTile.id === targetPlanetMap.hqTileId
         ? {}
         : {
             food:
               preservedRatings?.food ??
-              getGeneratedRating(position.q, position.r, 0),
+              getGeneratedRating(planetTile.id, 0),
             energy:
               preservedRatings?.energy ??
-              getGeneratedRating(position.q, position.r, 1),
+              getGeneratedRating(planetTile.id, 1),
             ore:
               preservedRatings?.ore ??
-              getGeneratedRating(position.q, position.r, 2),
+              getGeneratedRating(planetTile.id, 2),
           }),
     }
   })
@@ -1166,7 +1194,7 @@ export function createInitialGameState(): GameState {
       ore: 5,
       crystals: 0,
     },
-    ownedTileIds: ['A', 'B'],
+    ownedTileIds: [...PLAYER_START_TILE_IDS],
     opponentTileIds: [],
     pendingLandBid: null,
     landAuctionTie: null,
@@ -1254,6 +1282,7 @@ export function createPlayableInitialGameState(): GameState {
     ...state,
     credits: STARTING_CREDITS,
     resources: { ...sharedResources },
+    opponentTileIds: Object.values(rivalStartTileIds).flat(),
     rivals: Object.fromEntries(
       Object.entries(state.rivals).map(
         ([id, rival]) => [
@@ -1264,6 +1293,9 @@ export function createPlayableInitialGameState(): GameState {
             credits: STARTING_CREDITS,
             resources: { ...sharedResources },
             harvesters: STARTING_HARVESTERS,
+            ownedTileIds: [
+              ...rivalStartTileIds[id as RivalId],
+            ],
           },
         ],
       ),
@@ -1572,6 +1604,13 @@ export function placeLandBid(
     tile.owner !== 'free' ||
     currentState.ownedTileIds.includes(tileId) ||
     currentState.opponentTileIds.includes(tileId) ||
+    !currentState.ownedTileIds.some((ownedTileId) =>
+      areTilesAdjacent(
+        targetPlanetMap,
+        ownedTileId,
+        tileId,
+      ),
+    ) ||
     currentState.pendingLandBid !== null ||
     (tie !== null && tie.tileId !== tileId) ||
     !Number.isInteger(amount) ||

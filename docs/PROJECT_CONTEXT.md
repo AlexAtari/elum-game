@@ -224,11 +224,10 @@ werden.
 ### Implementierter Prototyp
 
 - 15 Runden
-- flache Hexkarte mit HQ und 60 Grundstücken
+- flache radiale Karte mit HQ und 91 Grundstücken
 - Kartenregeln für Nachbarschaft und Distanz bereits vom flachen
   Layout getrennt
-- 92-Felder-Zielgraph intern vorhanden und validiert, aber noch nicht
-  an Browserzustand oder Darstellung angeschlossen
+- 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - vier faire Startkorridore und vollständige Distanzzonen intern
   festgelegt; seedbasierte Zuordnung ist vorbereitet, die Anbindung
   an den Spielzustand folgt später
@@ -250,13 +249,12 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. flache Darstellung des 92-Felder-Graphen
-3. Kristalladern
-4. Meteoriten
-5. interstellarer Käufer
-6. Countdown
-7. Simulation
-8. später 3D-Kugel
+2. Kristalladern
+3. Meteoriten
+4. interstellarer Käufer
+5. Countdown
+6. Simulation
+7. später grafische Entfaltung oder 3D-Kugel
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

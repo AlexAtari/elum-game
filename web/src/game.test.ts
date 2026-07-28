@@ -30,6 +30,7 @@ import {
   lowerLandTieBid,
   moveMarketOffer,
   orderHarvesterBuild,
+  PLAYER_START_TILE_IDS,
   placeLandBid,
   raiseLandTieBid,
   resolveLandTieBreak,
@@ -40,64 +41,67 @@ import {
   type GameState,
   type HarvesterAssignments,
 } from './game'
-import { prototypePlanetMap } from './planetMap'
+import {
+  targetPlanetMap,
+  targetStartConfiguration,
+} from './planetMap'
 
 const normalSupply = {
   foodLevel: 2,
   energyLevel: 2,
 }
 
-describe('Hexkarte', () => {
-  it('erzeugt ein HQ und 60 eindeutige Spielfelder', () => {
-    expect(tiles).toHaveLength(61)
-    expect(tiles[0]).toMatchObject({
+const [firstStartTileId, secondStartTileId] =
+  PLAYER_START_TILE_IDS
+const freeAuctionTileId = targetPlanetMap.tiles
+  .find((tile) => tile.id === secondStartTileId)!
+  .neighborIds.find(
+    (tileId) =>
+      !PLAYER_START_TILE_IDS.includes(tileId) &&
+      !targetStartConfiguration.crystalFreeTileIds.includes(
+        tileId,
+      ),
+  )!
+
+describe('Planetengraph-Karte', () => {
+  it('verwendet das HQ und 91 eindeutige Spielfelder', () => {
+    expect(tiles).toHaveLength(92)
+    expect(tiles.find((tile) => tile.id === 'HQ')).toMatchObject({
       id: 'HQ',
       owner: 'hq',
       distanceFromHq: 0,
       shape: 'hexagon',
     })
-    expect(new Set(tiles.map((tile) => tile.id)).size).toBe(61)
+    expect(new Set(tiles.map((tile) => tile.id)).size).toBe(92)
     expect(
-      new Set(
-        Object.values(prototypePlanetMap.flatPositions).map(
-          (position) => `${position.q}:${position.r}`,
-        ),
-      ).size,
-    ).toBe(61)
+      Object.keys(targetPlanetMap.displayPositions ?? {}),
+    ).toHaveLength(92)
   })
 
-  it('behält die sechs bisherigen Startfelder im ersten Ring', () => {
-    expect(
-      tiles.slice(1, 7).map(({ id }) => ({
-        id,
-        ...prototypePlanetMap.flatPositions[id],
-      })),
-    ).toEqual([
-      { id: 'A', q: 0, r: -1 },
-      { id: 'B', q: 1, r: -1 },
-      { id: 'C', q: 1, r: 0 },
-      { id: 'D', q: 0, r: 1 },
-      { id: 'E', q: -1, r: 1 },
-      { id: 'F', q: -1, r: 0 },
-    ])
-    expect(tiles[1]).toMatchObject({
-      id: 'A',
+  it('gibt Agima zwei faire Startfelder', () => {
+    expect(PLAYER_START_TILE_IDS).toEqual(['P021', 'P060'])
+    expect(tiles.find((tile) => tile.id === firstStartTileId))
+      .toMatchObject({
+      id: firstStartTileId,
       food: 4,
       energy: 2,
       ore: 4,
+      owner: 'player',
     })
-    expect(tiles[2]).toMatchObject({
-      id: 'B',
+    expect(tiles.find((tile) => tile.id === secondStartTileId))
+      .toMatchObject({
+      id: secondStartTileId,
       food: 3,
       energy: 4,
       ore: 2,
+      owner: 'player',
     })
   })
 
-  it('verteilt alle Felder auf höchstens vier Hexringe', () => {
+  it('verteilt alle Felder auf acht Graphdistanzringe', () => {
     expect(
       Math.max(...tiles.map(getHexDistanceFromHq)),
-    ).toBe(4)
+    ).toBe(8)
     expect(
       tiles.every(
         (tile) =>
@@ -284,7 +288,7 @@ describe('Ereignisse', () => {
       activeLocalEvent: 'labor-strike' as const,
     }
 
-    expect(placeLandBid(landBlockedState, 'C', 25)).toBe(
+    expect(placeLandBid(landBlockedState, freeAuctionTileId, 25)).toBe(
       landBlockedState,
     )
     expect(orderHarvesterBuild(buildBlockedState)).toBe(
@@ -294,11 +298,11 @@ describe('Ereignisse', () => {
 
   it('legt bei Störung die skalierte Anzahl Harvester still', () => {
     const harvesters: HarvesterAssignments = {
-      A: {
+      [firstStartTileId]: {
         production: 'food',
         isNew: false,
       },
-      B: {
+      [secondStartTileId]: {
         production: 'energy',
         isNew: false,
       },
@@ -322,7 +326,7 @@ describe('Ereignisse', () => {
 
   it('verändert globale Produktion für Spieler und KI in derselben Runde', () => {
     const harvesters: HarvesterAssignments = {
-      A: {
+      [firstStartTileId]: {
         production: 'food',
         isNew: false,
       },
@@ -341,7 +345,7 @@ describe('Ereignisse', () => {
 
   it('skaliert globale Produktionsmodifikatoren ab Runde sieben', () => {
     const harvesters: HarvesterAssignments = {
-      A: {
+      [firstStartTileId]: {
         production: 'food',
         isNew: false,
       },
@@ -897,28 +901,39 @@ describe('Harvesterbau', () => {
 })
 
 describe('Grundstücksauktion', () => {
+  it('weist Gebote auf nicht angrenzende Felder zurück', () => {
+    const state = createInitialGameState()
+    const distantTile = tiles.find(
+      (tile) =>
+        tile.owner === 'free' &&
+        tile.distanceFromHq >= 5,
+    )!
+
+    expect(placeLandBid(state, distantTile.id, 30)).toBe(state)
+  })
+
   it('reserviert das verdeckte Gebot', () => {
     const state = placeLandBid(
       createInitialGameState(),
-      'C',
+      freeAuctionTileId,
       30,
       35,
     )
 
     expect(state.credits).toBe(70)
     expect(state.pendingLandBid).toEqual({
-      tileId: 'C',
+      tileId: freeAuctionTileId,
       amount: 30,
       rivalBid: 35,
       tieMinimum: undefined,
     })
-    expect(state.ownedTileIds).toEqual(['A', 'B'])
+    expect(state.ownedTileIds).toEqual(PLAYER_START_TILE_IDS)
   })
 
   it('erstattet ein zurückgenommenes Gebot', () => {
     const reservedState = placeLandBid(
       createInitialGameState(),
-      'C',
+      freeAuctionTileId,
       30,
       35,
     )
@@ -931,7 +946,7 @@ describe('Grundstücksauktion', () => {
   it('startet auch bei höherem Spielergebot eine Grundstücksauktion', () => {
     const state = placeLandBid(
       createInitialGameState(),
-      'C',
+      freeAuctionTileId,
       36,
       35,
     )
@@ -942,7 +957,7 @@ describe('Grundstücksauktion', () => {
     expect(auctionState.credits).toBe(100)
     expect(auctionState.pendingLandBid).toBeNull()
     expect(auctionState.landAuctionTie).toEqual({
-      tileId: 'C',
+      tileId: freeAuctionTileId,
       tiedBid: 36,
       minimumBid: 37,
       playerOpeningBid: 36,
@@ -965,14 +980,14 @@ describe('Grundstücksauktion', () => {
     )
 
     expect(result.report.landAuction?.outcome).toBe('won')
-    expect(result.nextState.ownedTileIds).toContain('C')
+    expect(result.nextState.ownedTileIds).toContain(freeAuctionTileId)
     expect(result.nextState.credits).toBe(64)
   })
 
   it('startet auch bei höherem Orion-Gebot eine Grundstücksauktion', () => {
     const state = placeLandBid(
       createInitialGameState(),
-      'C',
+      freeAuctionTileId,
       30,
       35,
     )
@@ -982,7 +997,7 @@ describe('Grundstücksauktion', () => {
     expect(preview.report.landAuction?.outcome).toBe('tie')
     expect(auctionState.credits).toBe(100)
     expect(auctionState.landAuctionTie).toEqual({
-      tileId: 'C',
+      tileId: freeAuctionTileId,
       tiedBid: 35,
       minimumBid: 36,
       playerOpeningBid: 30,
@@ -1005,8 +1020,10 @@ describe('Grundstücksauktion', () => {
     )
 
     expect(result.report.landAuction?.outcome).toBe('lost')
-    expect(result.nextState.ownedTileIds).toEqual(['A', 'B'])
-    expect(result.nextState.opponentTileIds).toContain('C')
+    expect(result.nextState.ownedTileIds).toEqual(
+      PLAYER_START_TILE_IDS,
+    )
+    expect(result.nextState.opponentTileIds).toContain(freeAuctionTileId)
     expect(result.nextState.credits).toBe(100)
     expect(result.nextState.rivals.orion.credits).toBe(61)
   })
@@ -1014,7 +1031,7 @@ describe('Grundstücksauktion', () => {
   it('startet bei Gleichstand eine grafische Stichauktion', () => {
     const state = placeLandBid(
       createInitialGameState(),
-      'C',
+      freeAuctionTileId,
       30,
       30,
     )
@@ -1023,7 +1040,7 @@ describe('Grundstücksauktion', () => {
     expect(tieState.credits).toBe(100)
     expect(tieState.pendingLandBid).toBeNull()
     expect(tieState.landAuctionTie).toEqual({
-      tileId: 'C',
+      tileId: freeAuctionTileId,
       tiedBid: 30,
       minimumBid: 31,
       playerOpeningBid: 30,
@@ -1135,7 +1152,7 @@ describe('Grundstücksauktion', () => {
     const state = beginLandTieBreak(
       placeLandBid(
         createInitialGameState(),
-        'C',
+        freeAuctionTileId,
         30,
         30,
       ),
@@ -1149,7 +1166,7 @@ describe('Grundstücksauktion', () => {
     expect(resolvedState.credits).toBe(69)
     expect(resolvedState.landAuctionTie).toBeNull()
     expect(resolvedState.pendingLandBid).toEqual({
-      tileId: 'C',
+      tileId: freeAuctionTileId,
       amount: 31,
       rivalBid: 30,
       reservedCredits: 31,
@@ -1159,7 +1176,7 @@ describe('Grundstücksauktion', () => {
     const result = runRound(resolvedState, {}, normalSupply)
 
     expect(result.report.landAuction?.outcome).toBe('won')
-    expect(result.nextState.ownedTileIds).toContain('C')
+    expect(result.nextState.ownedTileIds).toContain(freeAuctionTileId)
     expect(result.nextState.credits).toBe(69)
   })
 
@@ -1169,7 +1186,7 @@ describe('Grundstücksauktion', () => {
       credits: 30,
     }
     const tieState = beginLandTieBreak(
-      placeLandBid(poorState, 'C', 30, 30),
+      placeLandBid(poorState, freeAuctionTileId, 30, 30),
     )
     const resolvedState = resolveLandTieBreak(tieState, {
       playerBid: 30,
@@ -1180,7 +1197,7 @@ describe('Grundstücksauktion', () => {
     expect(resolvedState.credits).toBe(30)
     expect(resolvedState.landAuctionTie).toBeNull()
     expect(resolvedState.pendingLandBid).toEqual({
-      tileId: 'C',
+      tileId: freeAuctionTileId,
       amount: 30,
       rivalBid: 31,
       reservedCredits: 0,
@@ -1191,7 +1208,7 @@ describe('Grundstücksauktion', () => {
 
     expect(result.report.landAuction?.outcome).toBe('lost')
     expect(result.nextState.credits).toBe(30)
-    expect(result.nextState.opponentTileIds).toContain('C')
+    expect(result.nextState.opponentTileIds).toContain(freeAuctionTileId)
     expect(result.nextState.rivals.orion.credits).toBe(65)
   })
 
@@ -1199,7 +1216,7 @@ describe('Grundstücksauktion', () => {
     const state = beginLandTieBreak(
       placeLandBid(
         createInitialGameState(),
-        'C',
+        freeAuctionTileId,
         30,
         30,
       ),
@@ -1212,19 +1229,19 @@ describe('Grundstücksauktion', () => {
     const result = runRound(resolvedState, {}, normalSupply)
 
     expect(result.report.landAuction).toEqual({
-      tileId: 'C',
+      tileId: freeAuctionTileId,
       playerBid: 31,
       rivalBid: 31,
       outcome: 'won',
     })
-    expect(result.nextState.ownedTileIds).toContain('C')
+    expect(result.nextState.ownedTileIds).toContain(freeAuctionTileId)
   })
 
   it('lässt das Feld frei, wenn niemand das Gebot erhöht', () => {
     const state = beginLandTieBreak(
       placeLandBid(
         createInitialGameState(),
-        'C',
+        freeAuctionTileId,
         30,
         30,
       ),
@@ -1238,8 +1255,8 @@ describe('Grundstücksauktion', () => {
     expect(resolvedState.credits).toBe(100)
     expect(resolvedState.landAuctionTie).toBeNull()
     expect(resolvedState.pendingLandBid).toBeNull()
-    expect(resolvedState.ownedTileIds).not.toContain('C')
-    expect(resolvedState.opponentTileIds).not.toContain('C')
+    expect(resolvedState.ownedTileIds).not.toContain(freeAuctionTileId)
+    expect(resolvedState.opponentTileIds).not.toContain(freeAuctionTileId)
   })
 })
 
@@ -1279,7 +1296,7 @@ describe('Versorgung und Bevölkerung', () => {
 describe('Harvesterproduktion', () => {
   it('produziert beim erstmaligen Einsatz sofort mit voller Leistung', () => {
     const harvesters: HarvesterAssignments = {
-      B: {
+      [secondStartTileId]: {
         production: 'energy',
         isNew: true,
       },
@@ -1294,7 +1311,7 @@ describe('Harvesterproduktion', () => {
     expect(result.report.produced.energy).toBe(4)
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
     expect(result.nextState.resources.energy).toBe(11)
-    expect(result.nextHarvesters.B).toEqual({
+    expect(result.nextHarvesters[secondStartTileId]).toEqual({
       production: 'energy',
       isNew: false,
     })
@@ -1309,11 +1326,11 @@ describe('Harvesterproduktion', () => {
       },
     }
     const harvesters: HarvesterAssignments = {
-      A: {
+      [firstStartTileId]: {
         production: 'energy',
         isNew: false,
       },
-      B: {
+      [secondStartTileId]: {
         production: 'energy',
         isNew: false,
       },
@@ -1321,7 +1338,9 @@ describe('Harvesterproduktion', () => {
 
     const result = runRound(state, harvesters, normalSupply)
 
-    expect(result.report.inactiveHarvesterIds).toEqual(['A'])
+    expect(result.report.inactiveHarvesterIds).toEqual([
+      firstStartTileId,
+    ])
     expect(result.report.produced.energy).toBe(4)
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
     expect(result.nextState.resources.energy).toBe(4)
@@ -1331,7 +1350,7 @@ describe('Harvesterproduktion', () => {
 describe('Umrüstung und Versetzung', () => {
   it('produziert bei einer Umrüstung die Hälfte der neuen Ressource aufgerundet', () => {
     const harvesters: HarvesterAssignments = {
-      B: {
+      [secondStartTileId]: {
         production: 'energy',
         pendingProduction: 'food',
         retoolingReason: 'production-change',
@@ -1348,8 +1367,10 @@ describe('Umrüstung und Versetzung', () => {
     expect(result.report.produced.food).toBe(2)
     expect(result.report.produced.energy).toBe(0)
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
-    expect(result.report.completedRetoolingIds).toEqual(['B'])
-    expect(result.nextHarvesters.B).toEqual({
+    expect(result.report.completedRetoolingIds).toEqual([
+      secondStartTileId,
+    ])
+    expect(result.nextHarvesters[secondStartTileId]).toEqual({
       production: 'food',
       isNew: false,
     })
@@ -1357,7 +1378,7 @@ describe('Umrüstung und Versetzung', () => {
 
   it('verbraucht bei einer Versetzung Energie, produziert aber noch nichts', () => {
     const harvesters: HarvesterAssignments = {
-      B: {
+      [secondStartTileId]: {
         production: 'energy',
         pendingProduction: 'food',
         retoolingReason: 'relocation',
@@ -1377,8 +1398,10 @@ describe('Umrüstung und Versetzung', () => {
       ore: 0,
     })
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
-    expect(result.report.completedRetoolingIds).toEqual(['B'])
-    expect(result.nextHarvesters.B).toEqual({
+    expect(result.report.completedRetoolingIds).toEqual([
+      secondStartTileId,
+    ])
+    expect(result.nextHarvesters[secondStartTileId]).toEqual({
       production: 'food',
       isNew: false,
     })
@@ -1393,7 +1416,7 @@ describe('Umrüstung und Versetzung', () => {
       },
     }
     const harvesters: HarvesterAssignments = {
-      B: {
+      [secondStartTileId]: {
         production: 'energy',
         pendingProduction: 'food',
         retoolingReason: 'production-change',
@@ -1406,7 +1429,11 @@ describe('Umrüstung und Versetzung', () => {
     expect(result.report.produced.food).toBe(0)
     expect(result.report.consumedEnergyByHarvesters).toBe(0)
     expect(result.report.completedRetoolingIds).toEqual([])
-    expect(result.report.pausedRetoolingIds).toEqual(['B'])
-    expect(result.nextHarvesters.B).toEqual(harvesters.B)
+    expect(result.report.pausedRetoolingIds).toEqual([
+      secondStartTileId,
+    ])
+    expect(result.nextHarvesters[secondStartTileId]).toEqual(
+      harvesters[secondStartTileId],
+    )
   })
 })

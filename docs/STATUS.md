@@ -20,7 +20,7 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Implementiert
 
-- Hexkarte mit zentralem HQ und 60 Grundstücken
+- flache radiale Browserkarte mit zentralem HQ und 91 Grundstücken
 - UI-unabhängiges Kartenmodell mit Feld-IDs, symmetrischen
   Nachbarlisten und berechneten Graphdistanzen
 - getrennte flache Layoutpositionen für die bestehende Hexdarstellung
@@ -34,6 +34,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   vier Teilnehmer
 - reproduzierbare Entfernungszonen mit 9 Start-, 10 inneren,
   33 Explorations- und 40 Fernzonenfeldern
+- sichtbare Nachbarverbindungen, erkennbare Pentagone sowie
+  Touch-, Zoom- und Feldauswahl auf dem Zielgraphen
+- Ziel-Startfelder im normalen Browser-Spielzustand
 - zwei Startfelder je Kolonie
 - Nahrung, Energie, Erz, Kristalle und Credits
 - Harvesterbau und mehrere parallele Bauaufträge
@@ -126,12 +129,9 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 ## Beschlossenes Zielbild – noch nicht vollständig implementiert
 
 - 20 Runden mit sichtbarem Countdown bis zum Versorgungsschiff
-- Aktivierung des intern vorhandenen 92-Felder-Graphen in der
-  Browserpartie und der flachen Kartendarstellung
 - Aktivierung der intern vorbereiteten zufälligen
   Startkorridor-Zuordnung im späteren Browser-Spielstart
 - Kartenregeln über Feld-IDs, Nachbarlisten und Graphdistanzen
-- zunächst flache Darstellung
 - vier natürliche Kristalladern
 - interstellarer Käufer als zusätzlicher Kristallmarktteilnehmer
 - regelmäßige Hochsicherheits-Kristalltransporter
@@ -142,16 +142,15 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 - konservative Meteor-Basis mit Zentrum `+3`, drei direkten
   `+2`-Feldern und vier äußeren `+1`-Feldern
 
-Der Browserprototyp bleibt bis zur schrittweisen Anbindung bei
-15 Runden und 60 Grundstücken. Der neue Graph verändert die sichtbare
-Karte und den laufenden `GameState` noch nicht.
+Der Browserprototyp verwendet weiterhin 15 Runden, aber bereits den
+92-Felder-Graphen. Die zufällige Neuzuordnung der Startkorridore pro
+Browserpartie folgt in einem späteren Spielstart-Schritt.
 
 Nächste technische Reihenfolge:
 
-1. flache Darstellung des Zielgraphen ergänzen.
-2. Kristalladern und Meteoriten ergänzen.
-3. interstellaren Käufer ergänzen.
-4. danach erneut simulieren und balancieren.
+1. Kristalladern und Meteoriten ergänzen.
+2. interstellaren Käufer ergänzen.
+3. danach erneut simulieren und balancieren.
 
 Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-STATUS:END -->

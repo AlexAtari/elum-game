@@ -305,10 +305,9 @@ Die Routine ist bewusst deterministisch, damit Playtests wiederholbar bleiben. C
 | Startgrundstücke je Spieler | 2 |
 | Grundstückserwerbe je Spieler und Runde | maximal 1 |
 
-Der aktuelle Browserprototyp verwendet weiterhin ein HQ und
-60 Grundstücke. Der 92-Felder-Graph ist intern implementiert und
-validiert, aber noch nicht an Spielzustand oder Darstellung
-angeschlossen.
+Der Browserprototyp verwendet den validierten 92-Felder-Graphen
+inzwischen als Spielkarte. Die aktuelle flache Darstellung ordnet die
+Felder radial nach Graphdistanz an.
 
 ## Entfernungszonen
 
@@ -420,7 +419,7 @@ einmal gezählt. Nach Runde 20 beginnt keine Runde 21.
 
 # 14. Noch nicht festgelegt
 
-- konkrete Graphdatei und flache Darstellung der 92 Felder
+- endgültige grafische Entfaltung der 92 Felder
 - genaue Zonengrenzen
 - Hintergrundverteilung der Kristallwerte
 - Mindestabstand und Größe natürlicher Kristalladern

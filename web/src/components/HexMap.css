@@ -124,6 +124,18 @@
   outline: none;
 }
 
+.map-neighbor-links line {
+  stroke: rgba(116, 153, 185, 0.3);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.hex-tile.pentagon .hex-border {
+  fill: rgba(90, 69, 117, 0.48);
+  stroke: rgba(225, 177, 255, 0.78);
+  stroke-width: 3;
+}
+
 .hex-landscape {
   pointer-events: none;
   stroke: none;
@@ -216,14 +228,14 @@
 .hex-label {
   pointer-events: none;
   fill: #f4f7ff;
-  font-size: 19px;
+  font-size: 9px;
   font-weight: 800;
 }
 
 .hex-owner-label {
   pointer-events: none;
   fill: #79ddb9;
-  font-size: 7px;
+  font-size: 5px;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -231,7 +243,7 @@
 .hex-pending-label {
   pointer-events: none;
   fill: #ffd28a;
-  font-size: 7px;
+  font-size: 5px;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -239,7 +251,7 @@
 .hex-opponent-label {
   pointer-events: none;
   fill: #e4b6f7;
-  font-size: 7px;
+  font-size: 5px;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
