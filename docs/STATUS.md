@@ -21,6 +21,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Implementiert
 
+- serialisierbare Match-Konfiguration mit vier gleichartigen
+  Teilnehmersitzen für Agima, Orion, Nova und Vega
+- je Sitz getrennt konfigurierbare menschliche lokale, menschliche
+  entfernte oder KI-Steuerung; freie Mehrspielersitze können dadurch
+  später ohne Sondermodell mit KI belegt werden
+- seedbasierte und reproduzierbare Startkorridor-Zuordnung als Teil
+  der versionierten Match-Konfiguration
 - drehbare Browserkugel mit zentralem HQ und 91 Grundstücken
 - UI-unabhängiges Kartenmodell mit Feld-IDs, symmetrischen
   Nachbarlisten und berechneten Graphdistanzen
@@ -174,14 +181,18 @@ Patchdateien sind nicht automatisch Teil des Projektstands.
 
 Nach UI- und Dokumentationsarbeiten:
 
-1. Produktions- und Marktentscheidungen stärker differenzieren,
+1. die noch asymmetrisch gespeicherten dynamischen Koloniezustände
+   in ein gemeinsames Teilnehmermodell überführen,
+2. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
+   verbleibenden Kernzufall vollständig seedbasiert ausführen,
+3. Produktions- und Marktentscheidungen stärker differenzieren,
    damit Angebot und Nachfrage nicht synchron verlaufen,
-2. Versorgungssignale reduzieren, ohne das HQ-Sicherheitsnetz
+4. Versorgungssignale reduzieren, ohne das HQ-Sicherheitsnetz
    pauschal zu vergrößern,
-3. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
+5. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
    dass Kristalladern
    innerhalb von 20 Runden tatsächlich erreichbar werden,
-4. Karten- und Ereignisbalancing mit Playtests prüfen.
+6. Karten- und Ereignisbalancing mit Playtests prüfen.
 
 ## Später, nicht Teil des aktuellen Kerns
 

@@ -126,6 +126,8 @@ vermischt werden.
 ## Technische Landkarte
 
 - `web/src/game.ts`: Kernzustand und zentrale Regeln
+- `web/src/match.ts`: versionierte Teilnehmer- und
+  Match-Konfiguration als Multiplayer-Grundlage
 - `web/src/planetMap.ts`: Kartengraph, Graphdistanzen und getrennte
   Layoutpositionen; enthält Prototyp- und 92-Felder-Zielgraph
 - `web/src/App.tsx`: sichtbarer Ablauf
@@ -257,6 +259,11 @@ werden.
 - vier faire Startkorridore und vollständige Distanzzonen intern
   festgelegt; eine reproduzierbare seedbasierte Zuordnung ist an den
   Browser-Spielzustand angebunden
+- versionierte, JSON-serialisierbare Match-Konfiguration mit vier
+  gleichartigen Sitzen, konfigurierbaren menschlichen oder
+  KI-Controllern und seedbasierten Startkorridoren; der dynamische
+  Koloniezustand bleibt bis zum nächsten Migrationsschritt noch
+  asymmetrisch
 
 ### Nächster Regelstand
 

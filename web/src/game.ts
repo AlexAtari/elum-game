@@ -17,8 +17,12 @@ import {
   type MeteorImpact,
 } from './meteor'
 import {
+  createMatchConfiguration,
+  type MatchConfiguration,
+  type ParticipantId,
+} from './match'
+import {
   areTilesAdjacent,
-  assignStartCorridors,
   targetCrystalRatings,
   targetPlanetMap,
   targetStartConfiguration,
@@ -124,6 +128,7 @@ export type RivalColonyState = {
 export type RivalColonies = Record<RivalId, RivalColonyState>
 
 export type GameState = {
+  match: MatchConfiguration
   round: number
   population: number
   credits: number
@@ -1166,21 +1171,17 @@ const firstRingRatings: Array<
   { food: 2, energy: 3, ore: 4 },
 ]
 
-export const browserStartAssignments = assignStartCorridors(
-  targetStartConfiguration.corridors,
-  ['player', 'orion', 'nova', 'vega'],
-  1,
-)
+export const browserMatchConfiguration =
+  createMatchConfiguration()
 
-function getStartTileIds(participantId: string) {
-  const corridor = browserStartAssignments.find(
-    (assignment) => assignment.participantId === participantId,
-  )!.corridor
-
-  return [corridor.innerTileId, corridor.outerTileId]
+function getStartTileIds(participantId: ParticipantId) {
+  return [
+    ...browserMatchConfiguration.participants[participantId]
+      .startTileIds,
+  ]
 }
 
-export const PLAYER_START_TILE_IDS = getStartTileIds('player')
+export const PLAYER_START_TILE_IDS = getStartTileIds('agima')
 
 const rivalStartTileIds = {
   orion: getStartTileIds('orion'),
@@ -1189,10 +1190,12 @@ const rivalStartTileIds = {
 }
 
 const startRatingsByTileId = new Map(
-  browserStartAssignments.flatMap(({ corridor }) => [
-    [corridor.innerTileId, firstRingRatings[0]],
-    [corridor.outerTileId, firstRingRatings[1]],
-  ]),
+  Object.values(browserMatchConfiguration.participants).flatMap(
+    ({ startTileIds }) => [
+      [startTileIds[0], firstRingRatings[0]],
+      [startTileIds[1], firstRingRatings[1]],
+    ],
+  ),
 )
 
 function getGeneratedRating(
@@ -1249,6 +1252,9 @@ export function getHexDistanceFromHq(tile: Tile) {
 
 export function createInitialGameState(): GameState {
   return {
+    match: createMatchConfiguration({
+      seed: browserMatchConfiguration.seed,
+    }),
     round: 1,
     population: 10,
     credits: 100,
@@ -2319,6 +2325,7 @@ export function runRound(
     : null
 
   const nextState: GameState = {
+    match: currentState.match,
     round: Math.min(
       GAME_ROUND_LIMIT,
       currentState.round + 1,

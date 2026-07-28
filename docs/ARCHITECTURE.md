@@ -92,7 +92,29 @@ Derzeitige Rollen:
 Die Profile sollen sich erkennbar unterscheiden, aber dieselben
 Regeln, Kosten und Aktionsgrenzen verwenden.
 
-### 5. Rivalenoperationen
+### 5. Match-Konfiguration
+
+`match.ts` beschreibt eine Partie unabhängig von React und Netzwerk:
+
+- vier stabile Teilnehmer-IDs,
+- je Teilnehmer eine menschliche lokale, menschliche entfernte oder
+  KI-Steuerung,
+- die Strategieprofile der KI-Sitze,
+- eine versionierte, vollständig JSON-serialisierbare Konfiguration,
+- seedbasierte Startkorridore mit genau zwei Feldern je Teilnehmer.
+
+`GameState.match` führt diese Konfiguration im Browserzustand mit. Sie
+ist zunächst bewusst nur unveränderliche Partiemetadaten. Der noch
+asymmetrische dynamische Zustand von Agima und den drei Rivalen wird
+in einem eigenen Folgeschritt migriert, damit während der Umstellung
+keine zwei veränderbaren Zustandsquellen entstehen.
+
+Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.
+Nicht menschlich belegte Sitze können mit den vorhandenen KI-Profilen
+gefüllt werden. Netzwerkverbindungen und geheime Informationen
+gehören nicht in diese öffentliche Match-Konfiguration.
+
+### 6. Rivalenoperationen
 
 `rival*.ts` führt gemeinsame autonome Vorgänge aus, zum Beispiel:
 
@@ -104,7 +126,7 @@ Regeln, Kosten und Aktionsgrenzen verwenden.
 Orion-spezifische Dateien bleiben dort sinnvoll, wo seine
 Strategie bewusst eigenständig ist.
 
-### 6. Simulation
+### 7. Simulation
 
 Die Simulation ist ein Analysewerkzeug und keine zweite
 Browser-Spielimplementierung.
