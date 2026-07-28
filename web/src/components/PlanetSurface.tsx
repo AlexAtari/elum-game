@@ -4,6 +4,7 @@ import {
   useState,
 } from 'react'
 import planetSurfaceUrl from '../assets/planet-surface-v3.webp'
+import terraformedSurfaceUrl from '../assets/planet-surface-terraformed-v1.webp'
 import {
   GAME_ROUND_LIMIT,
   type Tile,
@@ -15,7 +16,10 @@ import {
   unprojectPlanetViewPosition,
   type PlanetRotation,
 } from '../planetProjection'
-import { calculateResourceColorScale } from '../planetSurfaceTint'
+import {
+  calculateResourceColorScale,
+  calculateTerraformingBlend,
+} from '../planetSurfaceTint'
 
 type PlanetSurfaceProps = {
   radius: number
@@ -31,7 +35,8 @@ type CanvasSize = {
 }
 
 type PlanetTexture = {
-  base: ImageData
+  marsBase: ImageData
+  terraformedBase: ImageData
   tint: ImageData
 }
 
@@ -47,7 +52,8 @@ function clampByte(value: number) {
 }
 
 function createPlanetTexture(
-  image: HTMLImageElement,
+  marsImage: HTMLImageElement,
+  terraformedImage: HTMLImageElement,
   tiles: Tile[],
   round: number,
 ) {
@@ -63,13 +69,32 @@ function createPlanetTexture(
   }
 
   context.drawImage(
-    image,
+    marsImage,
     0,
     0,
     BASE_TEXTURE_WIDTH,
     BASE_TEXTURE_HEIGHT,
   )
-  const base = context.getImageData(
+  const marsBase = context.getImageData(
+    0,
+    0,
+    BASE_TEXTURE_WIDTH,
+    BASE_TEXTURE_HEIGHT,
+  )
+  context.clearRect(
+    0,
+    0,
+    BASE_TEXTURE_WIDTH,
+    BASE_TEXTURE_HEIGHT,
+  )
+  context.drawImage(
+    terraformedImage,
+    0,
+    0,
+    BASE_TEXTURE_WIDTH,
+    BASE_TEXTURE_HEIGHT,
+  )
+  const terraformedBase = context.getImageData(
     0,
     0,
     BASE_TEXTURE_WIDTH,
@@ -130,6 +155,15 @@ function createPlanetTexture(
         round,
         GAME_ROUND_LIMIT,
       )
+      const terraformingBlend =
+        calculateTerraformingBlend(
+          food,
+          energy,
+          ore,
+          weightTotal,
+          round,
+          GAME_ROUND_LIMIT,
+        )
       const offset =
         (y * TINT_TEXTURE_WIDTH + x) * 4
 
@@ -142,11 +176,13 @@ function createPlanetTexture(
       tint.data[offset + 2] = clampByte(
         colorScale.blue * TINT_NEUTRAL_VALUE,
       )
-      tint.data[offset + 3] = 255
+      tint.data[offset + 3] = clampByte(
+        terraformingBlend * 255,
+      )
     }
   }
 
-  return { base, tint }
+  return { marsBase, terraformedBase, tint }
 }
 
 export function PlanetSurface({
@@ -199,24 +235,34 @@ export function PlanetSurface({
   }, [])
 
   useEffect(() => {
-    const image = new Image()
+    const marsImage = new Image()
+    const terraformedImage = new Image()
     let isActive = true
 
     const loadTexture = async () => {
       try {
-        await image.decode()
+        await Promise.all([
+          marsImage.decode(),
+          terraformedImage.decode(),
+        ])
       } catch {
         return
       }
 
       if (isActive) {
         setTexture(
-          createPlanetTexture(image, tiles, round),
+          createPlanetTexture(
+            marsImage,
+            terraformedImage,
+            tiles,
+            round,
+          ),
         )
       }
     }
 
-    image.src = planetSurfaceUrl
+    marsImage.src = planetSurfaceUrl
+    terraformedImage.src = terraformedSurfaceUrl
     void loadTexture()
 
     return () => {
@@ -316,19 +362,31 @@ export function PlanetSurface({
           4
         const frameOffset =
           (y * canvas.width + x) * 4
+        const terraformingBlend =
+          texture.tint.data[tintOffset + 3] / 255
+        const marsBlend = 1 - terraformingBlend
 
         frame.data[frameOffset] = clampByte(
-          (texture.base.data[baseOffset] *
+          ((texture.marsBase.data[baseOffset] *
+              marsBlend +
+            texture.terraformedBase.data[baseOffset] *
+              terraformingBlend) *
             texture.tint.data[tintOffset]) /
             TINT_NEUTRAL_VALUE,
         )
         frame.data[frameOffset + 1] = clampByte(
-          (texture.base.data[baseOffset + 1] *
+          ((texture.marsBase.data[baseOffset + 1] *
+              marsBlend +
+            texture.terraformedBase.data[baseOffset + 1] *
+              terraformingBlend) *
             texture.tint.data[tintOffset + 1]) /
             TINT_NEUTRAL_VALUE,
         )
         frame.data[frameOffset + 2] = clampByte(
-          (texture.base.data[baseOffset + 2] *
+          ((texture.marsBase.data[baseOffset + 2] *
+              marsBlend +
+            texture.terraformedBase.data[baseOffset + 2] *
+              terraformingBlend) *
             texture.tint.data[tintOffset + 2]) /
             TINT_NEUTRAL_VALUE,
         )

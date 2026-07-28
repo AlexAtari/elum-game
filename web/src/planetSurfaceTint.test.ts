@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { calculateResourceColorScale } from './planetSurfaceTint'
+import {
+  calculateResourceColorScale,
+  calculateTerraformingBlend,
+} from './planetSurfaceTint'
 
 describe('geglättete Ressourcenfarbnuancen', () => {
   it('zeichnet Nahrung durch einen gedämpften Grünanteil aus', () => {
@@ -74,5 +77,70 @@ describe('geglättete Ressourcenfarbnuancen', () => {
 
     expect(finale.green).toBeGreaterThan(opening.green)
     expect(finale.red).toBeLessThan(opening.red)
+  })
+
+  it('beginnt in Runde 1 vollständig marsartig', () => {
+    expect(
+      calculateTerraformingBlend(
+        5,
+        2,
+        2,
+        1,
+        1,
+        20,
+      ),
+    ).toBe(0)
+  })
+
+  it('entwickelt die Oberfläche in jeder Runde weiter', () => {
+    const opening = calculateTerraformingBlend(
+      5,
+      2,
+      2,
+      1,
+      1,
+      20,
+    )
+    const middle = calculateTerraformingBlend(
+      5,
+      2,
+      2,
+      1,
+      10,
+      20,
+    )
+    const finale = calculateTerraformingBlend(
+      5,
+      2,
+      2,
+      1,
+      20,
+      20,
+    )
+
+    expect(middle).toBeGreaterThan(opening)
+    expect(finale).toBeGreaterThan(middle)
+    expect(finale).toBeLessThanOrEqual(1)
+  })
+
+  it('terraformt nahrungsreiche Regionen schneller', () => {
+    const fertile = calculateTerraformingBlend(
+      5,
+      1,
+      1,
+      1,
+      12,
+      20,
+    )
+    const barren = calculateTerraformingBlend(
+      1,
+      4,
+      5,
+      1,
+      12,
+      20,
+    )
+
+    expect(fertile).toBeGreaterThan(barren)
   })
 })

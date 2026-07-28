@@ -236,8 +236,8 @@ werden.
   Polygonkonturen nur bei Interaktion oder notwendigem Spielstatus
 - getrennte hochauflösende Geologiebasis und sparsamere
   Ressourcenfarbkarte für scharfen mobilen Nahzoom
-- über 20 Runden schrittweise grünere Nahrungsregionen als rein
-  visuelle Kultivierung
+- Überblendung von Mars- zu erdähnlicher Terraformingbasis über 20
+  Runden; Nahrungseignung beschleunigt die rein visuelle Entwicklung
 - lückenlose sphärische Dualzellen als unsichtbare
   Interaktionsflächen und kugelrichtige Rückprojektion der fest auf
   dem Planeten verankerten Oberflächentextur

@@ -246,14 +246,21 @@ marsartigen, fotorealistischen Welttextur und moderat
 differenzierten, räumlich geglätteten Ressourcenfarbnuancen eine
 diffuse Oberflächenkarte vor. `planetSurfaceTint.ts` hält die reine
 Farbzuordnung für Nahrung, Energie und Erz getrennt von Canvas und
-React testbar. Der aktuelle Rundenwert verstärkt ausschließlich den
-Grünanteil der Nahrungsnuance bis Runde 20; die Spiellogik bleibt
-davon unberührt.
+React testbar. Der aktuelle Rundenwert steuert sowohl die
+Ressourcennuance als auch die Überblendung zwischen Mars- und
+Terraformingbasis; die Spiellogik bleibt davon unberührt.
 
 Die geologische Basisebene wird für den Nahzoom mit 1024 × 512
 Pixeln abgetastet. Die rechenintensive Ressourcenfarbkarte bleibt
 getrennt bei 512 × 256 Pixeln und wird erst beim Rendern mit der
 Basisebene multipliziert.
+
+Die geglättete Ressourcenkarte speichert zusätzlich im Alphakanal
+den lokalen Terraforminganteil. Dieser beginnt in Runde 1 bei null
+und steigt bis Runde 20. Eine Grundentwicklung erreicht alle
+Regionen; Nahrungseignung erhöht den lokalen Anteil. Mars- und
+Terraformingbasis verwenden dieselben Weltkoordinaten und werden vor
+der Ressourcentönung pro sichtbarem Pixel gemischt.
 `unprojectPlanetViewPosition` ordnet jeden sichtbaren Canvas-Pixel
 bei jeder Kameradrehung wieder einer festen Weltkoordinate zu. So
 dreht sich eine durchgehende Textur ohne Feldnähte mit der Kugel,

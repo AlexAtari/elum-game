@@ -35,12 +35,18 @@ Grundstückskanten abbrechen. Eine Rückprojektion ordnet die
 sichtbaren Kugelpixel festen Weltkoordinaten zu; die Textur bleibt
 deshalb beim Drehen auf dem Planeten verankert.
 
-Der Grünanteil der Nahrungsnuance wächst von Runde 1 bis Runde 20
-gleichmäßig und moderat. Dies ist eine rein visuelle
-Kultivierungsanzeige und ändert keine Ressourcensterne. Rivalenfelder
-werden anhand der getrennten Besitzlisten als Orion, Nova oder Vega
-gekennzeichnet; jede Kolonie beginnt weiterhin mit genau zwei
-Grundstücken.
+Von Runde 1 bis Runde 20 wird die Marsbasis in jedem Rundenschritt
+mit einer deckungsgleichen Terraformingbasis überblendet. Eine
+moderate Grundentwicklung betrifft den gesamten Planeten.
+Nahrungseignung verstärkt den lokalen Anteil, sodass fruchtbare
+Regionen früher dunkle Böden, Flechten und Vegetation zeigen.
+Erzreiche und karge Regionen bleiben länger trocken und felsig.
+Selbst der Endzustand enthält weiterhin Basalt, Ocker und
+Halbtrockenzonen; offene Gewässer und Siedlungen werden nicht Teil
+der Textur. Dies ist eine rein visuelle Kultivierungsanzeige und
+ändert keine Ressourcensterne. Rivalenfelder werden anhand der
+getrennten Besitzlisten als Orion, Nova oder Vega gekennzeichnet;
+jede Kolonie beginnt weiterhin mit genau zwei Grundstücken.
 
 Die Grundstücksflächen werden weiterhin als sphärische Dualzellen
 aus den Mittelpunkten der angrenzenden Dreiecksflächen gebildet.

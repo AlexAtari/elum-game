@@ -53,8 +53,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   beim Drehen fest auf dem Planeten bleibt
 - moderat differenzierte, räumlich geglättete Farbnuancen: Nahrung
   olivgrün, Energie kühl blaugrau und Erz eisenrot
-- Nahrungsregionen werden über die 20 Runden schrittweise grüner,
-  ohne Produktionswerte oder Feldgrenzen zu verändern
+- stufenlose visuelle Terraformingentwicklung über alle 20 Runden:
+  von der Marsbasis zur erdähnlichen Vegetationsbasis
+- nahrungsreiche Regionen entwickeln sich schneller und stärker;
+  karge sowie erzreiche Regionen behalten länger Marsgestein
 - feste gerichtete Beleuchtung mit heller Einfallsseite, weich
   abgedunkelter Gegenseite und atmosphärischem Kugelrand
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in

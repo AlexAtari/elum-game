@@ -215,11 +215,16 @@ beziehungsweise Tastaturfokus und die Auswahl durch Antippen lassen
 die jeweilige Feldkontur aufscheinen. Gebote, Meteore und andere
 notwendige Spielzustände dürfen weiterhin klar markiert werden.
 
-Nahrungsregionen werden im Verlauf der 20 Runden behutsam grüner.
-Diese visuelle Entwicklung stellt die fortschreitende Kultivierung
-dar, verändert aber weder Sternebewertung noch Produktion.
-Grundstücke von Orion, Nova und Vega werden ihrem tatsächlichen
-Besitzer zugeordnet und mit dessen Namen angezeigt.
+Die Oberfläche entwickelt sich über alle 20 Runden schrittweise von
+der Marsbasis zu einer deckungsgleichen, teilweise erdähnlichen
+Vegetationsbasis. Nahrungsreiche Regionen terraformieren schneller
+und vollständiger; karge sowie erzreiche Regionen behalten länger
+Rostboden, Ocker und Basalt. Auch in Runde 20 bleiben trockene und
+felsige Zonen sichtbar. Es entstehen keine Ozeane, Städte oder neuen
+Geländemerkmale. Diese Entwicklung ist rein visuell und verändert
+weder Sternebewertung noch Produktion. Grundstücke von Orion, Nova
+und Vega werden ihrem tatsächlichen Besitzer zugeordnet und mit
+dessen Namen angezeigt.
 
 Die Kugel besitzt eine feste, von links oben einfallende Beleuchtung
 mit weich abgedunkelter Gegenseite und sichtbarem atmosphärischem
