@@ -11,6 +11,7 @@ import {
   createLeaderboardEntries,
   executeMarketTrade,
   getEventScale,
+  getRoundsUntilSupplyShip,
   getGlobalEventAmount,
   getHarvesterCreditCost,
   getHexDistanceFromHq,
@@ -373,10 +374,31 @@ describe('Ereignisse', () => {
 })
 
 describe('Spielende', () => {
-  it('beendet die Standardpartie nach Runde 15', () => {
-    expect(isGameFinished(14)).toBe(false)
-    expect(isGameFinished(15)).toBe(true)
-    expect(isGameFinished(16)).toBe(true)
+  it('beendet die Standardpartie nach Runde 20', () => {
+    expect(isGameFinished(19)).toBe(false)
+    expect(isGameFinished(20)).toBe(true)
+    expect(isGameFinished(21)).toBe(true)
+  })
+
+  it('zählt sichtbar bis zum Versorgungsschiff herunter', () => {
+    expect(getRoundsUntilSupplyShip(1)).toBe(20)
+    expect(getRoundsUntilSupplyShip(19)).toBe(2)
+    expect(getRoundsUntilSupplyShip(20)).toBe(1)
+    expect(getRoundsUntilSupplyShip(21)).toBe(0)
+  })
+
+  it('rechnet Runde 20 ab, ohne einen Zustand für Runde 21 zu erzeugen', () => {
+    const result = runRound(
+      {
+        ...createInitialGameState(),
+        round: 20,
+      },
+      {},
+      normalSupply,
+    )
+
+    expect(result.report.roundPlayed).toBe(20)
+    expect(result.nextState.round).toBe(20)
   })
 })
 
@@ -896,16 +918,55 @@ describe('Rangliste', () => {
     expect(player).toMatchObject({
       population: 15,
       credits: 42,
-      resources: 18,
+      wealth: 282,
+      resources: 12,
       harvesters: 4,
     })
     expect(orion).toMatchObject({
       population: 14,
       credits: 31,
-      resources: 10,
+      wealth: 191,
+      resources: 6,
       harvesters: 5,
     })
     expect(entries[0].id).toBe('player')
+  })
+
+  it('wertet bei gleicher Bevölkerung Kristalle zum offiziellen Referenzkurs', () => {
+    const state: GameState = {
+      ...createInitialGameState(),
+      population: 10,
+      credits: 40,
+      resources: {
+        food: 0,
+        energy: 0,
+        ore: 0,
+        crystals: 2,
+      },
+      rivals: {
+        ...createInitialGameState().rivals,
+        orion: {
+          ...createInitialGameState().rivals.orion,
+          population: 10,
+          credits: 100,
+          resources: {
+            food: 20,
+            energy: 20,
+            ore: 20,
+            crystals: 0,
+          },
+        },
+      },
+    }
+    const entries = createLeaderboardEntries(state, 2)
+    const player = entries.find((entry) => entry.isPlayer)!
+    const orion = entries.find((entry) => entry.id === 'orion')!
+
+    expect(player.wealth).toBe(120)
+    expect(orion.wealth).toBe(100)
+    expect(entries.indexOf(player)).toBeLessThan(
+      entries.indexOf(orion),
+    )
   })
 
   it('entwickelt die gespeicherten KI-Kolonien pro Runde weiter', () => {

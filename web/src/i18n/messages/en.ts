@@ -10,6 +10,11 @@ export const en = {
   'app.finalResult': 'Final standings',
   'app.briefingRound': 'Round start · Round {{round}}',
   'app.backToStart': 'Back to start',
+  'app.supplyShipCountdown':
+    '🚀 {{rounds}} rounds until the supply ship',
+  'app.supplyShipCountdownOne':
+    '🚀 1 round until the supply ship',
+  'app.supplyShipArrived': '🚀 Supply ship arrived',
 
   'resource.population': 'Population',
   'resource.credits': 'Credits',
@@ -69,11 +74,12 @@ export const en = {
   'leaderboard.title': 'Colony standings',
   'leaderboard.finalTitle': 'Final colony standings',
   'leaderboard.criteria':
-    'Population ranks first. Ties are decided by credits, resources and harvesters.',
+    'Population ranks first. Ties are decided by wealth, other resources and harvesters.',
   'leaderboard.rank': 'Rank',
   'leaderboard.colony': 'Colony',
   'leaderboard.resources': 'Resources',
   'leaderboard.harvesters': 'Harvesters',
+  'leaderboard.wealth': 'Wealth',
   'leaderboard.firstPlace': 'First place',
   'leaderboard.you': 'You',
   'leaderboard.aiNote':
@@ -84,10 +90,14 @@ export const en = {
   'leaderboard.progressLabel': 'Time until the next round',
   'leaderboard.winner': 'Winning colony',
   'leaderboard.winnerSummary':
-    '{{population}} population · {{credits}} credits · {{resources}} resources · {{harvesters}} harvesters',
+    '{{population}} population · {{wealth}} wealth · {{resources}} other resources · {{harvesters}} harvesters',
   'leaderboard.playerResult':
     'Your colony finishes in place {{rank}} of {{total}}.',
   'leaderboard.newGame': 'New game',
+  'leaderboard.supplyShipTitle':
+    'The supply ship has arrived',
+  'leaderboard.supplyShipDescription':
+    'Supplies, spare parts and new personnel reach Agima. Your replacement takes command of the colony.',
 
   'briefing.eyebrow': 'Start of round {{round}}',
   'briefing.title': 'Events & your colony',

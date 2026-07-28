@@ -81,7 +81,7 @@
 - Nach „Runde ausführen“ erfolgt die Rundenabrechnung und anschließend eine eigene Ranglistenansicht.
 - Sortiert wird nach Bevölkerung, Credits, Gesamtressourcen und Harvesterzahl. Die eigene Kolonie ist hervorgehoben.
 - Agima, Orion, Nova und Vega verwenden dauerhaft gespeicherte Koloniewerte. Die KI-Kolonien versorgen ihre Bevölkerung und produzieren mit einer einfachen, reproduzierbaren Rundenroutine. Marktentscheidungen, Grundstückskäufe und Harvesterbau werden anschließend ergänzt.
-- Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Platz 1 erhält ein kleines Kronensymbol. Die vollständige Rangliste bleibt danach drei Sekunden sichtbar; ein Countdown zeigt die Restzeit bis zum automatischen Wechsel in den Rundenbericht der nächsten Runde. Nach Runde 15 bleibt sie dagegen als Abschlussrangliste stehen, nennt Sieger und eigenen Schlussrang und bietet „Neue Partie“ an. Eine Runde 16 darf nicht starten.
+- Die Plätze werden vom letzten bis zum ersten Rang im Abstand von jeweils einer Sekunde aufgedeckt. Platz 1 erhält ein kleines Kronensymbol. Die vollständige Rangliste bleibt danach drei Sekunden sichtbar; ein Countdown zeigt die Restzeit bis zum automatischen Wechsel in den Rundenbericht der nächsten Runde. Nach Runde 20 bleibt sie dagegen als Abschlussrangliste stehen, meldet die Ankunft des Versorgungsschiffs, nennt Sieger und eigenen Schlussrang und bietet „Neue Partie“ an. Eine Runde 21 darf nicht starten.
 
 ### 🔬 Rundenbericht und Ereignisse
 

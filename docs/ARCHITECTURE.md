@@ -282,8 +282,16 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. Countdown und Versorgungsschiff anbinden,
+1. Simulation und Balancing für 20 Runden aktualisieren,
 2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
+
+`GAME_ROUND_LIMIT` begrenzt Browserpartie und Simulation auf 20
+vollständig abgerechnete Runden. `runRound` hält den Folgezustand nach
+der letzten Abrechnung auf Runde 20; die Oberfläche kann daher keine
+Runde 21 beginnen. `getRoundsUntilSupplyShip` liefert den sichtbaren
+Countdown. Die Abschlussrangliste bewertet nach Bevölkerung,
+Vermögen aus Credits plus Kristallkurs, übrigen Ressourcen ohne
+Kristalle und Harvesterzahl.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und
 Simulationen reproduzierbar bleiben.

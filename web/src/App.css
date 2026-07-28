@@ -113,6 +113,18 @@ button {
   font-weight: 700;
 }
 
+.round-status {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.round-status small {
+  color: #9eabc0;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .status-panel,
 .prototype-panel {
   padding: 24px;
@@ -385,4 +397,3 @@ button {
     display: none;
   }
 }
-

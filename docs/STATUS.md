@@ -13,9 +13,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - Planet: Agima
 - Spieltyp: rundenbasierte Kolonie- und Wirtschaftsstrategie
 - Zielplattform: Browser und Smartphones
-- Standardpartie: 15 Runden, ungefähr 20–30 Minuten
+- Standardpartie: 20 Runden, zunächst ungefähr 35–45 Minuten
 - Hauptwertung: Bevölkerung
-- weitere Gleichstandswerte: Credits, Ressourcen, Harvester
+- weitere Gleichstandswerte: Vermögen einschließlich Kristallkurs,
+  übrige Ressourcen ohne Kristalle, Harvester
 - vier Kolonien: Agima, Orion, Nova und Vega
 
 ## Implementiert
@@ -50,6 +51,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - dauerhaft gespeicherte Rivalenkolonien
 - autonome Land-, Harvester-, Investitions- und Marktlogik
 - Zwischen- und Abschlussrangliste
+- sichtbarer Countdown bis zum Versorgungsschiff
+- Versorgungsschiff und Ablösung nach der 20. Abrechnung
 - Headless-Einzel- und Seriensimulation
 - GitHub-Pages-Deployment mit Test, Lint und Build
 
@@ -78,6 +81,11 @@ Letzter bekannter 100-Partien-Stand der Profilabstimmung:
 
 Die Profile gelten vorläufig als ausreichend ausgeglichen und
 sollten nicht ohne neue Seriensimulation verändert werden.
+
+Diese Kennzahlen stammen noch aus der früheren 15-Runden-Basis und
+sind nach der Umstellung auf 20 Runden nicht mehr als aktueller
+Balancingstand zu lesen. Eine neue Seriensimulation ist der nächste
+technische Schritt.
 
 Systemische Beobachtungen aus demselben Lauf:
 
@@ -128,15 +136,14 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 <!-- ELUM-PLANET-STATUS:BEGIN -->
 ## Beschlossenes Zielbild – noch nicht vollständig implementiert
 
-- 20 Runden mit sichtbarem Countdown bis zum Versorgungsschiff
 - Aktivierung der intern vorbereiteten zufälligen
   Startkorridor-Zuordnung im späteren Browser-Spielstart
 - Kartenregeln über Feld-IDs, Nachbarlisten und Graphdistanzen
 - regelmäßige Hochsicherheits-Kristalltransporter
-- Bewertung nicht verkaufter Kristalle zum offiziellen
-  Orientierungspreis; Start- und Rückfallwert 40 Credits
 
-Der Browserprototyp verwendet weiterhin 15 Runden, aber bereits den
+Der Browserprototyp verwendet 20 vollständig abgerechnete Runden mit
+sichtbarem Versorgungsschiff-Countdown, Abschlussankunft und
+lexikografischer Zielwertung. Er verwendet außerdem den
 92-Felder-Graphen und vier natürliche, abgestufte Kristalladern.
 Kristallwerte werden erst auf eigenen Grundstücken offengelegt. Die
 konservative Meteorvariante mit zwei garantierten und einem optionalen
@@ -150,8 +157,8 @@ einem späteren Spielstart-Schritt.
 
 Nächste technische Reihenfolge:
 
-1. Countdown und Versorgungsschiff ergänzen.
-2. danach erneut simulieren und balancieren.
+1. erneut simulieren und balancieren.
+2. Hochsicherheits-Kristalltransporter ergänzen.
 
 Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-STATUS:END -->

@@ -231,6 +231,7 @@ export type LeaderboardEntry = {
   icon: string
   population: number
   credits: number
+  wealth: number
   resources: number
   harvesters: number
   isPlayer: boolean
@@ -247,7 +248,7 @@ export const HARVESTER_CREDIT_COST = 30
 export const HARVESTER_ORE_COST = 3
 export const GLOBAL_EVENT_CHANCE = 0.4
 export const LOCAL_EVENT_CHANCE = 0.5
-export const GAME_ROUND_LIMIT = 15
+export const GAME_ROUND_LIMIT = 20
 export const EVENT_SCALE_INTERVAL = 6
 
 export const globalEventIds: GlobalEventId[] = [
@@ -362,6 +363,10 @@ export function getEventScale(round: number): number {
 
 export function isGameFinished(roundPlayed: number): boolean {
   return roundPlayed >= GAME_ROUND_LIMIT
+}
+
+export function getRoundsUntilSupplyShip(round: number): number {
+  return Math.max(0, GAME_ROUND_LIMIT - round + 1)
 }
 
 export function getGlobalEventAmount(
@@ -690,19 +695,18 @@ export function getMarketTiming(
 }
 
 function getResourceTotal(resources: Resources) {
-  return Object.values(resources).reduce(
-    (total, amount) => total + amount,
-    0,
-  )
+  return resources.food + resources.energy + resources.ore
 }
 
 export function createLeaderboardEntries(
   currentState: GameState,
   playerHarvesterCount: number,
 ): LeaderboardEntry[] {
-  const playerResources = Object.values(
+  const crystalReferencePrice =
+    currentState.market.crystals.referencePrice
+  const playerResources = getResourceTotal(
     currentState.resources,
-  ).reduce((total, amount) => total + amount, 0)
+  )
 
   const entries: LeaderboardEntry[] = [
     {
@@ -711,6 +715,10 @@ export function createLeaderboardEntries(
       icon: '🧑‍🚀',
       population: currentState.population,
       credits: currentState.credits,
+      wealth:
+        currentState.credits +
+        currentState.resources.crystals *
+          crystalReferencePrice,
       resources: playerResources,
       harvesters: playerHarvesterCount,
       isPlayer: true,
@@ -721,6 +729,9 @@ export function createLeaderboardEntries(
       icon: rival.icon,
       population: rival.population,
       credits: rival.credits,
+      wealth:
+        rival.credits +
+        rival.resources.crystals * crystalReferencePrice,
       resources: getResourceTotal(rival.resources),
       harvesters: rival.harvesters,
       isPlayer: false,
@@ -730,7 +741,7 @@ export function createLeaderboardEntries(
   return entries.sort(
     (first, second) =>
       second.population - first.population ||
-      second.credits - first.credits ||
+      second.wealth - first.wealth ||
       second.resources - first.resources ||
       second.harvesters - first.harvesters ||
       first.name.localeCompare(second.name),
@@ -2243,7 +2254,10 @@ export function runRound(
     : null
 
   const nextState: GameState = {
-    round: currentState.round + 1,
+    round: Math.min(
+      GAME_ROUND_LIMIT,
+      currentState.round + 1,
+    ),
     population: Math.max(
       1,
       currentState.population + populationChange,

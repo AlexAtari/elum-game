@@ -8,6 +8,11 @@ export const de = {
   'app.finalResult': 'Endstand',
   'app.briefingRound': 'Rundenstart · Runde {{round}}',
   'app.backToStart': 'Zurück zum Start',
+  'app.supplyShipCountdown':
+    '🚀 Noch {{rounds}} Runden bis zum Versorgungsschiff',
+  'app.supplyShipCountdownOne':
+    '🚀 Noch 1 Runde bis zum Versorgungsschiff',
+  'app.supplyShipArrived': '🚀 Versorgungsschiff eingetroffen',
 
   'resource.population': 'Bevölkerung',
   'resource.credits': 'Credits',
@@ -66,11 +71,12 @@ export const de = {
   'leaderboard.title': 'Kolonie-Rangliste',
   'leaderboard.finalTitle': 'Abschlussrangliste',
   'leaderboard.criteria':
-    'Entscheidend ist zuerst die Bevölkerung. Bei Gleichstand folgen Credits, Ressourcen und Harvester.',
+    'Entscheidend ist zuerst die Bevölkerung. Bei Gleichstand folgen Vermögen, übrige Ressourcen und Harvester.',
   'leaderboard.rank': 'Rang',
   'leaderboard.colony': 'Kolonie',
   'leaderboard.resources': 'Ressourcen',
   'leaderboard.harvesters': 'Harvester',
+  'leaderboard.wealth': 'Vermögen',
   'leaderboard.firstPlace': 'Erster Platz',
   'leaderboard.you': 'Du',
   'leaderboard.aiNote':
@@ -81,10 +87,14 @@ export const de = {
   'leaderboard.progressLabel': 'Zeit bis zur nächsten Runde',
   'leaderboard.winner': 'Siegerkolonie',
   'leaderboard.winnerSummary':
-    '{{population}} Einwohner · {{credits}} Credits · {{resources}} Ressourcen · {{harvesters}} Harvester',
+    '{{population}} Einwohner · {{wealth}} Vermögen · {{resources}} übrige Ressourcen · {{harvesters}} Harvester',
   'leaderboard.playerResult':
     'Deine Kolonie beendet die Partie auf Platz {{rank}} von {{total}}.',
   'leaderboard.newGame': 'Neue Partie',
+  'leaderboard.supplyShipTitle':
+    'Das Versorgungsschiff ist eingetroffen',
+  'leaderboard.supplyShipDescription':
+    'Vorräte, Ersatzteile und neues Personal erreichen Agima. Deine Ablösung übernimmt die Kolonie.',
 
   'briefing.eyebrow': 'Beginn Runde {{round}}',
   'briefing.title': 'Ereignisse & deine Kolonie',

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { GAME_ROUND_LIMIT } from './game'
 import {
   runHeadlessSimulationBatch,
 } from './simulationBatch'
@@ -11,7 +12,7 @@ describe('Balancing-Seriensimulation', () => {
     })
 
     expect(result.games).toBe(12)
-    expect(result.rounds).toBe(15)
+    expect(result.rounds).toBe(GAME_ROUND_LIMIT)
     expect(result.includeMarket).toBe(true)
     expect(
       Object.keys(result.participants).sort(),

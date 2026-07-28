@@ -264,6 +264,27 @@
   gap: 5px;
 }
 
+.supply-ship-arrival {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid rgba(121, 221, 185, 0.32);
+  border-radius: 12px;
+  background: rgba(58, 117, 113, 0.13);
+}
+
+.supply-ship-arrival > span {
+  font-size: 2rem;
+}
+
+.supply-ship-arrival p {
+  margin: 3px 0 0;
+  color: #aeb8cb;
+  line-height: 1.45;
+}
+
 .leaderboard-final-summary > div > span {
   color: #f0c96d;
   font-size: 0.76rem;

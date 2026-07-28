@@ -67,11 +67,9 @@ vermischt werden.
 
 ### Partie
 
-- Browserprototyp: 15 Runden, ungefähr 20–30 Minuten
-- beschlossenes Ziel: 20 Runden, zunächst 35–45 Minuten,
+- Browserpartie: 20 Runden, zunächst 35–45 Minuten,
   durch Playtests neu zu messen
-- aktuelle Wertung: Bevölkerung, Credits, Ressourcen, Harvester
-- Zielwertung: Bevölkerung, Credits plus Kurswert verbliebener
+- Wertung: Bevölkerung, Credits plus Kurswert verbliebener
   Kristalle, übrige Ressourcen ohne Kristalle, Harvester
 
 ### Ressourcen
@@ -223,7 +221,9 @@ werden.
 
 ### Implementierter Prototyp
 
-- 15 Runden
+- 20 vollständig abgerechnete Runden
+- sichtbarer Countdown und Versorgungsschiff nach Runde 20
+- Schlusswertung mit offiziellem Kristallreferenzkurs
 - flache radiale Karte mit HQ und 91 Grundstücken
 - Kartenregeln für Nachbarschaft und Distanz bereits vom flachen
   Layout getrennt
@@ -240,8 +240,6 @@ werden.
 
 ### Nächster Regelstand
 
-- 20 vollständig abgerechnete Runden
-- sichtbarer Countdown bis zum Versorgungsschiff
 - 92 Kartenfelder: ein HQ und 91 Grundstücke
 - zwölf Pentagone und 80 Hexagone
 - vier radiale Startkorridore mit je zwei kristallfreien Feldern
@@ -255,8 +253,8 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. Countdown
-3. Simulation
+2. Simulation
+3. Hochsicherheits-Kristalltransporter
 4. später grafische Entfaltung oder 3D-Kugel
 
 Verbindliche Details: `docs/PLANET_MAP.md`.

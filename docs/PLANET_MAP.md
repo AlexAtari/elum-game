@@ -317,6 +317,6 @@ Abgeschlossen:
 
 Als Nächstes:
 
-1. Countdown und Storytexte ergänzen.
-2. Simulation und Balancing.
+1. Simulation und Balancing.
+2. Hochsicherheits-Kristalltransporter ergänzen.
 3. später grafische Entfaltung oder 3D-Kugel.

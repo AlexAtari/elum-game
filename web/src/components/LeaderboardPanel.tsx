@@ -185,8 +185,8 @@ function LeaderboardPanel({
                   <strong>{number(entry.population)}</strong>
                 </div>
                 <div>
-                  <span>💰 {t('resource.credits')}</span>
-                  <strong>{number(entry.credits)}</strong>
+                  <span>💰 {t('leaderboard.wealth')}</span>
+                  <strong>{number(entry.wealth)}</strong>
                 </div>
                 <div>
                   <span>📦 {t('leaderboard.resources')}</span>
@@ -228,7 +228,7 @@ function LeaderboardPanel({
               👥 {t('resource.population')}
             </span>
             <span role="columnheader">
-              💰 {t('resource.credits')}
+              💰 {t('leaderboard.wealth')}
             </span>
             <span role="columnheader">
               📦 {t('leaderboard.resources')}
@@ -287,10 +287,10 @@ function LeaderboardPanel({
                 </strong>
                 <strong
                   className="leaderboard-stat leaderboard-credits"
-                  data-label={t('resource.credits')}
+                  data-label={t('leaderboard.wealth')}
                   role="cell"
                 >
-                  {number(entry.credits)}
+                  {number(entry.wealth)}
                 </strong>
                 <strong
                   className="leaderboard-stat leaderboard-resources"
@@ -329,6 +329,17 @@ function LeaderboardPanel({
               aria-live="polite"
             >
               <div>
+                <div className="supply-ship-arrival">
+                  <span aria-hidden="true">🚀</span>
+                  <div>
+                    <strong>
+                      {t('leaderboard.supplyShipTitle')}
+                    </strong>
+                    <p>
+                      {t('leaderboard.supplyShipDescription')}
+                    </p>
+                  </div>
+                </div>
                 <span>{t('leaderboard.winner')}</span>
                 <strong>
                   <span aria-hidden="true">👑 {winner.icon}</span>{' '}
@@ -337,7 +348,7 @@ function LeaderboardPanel({
                 <p>
                   {t('leaderboard.winnerSummary', {
                     population: number(winner.population),
-                    credits: number(winner.credits),
+                    wealth: number(winner.wealth),
                     resources: number(winner.resources),
                     harvesters: number(winner.harvesters),
                   })}

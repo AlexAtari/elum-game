@@ -140,8 +140,9 @@ Verluste, Produktionsmodifikatoren, Rabatte und die Anzahl
 ausfallender Harvester. Ein Ressourcenverlust endet immer bei null;
 ein Harvesterpreis endet bei null Credits.
 
-In der Standardpartie mit 15 Runden erreicht die Skalierung damit in
-den Schlussrunden 13–15 den Faktor ×4.
+In der Standardpartie mit 20 Runden erreicht die Skalierung in den
+Runden 13–18 den Faktor ×4 und in den Schlussrunden 19–20 den
+Faktor ×8.
 
 Reine Aktionssperren besitzen keine Anzahl und werden deshalb nicht
 skaliert. Sie gelten nur für die aktive Runde.

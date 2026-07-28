@@ -22,6 +22,7 @@ import {
   completeResourceMarket,
   createLeaderboardEntries,
   executeMarketTrade,
+  getRoundsUntilSupplyShip,
   isGameFinished,
   getHarvesterCreditCost,
   initiateResourceMarket,
@@ -122,6 +123,9 @@ function App() {
   const gameFinished =
     lastReport !== null &&
     isGameFinished(lastReport.roundPlayed)
+  const roundsUntilSupplyShip = gameFinished
+    ? 0
+    : getRoundsUntilSupplyShip(gameState.round)
 
   const supplyPreview = calculateSupplyPreview(gameState, {
     foodLevel: foodSupplyLevel,
@@ -533,26 +537,38 @@ function App() {
             <h1>{t('app.colonyName')}</h1>
           </div>
 
-          <div className="round-badge">
-            {gameState.landAuctionTie !== null
-              ? t('app.tieAuctionRound', {
-                  round: gameState.round,
-                })
-              : activeMarket !== null
-              ? t('app.marketRound', {
-                  round: activeMarket.roundPlayed,
-                })
-              : showLeaderboard && lastReport
-                ? gameFinished
-                  ? t('app.finalResult')
-                  : t('app.leaderboardRound', {
-                      round: lastReport.roundPlayed,
-                    })
-                : showRoundBriefing
-                  ? t('app.briefingRound', {
-                      round: gameState.round,
-                    })
-                : t('app.round', { round: gameState.round })}
+          <div className="round-status">
+            <div className="round-badge">
+              {gameState.landAuctionTie !== null
+                ? t('app.tieAuctionRound', {
+                    round: gameState.round,
+                  })
+                : activeMarket !== null
+                ? t('app.marketRound', {
+                    round: activeMarket.roundPlayed,
+                  })
+                : showLeaderboard && lastReport
+                  ? gameFinished
+                    ? t('app.finalResult')
+                    : t('app.leaderboardRound', {
+                        round: lastReport.roundPlayed,
+                      })
+                  : showRoundBriefing
+                    ? t('app.briefingRound', {
+                        round: gameState.round,
+                      })
+                    : t('app.round', { round: gameState.round })}
+            </div>
+            <small>
+              {roundsUntilSupplyShip === 0
+                ? t('app.supplyShipArrived')
+                : t(
+                    roundsUntilSupplyShip === 1
+                      ? 'app.supplyShipCountdownOne'
+                      : 'app.supplyShipCountdown',
+                    { rounds: roundsUntilSupplyShip },
+                  )}
+            </small>
           </div>
         </header>
 

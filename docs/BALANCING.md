@@ -28,6 +28,10 @@ Grundsatz:
 | Zielspielzeit | zunächst 35–45 Minuten, neu zu messen |
 | möglicher Schnellmodus | 15 Runden, später festzulegen |
 
+Der Standardmodus mit 20 Runden ist im Browser und in der
+Headless-Simulation aktiv. Die bisherige 15-Runden-Basis ist damit nur
+noch ein möglicher, nicht implementierter Schnellmodus.
+
 ---
 
 # 3. Spielstart pro Spieler

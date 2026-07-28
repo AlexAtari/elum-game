@@ -697,6 +697,11 @@ Intern zählt die Runde weiterhin aufsteigend. Die Oberfläche zeigt den
 Countdown bis zum Versorgungsschiff. Nach der letzten Abrechnung trifft
 es mit Vorräten, Ersatzteilen, neuem Personal und der Ablösung ein.
 
+Dieser Ablauf ist im Browser umgesetzt: Der Countdown bleibt während
+Planung, Markt, Ereignisbericht und Rangliste sichtbar. Nach der
+20. Abrechnung meldet die Abschlussrangliste die Ankunft des
+Versorgungsschiffs; ein Zustand für Runde 21 wird nicht erzeugt.
+
 Gewonnen hat der Spieler mit der größten Bevölkerung.
 
 Bei Gleichstand entscheiden:
