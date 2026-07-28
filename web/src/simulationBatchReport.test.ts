@@ -82,6 +82,18 @@ function formatParticipant(
       9,
     ),
     pad(
+      participant.averageCrystals.toFixed(1),
+      7,
+    ),
+    pad(
+      participant.averageHarvesters.toFixed(1),
+      7,
+    ),
+    pad(
+      participant.averageOwnedTiles.toFixed(1),
+      7,
+    ),
+    pad(
       participant.averageWarnings.toFixed(2),
       9,
     ),
@@ -121,8 +133,8 @@ export function formatSimulationBatchReport(
     'Wertung: Bevölkerung → Abrechnungsvermögen → Restressourcen → Harvester',
     '',
     'KOLONIEN',
-    'Kolonie              Siegquote  Ø Rang Ø Abrech. Ø Rest  Ø Ökon.     Spanne  Ø Bev Ø Credits Ø Warn.',
-    '------------------ -------- ------- ---------- -------- ---------- ----------- ------- --------- ---------',
+    'Kolonie              Siegquote  Ø Rang Ø Abrech. Ø Rest  Ø Ökon.     Spanne  Ø Bev Ø Credits  Ø Kri Ø Harv Ø Land Ø Warn.',
+    '------------------ -------- ------- ---------- -------- ---------- ----------- ------- --------- ------- ------- ------- ---------',
     ...orderedParticipants.map(
       formatParticipant,
     ),
@@ -132,6 +144,8 @@ export function formatSimulationBatchReport(
     `Spielerhandel: ${result.averages.playerTrades.toFixed(1)} ` +
       `(${result.averages.playerTradeShare.toFixed(1)} %)`,
     `HQ-Lager: ${result.averages.warehouseTrades.toFixed(1)}`,
+    `Interstellarer Käufer: ${result.averages.interstellarTrades.toFixed(1)}`,
+    `Meteoriten: ${result.averages.meteorImpacts.toFixed(1)}`,
     '',
     'VERSORGUNG',
     `Warnungen je Partie: ${result.averages.warnings.toFixed(2)}`,

@@ -791,7 +791,8 @@ function App() {
                 <strong>
                   🌾 {plannedRound.report.produced.food} · ⚡{' '}
                   {plannedRound.report.produced.energy} · ⛏{' '}
-                  {plannedRound.report.produced.ore}
+                  {plannedRound.report.produced.ore} · 💎{' '}
+                  {plannedRound.report.produced.crystals}
                 </strong>
               </div>
 

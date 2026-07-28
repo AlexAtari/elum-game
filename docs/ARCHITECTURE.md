@@ -246,6 +246,12 @@ fälligen Einschlag erst nach der Grundstücksauswertung und gibt ihn
 zusätzlich im `RoundReport` zurück. Dadurch bleiben Rundenprognosen
 rein und wiederholbar.
 
+`ProductionType` umfasst Kristalle als vierte Harvesterproduktion.
+Spieler- und Rivalenproduktion lesen dafür
+`getEffectiveCrystalRating`; natürliche Ader und bisherige
+Meteorboni werden dadurch in Browserpartie und Simulation über
+dieselbe Kernregel ausgewertet.
+
 `interstellarCrystalBuyer.ts` berechnet aus Runde, Referenzkurs und
 bereits übernommener Menge das sichtbare Kaufgebot und die verbleibende
 Kapazität. `executeMarketTrade` behandelt
@@ -253,6 +259,10 @@ Kapazität. `executeMarketTrade` behandelt
 und weder HQ-Lager noch Lagerfluss verändert. Der Verbrauch wird im
 `GameState` gespeichert und bei der Rundenabrechnung zurückgesetzt.
 `MarketPanel` nimmt das begrenzte Gebot in die Bestpreisermittlung auf.
+Die Headless-Markträumung führt dieselbe Gegenpartei separat vom
+HQ-Lager und dessen Preisfluss. `initialCrystalStock` erlaubt
+gezielte Analyseszenarien, ohne den normalen Spiel- oder
+Simulationsstart zu verändern.
 
 Kernprinzip:
 
@@ -282,8 +292,7 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. Kristallförderung und Ereignisse in der Headless-Simulation
-   abbilden,
+1. Expansion und Harvesterbau bis zu den Fernzonen stabilisieren,
 2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
 
 `GAME_ROUND_LIMIT` begrenzt Browserpartie und Simulation auf 20

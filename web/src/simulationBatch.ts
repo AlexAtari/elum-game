@@ -27,6 +27,9 @@ export type SimulationBatchParticipantStats = {
   averageRemainingResources: number
   averagePopulation: number
   averageCredits: number
+  averageCrystals: number
+  averageHarvesters: number
+  averageOwnedTiles: number
   averageWarnings: number
 }
 
@@ -45,6 +48,8 @@ export type SimulationBatchResult = {
     totalMarketTransactions: number
     playerTrades: number
     warehouseTrades: number
+    interstellarTrades: number
+    meteorImpacts: number
     playerTradeShare: number
   }
   warningCounts: Record<
@@ -65,6 +70,9 @@ type MutableParticipantStats = {
   remainingResourcesTotal: number
   populationTotal: number
   creditsTotal: number
+  crystalsTotal: number
+  harvestersTotal: number
+  ownedTilesTotal: number
   warningTotal: number
 }
 
@@ -127,6 +135,9 @@ function createMutableStats():
       remainingResourcesTotal: 0,
       populationTotal: 0,
       creditsTotal: 0,
+      crystalsTotal: 0,
+      harvestersTotal: 0,
+      ownedTilesTotal: 0,
       warningTotal: 0,
     },
     orion: {
@@ -141,6 +152,9 @@ function createMutableStats():
       remainingResourcesTotal: 0,
       populationTotal: 0,
       creditsTotal: 0,
+      crystalsTotal: 0,
+      harvestersTotal: 0,
+      ownedTilesTotal: 0,
       warningTotal: 0,
     },
     nova: {
@@ -155,6 +169,9 @@ function createMutableStats():
       remainingResourcesTotal: 0,
       populationTotal: 0,
       creditsTotal: 0,
+      crystalsTotal: 0,
+      harvestersTotal: 0,
+      ownedTilesTotal: 0,
       warningTotal: 0,
     },
     vega: {
@@ -169,6 +186,9 @@ function createMutableStats():
       remainingResourcesTotal: 0,
       populationTotal: 0,
       creditsTotal: 0,
+      crystalsTotal: 0,
+      harvestersTotal: 0,
+      ownedTilesTotal: 0,
       warningTotal: 0,
     },
   }
@@ -206,6 +226,8 @@ export function runHeadlessSimulationBatch(
   let totalMarketTransactions = 0
   let playerTrades = 0
   let warehouseTrades = 0
+  let interstellarTrades = 0
+  let meteorImpacts = 0
 
   for (
     let gameIndex = 0;
@@ -281,6 +303,10 @@ export function runHeadlessSimulationBatch(
       stats.populationTotal +=
         participant.population
       stats.creditsTotal += participant.credits
+      stats.crystalsTotal +=
+        participant.resources.crystals
+      stats.harvestersTotal += participant.harvesters
+      stats.ownedTilesTotal += participant.ownedTiles
       stats.warningTotal += participantWarnings
     }
 
@@ -295,6 +321,9 @@ export function runHeadlessSimulationBatch(
       result.marketSummary.playerTrades
     warehouseTrades +=
       result.marketSummary.warehouseTrades
+    interstellarTrades +=
+      result.marketSummary.interstellarTrades
+    meteorImpacts += result.meteorImpacts.length
     outcomeSignatures.add(
       result.finalStandings
         .map(
@@ -343,6 +372,15 @@ export function runHeadlessSimulationBatch(
           averageCredits: round(
             stats.creditsTotal / games,
           ),
+          averageCrystals: round(
+            stats.crystalsTotal / games,
+          ),
+          averageHarvesters: round(
+            stats.harvestersTotal / games,
+          ),
+          averageOwnedTiles: round(
+            stats.ownedTilesTotal / games,
+          ),
           averageWarnings: round(
             stats.warningTotal / games,
           ),
@@ -371,6 +409,12 @@ export function runHeadlessSimulationBatch(
       ),
       warehouseTrades: round(
         warehouseTrades / games,
+      ),
+      interstellarTrades: round(
+        interstellarTrades / games,
+      ),
+      meteorImpacts: round(
+        meteorImpacts / games,
       ),
       playerTradeShare:
         totalMarketTransactions > 0

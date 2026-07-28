@@ -146,7 +146,8 @@ function RoundBriefingPanel({
               <span>{t('briefing.production')}</span>
               <strong>
                 🌾 {report.produced.food} · ⚡{' '}
-                {report.produced.energy} · ⛏ {report.produced.ore}
+                {report.produced.energy} · ⛏ {report.produced.ore} ·
+                💎 {report.produced.crystals}
               </strong>
             </div>
 

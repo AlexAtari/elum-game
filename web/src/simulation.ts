@@ -27,6 +27,16 @@ import {
   applyAutonomousRivalLandPurchases,
   getAutonomousRivalLandDecision,
 } from './rivalAutonomousLand'
+import { getInterstellarCrystalBuyerOffer } from './interstellarCrystalBuyer'
+import {
+  createMeteorImpact,
+  type MeteorImpact,
+} from './meteor'
+import {
+  targetCrystalRatings,
+  targetPlanetMap,
+  targetStartConfiguration,
+} from './planetMap'
 
 export type SimulationParticipantId =
   | 'agima'
@@ -69,6 +79,7 @@ export type SimulationWarning = {
 export type SimulationMarketCounterparty =
   | SimulationParticipantId
   | 'warehouse'
+  | 'interstellar-buyer'
 
 export type SimulationMarketTransaction = {
   round: number
@@ -77,7 +88,7 @@ export type SimulationMarketTransaction = {
   seller: SimulationMarketCounterparty
   price: number
   quantity: 1
-  kind: 'player' | 'warehouse'
+  kind: 'player' | 'warehouse' | 'interstellar'
 }
 
 export type SimulationMarketIntentDiagnostic = {
@@ -102,8 +113,12 @@ export type SimulationMarketDiagnostic = {
   compatiblePairs: number
   playerTrades: number
   warehouseTrades: number
+  interstellarTrades: number
+  interstellarOfferPrice: number | null
+  interstellarCapacity: number
   outcome:
     | 'player-trade'
+    | 'interstellar-trade'
     | 'warehouse-only'
     | 'no-trade'
   reason:
@@ -119,13 +134,14 @@ export type SimulationMarketSummary = {
   totalTransactions: number
   playerTrades: number
   warehouseTrades: number
+  interstellarTrades: number
   volume: Record<MarketResource, number>
   finalPrices: Record<MarketResource, number>
   finalWarehouseStock: Record<MarketResource, number>
 }
 
 export type HeadlessSimulationResult = {
-  mode: 'headless-economic-v5'
+  mode: 'headless-economic-v6'
   roundsPlayed: number
   marketIncluded: boolean
   history: SimulationRoundSnapshot[]
@@ -134,12 +150,14 @@ export type HeadlessSimulationResult = {
   marketTransactions: SimulationMarketTransaction[]
   marketDiagnostics: SimulationMarketDiagnostic[]
   marketSummary: SimulationMarketSummary
+  meteorImpacts: MeteorImpact[]
 }
 
 export type HeadlessSimulationOptions = {
   rounds?: number
   includeMarket?: boolean
   seed?: number
+  initialCrystalStock?: number
 }
 
 export type SimulationStartingLand = {
@@ -369,7 +387,10 @@ function executeSimulationMarketTransaction(
 ): InternalSimulationState {
   let nextState = state
 
-  if (transaction.buyer !== 'warehouse') {
+  if (
+    transaction.buyer !== 'warehouse' &&
+    transaction.buyer !== 'interstellar-buyer'
+  ) {
     nextState = updateSimulationColony(
       nextState,
       transaction.buyer,
@@ -385,7 +406,10 @@ function executeSimulationMarketTransaction(
     )
   }
 
-  if (transaction.seller !== 'warehouse') {
+  if (
+    transaction.seller !== 'warehouse' &&
+    transaction.seller !== 'interstellar-buyer'
+  ) {
     nextState = updateSimulationColony(
       nextState,
       transaction.seller,
@@ -611,6 +635,54 @@ function clearSimulationResourceMarket(
   let warehouseStock =
     nextState.market.warehouseStock[resource]
   let warehouseNetFlow = 0
+  const interstellarOffer =
+    resource === 'crystals'
+      ? getInterstellarCrystalBuyerOffer(
+          round,
+          referencePrice,
+          0,
+        )
+      : null
+  let interstellarRemainingCapacity =
+    interstellarOffer?.remainingCapacity ?? 0
+
+  if (
+    interstellarOffer &&
+    interstellarOffer.offerPrice >= warehouseBuyPrice
+  ) {
+    for (const seller of sellers) {
+      while (
+        seller.remaining > 0 &&
+        interstellarRemainingCapacity > 0 &&
+        seller.intent.limitPrice <=
+          interstellarOffer.offerPrice
+      ) {
+        const sellerColony = getSimulationColony(
+          nextState,
+          seller.participantId,
+        )
+        if (sellerColony.resources.crystals < 1) {
+          break
+        }
+
+        nextState =
+          executeSimulationMarketTransaction(
+            nextState,
+            {
+              round,
+              resource,
+              buyer: 'interstellar-buyer',
+              seller: seller.participantId,
+              price: interstellarOffer.offerPrice,
+              quantity: 1,
+              kind: 'interstellar',
+            },
+          )
+        seller.remaining -= 1
+        interstellarRemainingCapacity -= 1
+      }
+    }
+  }
 
   for (const buyer of buyers) {
     while (
@@ -703,9 +775,17 @@ function clearSimulationResourceMarket(
         transaction.kind === 'player',
     ).length
   const warehouseTrades =
-    resourceTransactions.length - playerTrades
+    resourceTransactions.filter(
+      (transaction) =>
+        transaction.kind === 'warehouse',
+    ).length
+  const interstellarTrades =
+    resourceTransactions.filter(
+      (transaction) =>
+        transaction.kind === 'interstellar',
+    ).length
   const reason =
-    playerTrades > 0
+    playerTrades > 0 || interstellarTrades > 0
       ? 'matched'
       : buyerCount === 0 &&
         sellerCount === 0
@@ -720,6 +800,8 @@ function clearSimulationResourceMarket(
   const outcome =
     playerTrades > 0
       ? 'player-trade'
+      : interstellarTrades > 0
+      ? 'interstellar-trade'
       : warehouseTrades > 0
       ? 'warehouse-only'
       : 'no-trade'
@@ -756,6 +838,11 @@ function clearSimulationResourceMarket(
         compatiblePairs,
         playerTrades,
         warehouseTrades,
+        interstellarTrades,
+        interstellarOfferPrice:
+          interstellarOffer?.offerPrice ?? null,
+        interstellarCapacity:
+          interstellarOffer?.capacity ?? 0,
         outcome,
         reason,
       },
@@ -798,14 +885,23 @@ function createSimulationMarketSummary(
       (transaction) =>
         transaction.kind === 'player',
     ).length
+  const interstellarTrades =
+    state.marketTransactions.filter(
+      (transaction) =>
+        transaction.kind === 'interstellar',
+    ).length
+  const warehouseTrades =
+    state.marketTransactions.filter(
+      (transaction) =>
+        transaction.kind === 'warehouse',
+    ).length
 
   return {
     totalTransactions:
       state.marketTransactions.length,
     playerTrades,
-    warehouseTrades:
-      state.marketTransactions.length -
-      playerTrades,
+    warehouseTrades,
+    interstellarTrades,
     volume,
     finalPrices: cloneMarketValues(
       state.market.prices,
@@ -1125,6 +1221,7 @@ function createShadowRival(
 function advanceAgima(
   agima: RivalColonyState,
   round: number,
+  meteorImpacts: MeteorImpact[] = [],
 ): RivalColonyState {
   const shadowColonies: RivalColonies = {
     orion: {
@@ -1147,7 +1244,49 @@ function advanceAgima(
     shadowColonies,
     round,
     null,
+    meteorImpacts,
   ).orion
+}
+
+function applySimulationMeteorImpact(
+  state: InternalSimulationState,
+  round: number,
+): InternalSimulationState {
+  if (
+    !(state.game.meteorSchedule ?? []).includes(round)
+  ) {
+    return state
+  }
+
+  const previousImpacts =
+    state.game.meteorImpacts ?? []
+  const soldTileIds = [
+    ...(state.agima.ownedTileIds ?? []),
+    ...Object.values(state.game.rivals).flatMap(
+      (rival) => rival.ownedTileIds ?? [],
+    ),
+  ]
+  const impact = createMeteorImpact(
+    targetPlanetMap,
+    targetStartConfiguration,
+    targetCrystalRatings,
+    soldTileIds,
+    previousImpacts,
+    round,
+    state.seed,
+  )
+
+  if (!impact) {
+    return state
+  }
+
+  return {
+    ...state,
+    game: {
+      ...state.game,
+      meteorImpacts: [...previousImpacts, impact],
+    },
+  }
 }
 
 function applyAgimaLandPurchase(
@@ -1376,22 +1515,42 @@ function collectRoundWarnings(
 
 function createInitialSimulationState(
   seed: number,
+  initialCrystalStock: number = 0,
 ): InternalSimulationState {
   const baseGame =
-    createPlayableInitialGameState()
+    createPlayableInitialGameState(seed)
   const startingLand =
     createBalancedSimulationStartingLand(seed)
+  const normalizedInitialCrystalStock =
+    Number.isFinite(initialCrystalStock)
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            Math.trunc(initialCrystalStock),
+          ),
+        )
+      : 0
+  const withInitialCrystals = (
+    colony: RivalColonyState,
+  ): RivalColonyState => ({
+    ...colony,
+    resources: {
+      ...colony.resources,
+      crystals: normalizedInitialCrystalStock,
+    },
+  })
   const rivals: RivalColonies = {
     orion: applyStartingLand(
-      baseGame.rivals.orion,
+      withInitialCrystals(baseGame.rivals.orion),
       startingLand.orion,
     ),
     nova: applyStartingLand(
-      baseGame.rivals.nova,
+      withInitialCrystals(baseGame.rivals.nova),
       startingLand.nova,
     ),
     vega: applyStartingLand(
-      baseGame.rivals.vega,
+      withInitialCrystals(baseGame.rivals.vega),
       startingLand.vega,
     ),
   }
@@ -1425,9 +1584,11 @@ function createInitialSimulationState(
 
   return {
     game,
-    agima: createAgimaAgent(
-      game,
-      startingLand.agima,
+    agima: withInitialCrystals(
+      createAgimaAgent(
+        game,
+        startingLand.agima,
+      ),
     ),
     seed,
     market,
@@ -1470,13 +1631,15 @@ function advanceSimulationRound(
     withMarket.game.rivals,
     round,
     null,
+    withMarket.game.meteorImpacts,
   )
   const nextAgima = advanceAgima(
     withMarket.agima,
     round,
+    withMarket.game.meteorImpacts,
   )
 
-  return {
+  return applySimulationMeteorImpact({
     ...withMarket,
     game: {
       ...withMarket.game,
@@ -1492,7 +1655,7 @@ function advanceSimulationRound(
       rivals: nextRivals,
     },
     agima: nextAgima,
-  }
+  }, round)
 }
 
 export function runHeadlessEconomicSimulation(
@@ -1510,7 +1673,10 @@ export function runHeadlessEconomicSimulation(
   const seed = normalizeSimulationSeed(
     options.seed,
   )
-  let state = createInitialSimulationState(seed)
+  let state = createInitialSimulationState(
+    seed,
+    options.initialCrystalStock ?? 0,
+  )
   const history: SimulationRoundSnapshot[] = [
     createRoundSnapshot(0, state),
   ]
@@ -1550,7 +1716,7 @@ export function runHeadlessEconomicSimulation(
   )
 
   return {
-    mode: 'headless-economic-v5',
+    mode: 'headless-economic-v6',
     roundsPlayed,
     marketIncluded: includeMarket,
     history,
@@ -1562,6 +1728,7 @@ export function runHeadlessEconomicSimulation(
       state.marketDiagnostics,
     marketSummary:
       createSimulationMarketSummary(state),
+    meteorImpacts: [...(state.game.meteorImpacts ?? [])],
   }
 }
 

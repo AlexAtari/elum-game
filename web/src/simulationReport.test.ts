@@ -102,7 +102,8 @@ function formatMarketSummary(
   return [
     `Transaktionen: ${summary.totalTransactions} ` +
       `(Spielerhandel: ${summary.playerTrades} · ` +
-      `HQ-Lager: ${summary.warehouseTrades})`,
+      `HQ-Lager: ${summary.warehouseTrades} · ` +
+      `Interstellar: ${summary.interstellarTrades})`,
     'Volumen: ' +
       `Nahrung ${summary.volume.food} · ` +
       `Energie ${summary.volume.energy} · ` +
@@ -209,6 +210,10 @@ function formatMarketDiagnostics(
     (diagnostic) =>
       diagnostic.outcome === 'warehouse-only',
   ).length
+  const interstellarTradeWindows = diagnostics.filter(
+    (diagnostic) =>
+      diagnostic.interstellarTrades > 0,
+  ).length
   const noTradeWindows = diagnostics.filter(
     (diagnostic) =>
       diagnostic.outcome === 'no-trade',
@@ -269,6 +274,7 @@ function formatMarketDiagnostics(
       `Käufer und Verkäufer: ${opposingRoles} · ` +
       `Preisüberschneidung: ${compatiblePrices}`,
     `Spielerhandelsfenster: ${playerTradeWindows} · ` +
+      `interstellar: ${interstellarTradeWindows} · ` +
       `nur HQ-Lager: ${warehouseOnlyWindows} · ` +
       `ohne Handel: ${noTradeWindows}`,
     `Ursachen: ${reasons || 'keine'}`,
@@ -328,6 +334,7 @@ export function formatSimulationReport(
     '=============================================================',
     `Runden: ${result.roundsPlayed}`,
     `Markt einbezogen: ${result.marketIncluded ? 'ja' : 'nein'}`,
+    `Meteoriten: ${result.meteorImpacts.length}`,
     '',
     'ENDRANGLISTE',
     'Rang Kolonie      Bev  Abrech.   Rest  Harv  Credits   Food Energie   Erz Kristall    Ökon.',

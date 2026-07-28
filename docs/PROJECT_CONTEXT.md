@@ -83,7 +83,8 @@ vermischt werden.
 ### Harvester
 
 - ein Harvester pro Grundstück
-- produziert genau eine Ressource
+- produziert genau eine Ressource, einschließlich Kristallen auf
+  einem Vorkommen
 - benötigt eine Energie je aktiver Runde
 - neue Harvester kosten aktuell 30 Credits und 3 Erz
 - Umrüstung: Übergangsrunde mit halber neuer Produktion
@@ -253,7 +254,7 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. Kristallförderung und Ereignisse in der Simulation
+2. Expansion und Harvesterbau bis zu den Fernzonen stabilisieren
 3. Hochsicherheits-Kristalltransporter
 4. später grafische Entfaltung oder 3D-Kugel
 
@@ -263,6 +264,13 @@ zeigt Vega bei 15,0 % Siegen sowie synchronisierte Versorgungsbedarfe:
 Nur 1,0 % des Marktvolumens findet direkt zwischen Kolonien statt.
 Profilwerte wurden wegen nachgewiesener Rundungsschwellen nicht
 isoliert verändert.
+
+Kristalle sind inzwischen eine gemeinsame vierte
+Harvesterproduktion; Meteore und der interstellare Käufer laufen auch
+in der Headless-Simulation. Der 200-Partien-Lauf erzeugt 2,4 Meteore,
+aber 0,0 Käufertransaktionen je Partie, weil alle Agenten im Mittel
+bei 2,0 Harvestern und 2,0 Grundstücken bleiben und keine Fernzonenader
+erreichen.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

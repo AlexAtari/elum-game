@@ -40,6 +40,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - Ziel-Startfelder im normalen Browser-Spielzustand
 - zwei Startfelder je Kolonie
 - Nahrung, Energie, Erz, Kristalle und Credits
+- Kristallförderung durch Harvester auf natürlichen und durch
+  Meteore aufgewerteten Vorkommen
 - Harvesterbau und mehrere parallele Bauaufträge
 - Harvesterplatzierung, Produktion, Umrüstung und Versetzung
 - Energiebedarf der Harvester
@@ -54,6 +56,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - sichtbarer Countdown bis zum Versorgungsschiff
 - Versorgungsschiff und Ablösung nach der 20. Abrechnung
 - Headless-Einzel- und Seriensimulation
+- seedbasierte Meteore und kapazitätsbegrenzter interstellarer
+  Kristallkäufer in der Headless-Simulation
 - GitHub-Pages-Deployment mit Test, Lint und Build
 
 ## Grundstücksauktion – aktueller Sollstand
@@ -93,6 +97,8 @@ Systemische Beobachtungen aus dem aktuellen Lauf:
 - 1,3 direkte Spielertransaktionen je Partie
 - direkter Handelsanteil 1,0 %
 - 126,2 HQ-Lagertransaktionen je Partie
+- 0,0 Verkäufe an den interstellaren Käufer je Partie
+- durchschnittlich 2,4 Meteore je Partie
 - 52,25 Versorgungssignale je Partie
 - davon 4.989 Bevölkerungsrückgänge, 2.276 leere Nahrungs- und
   3.181 leere Energiebestände
@@ -107,6 +113,13 @@ Konservative Einzeländerungen an Vegas Profil zeigten
 Rundungsschwellen: oberhalb der Schwelle blieb das Ergebnis
 unverändert, der nächste Schritt hob Vega auf 42 % und drückte Nova
 auf 8 %. Deshalb wurden in diesem Paket keine Profilwerte geändert.
+
+Die vier Kolonien enden im Referenzlauf durchschnittlich jeweils mit
+2,0 Harvestern und 2,0 Grundstücken. Damit erreichen die Agenten die
+natürlichen Fernzonenadern nicht. Agima und Orion halten im Mittel je
+1,0 Kristall aus HQ-Käufen; Nova und Vega 0,0. Der interstellare Käufer
+ist in gezielten Szenarien aktiv und kapazitätsbegrenzt, erhält im
+normalen Referenzlauf aber kein Angebot.
 
 ## Aktuelle UI-Akzeptanzkriterien
 
@@ -133,8 +146,8 @@ Nach UI- und Dokumentationsarbeiten:
    pauschal zu vergrößern,
 3. Vegas Schwäche systemisch statt über eine Rundungsschwelle im
    Profil korrigieren,
-4. Kristallförderung, Meteore und interstellaren Käufer in die
-   Headless-Simulation aufnehmen,
+4. Expansion und Harvesterbau so stabilisieren, dass Kristalladern
+   innerhalb von 20 Runden tatsächlich erreichbar werden,
 5. Karten- und Ereignisbalancing mit Playtests prüfen.
 
 ## Später, nicht Teil des aktuellen Kerns
@@ -161,6 +174,8 @@ sichtbarem Versorgungsschiff-Countdown, Abschlussankunft und
 lexikografischer Zielwertung. Er verwendet außerdem den
 92-Felder-Graphen und vier natürliche, abgestufte Kristalladern.
 Kristallwerte werden erst auf eigenen Grundstücken offengelegt. Die
+Werte können dort jetzt als vierte Harvesterproduktion gefördert
+werden; Meteorboni fließen in denselben Ertrag ein. Die
 konservative Meteorvariante mit zwei garantierten und einem optionalen
 dritten Einschlag ist ebenfalls aktiv; Kraterzentren werden öffentlich
 markiert und Aufwertungen bei fünf Sternen gedeckelt. Der
@@ -172,7 +187,7 @@ einem späteren Spielstart-Schritt.
 
 Nächste technische Reihenfolge:
 
-1. erneut simulieren und balancieren.
+1. Expansion und Harvesterbau für den Zugang zu Fernzonen balancieren.
 2. Hochsicherheits-Kristalltransporter ergänzen.
 
 Details: `docs/PLANET_MAP.md`.

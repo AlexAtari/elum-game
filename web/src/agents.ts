@@ -5,8 +5,12 @@ export type AgentPersonality =
   | 'industrial'
   | 'autopilot'
 
-export type AgentProductionResource = 'food' | 'energy' | 'ore'
-export type AgentMarketResource = AgentProductionResource | 'crystals'
+export type AgentProductionResource =
+  | 'food'
+  | 'energy'
+  | 'ore'
+  | 'crystals'
+export type AgentMarketResource = AgentProductionResource
 export type AgentMarketRole = 'neutral' | 'buyer' | 'seller'
 
 export type AgentResources = Record<AgentMarketResource, number>
@@ -126,7 +130,12 @@ export const agentProfiles: Record<AgentPlayerId, AgentProfile> = {
     cashReserve: 35,
     expansionBias: 0.55,
     harvesterBias: 0.6,
-    productionWeights: { food: 1, energy: 1, ore: 0.85 },
+    productionWeights: {
+      food: 1,
+      energy: 1,
+      ore: 0.85,
+      crystals: 0.6,
+    },
     crystalReserve: 1,
     oreReserveBuilds: 1,
     maximumLandBidShare: 0.3,
@@ -138,7 +147,12 @@ export const agentProfiles: Record<AgentPlayerId, AgentProfile> = {
     cashReserve: 35,
     expansionBias: 0.5,
     harvesterBias: 0.55,
-    productionWeights: { food: 1, energy: 1, ore: 0.8 },
+    productionWeights: {
+      food: 1,
+      energy: 1,
+      ore: 0.8,
+      crystals: 0.6,
+    },
     crystalReserve: 1,
     oreReserveBuilds: 1,
     maximumLandBidShare: 0.28,
@@ -154,6 +168,7 @@ export const agentProfiles: Record<AgentPlayerId, AgentProfile> = {
       food: 1.3,
       energy: 1.25,
       ore: 1.0,
+      crystals: 0.45,
     },
     crystalReserve: 0,
     oreReserveBuilds: 1.5,
@@ -170,6 +185,7 @@ export const agentProfiles: Record<AgentPlayerId, AgentProfile> = {
       food: 1.1,
       energy: 1.25,
       ore: 0.95,
+      crystals: 0.7,
     },
     crystalReserve: 0,
     oreReserveBuilds: 2,
@@ -181,6 +197,7 @@ const productionResources: AgentProductionResource[] = [
   'food',
   'energy',
   'ore',
+  'crystals',
 ]
 
 const marketResources: AgentMarketResource[] = [

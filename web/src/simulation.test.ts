@@ -15,7 +15,7 @@ describe('Interne Wirtschaftssimulation', () => {
     const result = runHeadlessEconomicSimulation()
 
     expect(result.mode).toBe(
-      'headless-economic-v5',
+      'headless-economic-v6',
     )
     expect(result.roundsPlayed).toBe(
       GAME_ROUND_LIMIT,
@@ -125,6 +125,49 @@ describe('Interne Wirtschaftssimulation', () => {
         rounds: 6,
       }),
     )
+  })
+
+  it('wendet den seedbasierten Meteorplan reproduzierbar an', () => {
+    const first = runHeadlessEconomicSimulation({
+      seed: 12,
+    })
+    const second = runHeadlessEconomicSimulation({
+      seed: 12,
+    })
+
+    expect(first.meteorImpacts.length).toBeGreaterThanOrEqual(2)
+    expect(first.meteorImpacts.length).toBeLessThanOrEqual(3)
+    expect(first.meteorImpacts).toEqual(second.meteorImpacts)
+    expect(
+      first.meteorImpacts.map((impact) => impact.round),
+    ).toEqual(
+      [...first.meteorImpacts]
+        .map((impact) => impact.round)
+        .sort((left, right) => left - right),
+    )
+  })
+
+  it('begrenzt simulierte Verkäufe an den interstellaren Käufer', () => {
+    const result = runHeadlessEconomicSimulation({
+      rounds: 1,
+      seed: 4,
+      initialCrystalStock: 3,
+    })
+    const interstellarTrades =
+      result.marketTransactions.filter(
+        (transaction) =>
+          transaction.kind === 'interstellar',
+      )
+
+    expect(interstellarTrades).toHaveLength(1)
+    expect(interstellarTrades[0]).toMatchObject({
+      resource: 'crystals',
+      buyer: 'interstellar-buyer',
+      price: 36,
+    })
+    expect(
+      result.marketSummary.interstellarTrades,
+    ).toBe(1)
   })
 
   it('bleibt mit demselben Seed vollständig reproduzierbar', () => {

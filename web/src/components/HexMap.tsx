@@ -1017,7 +1017,13 @@ function HexMap({
                         Object.keys(
                           productionTypes,
                         ) as ProductionType[]
-                      ).map((production) => (
+                      )
+                        .filter(
+                          (production) =>
+                            production !== 'crystals' ||
+                            selectedCrystalRating > 0,
+                        )
+                        .map((production) => (
                         <button
                           key={production}
                           className="production-button"
@@ -1080,7 +1086,13 @@ function HexMap({
                         Object.keys(
                           productionTypes,
                         ) as ProductionType[]
-                      ).map((production) => (
+                      )
+                        .filter(
+                          (production) =>
+                            production !== 'crystals' ||
+                            selectedCrystalRating > 0,
+                        )
+                        .map((production) => (
                         <button
                           key={production}
                           className="production-button"

@@ -10,6 +10,7 @@ import { getInterstellarCrystalBuyerOffer } from './interstellarCrystalBuyer'
 import {
   createMeteorImpact,
   createMeteorSchedule,
+  getEffectiveCrystalRating,
   type MeteorImpact,
 } from './meteor'
 import {
@@ -21,7 +22,11 @@ import {
   type PlanetTile,
 } from './planetMap'
 
-export type ProductionType = 'food' | 'energy' | 'ore'
+export type ProductionType =
+  | 'food'
+  | 'energy'
+  | 'ore'
+  | 'crystals'
 
 export type Resources = {
   food: number
@@ -752,6 +757,7 @@ function getRivalProduction(
   rival: RivalColonyState,
   roundPlayed: number,
   globalEvent: GlobalEventId | null = null,
+  meteorImpacts: MeteorImpact[] = [],
 ): Record<ProductionType, number> {
   if (
     rival.harvesterAssignments &&
@@ -766,6 +772,7 @@ function getRivalProduction(
           production,
           roundPlayed,
         ),
+      meteorImpacts,
     )
   }
 
@@ -774,6 +781,7 @@ function getRivalProduction(
     food: 0,
     energy: 0,
     ore: 0,
+    crystals: 0,
   }
   const productionCycle = createAgentPlan({
     round: roundPlayed,
@@ -785,7 +793,14 @@ function getRivalProduction(
         oreCost: HARVESTER_ORE_COST,
       },
     },
-  }).productionPriorities.map(({ resource }) => resource)
+  }).productionPriorities
+    .map(({ resource }) => resource)
+    .filter(
+      (resource): resource is Exclude<
+        ProductionType,
+        'crystals'
+      > => resource !== 'crystals',
+    )
   const quakeFailures =
     globalEvent === 'planetary-quake'
       ? getGlobalEventAmount(globalEvent, roundPlayed) ?? 0
@@ -819,6 +834,7 @@ export function advanceRivalColonies(
   rivals: RivalColonies,
   roundPlayed: number,
   globalEvent: GlobalEventId | null = null,
+  meteorImpacts: MeteorImpact[] = [],
 ): RivalColonies {
   return Object.fromEntries(
     Object.entries(rivals).map(([id, rival]) => {
@@ -832,6 +848,7 @@ export function advanceRivalColonies(
             creditCost: HARVESTER_CREDIT_COST,
             oreCost: HARVESTER_ORE_COST,
           },
+          meteorImpacts,
         )
       const operatingRival = {
         ...rival,
@@ -890,6 +907,7 @@ export function advanceRivalColonies(
         productionRival,
         roundPlayed,
         globalEvent,
+        meteorImpacts,
       )
       const hasNormalSupply =
         consumedFood === plannedFood &&
@@ -1116,6 +1134,10 @@ export const productionTypes: Record<
   ore: {
     label: 'Erz',
     icon: '⛏',
+  },
+  crystals: {
+    label: 'Kristalle',
+    icon: '💎',
   },
 }
 
@@ -1919,7 +1941,19 @@ export function resolveLandTieBreak(
   }
 }
 
-function getRating(tile: Tile, production: ProductionType) {
+function getRating(
+  tile: Tile,
+  production: ProductionType,
+  meteorImpacts: MeteorImpact[] = [],
+) {
+  if (production === 'crystals') {
+    return getEffectiveCrystalRating(
+      tile.id,
+      targetCrystalRatings,
+      meteorImpacts,
+    )
+  }
+
   return tile[production] ?? 0
 }
 
@@ -1928,6 +1962,7 @@ function getDistanceFromHq(tile: Tile) {
 }
 
 const deactivationPriority: Record<ProductionType, number> = {
+  crystals: 0,
   ore: 1,
   energy: 2,
   food: 3,
@@ -2051,10 +2086,15 @@ export function runRound(
                 getRating(
                   tile,
                   assignment.pendingProduction!,
+                  currentState.meteorImpacts,
                 ) / 2,
               )
             : 0
-          : getRating(tile, assignment.production),
+          : getRating(
+              tile,
+              assignment.production,
+              currentState.meteorImpacts,
+            ),
         distance: getDistanceFromHq(tile),
         randomOrder: Math.random(),
       })
@@ -2152,6 +2192,7 @@ export function runRound(
     food: 0,
     energy: 0,
     ore: 0,
+    crystals: 0,
   }
 
   for (const task of activeProductionTasks) {
@@ -2218,6 +2259,7 @@ export function runRound(
     currentState.rivals,
     currentState.round,
     currentState.activeGlobalEvent,
+    currentState.meteorImpacts,
   )
   const rivalsAfterLandAuction = rivalWonLand
     ? {
@@ -2278,7 +2320,9 @@ export function runRound(
         consumedEnergyByHarvesters +
         produced.energy,
       ore: currentState.resources.ore + produced.ore,
-      crystals: currentState.resources.crystals,
+      crystals:
+        currentState.resources.crystals +
+        produced.crystals,
     },
     ownedTileIds: nextOwnedTileIds,
     opponentTileIds: nextOpponentTileIds,

@@ -200,7 +200,12 @@ Jedes Feld besitzt für Nahrung, Energie und Erz eine Eignung zwischen 0 und 5 S
 
 Die Sterne entsprechen dem durchschnittlichen Ertrag des Feldes.
 
-Kristalle können ausschließlich auf Feldern mit einem entdeckten Kristallvorkommen gefördert werden.
+Kristalle können ausschließlich auf Feldern mit einem entdeckten
+Kristallvorkommen gefördert werden. Sie sind dort eine reguläre
+Harvesterproduktion mit demselben Energiebedarf sowie denselben
+Umrüstungs- und Versetzungsregeln wie Nahrung, Energie und Erz. Der
+Ertrag folgt dem effektiven Sternwert aus natürlicher Ader und
+Meteoraufwertungen.
 
 Vor dem Kauf sichtbar:
 

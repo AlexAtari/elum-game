@@ -82,6 +82,62 @@ describe('Planetengraph-Karte', () => {
     ).toHaveLength(92)
   })
 
+  it('fördert natürliche und durch Meteore aufgewertete Kristalle', () => {
+    const naturalCrystalTile = tiles.find(
+      (tile) => tile.crystals === 5,
+    )!
+    const meteorCrystalTile = tiles.find(
+      (tile) =>
+        tile.id !== 'HQ' &&
+        (tile.crystals ?? 0) === 0,
+    )!
+    const crystalHarvester = (
+      tileId: string,
+    ): HarvesterAssignments => ({
+      [tileId]: {
+        production: 'crystals',
+        isNew: false,
+      },
+    })
+    const suppliedState = {
+      ...createInitialGameState(),
+      resources: {
+        ...createInitialGameState().resources,
+        food: 20,
+        energy: 20,
+      },
+    }
+
+    const naturalResult = runRound(
+      suppliedState,
+      crystalHarvester(naturalCrystalTile.id),
+      normalSupply,
+    )
+    const meteorResult = runRound(
+      {
+        ...suppliedState,
+        meteorImpacts: [
+          {
+            id: 'test-meteor',
+            round: 5,
+            centerTileId: meteorCrystalTile.id,
+            tileBonuses: {
+              [meteorCrystalTile.id]: 3,
+            },
+          },
+        ],
+      },
+      crystalHarvester(meteorCrystalTile.id),
+      normalSupply,
+    )
+
+    expect(naturalResult.report.produced.crystals).toBe(5)
+    expect(
+      naturalResult.nextState.resources.crystals,
+    ).toBe(5)
+    expect(meteorResult.report.produced.crystals).toBe(3)
+  })
+
   it('gibt Agima zwei faire Startfelder', () => {
     expect(PLAYER_START_TILE_IDS).toEqual(['P021', 'P060'])
     expect(
@@ -331,6 +387,7 @@ describe('Ereignisse', () => {
       food: 0,
       energy: 0,
       ore: 0,
+      crystals: 0,
     })
   })
 
@@ -1588,6 +1645,7 @@ describe('Umrüstung und Versetzung', () => {
       food: 0,
       energy: 0,
       ore: 0,
+      crystals: 0,
     })
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
     expect(result.report.completedRetoolingIds).toEqual([

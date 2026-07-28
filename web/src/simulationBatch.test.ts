@@ -75,6 +75,15 @@ describe('Balancing-Seriensimulation', () => {
         participant.averageRemainingResources,
       ).toBeGreaterThanOrEqual(0)
       expect(
+        participant.averageCrystals,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.averageHarvesters,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.averageOwnedTiles,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
         participant.winRate,
       ).toBeGreaterThanOrEqual(0)
       expect(
@@ -88,6 +97,9 @@ describe('Balancing-Seriensimulation', () => {
     expect(
       result.averages.playerTrades,
     ).toBeGreaterThan(0)
+    expect(
+      result.averages.meteorImpacts,
+    ).toBeGreaterThanOrEqual(2)
   })
 
   it('ist bei gleichen Seeds reproduzierbar', () => {

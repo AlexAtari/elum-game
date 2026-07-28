@@ -54,6 +54,15 @@ Versorgungssignale je Partie. Nur 1,0 % des Volumens sind direkte
 Geschäfte zwischen Kolonien. Ohne Markt steigen die Versorgungssignale
 auf 56,52; das HQ darf deshalb nicht isoliert reduziert werden.
 
+Die aktivierten Kristall- und Meteorregeln verändern diesen
+Referenzlauf noch nicht: Pro Partie entstehen durchschnittlich 2,4
+Meteore, aber 0,0 Verkäufe an den interstellaren Käufer. Alle Kolonien
+enden im Mittel mit 2,0 Harvestern und 2,0 Grundstücken. Natürliche
+Adern in der Fernzone werden daher nicht erreicht. Agima und Orion
+halten im Mittel je 1,0 beim HQ gekauften Kristall, Nova und Vega 0,0.
+Diese Nullwirkung ist ein Zugangsproblem, kein Grund, Käuferkapazität
+oder Kristallkurs zu erhöhen.
+
 Profilwerte bleiben vorläufig unverändert. Besonders Vegas
 `reserveRounds` reagiert wegen ganzzahliger Zielbestände
 schwellenartig; der nächste wirksame Einzelschritt überkompensiert die
@@ -146,7 +155,11 @@ Standardwahrscheinlichkeit:
 
 Der Ertrag kann niemals negativ sein.
 
-Kristalle können nur produziert werden, wenn nach dem Kauf ein Kristallvorkommen entdeckt wurde.
+Kristalle können nur produziert werden, wenn nach dem Kauf ein
+Kristallvorkommen entdeckt wurde. Der Harvester verwendet den
+effektiven Sternwert aus natürlicher Ader plus gedeckelten
+Meteorboni. Umrüstung, Versetzung und Energieverbrauch entsprechen
+den anderen Produktionsarten.
 
 ## Umrüstung und Versetzung
 

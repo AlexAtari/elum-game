@@ -167,7 +167,23 @@ describe('Orions Harvester-Zuweisungen', () => {
       food: 6,
       energy: 0,
       ore: 5,
+      crystals: 0,
     })
+  })
+
+  it('fördert Kristalle aus natürlichen und Meteorvorkommen', () => {
+    const crystalTile = tiles.find(
+      (tile) => tile.crystals === 5,
+    )!
+    const production =
+      calculateOrionAssignedProduction(
+        {
+          [crystalTile.id]: 'crystals',
+        },
+        tiles,
+      )
+
+    expect(production.crystals).toBe(5)
   })
 
   it('speichert die Zuweisung im zentralen Rundenablauf', () => {

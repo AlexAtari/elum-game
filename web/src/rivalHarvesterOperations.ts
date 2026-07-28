@@ -7,6 +7,11 @@ import type {
   RivalColonyState,
   Tile,
 } from './game'
+import {
+  getEffectiveCrystalRating,
+  type MeteorImpact,
+} from './meteor'
+import { targetCrystalRatings } from './planetMap'
 
 export type RivalHarvesterAssignments = Partial<
   Record<string, ProductionType>
@@ -25,12 +30,22 @@ const productionOrder: ProductionType[] = [
   'food',
   'energy',
   'ore',
+  'crystals',
 ]
 
 function getTileYield(
   tile: Tile,
   production: ProductionType,
+  meteorImpacts: MeteorImpact[] = [],
 ) {
+  if (production === 'crystals') {
+    return getEffectiveCrystalRating(
+      tile.id,
+      targetCrystalRatings,
+      meteorImpacts,
+    )
+  }
+
   return tile[production] ?? 0
 }
 
@@ -87,10 +102,11 @@ function getAssignmentUtility(
   tile: Tile,
   production: ProductionType,
   priorityScores: Record<ProductionType, number>,
+  meteorImpacts: MeteorImpact[] = [],
 ) {
   return (
     priorityScores[production] +
-    getTileYield(tile, production) * 12
+    getTileYield(tile, production, meteorImpacts) * 12
   )
 }
 
@@ -100,6 +116,7 @@ export function planRivalHarvesterOperations(
   roundPlayed: number,
   referencePrices: AgentContext['referencePrices'],
   harvesterBuild: HarvesterBuildCost,
+  meteorImpacts: MeteorImpact[] = [],
 ): RivalHarvesterOperationsPlan {
   const productiveTileIds = getProductiveTileIds(
     rival,
@@ -119,6 +136,7 @@ export function planRivalHarvesterOperations(
     food: 0,
     energy: 0,
     ore: 0,
+    crystals: 0,
   }
 
   for (const tile of productiveTiles) {
@@ -169,11 +187,11 @@ export function planRivalHarvesterOperations(
       (first, second) => {
         const firstScore =
           priorityScores[first] +
-          getTileYield(tile, first) * 12 -
+          getTileYield(tile, first, meteorImpacts) * 12 -
           assignmentCounts[first] * 4
         const secondScore =
           priorityScores[second] +
-          getTileYield(tile, second) * 12 -
+          getTileYield(tile, second, meteorImpacts) * 12 -
           assignmentCounts[second] * 4
 
         return (
@@ -212,7 +230,14 @@ export function planRivalHarvesterOperations(
         const tile = productiveTiles.find(
           (candidate) => candidate.id === tileId,
         )
-        if (!tile || getTileYield(tile, retoolTarget) <= 0) {
+        if (
+          !tile ||
+          getTileYield(
+            tile,
+            retoolTarget,
+            meteorImpacts,
+          ) <= 0
+        ) {
           return []
         }
 
@@ -221,11 +246,13 @@ export function planRivalHarvesterOperations(
             tile,
             retoolTarget,
             priorityScores,
+            meteorImpacts,
           ) -
           getAssignmentUtility(
             tile,
             currentProduction,
             priorityScores,
+            meteorImpacts,
           )
 
         return [
@@ -235,6 +262,7 @@ export function planRivalHarvesterOperations(
             targetYield: getTileYield(
               tile,
               retoolTarget,
+              meteorImpacts,
             ),
           },
         ]
@@ -288,11 +316,13 @@ export function calculateRivalAssignedProduction(
   assignments: RivalHarvesterAssignments,
   allTiles: Tile[],
   getModifier: ProductionModifier = () => 0,
+  meteorImpacts: MeteorImpact[] = [],
 ): Record<ProductionType, number> {
   const production: Record<ProductionType, number> = {
     food: 0,
     energy: 0,
     ore: 0,
+    crystals: 0,
   }
 
   for (const [tileId, productionType] of Object.entries(
@@ -311,7 +341,11 @@ export function calculateRivalAssignedProduction(
 
     production[productionType] += Math.max(
       0,
-      getTileYield(tile, productionType) +
+      getTileYield(
+        tile,
+        productionType,
+        meteorImpacts,
+      ) +
         getModifier(productionType),
     )
   }
@@ -329,6 +363,7 @@ const energyPriority: ProductionType[] = [
   'energy',
   'food',
   'ore',
+  'crystals',
 ]
 
 export function allocateRivalHarvesterEnergy(

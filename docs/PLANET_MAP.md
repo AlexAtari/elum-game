@@ -1,7 +1,7 @@
 # Planet, Karte, Kristalle und Meteore
 
 **Status:** beschlossenes Zielbild, noch nicht vollständig implementiert
-**Last Updated:** 2026-07-27
+**Last Updated:** 2026-07-28
 
 Dieses Dokument konkretisiert die Karten-, Kristall- und Meteorregeln
 des GDD. Zahlenwerte bleiben Balancingparameter. Bei Abweichungen zum
@@ -156,6 +156,11 @@ Die Adern sind im 92-Felder-Graphen implementiert. Überlappende
 Ausläufer behalten jeweils den höheren Wert. Im Browser bleibt der
 Kristallwert bis zum Erwerb eines Grundstücks verdeckt.
 
+Auf einem eigenen Vorkommen kann ein Harvester Kristalle als vierte
+Produktionsart fördern. Der wirksame Ertrag kombiniert den natürlichen
+Wert mit bisherigen Meteorboni und bleibt bei fünf Sternen gedeckelt.
+Dieselbe Regel gilt für Rivalen und Headless-Simulation.
+
 ## 7. Kristallmarkt und Transporte
 
 Die Kristallauktion funktioniert grundsätzlich wie die Märkte für
@@ -186,6 +191,13 @@ jeder übernommenen Einheit reduziert. Nach Ausschöpfung zieht er sich
 für den Rest der Runde zurück. Verkäufe an ihn verändern weder das
 HQ-Lager noch dessen Nettofluss und garantieren wegen der begrenzten
 Kapazität keinen Verkauf.
+
+Die Headless-Simulation bildet Käufer und Meteore reproduzierbar ab.
+Im aktuellen 200-Partien-Referenzlauf entstehen 2,4 Meteore, aber keine
+Verkäufe an den Käufer, weil die Agenten nicht über ihre beiden
+Startgrundstücke hinaus expandieren. Käuferpreis und Kapazität bleiben
+deshalb unverändert; zuerst muss der Zugang zu Fernzonen getestet
+werden.
 
 Verkaufte Kristalle werden von spezialisierten
 Hochsicherheits-Raumschiffen abgeholt. Diese Werttransporter:
