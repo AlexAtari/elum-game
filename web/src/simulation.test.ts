@@ -170,6 +170,22 @@ describe('Interne Wirtschaftssimulation', () => {
     ).toBe(1)
   })
 
+  it('startet standardmäßig mit einer Kristallprobe je Kolonie', () => {
+    const result = runHeadlessEconomicSimulation({
+      rounds: 1,
+      includeMarket: false,
+      seed: 2,
+    })
+    const initialParticipants =
+      result.history[0].participants
+
+    for (const participant of Object.values(
+      initialParticipants,
+    )) {
+      expect(participant.resources.crystals).toBe(1)
+    }
+  })
+
   it('bleibt mit demselben Seed vollständig reproduzierbar', () => {
     const first = runHeadlessEconomicSimulation({
       rounds: 8,
@@ -329,12 +345,13 @@ describe('Interne Wirtschaftssimulation', () => {
     ).toBe(true)
   })
 
-  it('nutzt das HQ-Lager nur für nicht direkt gedeckte Restmengen', () => {
+  it('ordnet jede Transaktion genau einem Handelsweg zu', () => {
     const result = runHeadlessEconomicSimulation()
 
     expect(
       result.marketSummary.playerTrades +
-        result.marketSummary.warehouseTrades,
+        result.marketSummary.warehouseTrades +
+        result.marketSummary.interstellarTrades,
     ).toBe(
       result.marketSummary.totalTransactions,
     )

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   STARTING_CREDITS,
+  STARTING_CRYSTALS,
   STARTING_HARVESTERS,
   createPlayableInitialGameState,
 } from './game'
@@ -21,9 +22,21 @@ describe('Gleiche Startwerte aller Spieler', () => {
     }
   })
 
-  it('verwendet 150 Credits und zwei Harvester', () => {
+  it('verwendet 150 Credits, zwei Harvester und eine Kristallprobe', () => {
     expect(STARTING_CREDITS).toBe(150)
     expect(STARTING_HARVESTERS).toBe(2)
+    expect(STARTING_CRYSTALS).toBe(1)
+
+    const state = createPlayableInitialGameState()
+
+    expect(state.resources.crystals).toBe(
+      STARTING_CRYSTALS,
+    )
+    for (const rival of Object.values(state.rivals)) {
+      expect(rival.resources.crystals).toBe(
+        STARTING_CRYSTALS,
+      )
+    }
   })
 
   it('teilt keine veränderbaren Ressourcenobjekte', () => {

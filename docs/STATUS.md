@@ -79,10 +79,10 @@ Aktueller 200-Partien-Stand mit 20 Runden, Markt und den Seeds
 
 | Kolonie | Siegquote | Durchschnittsrang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 31,5 % | 2,29 | 16,5 | 99,3 |
-| Vega | 27,5 % | 2,70 | 16,7 | 113,5 |
-| Agima | 22,5 % | 2,38 | 15,5 | 148,1 |
-| Orion | 18,5 % | 2,63 | 15,5 | 156,1 |
+| Nova | 36,0 % | 2,11 | 19,6 | 106,0 |
+| Vega | 26,0 % | 2,37 | 19,2 | 78,0 |
+| Agima | 23,0 % | 2,58 | 18,0 | 201,5 |
+| Orion | 15,0 % | 2,94 | 17,3 | 224,3 |
 
 Die Seriensimulation verwendet jetzt dieselbe lexikografische
 Schlusswertung wie die Browserpartie: Bevölkerung,
@@ -92,16 +92,16 @@ entscheidet keine Partie.
 
 Systemische Beobachtungen aus dem aktuellen Lauf:
 
-- 83 unterschiedliche Endergebnisse
-- 140,4 Markttransaktionen je Partie
-- 2,9 direkte Spielertransaktionen je Partie
-- direkter Handelsanteil 2,1 %
-- 137,4 HQ-Lagertransaktionen je Partie
-- 0,0 Verkäufe an den interstellaren Käufer je Partie
+- 143 unterschiedliche Endergebnisse
+- 141,7 Markttransaktionen je Partie
+- 3,5 direkte Spielertransaktionen je Partie
+- direkter Handelsanteil 2,5 %
+- 137,2 HQ-Lagertransaktionen je Partie
+- 1,0 Verkauf an den interstellaren Käufer je Partie
 - durchschnittlich 2,4 Meteore je Partie
-- 19,80 Versorgungssignale je Partie
-- davon 1.140 Bevölkerungsrückgänge, 926 leere Nahrungs- und
-  260 leere Energiebestände
+- 9,42 Versorgungssignale je Partie
+- davon 585 Bevölkerungsrückgänge, 501 leere Nahrungs- und
+  149 leere Energiebestände
 
 Die gemeinsame Agentenregel erlaubt die erste Expansion von zwei auf
 drei Harvester bereits bei sicherer Versorgung der unmittelbar
@@ -112,13 +112,19 @@ brachliegender Harvester darf ein angrenzendes Grundstück zum
 Mindestgebot erschließen, solange derselbe Kreditpuffer erhalten
 bleibt. Optionale höhere Gebote bleiben gesperrt.
 
-Im Referenzlauf enden die Kolonien dadurch mit durchschnittlich
-2,9 bis 3,1 Harvestern und 2,8 bis 3,0 Grundstücken. Die erste
+Jede Kolonie startet zusätzlich mit einer mitgebrachten
+Kristallprobe. Profile mit Kristallreserve 0 bieten sie am Markt an;
+Profile mit Reserve 1 behalten sie zunächst. Damit ist der
+Kristallmarkt schon vor dem Erreichen einer natürlichen Ader
+wirtschaftlich relevant, ohne die kristallfreien Startgrundstücke zu
+verändern.
+
+Im Referenzlauf enden die Kolonien mit durchschnittlich 2,9 bis
+3,1 Harvestern und 2,9 bis 3,0 Grundstücken. Die erste
 Harvestererweiterung liegt im Mittel um Runde 3,0; das erste
-zusätzliche Grundstück je nach Kolonie zwischen Runde 4,16 und 7,49.
+zusätzliche Grundstück je nach Kolonie zwischen Runde 4,09 und 5,67.
 Die natürlichen Fernzonenadern werden weiterhin nicht zuverlässig
-erreicht. Der interstellare Käufer bleibt deshalb im normalen Lauf
-ohne Transaktion.
+erreicht.
 
 ## Aktuelle UI-Akzeptanzkriterien
 

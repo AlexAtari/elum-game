@@ -1341,12 +1341,16 @@ export function createInitialGameState(): GameState {
 
 export const STARTING_CREDITS = 150
 export const STARTING_HARVESTERS = 2
+export const STARTING_CRYSTALS = 1
 
 export function createPlayableInitialGameState(
   meteorSeed: number = 1,
 ): GameState {
   const state = createInitialGameState()
-  const sharedResources = { ...state.resources }
+  const sharedResources = {
+    ...state.resources,
+    crystals: STARTING_CRYSTALS,
+  }
 
   return {
     ...state,

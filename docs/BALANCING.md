@@ -40,27 +40,27 @@ lexikografischen Wertung wie im Browser bestimmt.
 
 | Kolonie | Siegquote | Ø Rang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 31,5 % | 2,29 | 16,5 | 99,3 |
-| Vega | 27,5 % | 2,70 | 16,7 | 113,5 |
-| Agima | 22,5 % | 2,38 | 15,5 | 148,1 |
-| Orion | 18,5 % | 2,63 | 15,5 | 156,1 |
+| Nova | 36,0 % | 2,11 | 19,6 | 106,0 |
+| Vega | 26,0 % | 2,37 | 19,2 | 78,0 |
+| Agima | 23,0 % | 2,58 | 18,0 | 201,5 |
+| Orion | 15,0 % | 2,94 | 17,3 | 224,3 |
 
 Der breitere Ökonomiewert aus Ressourcen, Bevölkerung, Harvestern und
 Land dient ausschließlich der Diagnose. Er ist kein
 Gleichstandskriterium.
 
-Der Lauf erzeugt durchschnittlich 140,4 Markttransaktionen und 19,80
-Versorgungssignale je Partie. 2,1 % des Volumens sind direkte
+Der Lauf erzeugt durchschnittlich 141,7 Markttransaktionen und 9,42
+Versorgungssignale je Partie. 2,5 % des Volumens sind direkte
 Geschäfte zwischen Kolonien.
 
-Die aktivierten Kristall- und Meteorregeln verändern diesen
-Referenzlauf noch nicht: Pro Partie entstehen durchschnittlich 2,4
-Meteore, aber 0,0 Verkäufe an den interstellaren Käufer. Alle Kolonien
-enden im Mittel mit 2,9 bis 3,1 Harvestern und 2,8 bis 3,0
-Grundstücken. Natürliche Adern in der Fernzone werden daher noch nicht
-zuverlässig erreicht. Diese Nullwirkung ist weiterhin ein
-Zugangsproblem, kein Grund, Käuferkapazität oder Kristallkurs zu
-erhöhen.
+Jede Kolonie startet mit einer Kristallprobe im Lager. Agenten mit
+Kristallreserve 0 dürfen sie anbieten; Agenten mit Reserve 1 behalten
+sie zunächst. Dadurch übernimmt der interstellare Käufer im
+Referenzlauf durchschnittlich 1,0 Kristall je Partie. Die Probe stammt
+nicht von einem Startgrundstück; alle Startfelder bleiben
+kristallfrei. Pro Partie entstehen weiterhin durchschnittlich
+2,4 Meteore. Natürliche Adern in der Fernzone werden noch nicht
+zuverlässig erreicht.
 
 Für den Ausbau von zwei auf drei Harvester gilt ein gemeinsames,
 profilunabhängiges Sicherheitsfenster. Die Kolonie muss die
@@ -85,12 +85,15 @@ wieder die profilabhängigen Mehr-Runden- und Kreditreserven.
 | Hauptquartier | 1 |
 | Harvester | 2 |
 | Grundstücke | 2 |
-| Credits | 100 |
-| Bevölkerung | 20 |
-| Nahrung | 4 |
-| Energie | 4 |
-| Erz | 2 |
-| Kristalle | 0 |
+| Credits | 150 |
+| Bevölkerung | 10 |
+| Nahrung | 10 |
+| Energie | 10 |
+| Erz | 5 |
+| Kristalle | 1 |
+
+Der Startkristall ist eine mitgebrachte Probe im Lager und kein Ertrag
+der kristallfreien Startgrundstücke.
 
 ---
 

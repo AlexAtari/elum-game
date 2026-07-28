@@ -79,6 +79,9 @@ vermischt werden.
 - Erz
 - Kristalle
 - Credits
+- Startlager jeder Kolonie: 10 Nahrung, 10 Energie, 5 Erz und eine
+  mitgebrachte Kristallprobe; die zwei Startfelder bleiben
+  kristallfrei
 
 ### Harvester
 
@@ -261,17 +264,18 @@ werden.
 
 Die 20-Runden-Seriensimulation wertet inzwischen nach derselben
 Reihenfolge wie die Browserpartie. Der Referenzlauf mit 200 Partien
-liegt zwischen 18,5 % und 31,5 % Siegen. Die gemeinsame erste
+liegt zwischen 15,0 % und 36,0 % Siegen. Die gemeinsame erste
 Expansion baut bei sicherer Folgerunde von zwei auf drei Harvester und
 schützt nach Bau beziehungsweise Mindestgebot 20 Credits. Im Mittel
-enden die Kolonien mit 2,9 bis 3,1 Harvestern und 2,8 bis 3,0
+enden die Kolonien mit 2,9 bis 3,1 Harvestern und 2,9 bis 3,0
 Grundstücken.
 
 Kristalle sind inzwischen eine gemeinsame vierte
 Harvesterproduktion; Meteore und der interstellare Käufer laufen auch
-in der Headless-Simulation. Der 200-Partien-Lauf erzeugt 2,4 Meteore,
-aber 0,0 Käufertransaktionen je Partie, weil die erste Expansion die
-Fernzonenadern noch nicht zuverlässig erreicht.
+in der Headless-Simulation. Jede Kolonie startet mit einer
+Kristallprobe. Der 200-Partien-Lauf erzeugt 2,4 Meteore und
+1,0 interstellare Käufertransaktion je Partie. Natürliche
+Fernzonenadern werden noch nicht zuverlässig erreicht.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

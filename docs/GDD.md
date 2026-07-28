@@ -175,6 +175,11 @@ Jeder Spieler startet mit zwei zusammenhängenden Grundstücken:
 Alle acht Startgrundstücke sind kristallfrei, liegen nicht auf
 Pentagonen und werden ohne Auktion zugewiesen.
 
+Jede Kolonie bringt unabhängig davon genau eine Kristallprobe in
+ihrem Startlager mit. Sie kann im Kristallmarkt verkauft oder für die
+Schlusswertung behalten werden und stammt nicht aus der Förderung
+eines Startgrundstücks.
+
 Die Karte besitzt keinen regeltechnischen Außenrand. Regionen werden
 über die kürzeste Entfernung zum HQ eingeteilt. Strategisches
 Blockieren und Einschließen sind erlaubt.
@@ -376,6 +381,12 @@ Erz begrenzt gemeinsam mit Credits die Geschwindigkeit der Expansion.
 Kristalle werden im normalen Ressourcenmarkt gehandelt. Zusätzlich
 tritt ein interstellarer Käufer mit begrenzter und im Spielverlauf
 wachsender Kaufkapazität auf.
+
+Agenten verkaufen Kristalle nur oberhalb ihrer ausdrücklich
+festgelegten Kristallreserve. Eine Reserve von 0 erlaubt daher den
+Verkauf der einzelnen Startprobe; eine Reserve von 1 hält sie
+zunächst zurück. Die zusätzlichen Sicherheitspuffer für Nahrung,
+Energie und Erz bleiben davon unberührt.
 
 Verkaufte Kristalle werden regelmäßig von spezialisierten
 Hochsicherheits-Transportern abgeholt. Diese Werttransporter sind

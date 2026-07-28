@@ -96,6 +96,44 @@ describe('Wirtschaftsagenten', () => {
     })
   })
 
+  it('verkauft die Kristallprobe nur oberhalb der Profilreserve', () => {
+    const crystalResources = {
+      ...createContext().colony.resources,
+      crystals: 1,
+    }
+    const novaPlan = createAgentPlan(
+      createContext({
+        colony: {
+          ...createContext().colony,
+          id: 'nova',
+          resources: crystalResources,
+        },
+      }),
+    )
+    const orionPlan = createAgentPlan(
+      createContext({
+        colony: {
+          ...createContext().colony,
+          id: 'orion',
+          resources: crystalResources,
+        },
+      }),
+    )
+
+    expect(
+      getAgentMarketIntent(novaPlan, 'crystals'),
+    ).toMatchObject({
+      role: 'seller',
+      quantity: 1,
+    })
+    expect(
+      getAgentMarketIntent(orionPlan, 'crystals'),
+    ).toMatchObject({
+      role: 'neutral',
+      quantity: 0,
+    })
+  })
+
   it('baut nur bei sicherer Versorgung und ausreichender Liquidität', () => {
     const safePlan = createAgentPlan(createContext())
     const unsafePlan = createAgentPlan(

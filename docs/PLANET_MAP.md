@@ -167,6 +167,11 @@ Die Kristallauktion funktioniert grundsätzlich wie die Märkte für
 Nahrung, Energie und Erz. Spieler können als Käufer oder Verkäufer
 teilnehmen.
 
+Jede Kolonie beginnt mit einer mitgebrachten Kristallprobe im Lager.
+Sie gehört zu keinem Kartenfeld; die acht Startgrundstücke bleiben
+kristallfrei. Dadurch kann die Kristallauktion bereits vor der
+Erschließung einer natürlichen Ader kennengelernt werden.
+
 Zusätzlich existiert ein interstellarer Käufer:
 
 - begrenzte Kaufmenge je Runde,

@@ -381,7 +381,10 @@ function createMarketIntent(
     }
   }
 
-  const sellThreshold = target + Math.max(1, immediateNeed)
+  const sellThreshold =
+    resource === 'crystals'
+      ? target
+      : target + Math.max(1, immediateNeed)
   if (stock > sellThreshold) {
     const quantity = stock - sellThreshold
     const surplusUrgency = Math.round(

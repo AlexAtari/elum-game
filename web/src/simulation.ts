@@ -4,6 +4,7 @@ import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
   MARKET_PRICES,
+  STARTING_CRYSTALS,
   STARTING_HARVESTERS,
   advanceRivalColonies,
   createPlayableInitialGameState,
@@ -1521,7 +1522,7 @@ function collectRoundWarnings(
 
 function createInitialSimulationState(
   seed: number,
-  initialCrystalStock: number = 0,
+  initialCrystalStock: number = STARTING_CRYSTALS,
 ): InternalSimulationState {
   const baseGame =
     createPlayableInitialGameState(seed)
@@ -1681,7 +1682,7 @@ export function runHeadlessEconomicSimulation(
   )
   let state = createInitialSimulationState(
     seed,
-    options.initialCrystalStock ?? 0,
+    options.initialCrystalStock ?? STARTING_CRYSTALS,
   )
   const history: SimulationRoundSnapshot[] = [
     createRoundSnapshot(0, state),
