@@ -305,20 +305,24 @@ Die Routine ist bewusst deterministisch, damit Playtests wiederholbar bleiben. C
 | Startgrundstücke je Spieler | 2 |
 | Grundstückserwerbe je Spieler und Runde | maximal 1 |
 
-Der aktuelle Prototyp verwendet weiterhin ein HQ und 60 Grundstücke.
-Die 92-Felder-Struktur ist beschlossen, aber noch nicht implementiert.
+Der aktuelle Browserprototyp verwendet weiterhin ein HQ und
+60 Grundstücke. Der 92-Felder-Graph ist intern implementiert und
+validiert, aber noch nicht an Spielzustand oder Darstellung
+angeschlossen.
 
 ## Entfernungszonen
 
-| Bereich | vorläufige Zielgröße |
-|---|---:|
-| HQ und Startzone | 9 |
-| innere Koloniezone | ungefähr 18 |
-| Explorationszone | ungefähr 29 |
-| planetare Fernzone | ungefähr 36 |
+| Bereich | früherer Zielwert | implementierter Graph |
+|---|---:|---:|
+| HQ und Startzone | 9 | 9 |
+| innere Koloniezone | ungefähr 18 | 10 |
+| Explorationszone | ungefähr 29 | 33 |
+| planetare Fernzone | ungefähr 36 | 40 |
 
-Die endgültige Zuordnung folgt vollständigen Graphdistanzebenen.
-Zielgrößen dürfen keine Entfernungsebene künstlich teilen.
+Die implementierte Zuordnung folgt vollständigen
+Graphdistanzebenen: übrige Distanzen 1–2 innen, Distanzen 3–4
+Exploration und Distanzen 5–8 Fernzone. Die Abweichung von den alten
+Zielgrößen wird in Simulationen geprüft.
 
 ## Startkorridore
 
@@ -326,6 +330,10 @@ Vier feste Korridore werden vorab auf vergleichbare Expansionswege,
 Entfernung zur Fernzone, Nähe zu Pentagonen und Engpässen sowie die
 Erreichbarkeit strategischer Regionen geprüft. Zwei der sechs direkten
 HQ-Nachbarn bleiben zu Spielbeginn neutral.
+
+Im implementierten Graph besitzt jeder äußere Startkorridor drei
+weiterführende Verbindungen. Alle vier Korridore haben denselben
+Abstand zum nächsten Pentagon und zur Fernzone.
 
 ## Natürliche Kristalladern
 

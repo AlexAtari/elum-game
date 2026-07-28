@@ -229,6 +229,9 @@ werden.
   Layout getrennt
 - 92-Felder-Zielgraph intern vorhanden und validiert, aber noch nicht
   an Browserzustand oder Darstellung angeschlossen
+- vier faire Startkorridore und vollständige Distanzzonen intern
+  festgelegt; seedbasierte Zuordnung ist vorbereitet, die Anbindung
+  an den Spielzustand folgt später
 
 ### Nächster Regelstand
 
@@ -247,14 +250,13 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. Startpositionen und Zonen
-3. flache Darstellung des 92-Felder-Graphen
-4. Kristalladern
-5. Meteoriten
-6. interstellarer Käufer
-7. Countdown
-8. Simulation
-9. später 3D-Kugel
+2. flache Darstellung des 92-Felder-Graphen
+3. Kristalladern
+4. Meteoriten
+5. interstellarer Käufer
+6. Countdown
+7. Simulation
+8. später 3D-Kugel
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

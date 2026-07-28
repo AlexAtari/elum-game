@@ -60,6 +60,20 @@ Beginn dieser Korridore; die beiden übrigen bleiben zu Spielbeginn als
 neutrale frühe Konflikt- und Expansionsfelder frei. Die vier
 Startkorridore werden den Kolonien pro Partie zufällig zugeordnet.
 
+Die intern implementierte Konfiguration verwendet:
+
+| Korridor | inneres Feld | äußeres Feld |
+|---|---|---|
+| Start 1 | `P012` | `P015` |
+| Start 2 | `P017` | `P022` |
+| Start 3 | `P018` | `P027` |
+| Start 4 | `P021` | `P060` |
+
+`P011` und `P020` bleiben als gegenüberliegende HQ-Nachbarn neutral.
+Alle vier äußeren Startfelder besitzen drei weiterführende Verbindungen
+in Distanzring 3. Abstand zum nächsten Pentagon und kürzester Weg zur
+Fernzone sind für alle vier Korridore identisch.
+
 Für alle Startgrundstücke gilt:
 
 - kein Pentagon,
@@ -96,17 +110,24 @@ Grundstücksauktionen erzeugen.
 Die Zonen werden über die kürzeste Zahl von Feldschritten zum HQ
 bestimmt. Es gibt keinen Kartenrand.
 
-| Bereich | vorläufige Zielgröße |
-|---|---:|
-| HQ und acht Startfelder | 9 |
-| innere Koloniezone | ungefähr 18 |
-| Explorationszone | ungefähr 29 |
-| planetare Fernzone | ungefähr 36 |
-| Gesamt | 92 |
+| Bereich | früherer Zielwert | implementierter Graph |
+|---|---:|---:|
+| HQ und acht Startfelder | 9 | 9 |
+| innere Koloniezone | ungefähr 18 | 10 |
+| Explorationszone | ungefähr 29 | 33 |
+| planetare Fernzone | ungefähr 36 | 40 |
+| Gesamt | 92 | 92 |
 
-Die endgültigen Grenzen folgen vollständigen Entfernungsebenen.
-Die Fernzone darf beim Balancing zulasten der inneren Zone vergrößert
-werden.
+Die implementierten Grenzen folgen vollständigen Entfernungsebenen:
+
+- Startzone: HQ und die acht festgelegten Startfelder,
+- innere Zone: übrige Felder der Distanzen 1 und 2,
+- Explorationszone: Distanzen 3 und 4,
+- Fernzone: Distanzen 5 bis 8.
+
+Damit wird kein Distanzring künstlich geteilt. Die gegenüber dem alten
+Zielwert größere Fernzone entsteht wie vorgesehen zulasten der inneren
+Zone und wird später in Simulationen überprüft.
 
 ## 6. Natürliche Kristalladern
 
@@ -265,15 +286,14 @@ Abgeschlossen:
 1. Dokumentation konsolidieren.
 2. Kartenmodell von der Darstellung lösen.
 3. 92-Felder-Graph einführen und validieren.
+4. faire Startkorridore und Entfernungszonen festlegen.
 
 Als Nächstes:
 
-1. faire Startkorridore auswählen.
-2. Graph zunächst flach darstellen.
-3. Entfernungszonen berechnen.
-4. Kristalladern erzeugen.
-5. Meteoriten implementieren.
-6. interstellaren Käufer ergänzen.
-7. Countdown und Storytexte ergänzen.
-8. Simulation und Balancing.
-9. später 3D-Kugel.
+1. Graph zunächst flach darstellen.
+2. Kristalladern erzeugen.
+3. Meteoriten implementieren.
+4. interstellaren Käufer ergänzen.
+5. Countdown und Storytexte ergänzen.
+6. Simulation und Balancing.
+7. später 3D-Kugel.

@@ -25,6 +25,29 @@ export type PlanetMap = {
   spherePositions?: Record<string, SpherePosition>
 }
 
+export type StartCorridor = {
+  id: string
+  innerTileId: string
+  outerTileId: string
+}
+
+export type StartConfiguration = {
+  corridors: StartCorridor[]
+  neutralHqNeighborIds: string[]
+  crystalFreeTileIds: string[]
+}
+
+export type StartCorridorAssignment = {
+  participantId: string
+  corridor: StartCorridor
+}
+
+export type PlanetZone =
+  | 'start'
+  | 'inner'
+  | 'exploration'
+  | 'far'
+
 const clockwiseHexDirections: FlatHexPosition[] = [
   { q: 1, r: 0 },
   { q: 0, r: 1 },
@@ -160,6 +183,199 @@ export function areTilesAdjacent(
       .find((tile) => tile.id === firstTileId)
       ?.neighborIds.includes(secondTileId) ?? false
   )
+}
+
+function getDistanceWithinTileSet(
+  map: PlanetMap,
+  firstTileId: string,
+  secondTileId: string,
+  allowedTileIds: Set<string>,
+) {
+  const tilesById = new Map(
+    map.tiles.map((tile) => [tile.id, tile]),
+  )
+  const distances = new Map([[firstTileId, 0]])
+  const queue = [firstTileId]
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const tileId = queue[index]
+    const tile = tilesById.get(tileId)
+
+    if (!tile) {
+      continue
+    }
+
+    for (const neighborId of tile.neighborIds) {
+      if (
+        !allowedTileIds.has(neighborId) ||
+        distances.has(neighborId)
+      ) {
+        continue
+      }
+
+      distances.set(neighborId, distances.get(tileId)! + 1)
+      queue.push(neighborId)
+    }
+  }
+
+  return distances.get(secondTileId) ?? Number.POSITIVE_INFINITY
+}
+
+export function createTargetStartConfiguration(
+  map: PlanetMap,
+): StartConfiguration {
+  const tilesById = new Map(
+    map.tiles.map((tile) => [tile.id, tile]),
+  )
+  const hq = tilesById.get(map.hqTileId)
+
+  if (!hq || hq.neighborIds.length !== 6) {
+    throw new Error('target HQ must have six neighbors')
+  }
+
+  const hqNeighborIds = new Set(hq.neighborIds)
+  const neutralPair = hq.neighborIds
+    .flatMap((firstTileId, firstIndex) =>
+      hq.neighborIds
+        .slice(firstIndex + 1)
+        .map((secondTileId) => ({
+          tileIds: [firstTileId, secondTileId],
+          ringDistance: getDistanceWithinTileSet(
+            map,
+            firstTileId,
+            secondTileId,
+            hqNeighborIds,
+          ),
+        })),
+    )
+    .sort(
+      (first, second) =>
+        second.ringDistance - first.ringDistance ||
+        first.tileIds.join(':').localeCompare(
+          second.tileIds.join(':'),
+        ),
+    )[0].tileIds
+  const neutralTileIds = new Set(neutralPair)
+  const innerStartTileIds = hq.neighborIds
+    .filter((tileId) => !neutralTileIds.has(tileId))
+    .sort()
+  const corridors = innerStartTileIds.map(
+    (innerTileId, index): StartCorridor => {
+      const outerTile = tilesById
+        .get(innerTileId)!
+        .neighborIds.map((tileId) => tilesById.get(tileId)!)
+        .filter(
+          (tile) =>
+            tile.distanceFromHq === 2 &&
+            tile.shape === 'hexagon',
+        )
+        .map((tile) => ({
+          tile,
+          outwardConnections: tile.neighborIds.filter(
+            (neighborId) =>
+              tilesById.get(neighborId)?.distanceFromHq === 3,
+          ).length,
+        }))
+        .sort(
+          (first, second) =>
+            second.outwardConnections -
+              first.outwardConnections ||
+            first.tile.id.localeCompare(second.tile.id),
+        )[0]?.tile
+
+      if (!outerTile) {
+        throw new Error(
+          `start corridor ${innerTileId} has no outer tile`,
+        )
+      }
+
+      return {
+        id: `start-${index + 1}`,
+        innerTileId,
+        outerTileId: outerTile.id,
+      }
+    },
+  )
+  const crystalFreeTileIds = corridors.flatMap(
+    (corridor) => [
+      corridor.innerTileId,
+      corridor.outerTileId,
+    ],
+  )
+
+  return {
+    corridors,
+    neutralHqNeighborIds: [...neutralPair].sort(),
+    crystalFreeTileIds,
+  }
+}
+
+export function createTargetPlanetZones(
+  map: PlanetMap,
+  startConfiguration: StartConfiguration,
+): Record<string, PlanetZone> {
+  const startTileIds = new Set([
+    map.hqTileId,
+    ...startConfiguration.crystalFreeTileIds,
+  ])
+
+  return Object.fromEntries(
+    map.tiles.map((tile): [string, PlanetZone] => {
+      if (startTileIds.has(tile.id)) {
+        return [tile.id, 'start']
+      }
+
+      if (tile.distanceFromHq <= 2) {
+        return [tile.id, 'inner']
+      }
+
+      if (tile.distanceFromHq <= 4) {
+        return [tile.id, 'exploration']
+      }
+
+      return [tile.id, 'far']
+    }),
+  )
+}
+
+export function assignStartCorridors(
+  corridors: StartCorridor[],
+  participantIds: string[],
+  seed: number,
+): StartCorridorAssignment[] {
+  if (corridors.length !== participantIds.length) {
+    throw new Error(
+      'each participant must receive exactly one start corridor',
+    )
+  }
+
+  let randomState =
+    Math.abs(Math.trunc(Number.isFinite(seed) ? seed : 1)) >>> 0
+  const shuffledCorridors = [...corridors]
+
+  function nextRandom() {
+    randomState = (randomState + 0x6d2b79f5) >>> 0
+    let value = randomState
+    value = Math.imul(value ^ (value >>> 15), value | 1)
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61)
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296
+  }
+
+  for (
+    let index = shuffledCorridors.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const targetIndex = Math.floor(nextRandom() * (index + 1))
+    const corridor = shuffledCorridors[index]
+    shuffledCorridors[index] = shuffledCorridors[targetIndex]
+    shuffledCorridors[targetIndex] = corridor
+  }
+
+  return participantIds.map((participantId, index) => ({
+    participantId,
+    corridor: shuffledCorridors[index],
+  }))
 }
 
 export function validatePlanetMap(map: PlanetMap) {
@@ -399,6 +615,12 @@ export function createGeodesicPlanetMap(
       neighborCount: neighborIndices[index].size,
     }))
     .filter(({ neighborCount }) => neighborCount === 6)
+    .filter(({ index }) =>
+      [...neighborIndices[index]].every(
+        (neighborIndex) =>
+          neighborIndices[neighborIndex].size === 6,
+      ),
+    )
     .sort(
       (first, second) =>
         second.position.y - first.position.y ||
@@ -443,3 +665,11 @@ export const prototypePlanetMap =
   createPrototypePlanetMap(4)
 
 export const targetPlanetMap = createGeodesicPlanetMap(3)
+
+export const targetStartConfiguration =
+  createTargetStartConfiguration(targetPlanetMap)
+
+export const targetPlanetZones = createTargetPlanetZones(
+  targetPlanetMap,
+  targetStartConfiguration,
+)

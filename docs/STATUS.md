@@ -28,6 +28,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   91 Grundstücken, zwölf Pentagonen und 80 Hexagonen
 - validierte Nachbarzahlen, vollständige Verbindung und
   reproduzierbare Feld-IDs des Zielgraphen
+- vier intern festgelegte, strukturell gleichwertige Startkorridore
+  und zwei gegenüberliegende neutrale HQ-Nachbarn
+- seedbasierte, reproduzierbare Zuordnung aller vier Korridore an
+  vier Teilnehmer
+- reproduzierbare Entfernungszonen mit 9 Start-, 10 inneren,
+  33 Explorations- und 40 Fernzonenfeldern
 - zwei Startfelder je Kolonie
 - Nahrung, Energie, Erz, Kristalle und Credits
 - Harvesterbau und mehrere parallele Bauaufträge
@@ -122,7 +128,8 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 - 20 Runden mit sichtbarem Countdown bis zum Versorgungsschiff
 - Aktivierung des intern vorhandenen 92-Felder-Graphen in der
   Browserpartie und der flachen Kartendarstellung
-- vier radiale Startkorridore mit je zwei kristallfreien Feldern
+- Aktivierung der intern vorbereiteten zufälligen
+  Startkorridor-Zuordnung im späteren Browser-Spielstart
 - Kartenregeln über Feld-IDs, Nachbarlisten und Graphdistanzen
 - zunächst flache Darstellung
 - vier natürliche Kristalladern
@@ -141,11 +148,10 @@ Karte und den laufenden `GameState` noch nicht.
 
 Nächste technische Reihenfolge:
 
-1. Startpositionen und Zonen validieren.
-2. flache Darstellung des Zielgraphen ergänzen.
-3. Kristalladern und Meteoriten ergänzen.
-4. interstellaren Käufer ergänzen.
-5. danach erneut simulieren und balancieren.
+1. flache Darstellung des Zielgraphen ergänzen.
+2. Kristalladern und Meteoriten ergänzen.
+3. interstellaren Käufer ergänzen.
+4. danach erneut simulieren und balancieren.
 
 Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-STATUS:END -->

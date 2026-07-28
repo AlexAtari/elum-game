@@ -212,6 +212,14 @@ Zusätzlich erzeugt `targetPlanetMap` deterministisch den beschlossenen
 - normalisierte Kugelpositionen als geometrische Referenz,
 - noch keine 3D-Darstellung.
 
+`targetStartConfiguration` legt vier feste Korridore mit je einem
+Feld in Graphdistanz 1 und 2 fest. Zwei gegenüberliegende
+HQ-Nachbarn bleiben neutral. `targetPlanetZones` klassifiziert die
+Startfelder separat und ordnet alle übrigen Felder anhand vollständiger
+Distanzringe den inneren, Explorations- und Fernzonen zu.
+`assignStartCorridors` verteilt die vier Korridore seedbasiert und
+reproduzierbar genau einmal auf vier Teilnehmer.
+
 Agentennachbarschaft, Simulation und Harvesterpriorisierung verwenden
 keine axialen Koordinaten mehr. `HexMap.tsx` liest die bisherigen
 Axialkoordinaten ausschließlich aus `flatPositions`.
@@ -252,10 +260,9 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. Startpositionen und Zonen berechnen,
-2. Graph zunächst flach darstellen,
-3. Kristalladern und Meteoriten anbinden,
-4. später eine 3D-Kugel ergänzen.
+1. Graph zunächst flach darstellen,
+2. Kristalladern und Meteoriten anbinden,
+3. später eine 3D-Kugel ergänzen.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und
 Simulationen reproduzierbar bleiben.

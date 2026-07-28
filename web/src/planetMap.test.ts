@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
   areTilesAdjacent,
+  assignStartCorridors,
   calculateGraphDistances,
   createGeodesicPlanetMap,
   createPrototypePlanetMap,
+  createTargetPlanetZones,
+  createTargetStartConfiguration,
   prototypePlanetMap,
   targetPlanetMap,
+  targetPlanetZones,
+  targetStartConfiguration,
   validatePlanetMap,
 } from './planetMap'
 
@@ -105,6 +110,16 @@ describe('92-Felder-Planetengraph', () => {
         shape: 'hexagon',
         distanceFromHq: 0,
       })
+    const tilesById = new Map(
+      targetPlanetMap.tiles.map((tile) => [tile.id, tile]),
+    )
+    expect(
+      tilesById
+        .get('HQ')!
+        .neighborIds.every(
+          (tileId) => tilesById.get(tileId)?.shape === 'hexagon',
+        ),
+    ).toBe(true)
   })
 
   it('besitzt zwölf Pentagone und 80 Hexagone', () => {
@@ -164,6 +179,197 @@ describe('92-Felder-Planetengraph', () => {
     )
     expect(() => createGeodesicPlanetMap(1.5)).toThrow(
       'frequency must be a positive integer',
+    )
+  })
+})
+
+describe('Startkorridore und Entfernungszonen', () => {
+  const tilesById = new Map(
+    targetPlanetMap.tiles.map((tile) => [tile.id, tile]),
+  )
+
+  it('wählt vier feste Korridore und zwei neutrale HQ-Nachbarn', () => {
+    expect(targetStartConfiguration.corridors).toEqual([
+      {
+        id: 'start-1',
+        innerTileId: 'P012',
+        outerTileId: 'P015',
+      },
+      {
+        id: 'start-2',
+        innerTileId: 'P017',
+        outerTileId: 'P022',
+      },
+      {
+        id: 'start-3',
+        innerTileId: 'P018',
+        outerTileId: 'P027',
+      },
+      {
+        id: 'start-4',
+        innerTileId: 'P021',
+        outerTileId: 'P060',
+      },
+    ])
+    expect(
+      targetStartConfiguration.neutralHqNeighborIds,
+    ).toEqual(['P011', 'P020'])
+  })
+
+  it('verwendet acht eindeutige, zusammenhängende Hexagone', () => {
+    const startTileIds =
+      targetStartConfiguration.corridors.flatMap(
+        (corridor) => [
+          corridor.innerTileId,
+          corridor.outerTileId,
+        ],
+      )
+
+    expect(new Set(startTileIds).size).toBe(8)
+    expect(
+      targetStartConfiguration.crystalFreeTileIds,
+    ).toEqual(startTileIds)
+
+    for (const corridor of targetStartConfiguration.corridors) {
+      const innerTile = tilesById.get(corridor.innerTileId)!
+      const outerTile = tilesById.get(corridor.outerTileId)!
+
+      expect(innerTile).toMatchObject({
+        distanceFromHq: 1,
+        shape: 'hexagon',
+      })
+      expect(outerTile).toMatchObject({
+        distanceFromHq: 2,
+        shape: 'hexagon',
+      })
+      expect(innerTile.neighborIds).toContain('HQ')
+      expect(innerTile.neighborIds).toContain(outerTile.id)
+    }
+  })
+
+  it('gibt allen Korridoren dieselben geprüften Expansionsmerkmale', () => {
+    const pentagons = targetPlanetMap.tiles.filter(
+      (tile) => tile.shape === 'pentagon',
+    )
+    const farTiles = targetPlanetMap.tiles.filter(
+      (tile) => targetPlanetZones[tile.id] === 'far',
+    )
+    const metrics = targetStartConfiguration.corridors.map(
+      (corridor) => {
+        const outerTile = tilesById.get(corridor.outerTileId)!
+        const distances = calculateGraphDistances(
+          targetPlanetMap.tiles,
+          outerTile.id,
+        )
+
+        return {
+          outwardConnections: outerTile.neighborIds.filter(
+            (tileId) =>
+              tilesById.get(tileId)?.distanceFromHq === 3,
+          ).length,
+          nearestPentagon: Math.min(
+            ...pentagons.map((tile) => distances[tile.id]),
+          ),
+          nearestFarZone: Math.min(
+            ...farTiles.map((tile) => distances[tile.id]),
+          ),
+        }
+      },
+    )
+
+    expect(
+      new Set(metrics.map((metric) => JSON.stringify(metric))).size,
+    ).toBe(1)
+    expect(metrics[0]).toEqual({
+      outwardConnections: 3,
+      nearestPentagon: 1,
+      nearestFarZone: 3,
+    })
+  })
+
+  it('ordnet vollständige Distanzringe reproduzierbaren Zonen zu', () => {
+    const zoneCounts = Object.values(targetPlanetZones).reduce(
+      (counts, zone) => ({
+        ...counts,
+        [zone]: (counts[zone] ?? 0) + 1,
+      }),
+      {} as Record<string, number>,
+    )
+
+    expect(zoneCounts).toEqual({
+      inner: 10,
+      exploration: 33,
+      far: 40,
+      start: 9,
+    })
+
+    for (const tile of targetPlanetMap.tiles) {
+      const zone = targetPlanetZones[tile.id]
+
+      if (zone === 'start') {
+        continue
+      }
+
+      if (tile.distanceFromHq <= 2) {
+        expect(zone).toBe('inner')
+      } else if (tile.distanceFromHq <= 4) {
+        expect(zone).toBe('exploration')
+      } else {
+        expect(zone).toBe('far')
+      }
+    }
+  })
+
+  it('erzeugt Startkonfiguration und Zonen deterministisch', () => {
+    const recreatedMap = createGeodesicPlanetMap(3)
+    const recreatedStarts =
+      createTargetStartConfiguration(recreatedMap)
+
+    expect(recreatedStarts).toEqual(targetStartConfiguration)
+    expect(
+      createTargetPlanetZones(recreatedMap, recreatedStarts),
+    ).toEqual(targetPlanetZones)
+  })
+
+  it('ordnet die Korridore seedbasiert genau einmal zu', () => {
+    const participantIds = ['agima', 'orion', 'nova', 'vega']
+    const firstAssignment = assignStartCorridors(
+      targetStartConfiguration.corridors,
+      participantIds,
+      17,
+    )
+    const repeatedAssignment = assignStartCorridors(
+      targetStartConfiguration.corridors,
+      participantIds,
+      17,
+    )
+    const otherAssignment = assignStartCorridors(
+      targetStartConfiguration.corridors,
+      participantIds,
+      18,
+    )
+
+    expect(repeatedAssignment).toEqual(firstAssignment)
+    expect(otherAssignment).not.toEqual(firstAssignment)
+    expect(
+      firstAssignment.map(({ participantId }) => participantId),
+    ).toEqual(participantIds)
+    expect(
+      new Set(
+        firstAssignment.map(({ corridor }) => corridor.id),
+      ).size,
+    ).toBe(4)
+  })
+
+  it('weist unvollständige Startzuordnungen zurück', () => {
+    expect(() =>
+      assignStartCorridors(
+        targetStartConfiguration.corridors,
+        ['agima'],
+        1,
+      ),
+    ).toThrow(
+      'each participant must receive exactly one start corridor',
     )
   })
 })
