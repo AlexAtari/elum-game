@@ -242,8 +242,11 @@ geschnitten; Rückseitenfelder werden nicht interaktiv gerendert.
 `HexMap.tsx` zeichnet daraus unsichtbare, zusammenhängende Hexagon-
 und Pentagonzellen und verwaltet Touch-Drehung, Zoom sowie
 HQ-Zentrierung. `PlanetSurface.tsx` bereitet aus einer gemeinsamen
-fotorealistischen Welttextur und schwach geglätteten
-Ressourcenfarbnuancen eine diffuse Oberflächenkarte vor.
+marsartigen, fotorealistischen Welttextur und moderat
+differenzierten, räumlich geglätteten Ressourcenfarbnuancen eine
+diffuse Oberflächenkarte vor. `planetSurfaceTint.ts` hält die reine
+Farbzuordnung für Nahrung, Energie und Erz getrennt von Canvas und
+React testbar.
 `unprojectPlanetViewPosition` ordnet jeden sichtbaren Canvas-Pixel
 bei jeder Kameradrehung wieder einer festen Weltkoordinate zu. So
 dreht sich eine durchgehende Textur ohne Feldnähte mit der Kugel,

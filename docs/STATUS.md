@@ -40,14 +40,15 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sichtbaren Nachbarverbindungen und erkennbaren Pentagonen
 - Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
   auf dem Zielgraphen
-- durchgehende fotorealistische Oberflächentextur ohne gezeichnete
+- durchgehende fotorealistische, marsartige Oberflächentextur aus
+  Rostboden, Terrakotta, Ocker und dunklem Basalt ohne gezeichnete
   Ressourcenmotive oder harte Biome
 - lückenlos aneinander anschließende sphärische Dualzellen aus den
   gemeinsamen Dreiecksflächen des Planetengraphen
 - kugelrichtige Rückprojektion einer gemeinsamen Welttextur, die
   beim Drehen fest auf dem Planeten bleibt
-- sehr schwache, räumlich geglättete Farbnuancen aus Nahrung,
-  Energie und Erz statt sichtbar verschiedener Feldtexturen
+- moderat differenzierte, räumlich geglättete Farbnuancen: Nahrung
+  olivgrün, Energie kühl blaugrau und Erz eisenrot
 - feste gerichtete Beleuchtung mit heller Einfallsseite, weich
   abgedunkelter Gegenseite und atmosphärischem Kugelrand
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in

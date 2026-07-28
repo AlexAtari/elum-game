@@ -3,7 +3,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import planetSurfaceUrl from '../assets/planet-surface-v1.webp'
+import planetSurfaceUrl from '../assets/planet-surface-v2.webp'
 import type { Tile } from '../game'
 import {
   targetPlanetMap,
@@ -12,6 +12,7 @@ import {
   unprojectPlanetViewPosition,
   type PlanetRotation,
 } from '../planetProjection'
+import { calculateResourceColorScale } from '../planetSurfaceTint'
 
 type PlanetSurfaceProps = {
   radius: number
@@ -96,7 +97,7 @@ function createResourceTexture(
           position.x * resourceTile.position.x +
           position.y * resourceTile.position.y +
           position.z * resourceTile.position.z
-        const weight = Math.exp((dot - 1) * 28)
+        const weight = Math.exp((dot - 1) * 24)
 
         food += (resourceTile.tile.food ?? 0) * weight
         energy += (resourceTile.tile.energy ?? 0) * weight
@@ -110,41 +111,22 @@ function createResourceTexture(
         continue
       }
 
-      const foodShare = food / resourceTotal
-      const energyShare = energy / resourceTotal
-      const oreShare = ore / resourceTotal
-      const strength = Math.min(
-        1,
-        resourceTotal / weightTotal / 5,
+      const colorScale = calculateResourceColorScale(
+        food,
+        energy,
+        ore,
+        weightTotal,
       )
-      const redScale =
-        1 +
-        strength *
-          (foodShare * -0.025 +
-            energyShare * -0.035 +
-            oreShare * 0.055)
-      const greenScale =
-        1 +
-        strength *
-          (foodShare * 0.055 +
-            energyShare * 0.025 +
-            oreShare * -0.025)
-      const blueScale =
-        1 +
-        strength *
-          (foodShare * -0.025 +
-            energyShare * 0.06 +
-            oreShare * -0.05)
       const offset = (y * TEXTURE_WIDTH + x) * 4
 
       texture.data[offset] = clampByte(
-        texture.data[offset] * redScale,
+        texture.data[offset] * colorScale.red,
       )
       texture.data[offset + 1] = clampByte(
-        texture.data[offset + 1] * greenScale,
+        texture.data[offset + 1] * colorScale.green,
       )
       texture.data[offset + 2] = clampByte(
-        texture.data[offset + 2] * blueScale,
+        texture.data[offset + 2] * colorScale.blue,
       )
     }
   }

@@ -199,14 +199,16 @@ drehbaren Kugelprojektion. Alle Felder sind durch Drehen erreichbar
 und auswählbar. Eine mögliche spätere Polyederentfaltung würde
 denselben Graphen verwenden.
 
-Der Planet verwendet eine gemeinsame fotorealistische
-Oberflächentextur in einer zusammenhängenden erdig-grünen Farbwelt.
-Nahrung, Energie und Erz verändern diese Basis nur durch sehr
-schwache, räumlich geglättete Farbnuancen; es gibt weder gezeichnete
-Ressourcensymbole noch harte Biome oder Neustarts der Textur je
-Grundstück. Die Welttextur ist kugelrichtig verankert und dreht sich
-mit dem Planeten. Die lückenlosen sphärischen Dualzellen dienen der
-Interaktion, bleiben im Normalzustand jedoch unsichtbar. Hover
+Der Planet verwendet eine gemeinsame fotorealistische, marsartige
+Oberflächentextur aus oxidiertem Rostboden, Terrakotta, staubigem
+Ocker und dunklem Basalt. Nahrung verschiebt diese Basis moderat in
+Richtung Olivgrün, Energie in ein kühles Blaugrau und Erz in ein
+dunkleres Eisenrot. Die Farbnuancen werden räumlich geglättet; es
+gibt weder gezeichnete Ressourcensymbole noch harte Biome oder
+Neustarts der Textur je Grundstück. Die Welttextur ist kugelrichtig
+verankert und dreht sich mit dem Planeten. Die lückenlosen
+sphärischen Dualzellen dienen der Interaktion, bleiben im
+Normalzustand jedoch unsichtbar. Hover
 beziehungsweise Tastaturfokus und die Auswahl durch Antippen lassen
 die jeweilige Feldkontur aufscheinen. Gebote, Meteore und andere
 notwendige Spielzustände dürfen weiterhin klar markiert werden.

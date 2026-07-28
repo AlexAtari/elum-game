@@ -231,9 +231,9 @@ werden.
 - drehbare Kugelprojektion mit HQ und 91 Grundstücken
 - Kartenregeln für Nachbarschaft und Distanz von Kugelprojektion und
   flachem Hilfslayout getrennt
-- gemeinsame fotorealistische Welttextur mit sehr schwachen,
-  räumlich geglätteten Ressourcenfarbnuancen; Polygonkonturen nur
-  bei Interaktion oder notwendigem Spielstatus
+- gemeinsame marsartige, fotorealistische Welttextur mit moderat
+  differenzierten und räumlich geglätteten Ressourcenfarbnuancen;
+  Polygonkonturen nur bei Interaktion oder notwendigem Spielstatus
 - lückenlose sphärische Dualzellen als unsichtbare
   Interaktionsflächen und kugelrichtige Rückprojektion der fest auf
   dem Planeten verankerten Oberflächentextur

@@ -22,14 +22,15 @@ Das HQ liegt auf einem Hexagon. Die Browserpartie zeigt eine drehbare
 orthografische Kugelprojektion desselben Graphen. Rückseitenfelder
 werden erst nach einer Drehung sichtbar und anklickbar.
 
-Die Kugel erhält eine gemeinsame fotorealistische Welttextur ohne
+Die Kugel erhält eine gemeinsame marsartige, fotorealistische
+Welttextur aus Rostboden, Terrakotta, Ocker und dunklem Basalt ohne
 gezeichnete Ressourcenmotive, Feldlinien oder harte Biomgrenzen.
-Nahrung, Energie und Erz erzeugen nur schwache Farbnuancen. Diese
-werden aus den umliegenden Feldwerten räumlich geglättet, sodass
-Ressourcenübergänge nicht an Grundstückskanten abbrechen. Eine
-Rückprojektion ordnet die sichtbaren Kugelpixel festen
-Weltkoordinaten zu; die Textur bleibt deshalb beim Drehen auf dem
-Planeten verankert.
+Nahrung erzeugt olivgrüne, Energie kühl blaugraue und Erz
+eisenrote Farbnuancen. Diese werden aus den umliegenden Feldwerten
+räumlich geglättet, sodass Ressourcenübergänge nicht an
+Grundstückskanten abbrechen. Eine Rückprojektion ordnet die
+sichtbaren Kugelpixel festen Weltkoordinaten zu; die Textur bleibt
+deshalb beim Drehen auf dem Planeten verankert.
 
 Die Grundstücksflächen werden weiterhin als sphärische Dualzellen
 aus den Mittelpunkten der angrenzenden Dreiecksflächen gebildet.
