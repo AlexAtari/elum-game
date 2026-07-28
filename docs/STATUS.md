@@ -21,10 +21,11 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Implementiert
 
-- flache radiale Browserkarte mit zentralem HQ und 91 Grundstücken
+- drehbare Browserkugel mit zentralem HQ und 91 Grundstücken
 - UI-unabhängiges Kartenmodell mit Feld-IDs, symmetrischen
   Nachbarlisten und berechneten Graphdistanzen
-- getrennte flache Layoutpositionen für die bestehende Hexdarstellung
+- getrennte normalisierte Kugelkoordinaten und flache
+  Layoutpositionen
 - interner, deterministischer 92-Felder-Graph mit einem HQ,
   91 Grundstücken, zwölf Pentagonen und 80 Hexagonen
 - validierte Nachbarzahlen, vollständige Verbindung und
@@ -35,8 +36,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   vier Teilnehmer
 - reproduzierbare Entfernungszonen mit 9 Start-, 10 inneren,
   33 Explorations- und 40 Fernzonenfeldern
-- sichtbare Nachbarverbindungen, erkennbare Pentagone sowie
-  Touch-, Zoom- und Feldauswahl auf dem Zielgraphen
+- orthografische Kugelprojektion mit ausgeblendeter Rückseite,
+  sichtbaren Nachbarverbindungen und erkennbaren Pentagonen
+- Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
+  auf dem Zielgraphen
 - Ziel-Startfelder im normalen Browser-Spielzustand
 - zwei Startfelder je Kolonie
 - Nahrung, Energie, Erz, Kristalle und Credits

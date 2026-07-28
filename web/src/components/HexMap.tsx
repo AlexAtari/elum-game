@@ -20,6 +20,10 @@ import {
   type MeteorImpact,
 } from '../meteor'
 import { targetPlanetMap } from '../planetMap'
+import {
+  projectPlanetMap,
+  type PlanetRotation,
+} from '../planetProjection'
 import './HexMap.css'
 
 type HexMapProps = {
@@ -58,7 +62,7 @@ type Point = {
   y: number
 }
 
-type MapCamera = Point & {
+type MapCamera = PlanetRotation & {
   zoom: number
 }
 
@@ -69,15 +73,15 @@ type MapGesture = {
   distance: number
 }
 
-const HEX_RADIUS = 24
-const MAP_VIEW_WIDTH = 960
-const MAP_VIEW_HEIGHT = 640
-const MIN_MAP_ZOOM = 0.62
-const MAX_MAP_ZOOM = 1.8
-const MAP_PAN_LIMIT = 700
+const HEX_RADIUS = 43
+const MAP_VIEW_SIZE = 720
+const PLANET_RADIUS = 280
+const MIN_MAP_ZOOM = 0.72
+const MAX_MAP_ZOOM = 1.35
+const MAX_MAP_PITCH = Math.PI * 0.48
 const INITIAL_MAP_CAMERA: MapCamera = {
-  x: 0,
-  y: 0,
+  yaw: 0,
+  pitch: 0,
   zoom: 1,
 }
 
@@ -98,28 +102,28 @@ function createTilePoints(
   }).join(' ')
 }
 
-function getTilePixelPosition(tileId: string) {
-  const position = targetPlanetMap.displayPositions?.[tileId]
-
-  if (!position) {
-    throw new Error(`missing display position for ${tileId}`)
-  }
-
-  return position
-}
-
 const mapNeighborLinks = tiles.flatMap((tile) =>
   tile.neighborIds
     .filter((neighborId) => tile.id < neighborId)
     .map((neighborId) => ({
       id: `${tile.id}:${neighborId}`,
-      first: getTilePixelPosition(tile.id),
-      second: getTilePixelPosition(neighborId),
+      firstId: tile.id,
+      secondId: neighborId,
     })),
 )
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
+}
+
+function normalizeAngle(angle: number) {
+  const fullTurn = Math.PI * 2
+
+  return (
+    ((angle + Math.PI) % fullTurn + fullTurn) %
+      fullTurn -
+    Math.PI
+  )
 }
 
 function getDistance(first: Point, second: Point) {
@@ -205,10 +209,23 @@ function HexMap({
   const hoveredTile = tiles.find(
     (tile) => tile.id === hoveredId,
   )
+  const projectedTiles = projectPlanetMap(
+    targetPlanetMap,
+    cameraState,
+    PLANET_RADIUS * cameraState.zoom,
+  )
   const hoveredPosition = hoveredTile
-    ? getTilePixelPosition(hoveredTile.id)
+    ? projectedTiles[hoveredTile.id]
     : null
-  const selectedPosition = getTilePixelPosition(selectedTile.id)
+  const selectedPosition = projectedTiles[selectedTile.id]
+  const visibleTiles = tiles
+    .filter((tile) => projectedTiles[tile.id].visible)
+    .sort(
+      (first, second) =>
+        projectedTiles[first.id].depth -
+          projectedTiles[second.id].depth ||
+        first.id.localeCompare(second.id),
+    )
   const meteorBonuses = combineMeteorBonuses(meteorImpacts)
   const meteorCenterIds = new Set(
     meteorImpacts.map((impact) => impact.centerTileId),
@@ -251,8 +268,12 @@ function HexMap({
 
   const updateCamera = (camera: MapCamera) => {
     const nextCamera = {
-      x: clamp(camera.x, -MAP_PAN_LIMIT, MAP_PAN_LIMIT),
-      y: clamp(camera.y, -MAP_PAN_LIMIT, MAP_PAN_LIMIT),
+      yaw: normalizeAngle(camera.yaw),
+      pitch: clamp(
+        camera.pitch,
+        -MAX_MAP_PITCH,
+        MAX_MAP_PITCH,
+      ),
       zoom: clamp(camera.zoom, MIN_MAP_ZOOM, MAX_MAP_ZOOM),
     }
 
@@ -282,22 +303,17 @@ function HexMap({
     return { x: mapPoint.x, y: mapPoint.y }
   }
 
-  const zoomAtPoint = (point: Point, zoomFactor: number) => {
+  const zoomMap = (zoomFactor: number) => {
     const currentCamera = cameraRef.current
     const nextZoom = clamp(
       currentCamera.zoom * zoomFactor,
       MIN_MAP_ZOOM,
       MAX_MAP_ZOOM,
     )
-    const scaleDifference = nextZoom / currentCamera.zoom
 
     updateCamera({
-      x:
-        point.x -
-        scaleDifference * (point.x - currentCamera.x),
-      y:
-        point.y -
-        scaleDifference * (point.y - currentCamera.y),
+      yaw: currentCamera.yaw,
+      pitch: currentCamera.pitch,
       zoom: nextZoom,
     })
   }
@@ -361,7 +377,6 @@ function HexMap({
     }
 
     if (points.length >= 2) {
-      const midpoint = getMidpoint(points[0]!, points[1]!)
       const distance = getDistance(points[0]!, points[1]!)
       const zoomFactor =
         currentGesture.distance > 0
@@ -372,20 +387,10 @@ function HexMap({
         MIN_MAP_ZOOM,
         MAX_MAP_ZOOM,
       )
-      const effectiveScale =
-        nextZoom / currentGesture.camera.zoom
 
       updateCamera({
-        x:
-          midpoint.x -
-          effectiveScale *
-            (currentGesture.midpoint.x -
-              currentGesture.camera.x),
-        y:
-          midpoint.y -
-          effectiveScale *
-            (currentGesture.midpoint.y -
-              currentGesture.camera.y),
+        yaw: currentGesture.camera.yaw,
+        pitch: currentGesture.camera.pitch,
         zoom: nextZoom,
       })
       didMoveMap.current = true
@@ -403,14 +408,18 @@ function HexMap({
       }
 
       updateCamera({
-        x:
-          currentGesture.camera.x +
-          points[0].x -
-          currentGesture.midpoint.x,
-        y:
-          currentGesture.camera.y +
-          points[0].y -
-          currentGesture.midpoint.y,
+        yaw:
+          currentGesture.camera.yaw +
+          (points[0].x -
+            currentGesture.midpoint.x) /
+            (PLANET_RADIUS *
+              currentGesture.camera.zoom),
+        pitch:
+          currentGesture.camera.pitch +
+          (points[0].y -
+            currentGesture.midpoint.y) /
+            (PLANET_RADIUS *
+              currentGesture.camera.zoom),
         zoom: currentGesture.camera.zoom,
       })
     }
@@ -443,13 +452,7 @@ function HexMap({
 
   const handleWheel = (event: WheelEvent<SVGSVGElement>) => {
     event.preventDefault()
-    const point = clientToMapPoint(
-      event.currentTarget,
-      event.clientX,
-      event.clientY,
-    )
-
-    zoomAtPoint(point, event.deltaY < 0 ? 1.12 : 0.89)
+    zoomMap(event.deltaY < 0 ? 1.12 : 0.89)
   }
 
   const selectTile = (tileId: string) => {
@@ -502,7 +505,7 @@ function HexMap({
         <div className="map-heading-meta">
           <strong>{tiles.length - 1} Felder</strong>
           <span className="map-hint">
-            Ziehen · Scrollen oder Pinch zum Zoomen
+            Ziehen zum Drehen · Scrollen oder Pinch zum Zoomen
           </span>
         </div>
       </div>
@@ -515,15 +518,15 @@ function HexMap({
           >
             <button
               type="button"
-              aria-label="Karte vergrößern"
-              onClick={() => zoomAtPoint({ x: 0, y: 0 }, 1.2)}
+              aria-label="Planet vergrößern"
+              onClick={() => zoomMap(1.16)}
             >
               +
             </button>
             <button
               type="button"
-              aria-label="Karte verkleinern"
-              onClick={() => zoomAtPoint({ x: 0, y: 0 }, 0.8)}
+              aria-label="Planet verkleinern"
+              onClick={() => zoomMap(0.86)}
             >
               −
             </button>
@@ -538,10 +541,10 @@ function HexMap({
 
           <svg
             className="hex-map"
-            viewBox={`${-MAP_VIEW_WIDTH / 2} ${
-              -MAP_VIEW_HEIGHT / 2
-            } ${MAP_VIEW_WIDTH} ${MAP_VIEW_HEIGHT}`}
-            aria-label="Bewegbare Planetengraph-Karte der Kolonie"
+            viewBox={`${-MAP_VIEW_SIZE / 2} ${
+              -MAP_VIEW_SIZE / 2
+            } ${MAP_VIEW_SIZE} ${MAP_VIEW_SIZE}`}
+            aria-label="Drehbare Planetenkugel der Kolonie"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerEnd}
@@ -620,29 +623,64 @@ function HexMap({
                 <stop offset="0" stopColor="#638bd9" />
                 <stop offset="1" stopColor="#24477f" />
               </radialGradient>
+              <radialGradient
+                id="planet-surface"
+                cx="35%"
+                cy="28%"
+                r="72%"
+              >
+                <stop offset="0" stopColor="#274f75" />
+                <stop offset="0.55" stopColor="#132e50" />
+                <stop offset="1" stopColor="#07111f" />
+              </radialGradient>
+              <clipPath id="planet-clip">
+                <circle
+                  r={PLANET_RADIUS * cameraState.zoom}
+                />
+              </clipPath>
             </defs>
 
-            <g
-              transform={`translate(${cameraState.x} ${cameraState.y}) scale(${cameraState.zoom})`}
-            >
+            <circle
+              className="planet-atmosphere"
+              r={PLANET_RADIUS * cameraState.zoom + 10}
+            />
+            <circle
+              className="planet-surface"
+              r={PLANET_RADIUS * cameraState.zoom}
+            />
+
+            <g clipPath="url(#planet-clip)">
               <g className="map-neighbor-links" aria-hidden="true">
-                {mapNeighborLinks.map((link) => (
-                  <line
-                    key={link.id}
-                    x1={link.first.x}
-                    y1={link.first.y}
-                    x2={link.second.x}
-                    y2={link.second.y}
-                  />
-                ))}
+                {mapNeighborLinks.flatMap((link) => {
+                  const first = projectedTiles[link.firstId]
+                  const second = projectedTiles[link.secondId]
+
+                  if (!first.visible || !second.visible) {
+                    return []
+                  }
+
+                  return [
+                    <line
+                      key={link.id}
+                      x1={first.x}
+                      y1={first.y}
+                      x2={second.x}
+                      y2={second.y}
+                    />,
+                  ]
+                })}
               </g>
 
-              {tiles.map((tile) => {
-                const position = getTilePixelPosition(tile.id)
+              {visibleTiles.map((tile) => {
+                const position = projectedTiles[tile.id]
+                const tileRadius =
+                  HEX_RADIUS *
+                  position.scale *
+                  cameraState.zoom
                 const polygonPoints = createTilePoints(
                   position.x,
                   position.y,
-                  HEX_RADIUS,
+                  tileRadius,
                   tile.shape === 'pentagon' ? 5 : 6,
                 )
                 const isSelected = tile.id === selectedId
@@ -678,6 +716,13 @@ function HexMap({
                       isMeteorCenter ? 'meteor-center' : '',
                       isSelected ? 'selected' : '',
                     ].join(' ')}
+                    style={{
+                      opacity: clamp(
+                        0.58 + position.depth * 0.42,
+                        0.5,
+                        1,
+                      ),
+                    }}
                     role="button"
                     tabIndex={0}
                     onClick={() => selectTile(tile.id)}
@@ -720,7 +765,7 @@ function HexMap({
                     <text
                       className="hex-label"
                       x={position.x}
-                      y={position.y + 5}
+                      y={position.y + 5 * cameraState.zoom}
                       textAnchor="middle"
                     >
                       {tile.id}
@@ -729,8 +774,8 @@ function HexMap({
                     {isMeteorCenter && (
                       <text
                         className="hex-meteor-label"
-                        x={position.x + 11}
-                        y={position.y - 9}
+                        x={position.x + 11 * cameraState.zoom}
+                        y={position.y - 9 * cameraState.zoom}
                         textAnchor="middle"
                         aria-label="Meteoritenkrater"
                       >
@@ -742,7 +787,7 @@ function HexMap({
                       <text
                         className="hex-owner-label"
                         x={position.x}
-                        y={position.y + 14}
+                        y={position.y + 14 * cameraState.zoom}
                         textAnchor="middle"
                       >
                         DEIN FELD
@@ -753,7 +798,7 @@ function HexMap({
                       <text
                         className="hex-opponent-label"
                         x={position.x}
-                        y={position.y + 14}
+                        y={position.y + 14 * cameraState.zoom}
                         textAnchor="middle"
                       >
                         ORION
@@ -764,7 +809,7 @@ function HexMap({
                       <text
                         className="hex-pending-label"
                         x={position.x}
-                        y={position.y + 14}
+                        y={position.y + 14 * cameraState.zoom}
                         textAnchor="middle"
                       >
                         {hasAuctionTie
@@ -777,7 +822,7 @@ function HexMap({
                       <text
                         className="hex-production-label"
                         x={position.x}
-                        y={position.y + 18}
+                        y={position.y + 18 * cameraState.zoom}
                         textAnchor="middle"
                       >
                         {harvester.pendingProduction
@@ -797,32 +842,41 @@ function HexMap({
 
               {hoveredTile &&
                 hoveredPosition &&
+                hoveredPosition.visible &&
                 hoveredTile.id !== selectedTile.id && (
                   <polygon
                     className="hex-interaction-outline is-hovered"
                     points={createTilePoints(
                       hoveredPosition.x,
                       hoveredPosition.y,
-                      HEX_RADIUS - 1.5,
+                      HEX_RADIUS *
+                        hoveredPosition.scale *
+                        cameraState.zoom -
+                        1.5,
                       hoveredTile.shape === 'pentagon' ? 5 : 6,
                     )}
                   />
                 )}
 
-              <polygon
-                className="hex-interaction-outline is-selected"
-                points={createTilePoints(
-                  selectedPosition.x,
-                  selectedPosition.y,
-                  HEX_RADIUS - 1.5,
-                  selectedTile.shape === 'pentagon' ? 5 : 6,
-                )}
-              />
+              {selectedPosition.visible && (
+                <polygon
+                  className="hex-interaction-outline is-selected"
+                  points={createTilePoints(
+                    selectedPosition.x,
+                    selectedPosition.y,
+                    HEX_RADIUS *
+                      selectedPosition.scale *
+                      cameraState.zoom -
+                      1.5,
+                    selectedTile.shape === 'pentagon' ? 5 : 6,
+                  )}
+                />
+              )}
             </g>
           </svg>
 
           <span className="map-gesture-hint">
-            Karte verschieben und zoomen
+            Kugel drehen und zoomen
           </span>
         </div>
 

@@ -18,7 +18,8 @@ elum-game/
 │   │   ├── components/      React-Oberfläche
 │   │   ├── i18n/            Sprache und Zahlenformatierung
 │   │   ├── game.ts          zentrale Regeln und Zustände
-│   │   ├── planetMap.ts     UI-unabhängiger Kartengraph und Layoutdaten
+│   │   ├── planetMap.ts     UI-unabhängiger Kartengraph und Geometriedaten
+│   │   ├── planetProjection.ts reine Kugelprojektion
 │   │   ├── agents.ts        gemeinsame Agentenplanung
 │   │   ├── orion*.ts        Orion-spezifische Entscheidungen
 │   │   ├── rival*.ts        gemeinsame Rivalenoperationen
@@ -67,7 +68,7 @@ zweite, abweichende Version der Spielregeln enthalten.
 
 Wichtige Bereiche:
 
-- Hexkarte und Feldauswahl,
+- Kugelkarte und Feldauswahl,
 - Marktstart und Marktauktion,
 - Grundstücksauktion,
 - Versorgungs- und Harvesterplanung,
@@ -197,8 +198,8 @@ Push auf main
 <!-- ELUM-PLANET-ARCHITECTURE:BEGIN -->
 ## Zielarchitektur der Planetenkarten
 
-Der aktuelle Prototyp verwendet axiale Hexkoordinaten. Das
-beschlossene Zielbild ist ein 92-Felder-Planetengraph.
+Der aktuelle Prototyp verwendet einen 92-Felder-Planetengraphen mit
+normalisierten Kugelkoordinaten.
 
 ### Implementierte Modellgrenze
 
@@ -209,7 +210,8 @@ beschlossene Zielbild ist ein 92-Felder-Planetengraph.
 - aus dem Graphen berechnete HQ-Distanzen,
 - Feldformen,
 - Graphvalidierung,
-- eine davon getrennte flache Positionstabelle.
+- davon getrennte normalisierte Kugelpositionen und eine flache
+  Hilfspositionstabelle.
 
 Zusätzlich erzeugt `targetPlanetMap` deterministisch den beschlossenen
 92-Felder-Graphen durch eine Icosaeder-Unterteilung der Frequenz 3:
@@ -218,8 +220,7 @@ Zusätzlich erzeugt `targetPlanetMap` deterministisch den beschlossenen
 - 91 weitere Felder,
 - zwölf Pentagonknoten mit fünf Nachbarn,
 - 80 Hexagonknoten mit sechs Nachbarn,
-- normalisierte Kugelpositionen als geometrische Referenz,
-- noch keine 3D-Darstellung.
+- normalisierte Kugelpositionen als geometrische Referenz.
 
 `targetStartConfiguration` legt vier feste Korridore mit je einem
 Feld in Graphdistanz 1 und 2 fest. Zwei gegenüberliegende
@@ -233,12 +234,14 @@ Agentennachbarschaft, Simulation und Harvesterpriorisierung verwenden
 keine axialen Koordinaten mehr. Der normale Browser-Spielzustand
 verwendet den 92-Felder-Graphen und die acht Ziel-Startfelder.
 
-`createRadialGraphLayout` erzeugt eine reproduzierbare flache
-Darstellungsposition je Feld. `HexMap.tsx` zeichnet die echten
-Nachbarverbindungen, Hexagone und Pentagone, ohne diese Geometrie als
-Spielregel zu verwenden. Gelände-Eignungen werden derzeit
-deterministisch aus stabilen Feld-IDs erzeugt; alle Startkorridore
-erhalten identische Startprofile.
+`planetProjection.ts` richtet die Kugel am HQ aus, rotiert die
+normalisierten Positionen und projiziert sie orthografisch in den
+SVG-Raum. Rückseitenfelder werden nicht interaktiv gerendert.
+`HexMap.tsx` zeichnet daraus die echten Nachbarverbindungen, Hexagone
+und Pentagone und verwaltet Touch-Drehung, Zoom sowie
+HQ-Zentrierung. Diese Geometrie bleibt reine Darstellung und verändert
+keine Spielregel. `createRadialGraphLayout` bleibt als
+reproduzierbares flaches Hilfslayout verfügbar.
 
 `createNaturalCrystalVeins` wählt vier voneinander entfernte
 Hexagonkerne in der Fernzone und erweitert sie schrittweise zu
@@ -303,7 +306,7 @@ Weitere Umsetzungsreihenfolge:
 
 1. Folgeexpansion nach dem dritten Harvester bis zu den Fernzonen
    stabilisieren,
-2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
+2. später optional eine grafische Polyederentfaltung ergänzen.
 
 `GAME_ROUND_LIMIT` begrenzt Browserpartie und Simulation auf 20
 vollständig abgerechnete Runden. `runRound` hält den Folgezustand nach

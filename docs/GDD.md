@@ -163,9 +163,11 @@ Das beschlossene Zielbild ist ein zusammenhängender Planetengraph mit
 Das HQ liegt auf einem Hexagon. Alle Grundstücke sind wirtschaftlich
 gleich große Spieleinheiten.
 
-Die Kernregeln arbeiten langfristig über stabile Feld-IDs,
-Nachbarlisten und Graphdistanzen. Die Karte bleibt zunächst flach
-dargestellt; eine drehbare 3D-Kugel folgt später.
+Die Kernregeln arbeiten über stabile Feld-IDs, Nachbarlisten und
+Graphdistanzen. Die Browserpartie stellt denselben Graphen als
+drehbare orthografische Kugel dar. Die Rückseite ist ausgeblendet;
+Ziehen dreht den Planeten, Pinch oder Mausrad zoomen und die
+HQ-Steuerung stellt die Startorientierung wieder her.
 
 Jeder Spieler startet mit zwei zusammenhängenden Grundstücken:
 
@@ -192,10 +194,11 @@ Die vollständige Spezifikation steht in
 Konflikte und Expansion sollen primär durch Topologie, Entfernungen,
 Kristallverteilung und Engstellen entstehen.
 
-Der Browserprototyp verwendet inzwischen den 92-Felder-Graphen in
-einer flachen radialen Darstellung. Nachbarverbindungen sind sichtbar,
-Pentagone erkennbar und alle Felder bleiben auswählbar. Eine spätere
-grafische Polyederentfaltung oder 3D-Kugel verwendet denselben Graphen.
+Der Browserprototyp verwendet den 92-Felder-Graphen in einer
+drehbaren Kugelprojektion. Nachbarverbindungen sind sichtbar,
+Pentagone erkennbar und alle Felder durch Drehen erreichbar und
+auswählbar. Eine mögliche spätere Polyederentfaltung würde denselben
+Graphen verwenden.
 
 ---
 

@@ -228,9 +228,9 @@ werden.
 - 20 vollständig abgerechnete Runden
 - sichtbarer Countdown und Versorgungsschiff nach Runde 20
 - Schlusswertung mit offiziellem Kristallreferenzkurs
-- flache radiale Karte mit HQ und 91 Grundstücken
-- Kartenregeln für Nachbarschaft und Distanz bereits vom flachen
-  Layout getrennt
+- drehbare Kugelprojektion mit HQ und 91 Grundstücken
+- Kartenregeln für Nachbarschaft und Distanz von Kugelprojektion und
+  flachem Hilfslayout getrennt
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - vier natürliche Kristalladern im Zielgraphen aktiv; Werte bleiben
   bis zum Grundstückserwerb verdeckt
@@ -252,7 +252,8 @@ werden.
 - interstellarer Käufer im Kristallmarkt
 - regelmäßige Hochsicherheits-Kristalltransporter
 - zwei garantierte und möglicherweise drei Meteoriten
-- Kugel erst als spätere Darstellung
+- orthografische Browserkugel mit Touch-Drehung, Zoom und
+  HQ-Zentrierung
 
 ### Arbeitsreihenfolge
 
@@ -260,7 +261,7 @@ werden.
 2. Folgeexpansion nach dem dritten Harvester bis zu den Fernzonen
    stabilisieren
 3. Hochsicherheits-Kristalltransporter
-4. später grafische Entfaltung oder 3D-Kugel
+4. später optional eine alternative grafische Polyederentfaltung
 
 Die 20-Runden-Seriensimulation wertet inzwischen nach derselben
 Reihenfolge wie die Browserpartie. Der Referenzlauf mit 200 Partien

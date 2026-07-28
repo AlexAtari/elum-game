@@ -18,9 +18,9 @@ Planetengraphen mit:
 - zwölf Pentagonfeldern mit jeweils fünf Nachbarn,
 - 80 Hexagonfeldern mit jeweils sechs Nachbarn.
 
-Das HQ liegt auf einem Hexagon. Die Karte wird zunächst flach
-dargestellt. Eine drehbare 3D-Kugel folgt später als alternative
-Ansicht desselben Graphen.
+Das HQ liegt auf einem Hexagon. Die Browserpartie zeigt eine drehbare
+orthografische Kugelprojektion desselben Graphen. Rückseitenfelder
+werden erst nach einer Drehung sichtbar und anklickbar.
 
 Alle Grundstücke sind wirtschaftlich gleich große Spieleinheiten.
 Sichtbare Größenunterschiede beeinflussen weder Produktion noch Preis.
@@ -39,7 +39,8 @@ Jedes Feld besitzt langfristig mindestens:
 - Besitzer und Harvesterzustand.
 
 Spielregeln verwenden Feld-IDs, Nachbarschaften und Graphdistanzen.
-Flache Koordinaten dienen nur der Darstellung.
+Normalisierte Kugelkoordinaten und flache Hilfskoordinaten dienen nur
+der Darstellung.
 
 ## 3. HQ und Startpositionen
 
@@ -333,9 +334,11 @@ Abgeschlossen:
 5. Graph zunächst flach darstellen und an die Browserpartie anbinden.
 6. erste Agentenexpansion auf drei Harvester und ungefähr drei
    Grundstücke stabilisieren.
+7. normalisierte Kugelkoordinaten als drehbare Browserprojektion
+   aktivieren.
 
 Als Nächstes:
 
 1. Folgeexpansion bis zu den Fernzonen simulieren und balancieren.
 2. Hochsicherheits-Kristalltransporter ergänzen.
-3. später grafische Entfaltung oder 3D-Kugel.
+3. später optional eine alternative grafische Polyederentfaltung.

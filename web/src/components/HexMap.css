@@ -64,6 +64,21 @@
   cursor: grabbing;
 }
 
+.planet-atmosphere {
+  pointer-events: none;
+  fill: rgba(64, 145, 220, 0.08);
+  stroke: rgba(119, 208, 255, 0.48);
+  stroke-width: 8;
+  filter: drop-shadow(0 0 22px rgba(65, 153, 226, 0.42));
+}
+
+.planet-surface {
+  pointer-events: none;
+  fill: url('#planet-surface');
+  stroke: rgba(157, 214, 255, 0.24);
+  stroke-width: 2;
+}
+
 .map-controls {
   position: absolute;
   z-index: 4;
@@ -125,7 +140,7 @@
 }
 
 .map-neighbor-links line {
-  stroke: rgba(116, 153, 185, 0.3);
+  stroke: rgba(142, 183, 216, 0.34);
   stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
 }

@@ -361,8 +361,9 @@ Playtests wiederholbar bleiben.
 | Grundstückserwerbe je Spieler und Runde | maximal 1 |
 
 Der Browserprototyp verwendet den validierten 92-Felder-Graphen
-inzwischen als Spielkarte. Die aktuelle flache Darstellung ordnet die
-Felder radial nach Graphdistanz an.
+inzwischen als Spielkarte. Die Darstellung projiziert die
+normalisierten Kugelkoordinaten orthografisch; sie verändert weder
+Nachbarschaften noch wirtschaftliche Feldwerte.
 
 ## Entfernungszonen
 
