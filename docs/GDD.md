@@ -536,7 +536,24 @@ beginnt. Lokale Ereignisse werden dort nicht
 vorweggenommen, sondern überraschend während der anschließenden
 Planung eingeblendet.
 
-Alle vier Ranglistenplätze stammen aus dauerhaft gespeicherten Koloniezuständen. Orion, Nova und Vega besitzen jeweils eine eigene Bevölkerung, Credits, Ressourcenbestände und Harvesterzahl. In der ersten KI-Ausbaustufe werden ihre Versorgung und Produktion mit einer einfachen deterministischen Rundenroutine abgerechnet. Dadurch reagieren ihre Ranglistenwerte auf ihren tatsächlichen Vorrat und nicht mehr auf reine Anzeigeformeln. Grundstückserwerb, Harvesterbau und die vollständige Teilnahme der KI-Kolonien am Markt werden in den folgenden Ausbaustufen an denselben Zustand angeschlossen.
+Alle vier Ranglistenplätze stammen aus dauerhaft gespeicherten
+Koloniezuständen. Orion, Nova und Vega besitzen jeweils eine eigene
+Bevölkerung, Credits, Ressourcenbestände, Harvesterzahl und
+Grundstücke. Versorgung, Produktion, Grundstückserwerb,
+Harvesterbau und Marktteilnahme greifen auf diesen Zustand zu.
+
+Für die erste Expansion von zwei auf drei Harvester gilt für alle
+Agenten dieselbe konservative Ausnahme: Eine Versorgungswarnung
+verhindert den Bau nicht, wenn Nahrung und Energie für die unmittelbar
+folgende Runde einschließlich des zusätzlichen Harvesters sicher
+sind. Eine kritische Versorgung verhindert den Bau weiterhin. Nach
+den Baukosten müssen 20 Credits als gemeinsamer Sicherheitspuffer
+verbleiben.
+
+Ist ein fertiger Harvester ohne Grundstück, darf der Agent ein freies
+angrenzendes Grundstück zum Mindestgebot erschließen, solange derselbe
+Kreditpuffer erhalten bleibt. Weitere Harvester und optionale höhere
+Gebote erfordern wieder die vollständigen profilabhängigen Reserven.
 
 Die Headless-Seriensimulation verwendet für Sieger und Ränge exakt
 dieselbe lexikografische Schlusswertung wie die Browserpartie. Ein

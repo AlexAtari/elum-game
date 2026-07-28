@@ -54,9 +54,10 @@ describe('Investitionsstrategien der Rivalen', () => {
 
   it('bildet die unterschiedlichen Risikoprofile ab', () => {
     const rivals = createRivals()
-    rivals.orion.credits = 70
-    rivals.nova.credits = 70
-    rivals.vega.credits = 70
+    for (const rival of Object.values(rivals)) {
+      rival.credits = 70
+      rival.harvesters = 3
+    }
 
     const next = advanceRivalColonies(rivals, 2)
 

@@ -18,7 +18,7 @@ import {
 } from './game'
 import {
   areTilesAdjacent,
-  prototypePlanetMap,
+  targetPlanetMap,
 } from './planetMap'
 
 const autonomousRivalIds: RivalId[] = [
@@ -42,6 +42,10 @@ function createAgentContext(
         oreCost: HARVESTER_ORE_COST,
       },
       harvesterEnergyCost: 1,
+      hasIdleHarvester:
+        currentState.rivals[rivalId].harvesters >
+        (currentState.rivals[rivalId].ownedTileIds?.length ??
+          0),
       landCandidates,
     },
   }
@@ -90,7 +94,14 @@ export function getAutonomousRivalLandDecision(
     .filter(
       (tile) =>
         tile.owner === 'free' &&
-        !occupiedTileIds.has(tile.id),
+        !occupiedTileIds.has(tile.id) &&
+        rivalTiles.some((ownedTile) =>
+          areTilesAdjacent(
+            targetPlanetMap,
+            tile.id,
+            ownedTile.id,
+          ),
+        ),
     )
     .map((tile) => ({
       tileId: tile.id,
@@ -101,7 +112,7 @@ export function getAutonomousRivalLandDecision(
       adjacencyBonus: rivalTiles.filter(
         (ownedTile) =>
           areTilesAdjacent(
-            prototypePlanetMap,
+            targetPlanetMap,
             tile.id,
             ownedTile.id,
           ),

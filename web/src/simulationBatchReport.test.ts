@@ -120,6 +120,32 @@ export function formatSimulationBatchReport(
         `${kind}: ${count}`,
     )
     .join(' · ')
+  const harvesterDecisionSummary = Object.entries(
+    result.harvesterDecisionCounts,
+  )
+    .map(
+      ([reason, count]) =>
+        `${reason}: ${count}`,
+    )
+    .join(' · ')
+  const harvesterBuildRoundSummary = Object.entries(
+    result.harvesterBuildRoundCounts,
+  )
+    .map(
+      ([round, count]) =>
+        `R${round}: ${count}`,
+    )
+    .join(' · ')
+  const expansionSummary = Object.values(
+    result.participants,
+  )
+    .map(
+      (participant) =>
+        `${participant.name}: Harvester R` +
+        `${participant.averageFirstHarvesterExpansionRound ?? '–'}, ` +
+        `Land R${participant.averageFirstLandExpansionRound ?? '–'}`,
+    )
+    .join(' · ')
 
   return [
     '',
@@ -150,6 +176,11 @@ export function formatSimulationBatchReport(
     'VERSORGUNG',
     `Warnungen je Partie: ${result.averages.warnings.toFixed(2)}`,
     warningSummary,
+    '',
+    'HARVESTERBAU',
+    harvesterDecisionSummary,
+    `Baurunden: ${harvesterBuildRoundSummary || 'keine'}`,
+    `Erste Expansion: ${expansionSummary}`,
     '=========================================================================',
     '',
   ].join('\n')
@@ -174,10 +205,22 @@ describe('Terminalbericht der Seriensimulation', () => {
     expect(report).toContain('Siegquote')
     expect(report).toContain('Wertung:')
     expect(report).toContain('Spielerhandel')
+    expect(report).toContain('HARVESTERBAU')
+    expect(report).toContain('Baurunden:')
+    expect(report).toContain('Erste Expansion:')
     expect(report).toContain('Agima')
     expect(report).toContain('Orion')
     expect(report).toContain('Nova')
     expect(report).toContain('Vega')
+    expect(
+      Object.values(
+        result.harvesterDecisionCounts,
+      ).reduce((total, count) => total + count, 0),
+    ).toBeGreaterThan(0)
+    expect(
+      result.participants.agima
+        .averageFirstHarvesterExpansionRound,
+    ).not.toBeNull()
 
     if (showReport) {
       console.log(report)

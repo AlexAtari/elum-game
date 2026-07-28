@@ -6,7 +6,7 @@ import {
   getAutonomousRivalPurchaseOrder,
 } from './rivalAutonomousLand'
 import {
-  createInitialGameState,
+  createPlayableInitialGameState,
   tiles,
   type RivalId,
 } from './game'
@@ -18,17 +18,17 @@ const rivalIds: RivalId[] = [
 ]
 
 function createRoundTwoState() {
-  const state = createInitialGameState()
+  const state = createPlayableInitialGameState()
   state.round = 2
   state.pendingLandBid = null
   state.landAuctionTie = null
 
   for (const rival of Object.values(state.rivals)) {
+    rival.harvesters = 3
     rival.credits = 100
     rival.resources.food = 20
     rival.resources.energy = 20
     rival.resources.ore = 10
-    rival.ownedTileIds = []
     rival.lastLandPurchaseRound = undefined
   }
 
@@ -49,11 +49,19 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
 
   it('lässt alle drei Rivalen ein unterschiedliches Grundstück kaufen', () => {
     const state = createRoundTwoState()
+    const initialTileIds = new Set(
+      rivalIds.flatMap(
+        (rivalId) =>
+          state.rivals[rivalId].ownedTileIds ?? [],
+      ),
+    )
     const next =
       applyAutonomousRivalLandPurchases(state)
     const purchasedTileIds = rivalIds.flatMap(
       (rivalId) =>
-        next.rivals[rivalId].ownedTileIds ?? [],
+        (
+          next.rivals[rivalId].ownedTileIds ?? []
+        ).filter((tileId) => !initialTileIds.has(tileId)),
     )
 
     expect(purchasedTileIds).toHaveLength(3)
@@ -62,7 +70,7 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
     for (const rivalId of rivalIds) {
       expect(
         next.rivals[rivalId].ownedTileIds,
-      ).toHaveLength(1)
+      ).toHaveLength(3)
       expect(next.rivals[rivalId].credits).toBeLessThan(
         state.rivals[rivalId].credits,
       )
@@ -94,13 +102,13 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
     ])
   })
 
-  it('stoppt den Grundstückskauf eines Rivalen im Versorgungsnotfall', () => {
+  it('erschließt für einen brachliegenden Harvester auch im Versorgungsnotfall Land', () => {
     const state = createRoundTwoState()
     state.rivals.nova.resources.food = 0
 
     expect(
       getAutonomousRivalLandDecision(state, 'nova'),
-    ).toBeNull()
+    ).not.toBeNull()
   })
 
   it('kauft pro Rivalen höchstens ein Grundstück je Runde', () => {
@@ -121,7 +129,7 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
     )
     expect(
       afterSecondAttempt.rivals.vega.ownedTileIds,
-    ).toHaveLength(1)
+    ).toHaveLength(3)
   })
 
   it('greift während eines Spielergebots überhaupt nicht ein', () => {

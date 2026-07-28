@@ -120,6 +120,42 @@ describe('Wirtschaftsagenten', () => {
     })
   })
 
+  it('erlaubt den dritten Harvester bei sicherer nächster Runde', () => {
+    const expansionResources = {
+      food: 2,
+      energy: 5,
+      ore: 8,
+      crystals: 0,
+    }
+    const initialExpansion = createAgentPlan(
+      createContext({
+        colony: {
+          ...createContext().colony,
+          resources: expansionResources,
+          harvesters: 2,
+        },
+      }),
+    )
+    const laterExpansion = createAgentPlan(
+      createContext({
+        colony: {
+          ...createContext().colony,
+          resources: expansionResources,
+          harvesters: 3,
+        },
+      }),
+    )
+
+    expect(initialExpansion.harvester).toEqual({
+      build: true,
+      reason: 'affordable',
+    })
+    expect(laterExpansion.harvester).toEqual({
+      build: false,
+      reason: 'unsafe-supply',
+    })
+  })
+
   it('wählt das wirtschaftlich beste bezahlbare Grundstück', () => {
     const plan = createAgentPlan(
       createContext({
@@ -160,6 +196,48 @@ describe('Wirtschaftsagenten', () => {
       tileId: 'Y',
       maximumBid: 25,
     })
+  })
+
+  it('nutzt einen freien Harvester für die erste Expansion trotz Warnreserve', () => {
+    const warningColony = {
+      ...createContext().colony,
+      resources: {
+        ...createContext().colony.resources,
+        food: 2,
+        energy: 5,
+      },
+      harvesters: 3,
+    }
+    const landCandidate = {
+      tileId: 'X',
+      minimumBid: 25,
+      food: 3,
+      energy: 3,
+      ore: 3,
+    }
+    const withoutIdleHarvester = createAgentPlan(
+      createContext({
+        colony: warningColony,
+        legalActions: {
+          ...createContext().legalActions,
+          landCandidates: [landCandidate],
+          hasIdleHarvester: false,
+        },
+      }),
+    )
+    const withIdleHarvester = createAgentPlan(
+      createContext({
+        colony: warningColony,
+        legalActions: {
+          ...createContext().legalActions,
+          landCandidates: [landCandidate],
+          hasIdleHarvester: true,
+        },
+      }),
+    )
+
+    expect(withoutIdleHarvester.landBid).toBeNull()
+    expect(withIdleHarvester.landBid).not.toBeNull()
   })
 
   it('liefert bei identischem Zustand dieselbe Entscheidung', () => {

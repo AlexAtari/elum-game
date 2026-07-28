@@ -254,23 +254,24 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. Expansion und Harvesterbau bis zu den Fernzonen stabilisieren
+2. Folgeexpansion nach dem dritten Harvester bis zu den Fernzonen
+   stabilisieren
 3. Hochsicherheits-Kristalltransporter
 4. später grafische Entfaltung oder 3D-Kugel
 
 Die 20-Runden-Seriensimulation wertet inzwischen nach derselben
 Reihenfolge wie die Browserpartie. Der Referenzlauf mit 200 Partien
-zeigt Vega bei 15,0 % Siegen sowie synchronisierte Versorgungsbedarfe:
-Nur 1,0 % des Marktvolumens findet direkt zwischen Kolonien statt.
-Profilwerte wurden wegen nachgewiesener Rundungsschwellen nicht
-isoliert verändert.
+liegt zwischen 18,5 % und 31,5 % Siegen. Die gemeinsame erste
+Expansion baut bei sicherer Folgerunde von zwei auf drei Harvester und
+schützt nach Bau beziehungsweise Mindestgebot 20 Credits. Im Mittel
+enden die Kolonien mit 2,9 bis 3,1 Harvestern und 2,8 bis 3,0
+Grundstücken.
 
 Kristalle sind inzwischen eine gemeinsame vierte
 Harvesterproduktion; Meteore und der interstellare Käufer laufen auch
 in der Headless-Simulation. Der 200-Partien-Lauf erzeugt 2,4 Meteore,
-aber 0,0 Käufertransaktionen je Partie, weil alle Agenten im Mittel
-bei 2,0 Harvestern und 2,0 Grundstücken bleiben und keine Fernzonenader
-erreichen.
+aber 0,0 Käufertransaktionen je Partie, weil die erste Expansion die
+Fernzonenadern noch nicht zuverlässig erreicht.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

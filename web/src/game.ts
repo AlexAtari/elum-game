@@ -5,7 +5,10 @@ import {
   planRivalHarvesterOperations,
 } from './rivalHarvesterOperations'
 
-import { createAgentPlan } from './agents'
+import {
+  createAgentPlan,
+  type AgentHarvesterDecision,
+} from './agents'
 import { getInterstellarCrystalBuyerOffer } from './interstellarCrystalBuyer'
 import {
   createMeteorImpact,
@@ -115,6 +118,7 @@ export type RivalColonyState = {
   lastHarvesterRetoolRound?: number
   lastRetooledHarvesterId?: string
   lastHarvesterRetoolCost?: number
+  lastHarvesterBuildDecision?: AgentHarvesterDecision['reason']
 }
 
 export type RivalColonies = Record<RivalId, RivalColonyState>
@@ -952,6 +956,7 @@ export function advanceRivalColonies(
           consumedEnergyByHarvesters,
         inactiveHarvesterIds:
           rivalEnergyAllocation.inactiveHarvesterIds,
+        lastHarvesterBuildDecision: undefined,
       }
 
       if (completedHarvesters > 0) {
@@ -991,7 +996,14 @@ export function advanceRivalColonies(
       })
 
       if (!plan.harvester.build) {
-        return [id, nextColony]
+        return [
+          id,
+          {
+            ...nextColony,
+            lastHarvesterBuildDecision:
+              plan.harvester.reason,
+          },
+        ]
       }
 
       return [
@@ -1007,6 +1019,8 @@ export function advanceRivalColonies(
               HARVESTER_ORE_COST,
           },
           harvestersInConstruction: 1,
+          lastHarvesterBuildDecision:
+            plan.harvester.reason,
         },
       ]
     }),

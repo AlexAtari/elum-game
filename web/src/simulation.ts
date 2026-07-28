@@ -21,6 +21,7 @@ import {
 import {
   createAgentPlan,
   getAgentMarketIntent,
+  type AgentHarvesterDecision,
   type AgentMarketIntent,
 } from './agents'
 import {
@@ -53,6 +54,9 @@ export type SimulationParticipantSnapshot = {
   wealth: number
   settlementWealth: number
   remainingResources: number
+  harvesterBuildDecision:
+    | AgentHarvesterDecision['reason']
+    | null
 }
 
 export type SimulationRoundSnapshot = {
@@ -1395,6 +1399,8 @@ function createParticipantSnapshot(
       colony.resources.food +
       colony.resources.energy +
       colony.resources.ore,
+    harvesterBuildDecision:
+      colony.lastHarvesterBuildDecision ?? null,
   }
 }
 

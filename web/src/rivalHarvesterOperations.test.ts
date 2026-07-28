@@ -139,6 +139,7 @@ describe('Gemeinsame Harvesterlogik der Rivalen', () => {
     nova.credits = 100
     nova.resources.food = 0
     nova.resources.energy = 20
+    nova.resources.ore = 0
     nova.ownedTileIds = [foodTile!.id]
     nova.lastLandPurchaseRound = 1
     nova.harvesterAssignments = {

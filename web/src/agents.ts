@@ -51,6 +51,7 @@ export type AgentLegalActions = {
     oreCost: number
   }
   harvesterEnergyCost?: number
+  hasIdleHarvester?: boolean
   landCandidates?: AgentLandCandidate[]
 }
 
@@ -206,6 +207,8 @@ const marketResources: AgentMarketResource[] = [
   'ore',
   'crystals',
 ]
+
+const INITIAL_EXPANSION_CASH_RESERVE = 20
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
@@ -446,7 +449,16 @@ function decideHarvesterBuild(
   targetEnergyReserve: number,
   emergency: AgentEmergencyAssessment,
 ): AgentHarvesterDecision {
-  if (emergency.suspendInvestments) {
+  const isInitialExpansion =
+    context.colony.harvesters === 2
+  const isSupplyCritical =
+    emergency.level === 'critical'
+
+  if (
+    isSupplyCritical ||
+    (emergency.suspendInvestments &&
+      !isInitialExpansion)
+  ) {
     return { build: false, reason: 'unsafe-supply' }
   }
 
@@ -455,14 +467,30 @@ function decideHarvesterBuild(
     return { build: false, reason: 'unavailable' }
   }
 
+  const harvesterEnergyCost = Math.max(
+    0,
+    context.legalActions?.harvesterEnergyCost ?? 1,
+  )
+  const immediateFoodNeed = getRoundDemand(
+    context.colony.population,
+  )
+  const immediateEnergyNeed =
+    immediateFoodNeed +
+    getHarvesterEnergyDemand(context) +
+    harvesterEnergyCost
+  const requiredFood = isInitialExpansion
+    ? immediateFoodNeed
+    : targetFoodReserve
+  const requiredEnergy = isInitialExpansion
+    ? immediateEnergyNeed
+    : targetEnergyReserve +
+      Math.ceil(
+        profile.reserveRounds * harvesterEnergyCost,
+      )
+
   if (
-    context.colony.resources.food < targetFoodReserve ||
-    context.colony.resources.energy <
-      targetEnergyReserve +
-        Math.ceil(
-          profile.reserveRounds *
-            (context.legalActions?.harvesterEnergyCost ?? 1),
-        )
+    context.colony.resources.food < requiredFood ||
+    context.colony.resources.energy < requiredEnergy
   ) {
     return { build: false, reason: 'unsafe-supply' }
   }
@@ -471,8 +499,13 @@ function decideHarvesterBuild(
     return { build: false, reason: 'insufficient-ore' }
   }
 
-  const requiredCredits =
-    profile.cashReserve + Math.ceil(build.creditCost / profile.harvesterBias)
+  const requiredCredits = isInitialExpansion
+    ? build.creditCost +
+      INITIAL_EXPANSION_CASH_RESERVE
+    : profile.cashReserve +
+      Math.ceil(
+        build.creditCost / profile.harvesterBias,
+      )
 
   if (context.colony.credits < requiredCredits) {
     return { build: false, reason: 'insufficient-credits' }
@@ -501,17 +534,37 @@ function decideLandBid(
   profile: AgentProfile,
   emergency: AgentEmergencyAssessment,
 ): AgentLandDecision | null {
-  if (emergency.suspendInvestments) {
+  const canUseInitialExpansionWindow =
+    context.legalActions?.hasIdleHarvester === true
+
+  if (
+    emergency.suspendInvestments &&
+    !canUseInitialExpansionWindow
+  ) {
     return null
   }
 
   const candidates = context.legalActions?.landCandidates ?? []
+  const cashReserve = canUseInitialExpansionWindow
+    ? INITIAL_EXPANSION_CASH_RESERVE
+    : profile.cashReserve
   const availableCredits = Math.max(
     0,
-    context.colony.credits - profile.cashReserve,
+    context.colony.credits - cashReserve,
   )
+  const initialExpansionBidLimit =
+    candidates.length > 0
+      ? Math.min(
+          ...candidates.map(
+            (candidate) => candidate.minimumBid,
+          ),
+        )
+      : 0
   const absoluteBidLimit = Math.floor(
-    context.colony.credits * profile.maximumLandBidShare,
+    canUseInitialExpansionWindow
+      ? initialExpansionBidLimit
+      : context.colony.credits *
+          profile.maximumLandBidShare,
   )
   const bidLimit = Math.min(availableCredits, absoluteBidLimit)
 

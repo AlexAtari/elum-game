@@ -326,9 +326,11 @@ Abgeschlossen:
 3. 92-Felder-Graph einführen und validieren.
 4. faire Startkorridore und Entfernungszonen festlegen.
 5. Graph zunächst flach darstellen und an die Browserpartie anbinden.
+6. erste Agentenexpansion auf drei Harvester und ungefähr drei
+   Grundstücke stabilisieren.
 
 Als Nächstes:
 
-1. Simulation und Balancing.
+1. Folgeexpansion bis zu den Fernzonen simulieren und balancieren.
 2. Hochsicherheits-Kristalltransporter ergänzen.
 3. später grafische Entfaltung oder 3D-Kugel.

@@ -4,16 +4,16 @@ import {
   getAutonomousOrionLandDecision,
 } from './orionAutonomousLand'
 import {
-  createInitialGameState,
+  createPlayableInitialGameState,
   LAND_MINIMUM_BID,
   tiles,
 } from './game'
 
 function createRoundTwoState() {
-  const state = createInitialGameState()
+  const state = createPlayableInitialGameState()
   state.round = 2
+  state.rivals.orion.harvesters = 3
   state.rivals.orion.credits = 100
-  state.rivals.orion.ownedTileIds = []
   return state
 }
 

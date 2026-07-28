@@ -112,6 +112,15 @@ Browser-Spielimplementierung.
 - Seriensimulation vergleicht viele Seeds.
 - Berichte zeigen Rangfolge, Vermögen, Markttransaktionen und
   Versorgungswarnungen.
+- Die Seriensimulation zählt zusätzlich die Gründe abgelehnter
+  Harvesterbauten, erfolgreiche Baurunden sowie die erste
+  Harvester- und Grundstückserweiterung jeder Kolonie.
+
+Die gemeinsame Agentenplanung besitzt für einen brachliegenden
+Harvester ein enges Infrastruktursicherheitsfenster: Der Landkauf
+bleibt auf das Mindestgebot und einen Restpuffer von 20 Credits
+begrenzt. Die Rivalen ermitteln Kandidaten ausschließlich im
+92-Felder-Zielgraphen und prüfen echte Nachbarschaft zu eigenem Land.
 
 Wichtige Grenze:
 
@@ -292,7 +301,8 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. Expansion und Harvesterbau bis zu den Fernzonen stabilisieren,
+1. Folgeexpansion nach dem dritten Harvester bis zu den Fernzonen
+   stabilisieren,
 2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
 
 `GAME_ROUND_LIMIT` begrenzt Browserpartie und Simulation auf 20

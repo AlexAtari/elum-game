@@ -40,34 +40,41 @@ lexikografischen Wertung wie im Browser bestimmt.
 
 | Kolonie | Siegquote | Ø Rang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 28,5 % | 2,10 | 11,8 | 180,8 |
-| Orion | 28,5 % | 2,31 | 11,2 | 214,0 |
-| Agima | 28,0 % | 2,91 | 10,6 | 196,8 |
-| Vega | 15,0 % | 2,69 | 10,8 | 133,9 |
+| Nova | 31,5 % | 2,29 | 16,5 | 99,3 |
+| Vega | 27,5 % | 2,70 | 16,7 | 113,5 |
+| Agima | 22,5 % | 2,38 | 15,5 | 148,1 |
+| Orion | 18,5 % | 2,63 | 15,5 | 156,1 |
 
 Der breitere Ökonomiewert aus Ressourcen, Bevölkerung, Harvestern und
 Land dient ausschließlich der Diagnose. Er ist kein
 Gleichstandskriterium.
 
-Der Lauf erzeugt durchschnittlich 127,5 Markttransaktionen und 52,25
-Versorgungssignale je Partie. Nur 1,0 % des Volumens sind direkte
-Geschäfte zwischen Kolonien. Ohne Markt steigen die Versorgungssignale
-auf 56,52; das HQ darf deshalb nicht isoliert reduziert werden.
+Der Lauf erzeugt durchschnittlich 140,4 Markttransaktionen und 19,80
+Versorgungssignale je Partie. 2,1 % des Volumens sind direkte
+Geschäfte zwischen Kolonien.
 
 Die aktivierten Kristall- und Meteorregeln verändern diesen
 Referenzlauf noch nicht: Pro Partie entstehen durchschnittlich 2,4
 Meteore, aber 0,0 Verkäufe an den interstellaren Käufer. Alle Kolonien
-enden im Mittel mit 2,0 Harvestern und 2,0 Grundstücken. Natürliche
-Adern in der Fernzone werden daher nicht erreicht. Agima und Orion
-halten im Mittel je 1,0 beim HQ gekauften Kristall, Nova und Vega 0,0.
-Diese Nullwirkung ist ein Zugangsproblem, kein Grund, Käuferkapazität
-oder Kristallkurs zu erhöhen.
+enden im Mittel mit 2,9 bis 3,1 Harvestern und 2,8 bis 3,0
+Grundstücken. Natürliche Adern in der Fernzone werden daher noch nicht
+zuverlässig erreicht. Diese Nullwirkung ist weiterhin ein
+Zugangsproblem, kein Grund, Käuferkapazität oder Kristallkurs zu
+erhöhen.
 
-Profilwerte bleiben vorläufig unverändert. Besonders Vegas
-`reserveRounds` reagiert wegen ganzzahliger Zielbestände
-schwellenartig; der nächste wirksame Einzelschritt überkompensiert die
-Schwäche deutlich. Vor einer Zahlenänderung müssen Produktionsmix und
-Marktrollen stärker auseinanderlaufen.
+Für den Ausbau von zwei auf drei Harvester gilt ein gemeinsames,
+profilunabhängiges Sicherheitsfenster. Die Kolonie muss die
+unmittelbar folgende Runde vollständig mit Nahrung und Energie
+versorgen können; dabei zählt der Energiebedarf des neuen Harvesters
+bereits mit. Nach den Baukosten müssen 20 Credits übrig bleiben.
+Kritische Versorgung sperrt auch diesen Bau.
+
+Steht ein fertiggestellter Harvester mangels Grundstück brach, darf
+die Kolonie genau das Mindestgebot auf ein freies angrenzendes Feld
+setzen, sofern der gemeinsame Kreditpuffer von 20 Credits erhalten
+bleibt. Das ist notwendige Produktionsinfrastruktur, keine optionale
+Überbietung. Alle weiteren Harvester und höheren Landgebote verwenden
+wieder die profilabhängigen Mehr-Runden- und Kreditreserven.
 
 ---
 
@@ -324,15 +331,15 @@ Jede Ressource kann pro Runde global genau einmal initiiert werden. Das Recht wi
 
 ## Vorläufige KI-Kolonien
 
-Orion, Nova und Vega besitzen eigene gespeicherte Koloniezustände. Ihre erste technische Rundenroutine verwendet dieselbe Normalversorgung wie Agima und produziert pro Harvester drei Einheiten nach einem festen, koloniespezifischen Produktionszyklus.
+Orion, Nova und Vega besitzen eigene gespeicherte Koloniezustände.
+Versorgung, Produktion, Markt, Harvesterbau und Grundstückserwerb
+laufen über dieselben gemeinsamen Agentenregeln wie bei Agima in der
+Headless-Simulation. Profilwerte gewichten Reserven, Produktion und
+optionale Gebote; Kosten, Aktionsgrenzen, Nachbarschaft und das
+Sicherheitsfenster der ersten Expansion sind für alle gleich.
 
-| Kolonie | Produktionszyklus |
-|---|---|
-| Orion | Nahrung → Energie → Erz |
-| Nova | Nahrung → Energie → Nahrung → Erz |
-| Vega | Energie → Erz → Nahrung → Erz |
-
-Die Routine ist bewusst deterministisch, damit Playtests wiederholbar bleiben. Credits, Harvesterzahl und Grundstücke verändern sich in dieser Stufe noch nicht automatisch. Diese Werte werden erst durch die folgenden KI-Aktionen und die Anbindung an Markt und Grundstücksauktion verändert.
+Die Routinen und die Seed-Verwendung sind deterministisch, damit
+Playtests wiederholbar bleiben.
 
 ---
 

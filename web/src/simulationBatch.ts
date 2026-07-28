@@ -6,6 +6,7 @@ import {
   type SimulationParticipantSnapshot,
   type SimulationWarning,
 } from './simulation'
+import type { AgentHarvesterDecision } from './agents'
 
 export type SimulationBatchOptions = {
   games?: number
@@ -30,6 +31,8 @@ export type SimulationBatchParticipantStats = {
   averageCrystals: number
   averageHarvesters: number
   averageOwnedTiles: number
+  averageFirstHarvesterExpansionRound: number | null
+  averageFirstLandExpansionRound: number | null
   averageWarnings: number
 }
 
@@ -56,6 +59,11 @@ export type SimulationBatchResult = {
     SimulationWarning['kind'],
     number
   >
+  harvesterDecisionCounts: Record<
+    AgentHarvesterDecision['reason'],
+    number
+  >
+  harvesterBuildRoundCounts: Record<string, number>
 }
 
 type MutableParticipantStats = {
@@ -73,6 +81,10 @@ type MutableParticipantStats = {
   crystalsTotal: number
   harvestersTotal: number
   ownedTilesTotal: number
+  firstHarvesterExpansionRoundTotal: number
+  firstHarvesterExpansionCount: number
+  firstLandExpansionRoundTotal: number
+  firstLandExpansionCount: number
   warningTotal: number
 }
 
@@ -90,6 +102,15 @@ const warningKinds: SimulationWarning['kind'][] = [
   'land-lock',
   'large-wealth-gap',
 ]
+
+const harvesterDecisionReasons:
+  AgentHarvesterDecision['reason'][] = [
+    'affordable',
+    'insufficient-credits',
+    'insufficient-ore',
+    'unsafe-supply',
+    'unavailable',
+  ]
 
 function clampInteger(
   value: number | undefined,
@@ -138,6 +159,10 @@ function createMutableStats():
       crystalsTotal: 0,
       harvestersTotal: 0,
       ownedTilesTotal: 0,
+      firstHarvesterExpansionRoundTotal: 0,
+      firstHarvesterExpansionCount: 0,
+      firstLandExpansionRoundTotal: 0,
+      firstLandExpansionCount: 0,
       warningTotal: 0,
     },
     orion: {
@@ -155,6 +180,10 @@ function createMutableStats():
       crystalsTotal: 0,
       harvestersTotal: 0,
       ownedTilesTotal: 0,
+      firstHarvesterExpansionRoundTotal: 0,
+      firstHarvesterExpansionCount: 0,
+      firstLandExpansionRoundTotal: 0,
+      firstLandExpansionCount: 0,
       warningTotal: 0,
     },
     nova: {
@@ -172,6 +201,10 @@ function createMutableStats():
       crystalsTotal: 0,
       harvestersTotal: 0,
       ownedTilesTotal: 0,
+      firstHarvesterExpansionRoundTotal: 0,
+      firstHarvesterExpansionCount: 0,
+      firstLandExpansionRoundTotal: 0,
+      firstLandExpansionCount: 0,
       warningTotal: 0,
     },
     vega: {
@@ -189,6 +222,10 @@ function createMutableStats():
       crystalsTotal: 0,
       harvestersTotal: 0,
       ownedTilesTotal: 0,
+      firstHarvesterExpansionRoundTotal: 0,
+      firstHarvesterExpansionCount: 0,
+      firstLandExpansionRoundTotal: 0,
+      firstLandExpansionCount: 0,
       warningTotal: 0,
     },
   }
@@ -221,6 +258,16 @@ export function runHeadlessSimulationBatch(
   const warningCounts = Object.fromEntries(
     warningKinds.map((kind) => [kind, 0]),
   ) as Record<SimulationWarning['kind'], number>
+  const harvesterDecisionCounts = Object.fromEntries(
+    harvesterDecisionReasons.map((reason) => [
+      reason,
+      0,
+    ]),
+  ) as Record<
+    AgentHarvesterDecision['reason'],
+    number
+  >
+  const harvesterBuildRoundCounts: Record<string, number> = {}
   const outcomeSignatures = new Set<string>()
   let warningTotal = 0
   let totalMarketTransactions = 0
@@ -307,11 +354,53 @@ export function runHeadlessSimulationBatch(
         participant.resources.crystals
       stats.harvestersTotal += participant.harvesters
       stats.ownedTilesTotal += participant.ownedTiles
+      const firstHarvesterExpansion =
+        result.history.find(
+          (snapshot) =>
+            snapshot.participants[participantId]
+              .harvesters > 2,
+        )
+      const firstLandExpansion =
+        result.history.find(
+          (snapshot) =>
+            snapshot.participants[participantId]
+              .ownedTiles > 2,
+        )
+      if (firstHarvesterExpansion) {
+        stats.firstHarvesterExpansionRoundTotal +=
+          firstHarvesterExpansion.round
+        stats.firstHarvesterExpansionCount += 1
+      }
+      if (firstLandExpansion) {
+        stats.firstLandExpansionRoundTotal +=
+          firstLandExpansion.round
+        stats.firstLandExpansionCount += 1
+      }
       stats.warningTotal += participantWarnings
     }
 
     for (const warning of result.warnings) {
       warningCounts[warning.kind] += 1
+    }
+    for (const snapshot of result.history.slice(1)) {
+      for (const participant of Object.values(
+        snapshot.participants,
+      )) {
+        if (participant.harvesterBuildDecision) {
+          harvesterDecisionCounts[
+            participant.harvesterBuildDecision
+          ] += 1
+          if (
+            participant.harvesterBuildDecision ===
+            'affordable'
+          ) {
+            const roundKey = String(snapshot.round)
+            harvesterBuildRoundCounts[roundKey] =
+              (harvesterBuildRoundCounts[roundKey] ?? 0) +
+              1
+          }
+        }
+      }
     }
 
     warningTotal += result.warnings.length
@@ -381,6 +470,20 @@ export function runHeadlessSimulationBatch(
           averageOwnedTiles: round(
             stats.ownedTilesTotal / games,
           ),
+          averageFirstHarvesterExpansionRound:
+            stats.firstHarvesterExpansionCount > 0
+              ? round(
+                  stats.firstHarvesterExpansionRoundTotal /
+                    stats.firstHarvesterExpansionCount,
+                )
+              : null,
+          averageFirstLandExpansionRound:
+            stats.firstLandExpansionCount > 0
+              ? round(
+                  stats.firstLandExpansionRoundTotal /
+                    stats.firstLandExpansionCount,
+                )
+              : null,
           averageWarnings: round(
             stats.warningTotal / games,
           ),
@@ -426,5 +529,7 @@ export function runHeadlessSimulationBatch(
           : 0,
     },
     warningCounts,
+    harvesterDecisionCounts,
+    harvesterBuildRoundCounts,
   }
 }

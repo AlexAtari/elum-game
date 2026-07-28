@@ -79,10 +79,10 @@ Aktueller 200-Partien-Stand mit 20 Runden, Markt und den Seeds
 
 | Kolonie | Siegquote | Durchschnittsrang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 28,5 % | 2,10 | 11,8 | 180,8 |
-| Orion | 28,5 % | 2,31 | 11,2 | 214,0 |
-| Agima | 28,0 % | 2,91 | 10,6 | 196,8 |
-| Vega | 15,0 % | 2,69 | 10,8 | 133,9 |
+| Nova | 31,5 % | 2,29 | 16,5 | 99,3 |
+| Vega | 27,5 % | 2,70 | 16,7 | 113,5 |
+| Agima | 22,5 % | 2,38 | 15,5 | 148,1 |
+| Orion | 18,5 % | 2,63 | 15,5 | 156,1 |
 
 Die Seriensimulation verwendet jetzt dieselbe lexikografische
 Schlusswertung wie die Browserpartie: Bevölkerung,
@@ -92,34 +92,33 @@ entscheidet keine Partie.
 
 Systemische Beobachtungen aus dem aktuellen Lauf:
 
-- 82 unterschiedliche Endergebnisse
-- 127,5 Markttransaktionen je Partie
-- 1,3 direkte Spielertransaktionen je Partie
-- direkter Handelsanteil 1,0 %
-- 126,2 HQ-Lagertransaktionen je Partie
+- 83 unterschiedliche Endergebnisse
+- 140,4 Markttransaktionen je Partie
+- 2,9 direkte Spielertransaktionen je Partie
+- direkter Handelsanteil 2,1 %
+- 137,4 HQ-Lagertransaktionen je Partie
 - 0,0 Verkäufe an den interstellaren Käufer je Partie
 - durchschnittlich 2,4 Meteore je Partie
-- 52,25 Versorgungssignale je Partie
-- davon 4.989 Bevölkerungsrückgänge, 2.276 leere Nahrungs- und
-  3.181 leere Energiebestände
+- 19,80 Versorgungssignale je Partie
+- davon 1.140 Bevölkerungsrückgänge, 926 leere Nahrungs- und
+  260 leere Energiebestände
 
-Ein Kontrolllauf ohne Markt erhöht die Versorgungssignale auf 56,52
-je Partie und senkt Vegas durchschnittliche Bevölkerung von 10,8 auf
-8,8. Das HQ ist damit derzeit ein Sicherheitsnetz; der geringe direkte
-Handel entsteht vor allem, weil mehrere Kolonien gleichzeitig
-dieselben Ressourcen benötigen.
+Die gemeinsame Agentenregel erlaubt die erste Expansion von zwei auf
+drei Harvester bereits bei sicherer Versorgung der unmittelbar
+folgenden Runde. Baukosten und ein gemeinsamer Restpuffer von
+20 Credits müssen gedeckt sein. Spätere Harvester benötigen weiterhin
+die vollen profilabhängigen Mehr-Runden-Reserven. Ein bereits
+brachliegender Harvester darf ein angrenzendes Grundstück zum
+Mindestgebot erschließen, solange derselbe Kreditpuffer erhalten
+bleibt. Optionale höhere Gebote bleiben gesperrt.
 
-Konservative Einzeländerungen an Vegas Profil zeigten
-Rundungsschwellen: oberhalb der Schwelle blieb das Ergebnis
-unverändert, der nächste Schritt hob Vega auf 42 % und drückte Nova
-auf 8 %. Deshalb wurden in diesem Paket keine Profilwerte geändert.
-
-Die vier Kolonien enden im Referenzlauf durchschnittlich jeweils mit
-2,0 Harvestern und 2,0 Grundstücken. Damit erreichen die Agenten die
-natürlichen Fernzonenadern nicht. Agima und Orion halten im Mittel je
-1,0 Kristall aus HQ-Käufen; Nova und Vega 0,0. Der interstellare Käufer
-ist in gezielten Szenarien aktiv und kapazitätsbegrenzt, erhält im
-normalen Referenzlauf aber kein Angebot.
+Im Referenzlauf enden die Kolonien dadurch mit durchschnittlich
+2,9 bis 3,1 Harvestern und 2,8 bis 3,0 Grundstücken. Die erste
+Harvestererweiterung liegt im Mittel um Runde 3,0; das erste
+zusätzliche Grundstück je nach Kolonie zwischen Runde 4,16 und 7,49.
+Die natürlichen Fernzonenadern werden weiterhin nicht zuverlässig
+erreicht. Der interstellare Käufer bleibt deshalb im normalen Lauf
+ohne Transaktion.
 
 ## Aktuelle UI-Akzeptanzkriterien
 
@@ -144,11 +143,10 @@ Nach UI- und Dokumentationsarbeiten:
    damit Angebot und Nachfrage nicht synchron verlaufen,
 2. Versorgungssignale reduzieren, ohne das HQ-Sicherheitsnetz
    pauschal zu vergrößern,
-3. Vegas Schwäche systemisch statt über eine Rundungsschwelle im
-   Profil korrigieren,
-4. Expansion und Harvesterbau so stabilisieren, dass Kristalladern
+3. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
+   dass Kristalladern
    innerhalb von 20 Runden tatsächlich erreichbar werden,
-5. Karten- und Ereignisbalancing mit Playtests prüfen.
+4. Karten- und Ereignisbalancing mit Playtests prüfen.
 
 ## Später, nicht Teil des aktuellen Kerns
 
@@ -187,7 +185,8 @@ einem späteren Spielstart-Schritt.
 
 Nächste technische Reihenfolge:
 
-1. Expansion und Harvesterbau für den Zugang zu Fernzonen balancieren.
+1. Folgeexpansion nach dem dritten Harvester für den Zugang zu
+   Fernzonen balancieren.
 2. Hochsicherheits-Kristalltransporter ergänzen.
 
 Details: `docs/PLANET_MAP.md`.
