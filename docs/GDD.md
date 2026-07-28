@@ -591,10 +591,16 @@ In der Kristallauktion existiert ein zusätzlicher interstellarer
 Käufer. Er verwendet dieselbe Auktionslogik wie andere Käufer, besitzt
 aber eine begrenzte Kaufkapazität.
 
-Kapazitätskurve, Einstiegspreis, Preisreaktion und mögliche Obergrenze
-bleiben konfigurierbare Simulationsparameter. Der Käufer soll den
-Preisbereich stabilisieren, aber weder jeden Verkauf noch einen
-garantierten Mindestgewinn sicherstellen.
+Die implementierte konservative Basis stellt in den Runden
+`1/5/10/15` Kapazitäten von `1/2/3/4` Einheiten bereit. Das Kaufgebot
+beträgt 90 Prozent des offiziellen Referenzkurses und bleibt zwischen
+20 und 60 Credits. Bei Startkurs 40 liegt es bei 36 Credits.
+
+Der Käufer erscheint sichtbar in der Kristallauktion. Jede übernommene
+Einheit reduziert seine verbleibende Rundenkapazität; anschließend
+zieht er sich zurück. Seine Käufe verändern das HQ-Lager nicht. Damit
+stabilisiert er den Preisbereich, ohne jeden Verkauf oder einen
+garantierten Mindestgewinn sicherzustellen.
 
 # 12. Ereignisse
 

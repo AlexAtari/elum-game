@@ -6,6 +6,7 @@ import {
 } from './rivalHarvesterOperations'
 
 import { createAgentPlan } from './agents'
+import { getInterstellarCrystalBuyerOffer } from './interstellarCrystalBuyer'
 import {
   createMeteorImpact,
   createMeteorSchedule,
@@ -31,7 +32,10 @@ export type Resources = {
 
 export type MarketResource = keyof Resources
 export type MarketDirection = 'buy' | 'sell'
-export type MarketCounterparty = RivalId | 'warehouse'
+export type MarketCounterparty =
+  | RivalId
+  | 'warehouse'
+  | 'interstellar-buyer'
 export type MarketRole = 'neutral' | 'buyer' | 'seller'
 
 export type GlobalEventId =
@@ -126,6 +130,7 @@ export type GameState = {
   meteorSeed?: number
   meteorSchedule?: number[]
   meteorImpacts?: MeteorImpact[]
+  interstellarCrystalPurchases?: number
   market: MarketState
   rivals: RivalColonies
 }
@@ -1217,6 +1222,7 @@ export function createInitialGameState(): GameState {
     meteorSeed: 1,
     meteorSchedule: createMeteorSchedule(1),
     meteorImpacts: [],
+    interstellarCrystalPurchases: 0,
     market: {
       food: {
         referencePrice: MARKET_PRICES.food,
@@ -1300,6 +1306,7 @@ export function createPlayableInitialGameState(
     meteorSeed,
     meteorSchedule: createMeteorSchedule(meteorSeed),
     meteorImpacts: [],
+    interstellarCrystalPurchases: 0,
     credits: STARTING_CREDITS,
     resources: { ...sharedResources },
     opponentTileIds: Object.values(rivalStartTileIds).flat(),
@@ -1426,6 +1433,37 @@ export function executeMarketTrade(
   price: number,
   counterparty: MarketCounterparty = 'orion',
 ): GameState {
+  if (counterparty === 'interstellar-buyer') {
+    const buyerOffer = getInterstellarCrystalBuyerOffer(
+      currentState.round,
+      currentState.market.crystals.referencePrice,
+      currentState.interstellarCrystalPurchases ?? 0,
+    )
+
+    if (
+      resource !== 'crystals' ||
+      direction !== 'sell' ||
+      !Number.isInteger(price) ||
+      price <= 0 ||
+      price > buyerOffer.offerPrice ||
+      !buyerOffer.isAvailable ||
+      currentState.resources.crystals < 1
+    ) {
+      return currentState
+    }
+
+    return {
+      ...currentState,
+      credits: currentState.credits + price,
+      resources: {
+        ...currentState.resources,
+        crystals: currentState.resources.crystals - 1,
+      },
+      interstellarCrystalPurchases:
+        (currentState.interstellarCrystalPurchases ?? 0) + 1,
+    }
+  }
+
   if (
     counterparty === 'warehouse' ||
     counterparty === 'orion'
@@ -2262,6 +2300,7 @@ export function runRound(
     meteorImpacts: meteorImpact
       ? [...previousMeteorImpacts, meteorImpact]
       : previousMeteorImpacts,
+    interstellarCrystalPurchases: 0,
     market: currentState.market,
     rivals: rivalsAfterLandAuction,
   }

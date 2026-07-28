@@ -232,6 +232,8 @@ werden.
   bis zum Grundstückserwerb verdeckt
 - seedbasierte Meteore mit zwei garantierten und optional einem
   dritten konservativen Krater aktiv
+- interstellarer Kristallkäufer mit begrenzter Rundenkapazität und
+  gedämpftem Referenzkursgebot aktiv
 - vier faire Startkorridore und vollständige Distanzzonen intern
   festgelegt; eine reproduzierbare seedbasierte Zuordnung ist an den
   Browser-Spielzustand angebunden
@@ -253,10 +255,9 @@ werden.
 ### Arbeitsreihenfolge
 
 1. Dokumentation
-2. interstellarer Käufer
-3. Countdown
-4. Simulation
-5. später grafische Entfaltung oder 3D-Kugel
+2. Countdown
+3. Simulation
+4. später grafische Entfaltung oder 3D-Kugel
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

@@ -73,6 +73,38 @@
   font-size: 1rem;
 }
 
+.interstellar-buyer-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -8px 0 20px;
+  padding: 12px 14px;
+  border: 1px solid rgba(137, 189, 255, 0.32);
+  border-radius: 12px;
+  background: rgba(62, 103, 164, 0.12);
+}
+
+.interstellar-buyer-status > span {
+  font-size: 1.65rem;
+}
+
+.interstellar-buyer-status > div {
+  display: grid;
+  gap: 3px;
+}
+
+.interstellar-buyer-status strong {
+  color: #b9d8ff;
+}
+
+.interstellar-buyer-status small {
+  color: #9eabc0;
+}
+
+.interstellar-buyer-status.is-exhausted {
+  opacity: 0.58;
+}
+
 .market-live-value {
   width: fit-content;
   padding: 3px 7px;
@@ -305,6 +337,31 @@
 .warehouse-buy-gate {
   bottom: 7%;
   color: #9ff0ce;
+}
+
+.market-interstellar-bid {
+  position: absolute;
+  right: 64px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 1px solid rgba(137, 189, 255, 0.48);
+  border-radius: 999px;
+  color: #c9e1ff;
+  background: rgba(34, 66, 111, 0.92);
+  box-shadow: 0 0 18px rgba(88, 151, 235, 0.2);
+  transform: translateY(50%);
+  pointer-events: none;
+}
+
+.market-interstellar-bid small {
+  color: #9fb6d4;
+}
+
+.market-interstellar-bid.is-exhausted {
+  opacity: 0.45;
 }
 
 .market-avatar {
@@ -687,5 +744,16 @@
 
   .market-warehouse-gate strong {
     font-size: 0.58rem;
+  }
+
+  .market-interstellar-bid {
+    right: 42px;
+    max-width: 124px;
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
+
+  .market-interstellar-bid small {
+    display: none;
   }
 }

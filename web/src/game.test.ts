@@ -724,6 +724,92 @@ describe('Markthandel', () => {
     expect(nextState.market.crystals.referencePrice).toBe(41)
   })
 
+  it('verkauft Kristalle bis zur Rundenkapazität an den interstellaren Käufer', () => {
+    const initialState: GameState = {
+      ...createInitialGameState(),
+      round: 5,
+      resources: {
+        ...createInitialGameState().resources,
+        crystals: 3,
+      },
+    }
+    const firstSale = executeMarketTrade(
+      initialState,
+      'crystals',
+      'sell',
+      36,
+      'interstellar-buyer',
+    )
+    const secondSale = executeMarketTrade(
+      firstSale,
+      'crystals',
+      'sell',
+      36,
+      'interstellar-buyer',
+    )
+    const rejectedThirdSale = executeMarketTrade(
+      secondSale,
+      'crystals',
+      'sell',
+      36,
+      'interstellar-buyer',
+    )
+
+    expect(secondSale).toMatchObject({
+      credits: 172,
+      interstellarCrystalPurchases: 2,
+      resources: {
+        crystals: 1,
+      },
+    })
+    expect(rejectedThirdSale).toBe(secondSale)
+    expect(secondSale.market.crystals.warehouseStock).toBe(10)
+    expect(secondSale.market.crystals.netWarehouseFlow).toBe(0)
+  })
+
+  it('weist ungültige Geschäfte mit dem Kristallkäufer zurück und setzt die Kapazität rundenweise zurück', () => {
+    const state: GameState = {
+      ...createInitialGameState(),
+      resources: {
+        ...createInitialGameState().resources,
+        crystals: 2,
+      },
+      interstellarCrystalPurchases: 1,
+    }
+
+    expect(
+      executeMarketTrade(
+        state,
+        'food',
+        'sell',
+        8,
+        'interstellar-buyer',
+      ),
+    ).toBe(state)
+    expect(
+      executeMarketTrade(
+        state,
+        'crystals',
+        'buy',
+        36,
+        'interstellar-buyer',
+      ),
+    ).toBe(state)
+    expect(
+      executeMarketTrade(
+        state,
+        'crystals',
+        'sell',
+        37,
+        'interstellar-buyer',
+      ),
+    ).toBe(state)
+    expect(
+      runRound(state, {}, normalSupply).nextState
+        .interstellarCrystalPurchases,
+    ).toBe(0)
+  })
+
   it('rechnet Marktkäufe vor Versorgung und Bevölkerung ab', () => {
     const hungryState: GameState = {
       ...createInitialGameState(),

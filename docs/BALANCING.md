@@ -357,17 +357,18 @@ nicht addiert; der höhere Feldwert gilt.
 
 | Parameter | erste Simulationsbasis |
 |---|---:|
-| Startkapazität | 1 Einheit |
-| Wachstumsstufe bis ungefähr Runde 4 | +1 |
-| Wachstumsstufe ab ungefähr Runde 5 | +2 |
-| Wachstumsstufe ab ungefähr Runde 10 | +3 |
-| Wachstumsstufe ab ungefähr Runde 15 | +4 |
-| Obergrenze | offen |
-| Einstiegspreis | offen |
-| Preisreaktion | offen |
+| Kapazität Runde 1–4 | 1 Einheit |
+| Kapazität Runde 5–9 | 2 Einheiten |
+| Kapazität Runde 10–14 | 3 Einheiten |
+| Kapazität ab Runde 15 | 4 Einheiten |
+| Preisfaktor zum Referenzkurs | 90 % |
+| Mindestgebot | 20 Credits |
+| Höchstgebot | 60 Credits |
 
-Zu vergleichen sind eine ungebremste, eine gedeckelte und eine
-angebotsabhängige Variante.
+Diese gedeckelte Variante ist implementiert. Bei Startkurs 40 bietet
+der Käufer 36 Credits. Das Angebot folgt dem Referenzkurs gedämpft,
+ohne diesen durch eigene Käufe direkt zu verändern. Die knappe
+Rundenkapazität verhindert eine Verkaufsgarantie.
 
 ## Meteorparameter
 

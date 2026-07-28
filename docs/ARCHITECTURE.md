@@ -246,6 +246,14 @@ fälligen Einschlag erst nach der Grundstücksauswertung und gibt ihn
 zusätzlich im `RoundReport` zurück. Dadurch bleiben Rundenprognosen
 rein und wiederholbar.
 
+`interstellarCrystalBuyer.ts` berechnet aus Runde, Referenzkurs und
+bereits übernommener Menge das sichtbare Kaufgebot und die verbleibende
+Kapazität. `executeMarketTrade` behandelt
+`interstellar-buyer` als eigene Gegenpartei, die nur Kristalle kauft
+und weder HQ-Lager noch Lagerfluss verändert. Der Verbrauch wird im
+`GameState` gespeichert und bei der Rundenabrechnung zurückgesetzt.
+`MarketPanel` nimmt das begrenzte Gebot in die Bestpreisermittlung auf.
+
 Kernprinzip:
 
 > Spielregeln arbeiten mit Feld-IDs, Nachbarlisten und
@@ -274,7 +282,7 @@ nicht unabhängig voneinander veralten.
 
 Weitere Umsetzungsreihenfolge:
 
-1. interstellaren Kristallkäufer anbinden,
+1. Countdown und Versorgungsschiff anbinden,
 2. später eine grafische Polyederentfaltung oder 3D-Kugel ergänzen.
 
 Zufällige Verteilungen müssen Seeds unterstützen, damit Tests und

@@ -170,13 +170,22 @@ Zusätzlich existiert ein interstellarer Käufer:
 - konfigurierbare Preisreaktion und Obergrenze,
 - Marktstabilisierung ohne Verkaufsgarantie.
 
-Erste Simulationsbasis:
+Implementierte konservative Simulationsbasis:
 
-- Startkapazität: eine Einheit,
-- zunächst Wachstumsstufe `+1`,
-- ab ungefähr Runde 5 Wachstumsstufe `+2`,
-- ab ungefähr Runde 10 Wachstumsstufe `+3`,
-- ab ungefähr Runde 15 Wachstumsstufe `+4`.
+- Runden 1 bis 4: eine Einheit,
+- Runden 5 bis 9: zwei Einheiten,
+- Runden 10 bis 14: drei Einheiten,
+- ab Runde 15: vier Einheiten,
+- Kaufgebot: 90 Prozent des offiziellen Referenzkurses,
+- Mindestgebot: 20 Credits,
+- Höchstgebot: 60 Credits.
+
+Bei einem Referenzkurs von 40 Credits startet der Käufer daher mit
+einem Gebot von 36 Credits. Seine Kapazität gilt je Runde und wird mit
+jeder übernommenen Einheit reduziert. Nach Ausschöpfung zieht er sich
+für den Rest der Runde zurück. Verkäufe an ihn verändern weder das
+HQ-Lager noch dessen Nettofluss und garantieren wegen der begrenzten
+Kapazität keinen Verkauf.
 
 Verkaufte Kristalle werden von spezialisierten
 Hochsicherheits-Raumschiffen abgeholt. Diese Werttransporter:
@@ -308,7 +317,6 @@ Abgeschlossen:
 
 Als Nächstes:
 
-1. interstellaren Käufer ergänzen.
-2. Countdown und Storytexte ergänzen.
-3. Simulation und Balancing.
-4. später grafische Entfaltung oder 3D-Kugel.
+1. Countdown und Storytexte ergänzen.
+2. Simulation und Balancing.
+3. später grafische Entfaltung oder 3D-Kugel.

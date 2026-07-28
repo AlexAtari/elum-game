@@ -1,4 +1,5 @@
 import { createRivalMarketSelection } from '../rivalMarket'
+import { getInterstellarCrystalBuyerOffer } from '../interstellarCrystalBuyer'
 import {
   useCallback,
   useEffect,
@@ -35,6 +36,7 @@ type MarketPanelProps = {
   credits: number
   referencePrice: number
   warehouseStock: number
+  interstellarCrystalPurchases: number
   rivals: RivalColonies
   rivalResourceAmounts: {
     orion: number
@@ -137,6 +139,7 @@ function MarketPanel({
   credits,
   referencePrice,
   warehouseStock,
+  interstellarCrystalPurchases,
   rivals,
   rivalResourceAmounts,
   nextResource,
@@ -157,6 +160,13 @@ function MarketPanel({
     resource,
     referencePrice,
   )
+  const interstellarBuyer = getInterstellarCrystalBuyerOffer(
+    roundPlayed,
+    referencePrice,
+    interstellarCrystalPurchases,
+  )
+  const isInterstellarBuyerPresent =
+    resource === 'crystals' && interstellarBuyer.isAvailable
   const minimumPrice = warehousePrices.buyPrice
   const maximumPrice = warehousePrices.sellPrice
   const [stage, setStage] =
@@ -431,9 +441,20 @@ function MarketPanel({
   ])
 
   const orionGuidesPriceLine = orionActive || orionRetreating
+  const staticBuyerPrice = isInterstellarBuyerPresent
+    ? Math.max(
+        warehousePrices.buyPrice,
+        interstellarBuyer.offerPrice,
+      )
+    : warehousePrices.buyPrice
+  const staticBuyerCounterparty: MarketCounterparty =
+    isInterstellarBuyerPresent &&
+    interstellarBuyer.offerPrice >= warehousePrices.buyPrice
+      ? 'interstellar-buyer'
+      : 'warehouse'
   const orionLeadsBuyers =
     orionGuidesPriceLine &&
-    orionPrice >= warehousePrices.buyPrice
+    orionPrice >= staticBuyerPrice
   const orionLeadsSellers =
     orionGuidesPriceLine &&
     (warehouseStock <= 0 ||
@@ -453,12 +474,12 @@ function MarketPanel({
         : warehousePrices.buyPrice
       : orionLeadsBuyers
         ? orionPrice
-        : warehousePrices.buyPrice
+        : staticBuyerPrice
   const activeCounterparty: MarketCounterparty =
     role === 'seller'
       ? orionLeadsBuyers
         ? activeRivalId
-      : 'warehouse'
+        : staticBuyerCounterparty
       : orionLeadsSellers
         ? activeRivalId
       : 'warehouse'
@@ -478,7 +499,9 @@ function MarketPanel({
     stage === 'auction' &&
     playerOfferActive &&
     pricesMeet &&
-    (activeCounterparty === 'warehouse' || orionActive) &&
+    (activeCounterparty === 'warehouse' ||
+      activeCounterparty === 'interstellar-buyer' ||
+      orionActive) &&
     (role === 'seller'
       ? resourceAmount > 0
       : credits >= tradePrice) &&
@@ -521,7 +544,10 @@ function MarketPanel({
             setPlayerPrice(creditsAfterTrade)
           }
         }
-        if (activeCounterparty !== 'warehouse') {
+        if (
+          activeCounterparty !== 'warehouse' &&
+          activeCounterparty !== 'interstellar-buyer'
+        ) {
           setOrionUnitsRemaining((currentUnits) =>
             Math.max(0, currentUnits - 1),
           )
@@ -690,19 +716,25 @@ function MarketPanel({
         : 'HQ-Lager'
       : orionLeadsBuyers
         ? activeRival.name
-      : 'HQ-Lager'
+        : staticBuyerCounterparty === 'interstellar-buyer'
+          ? 'Interstellarer Käufer'
+          : 'HQ-Lager'
   const displayedSellerPrice =
     stage === 'declaration'
       ? warehousePrices.sellPrice
       : sellerPrice
   const displayedBuyerPrice =
     stage === 'declaration'
-      ? warehousePrices.buyPrice
+      ? staticBuyerPrice
       : buyerPrice
   const displayedSellerName =
     stage === 'declaration' ? 'HQ-Lager' : sellerName
   const displayedBuyerName =
-    stage === 'declaration' ? 'HQ-Lager' : buyerName
+    stage === 'declaration'
+      ? staticBuyerCounterparty === 'interstellar-buyer'
+        ? 'Interstellarer Käufer'
+        : 'HQ-Lager'
+      : buyerName
   const timerMaximum =
     stage === 'introduction'
       ? introductionSeconds
@@ -730,6 +762,15 @@ function MarketPanel({
       icon: '🧑‍🚀',
       amount: rivalResourceAmounts.vega,
     },
+    ...(resource === 'crystals'
+      ? [
+          {
+            name: 'Interstellarer Käufer',
+            icon: '🛰️',
+            amount: interstellarBuyer.remainingCapacity,
+          },
+        ]
+      : []),
   ]
 
   return (
@@ -843,11 +884,34 @@ function MarketPanel({
               ? ''
               : lastTradePartner === 'warehouse'
               ? 'dem HQ-Lager'
-              : rivals[lastTradePartner].name
+              : lastTradePartner === 'interstellar-buyer'
+                ? 'dem interstellaren Käufer'
+                : rivals[lastTradePartner].name
                 }`}
           </small>
         </div>
       </div>
+
+      {resource === 'crystals' && (
+        <div
+          className={`interstellar-buyer-status ${
+            interstellarBuyer.isAvailable
+              ? 'is-available'
+              : 'is-exhausted'
+          }`}
+          role="status"
+        >
+          <span aria-hidden="true">🛰️</span>
+          <div>
+            <strong>Interstellarer Kristallkäufer</strong>
+            <small>
+              Kaufgebot {interstellarBuyer.offerPrice} Credits ·{' '}
+              Kapazität {interstellarBuyer.remainingCapacity}/
+              {interstellarBuyer.capacity}
+            </small>
+          </div>
+        </div>
+      )}
 
       <div
         className={`market-content market-content-${stage}`}
@@ -918,6 +982,32 @@ function MarketPanel({
             <strong>VERKAUF AN LAGER</strong>
             <b>{warehousePrices.buyPrice} Credits</b>
           </div>
+
+          {resource === 'crystals' &&
+            (stage === 'declaration' || stage === 'auction') && (
+              <div
+                className={`market-interstellar-bid ${
+                  interstellarBuyer.isAvailable
+                    ? ''
+                    : 'is-exhausted'
+                }`}
+                style={{
+                  bottom: pricePosition(
+                    interstellarBuyer.offerPrice,
+                    minimumPrice,
+                    maximumPrice,
+                  ),
+                }}
+              >
+                <span>🛰️</span>
+                <strong>
+                  {interstellarBuyer.offerPrice} Credits
+                </strong>
+                <small>
+                  {interstellarBuyer.remainingCapacity} verfügbar
+                </small>
+              </div>
+            )}
 
           {(stage === 'declaration' || stage === 'auction') && (
             <>
@@ -1187,7 +1277,11 @@ function MarketPanel({
           {stage === 'auction' && canTrade && (
             <div className="trade-indicator" aria-live="polite">
               1 Einheit ·{' '}
-              {activeCounterparty === 'warehouse' ? 'HQ-Lager' : rivals[activeCounterparty].name}{' '}
+              {activeCounterparty === 'warehouse'
+                ? 'HQ-Lager'
+                : activeCounterparty === 'interstellar-buyer'
+                  ? 'Interstellarer Käufer'
+                  : rivals[activeCounterparty].name}{' '}
               · {tradePrice} Credits
             </div>
           )}

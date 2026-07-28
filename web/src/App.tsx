@@ -621,7 +621,10 @@ function App() {
             credits={gameState.credits}
             referencePrice={activeResourceMarket.referencePrice}
             warehouseStock={activeResourceMarket.warehouseStock}
-        rivals={gameState.rivals}
+            interstellarCrystalPurchases={
+              gameState.interstellarCrystalPurchases ?? 0
+            }
+            rivals={gameState.rivals}
             rivalResourceAmounts={{
               orion:
                 gameState.rivals.orion.resources[

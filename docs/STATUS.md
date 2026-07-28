@@ -132,7 +132,6 @@ vollständigen Kern von Version 1 nicht unnötig vergrößern.
 - Aktivierung der intern vorbereiteten zufälligen
   Startkorridor-Zuordnung im späteren Browser-Spielstart
 - Kartenregeln über Feld-IDs, Nachbarlisten und Graphdistanzen
-- interstellarer Käufer als zusätzlicher Kristallmarktteilnehmer
 - regelmäßige Hochsicherheits-Kristalltransporter
 - Bewertung nicht verkaufter Kristalle zum offiziellen
   Orientierungspreis; Start- und Rückfallwert 40 Credits
@@ -142,13 +141,16 @@ Der Browserprototyp verwendet weiterhin 15 Runden, aber bereits den
 Kristallwerte werden erst auf eigenen Grundstücken offengelegt. Die
 konservative Meteorvariante mit zwei garantierten und einem optionalen
 dritten Einschlag ist ebenfalls aktiv; Kraterzentren werden öffentlich
-markiert und Aufwertungen bei fünf Sternen gedeckelt. Die
+markiert und Aufwertungen bei fünf Sternen gedeckelt. Der
+interstellare Kristallkäufer ist mit einer Kapazität von `1/2/3/4`
+Einheiten und einem auf 90 Prozent gedämpften, zwischen 20 und
+60 Credits gedeckelten Referenzkursgebot aktiv. Die
 zufällige Neuzuordnung der Startkorridore pro Browserpartie folgt in
 einem späteren Spielstart-Schritt.
 
 Nächste technische Reihenfolge:
 
-1. interstellaren Käufer ergänzen.
+1. Countdown und Versorgungsschiff ergänzen.
 2. danach erneut simulieren und balancieren.
 
 Details: `docs/PLANET_MAP.md`.
