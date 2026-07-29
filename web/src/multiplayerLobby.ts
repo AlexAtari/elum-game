@@ -325,7 +325,7 @@ export class MultiplayerLobby {
       this.send(connectionId, {
         version: 1,
         type: 'match-snapshot',
-        payload: this.match.getSnapshot(),
+        payload: this.match.getSnapshot(participantId),
       })
     }
   }
@@ -452,12 +452,18 @@ export class MultiplayerLobby {
     this.phase = 'playing'
     this.revision += 1
     this.broadcastLobbySnapshot()
-    this.unsubscribeMatch = match.subscribe((snapshot) => {
-      this.broadcast({
-        version: 1,
-        type: 'match-snapshot',
-        payload: snapshot,
-      })
+    this.unsubscribeMatch = match.subscribe(() => {
+      for (const seat of this.humanSeats.values()) {
+        if (seat.connectionId === null) {
+          continue
+        }
+
+        this.send(seat.connectionId, {
+          version: 1,
+          type: 'match-snapshot',
+          payload: match.getSnapshot(seat.participantId),
+        })
+      }
     })
   }
 

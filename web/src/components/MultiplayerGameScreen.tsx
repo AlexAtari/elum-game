@@ -25,6 +25,7 @@ import type {
 } from '../multiplayerProtocol'
 import type { AuthoritativeMatchSnapshot } from '../authoritativeMatch'
 import HexMap from './HexMap'
+import RoundBriefingPanel from './RoundBriefingPanel'
 import './MultiplayerGameScreen.css'
 
 type MultiplayerGameScreenProps = {
@@ -65,6 +66,11 @@ function MultiplayerGameScreen({
     useState<PlanningView>('colony')
   const [foodSupplyLevel, setFoodSupplyLevel] = useState(2)
   const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
+  const [dismissedReportRound, setDismissedReportRound] =
+    useState<number | null>(null)
+  const [focusedTileId, setFocusedTileId] = useState<
+    string | null
+  >(null)
   const [marketOfferDraft, setMarketOfferDraft] = useState<{
     resource: MarketResource
     price: number
@@ -83,6 +89,7 @@ function MultiplayerGameScreen({
       participantId,
     )
   const activeMarket = state.activeResourceMarket
+  const lastRoundReport = snapshot.lastRoundReport
   const marketState = activeMarket
     ? state.market[activeMarket.resource]
     : null
@@ -381,6 +388,44 @@ function MultiplayerGameScreen({
     )
   }
 
+  if (
+    lastRoundReport &&
+    dismissedReportRound !==
+      lastRoundReport.roundPlayed
+  ) {
+    return (
+      <main className="network-game-screen">
+        <header className="network-game-header">
+          <div>
+            <span className="eyebrow">E.L.U.M.</span>
+            <h1>{colony.name}</h1>
+          </div>
+          <div className="round-badge">
+            {t('app.round', { round: state.round })}
+          </div>
+        </header>
+        <RoundBriefingPanel
+          round={state.round}
+          population={colony.population}
+          report={lastRoundReport}
+          globalEvent={lastRoundReport.globalEvent}
+          onContinue={() =>
+            setDismissedReportRound(
+              lastRoundReport.roundPlayed,
+            )
+          }
+          onViewExploration={(tileId) => {
+            setFocusedTileId(tileId)
+            setPlanningView('colony')
+            setDismissedReportRound(
+              lastRoundReport.roundPlayed,
+            )
+          }}
+        />
+      </main>
+    )
+  }
+
   return (
     <main className="network-game-screen">
       <header className="network-game-header">
@@ -415,6 +460,7 @@ function MultiplayerGameScreen({
         <>
           <HexMap
             participantId={participantId}
+            focusTileId={focusedTileId}
             round={state.round}
             population={colony.population}
             credits={colony.credits}

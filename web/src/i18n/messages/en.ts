@@ -110,7 +110,7 @@ export const en = {
   'briefing.production': 'Produced',
   'briefing.land': 'Plots',
   'briefing.landWon': 'Plot {{tile}} won',
-  'briefing.landLost': 'Plot {{tile}} went to Orion',
+  'briefing.landLost': 'Plot {{tile}} lost',
   'briefing.landUnchanged': 'No change',
   'briefing.harvesters': 'Harvesters',
   'briefing.harvestersCompleted': '{{amount}} newly operational',
@@ -121,6 +121,13 @@ export const en = {
   'briefing.pausedRetooling':
     'Retooling paused: {{ids}}',
   'briefing.continue': 'Start round now',
+  'briefing.explorationReport': 'Exploration report',
+  'briefing.explorationComplete': 'Crystal survey completed',
+  'briefing.showOnMap': 'Show on map',
+  'briefing.showOnMapLabel': 'Show {{tile}} on the map',
+  'briefing.noCrystalDeposit': 'No deposit',
+  'briefing.explorationHint':
+    'The result is now visible on the plot. If a deposit was found, a harvester can be retooled there for crystal production.',
 
   'event.global.fertileSeason.title': 'Fertile season',
   'event.global.fertileSeason.description':

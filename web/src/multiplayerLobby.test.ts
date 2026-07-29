@@ -128,6 +128,34 @@ describe('Multiplayer-Lobby', () => {
       requestId: 'plan-guest',
       payload: { ok: true, revision: 2 },
     })
+
+    const hostSnapshot = findMessages(
+      emitted,
+      'match-snapshot',
+      'host',
+    ).at(-1)?.message
+    const guestSnapshot = findMessages(
+      emitted,
+      'match-snapshot',
+      'guest',
+    ).at(-1)?.message
+
+    expect(hostSnapshot).toMatchObject({
+      payload: {
+        lastRoundReport: {
+          roundPlayed: 1,
+          populationChange: 1,
+        },
+      },
+    })
+    expect(guestSnapshot).toMatchObject({
+      payload: {
+        lastRoundReport: {
+          roundPlayed: 1,
+          populationChange: -1,
+        },
+      },
+    })
   })
 
   it('bleibt bei einem abgebrochenen Transport funktionsfähig', () => {

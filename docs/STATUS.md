@@ -141,6 +141,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   autoritative Match-Snapshots und senden validierte
   Netzwerkkommandos; fremde Sitze führen dadurch keine lokale
   Agima-Logik aus
+- teilnehmerbezogene Multiplayer-Rundenbriefings zeigen Produktion,
+  Versorgung, Bevölkerung, Grundstücksausgang, neue Harvester und
+  abgeschlossene Kristallexplorationen; Explorationsergebnisse
+  öffnen auf Wunsch direkt das zugehörige Kartenfeld
+- der Server hält Berichte getrennt je menschlichem Sitz und fügt
+  nur den eigenen Bericht in dessen personalisierten Snapshot ein;
+  unpersonalisierte Snapshots enthalten keine Rundendaten
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -251,13 +258,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Die regelkritischen Browseraktionen und die Rundenbarriere laufen im
-Mehrspielerpfad jetzt über den autoritativen Server. Als Nächstes
-werden Rundenbriefing, Ereignisse und Rangliste teilnehmerbezogen in
-dieser Ansicht ergänzt. Für einen öffentlichen Mehrspielerbetrieb
-bleiben anschließend Backend-Hosting, TLS mit `wss://`,
-Origin-Policy und betriebliche Überwachung zu entscheiden; GitHub
-Pages hostet weiterhin nur das statische Frontend.
+Die regelkritischen Browseraktionen, die Rundenbarriere und das
+teilnehmerbezogene Rundenbriefing laufen im Mehrspielerpfad jetzt
+über den autoritativen Server. Als Nächstes werden Ereignisaktivierung
+und Rangliste in dieser Ansicht ergänzt. Für einen öffentlichen
+Mehrspielerbetrieb bleiben anschließend Backend-Hosting, TLS mit
+`wss://`, Origin-Policy und betriebliche Überwachung zu entscheiden;
+GitHub Pages hostet weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

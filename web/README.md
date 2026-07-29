@@ -43,7 +43,9 @@ Server und Lobby-ID können in der Oberfläche geändert werden. Nach
 dem Matchstart wechselt jeder menschliche Sitz in seine eigene
 teilnehmerbezogene Spielansicht. Karte, HQ, Harvester,
 Grundstücksgebote, Ressourcenmärkte und Rundenplanung verwenden dort
-ausschließlich Server-Snapshots und Netzwerkkommandos.
+ausschließlich Server-Snapshots und Netzwerkkommandos. Nach der
+gemeinsamen Abrechnung erhält jeder Sitz ein privates Rundenbriefing
+einschließlich antippbarer Explorationsergebnisse.
 
 Für öffentliches Hosting werden ein dauerhaft laufender Dienst, TLS
 (`wss://`) und eine konkrete Origin-Policy benötigt.

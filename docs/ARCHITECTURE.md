@@ -290,6 +290,18 @@ Die vereinfachten Mehrspielerpanels zeigen die kanonischen
 servergesteuerten Markt- und Auktionsphasen; die aufwendigen
 Singleplayeranimationen bleiben davon getrennte Darstellungsadapter.
 
+Nach einer gemeinsamen Rundenabrechnung bewahrt
+`AuthoritativeMatch` die von `runMultiplayerRound` erzeugten
+teilnehmerbezogenen `RoundReport`s bis zur nächsten Abrechnung auf.
+`getSnapshot(participantId)` fügt ausschließlich den Bericht dieses
+Sitzes ein; der unpersonalisierte Snapshot enthält keinen Bericht.
+Die Lobby versendet deshalb nach jeder Revision getrennte
+Match-Snapshots an die verbundenen Menschen. So zeigt
+`RoundBriefingPanel` im Mehrspielerpfad Produktion, Versorgung,
+Bevölkerungsänderung, Grundstücksausgang, Harvester und
+Explorationen, ohne fremde Rundendaten über den Transport
+offenzulegen.
+
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
 Entfernen laufen über reine Funktionen in `game.ts`; React hält davon

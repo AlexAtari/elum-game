@@ -356,10 +356,15 @@ werden.
   teilnehmerbezogene Spielansicht; Karte, HQ, Harvester,
   Grundstücksgebote, Ressourcenmärkte und Rundenplanung werden aus
   autoritativen Snapshots gespeist und als Netzwerkkommandos gesendet
+- nach jeder gemeinsamen Abrechnung erhält jeder menschliche Sitz
+  ausschließlich seinen eigenen Rundenbericht mit Produktion,
+  Versorgung, Bevölkerung, Grundstücksausgang, neuen Harvestern und
+  abgeschlossenen Explorationen; das Briefing kann direkt zum
+  erkundeten Feld auf der Karte springen
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Rundenbriefing, Ereignisse und Rangliste
-  in der Mehrspieleransicht aus dem gemeinsamen Zustand darstellen;
+- nächster Strukturschritt: Ereignisaktivierung und Rangliste in der
+  Mehrspieleransicht aus dem gemeinsamen Zustand darstellen;
   danach Backend-Hosting, TLS und Origin-Policy für öffentlichen
   Betrieb festlegen
 

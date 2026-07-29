@@ -7,6 +7,7 @@ import {
   type LandAuctionPhase,
   type MarketResource,
   type ResourceMarketPhase,
+  type RoundReport,
 } from './game'
 import {
   applyAutonomousAiLandPurchases,
@@ -90,6 +91,7 @@ export type AuthoritativeMatchSnapshot = {
   revision: number
   state: GameState
   phaseTiming: AuthoritativePhaseTiming | null
+  lastRoundReport: RoundReport | null
   roundReadiness: {
     round: number
     readyParticipantIds: ParticipantId[]
@@ -164,11 +166,13 @@ function copySnapshot(
   state: GameState,
   phaseTiming: AuthoritativePhaseTiming | null,
   readyParticipantIds: ParticipantId[],
+  lastRoundReport: RoundReport | null,
 ): AuthoritativeMatchSnapshot {
   return structuredClone({
     revision,
     state,
     phaseTiming,
+    lastRoundReport,
     roundReadiness: {
       round: state.round,
       readyParticipantIds,
@@ -300,6 +304,9 @@ export class AuthoritativeMatch {
     ParticipantId,
     ParticipantRoundPlan
   >()
+  private lastRoundReports: Partial<
+    Record<ParticipantId, RoundReport>
+  > = {}
   private readonly clock: MatchClock
   private readonly onSubscriberError: (error: unknown) => void
   private readonly sessionSeats = new Map<string, ParticipantId>()
@@ -530,7 +537,7 @@ export class AuthoritativeMatch {
     }
   }
 
-  getSnapshot() {
+  getSnapshot(participantId?: ParticipantId) {
     return copySnapshot(
       this.revision,
       this.state,
@@ -538,6 +545,9 @@ export class AuthoritativeMatch {
       participantIds.filter((participantId) =>
         this.roundPlans.has(participantId),
       ),
+      participantId
+        ? this.lastRoundReports[participantId] ?? null
+        : null,
     )
   }
 
@@ -566,6 +576,7 @@ export class AuthoritativeMatch {
     this.seatSessions.clear()
     this.subscribers.clear()
     this.roundPlans.clear()
+    this.lastRoundReports = {}
   }
 
   private acceptState(nextState: GameState) {
@@ -691,6 +702,7 @@ export class AuthoritativeMatch {
       this.state,
       Object.fromEntries(this.roundPlans),
     )
+    this.lastRoundReports = result.reports
     this.roundPlans.clear()
     this.acceptState(result.nextState)
     return true

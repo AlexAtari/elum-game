@@ -3,6 +3,7 @@ import {
   type GameState,
   type HarvesterAssignment,
   type HarvesterAssignments,
+  type LandAuctionResult,
   type RivalId,
   type RoundReport,
   type SupplyPlan,
@@ -95,6 +96,48 @@ function runParticipantEconomy(
   )
 }
 
+function createParticipantLandAuctionReport(
+  state: GameState,
+  participantId: ParticipantId,
+): LandAuctionResult | null {
+  const landBid = state.pendingLandBid
+
+  if (!landBid) {
+    return null
+  }
+
+  const bidEntries = Object.entries(landBid.bids) as Array<
+    [ParticipantId, number]
+  >
+  const participantBid = landBid.bids[participantId]
+
+  if (participantBid === undefined) {
+    return null
+  }
+
+  const highestOtherBid = Math.max(
+    0,
+    ...bidEntries
+      .filter(([bidderId]) => bidderId !== participantId)
+      .map(([, amount]) => amount),
+  )
+  const winnerId =
+    landBid.winnerId ??
+    (bidEntries.length === 1 ? bidEntries[0][0] : undefined)
+
+  return {
+    tileId: landBid.tileId,
+    playerBid: participantBid,
+    rivalBid: highestOtherBid,
+    outcome:
+      winnerId === participantId
+        ? 'won'
+        : winnerId
+          ? 'lost'
+          : 'tie',
+  }
+}
+
 export function runMultiplayerRound(
   state: GameState,
   plans: Partial<Record<ParticipantId, ParticipantRoundPlan>>,
@@ -181,7 +224,13 @@ export function runMultiplayerRound(
     reports: Object.fromEntries(
       humanParticipantIds.map((participantId) => [
         participantId,
-        participantResults[participantId]!.report,
+        {
+          ...participantResults[participantId]!.report,
+          landAuction: createParticipantLandAuctionReport(
+            state,
+            participantId,
+          ),
+        },
       ]),
     ),
   }

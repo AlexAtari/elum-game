@@ -107,7 +107,7 @@ export const de = {
   'briefing.production': 'Produziert',
   'briefing.land': 'Grundstücke',
   'briefing.landWon': 'Feld {{tile}} gewonnen',
-  'briefing.landLost': 'Feld {{tile}} ging an Orion',
+  'briefing.landLost': 'Feld {{tile}} verloren',
   'briefing.landUnchanged': 'Keine Veränderung',
   'briefing.harvesters': 'Harvester',
   'briefing.harvestersCompleted': '{{amount}} neu einsatzbereit',
@@ -118,6 +118,14 @@ export const de = {
   'briefing.pausedRetooling':
     'Umrüstung pausiert: {{ids}}',
   'briefing.continue': 'Runde jetzt beginnen',
+  'briefing.explorationReport': 'Explorationsbericht',
+  'briefing.explorationComplete': 'Kristallsuche abgeschlossen',
+  'briefing.showOnMap': 'Auf der Karte anzeigen',
+  'briefing.showOnMapLabel':
+    '{{tile}} auf der Karte anzeigen',
+  'briefing.noCrystalDeposit': 'Kein Vorkommen',
+  'briefing.explorationHint':
+    'Das Ergebnis ist ab jetzt auf dem Grundstück sichtbar. Bei einem Vorkommen kann dort ein Harvester auf Kristallproduktion umgerüstet werden.',
 
   'event.global.fertileSeason.title': 'Fruchtbare Saison',
   'event.global.fertileSeason.description':

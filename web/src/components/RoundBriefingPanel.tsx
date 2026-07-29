@@ -220,8 +220,10 @@ function RoundBriefingPanel({
 
         {report.completedExplorations.length > 0 && (
           <article className="round-briefing-exploration">
-            <p className="eyebrow">Explorationsbericht</p>
-            <h3>Kristallsuche abgeschlossen</h3>
+            <p className="eyebrow">
+              {t('briefing.explorationReport')}
+            </p>
+            <h3>{t('briefing.explorationComplete')}</h3>
             <div className="exploration-results">
               {report.completedExplorations.map(
                 ({ tileId, crystalRating }) => (
@@ -230,32 +232,28 @@ function RoundBriefingPanel({
                     key={tileId}
                     type="button"
                     onClick={() => onViewExploration(tileId)}
-                    aria-label={`${getPlanetTileName(
-                      tileId,
-                    )} auf der Karte anzeigen`}
+                    aria-label={t('briefing.showOnMapLabel', {
+                      tile: getPlanetTileName(tileId),
+                    })}
                   >
                     <span>
                       <span>
                         💎 {getPlanetTileName(tileId)}
                       </span>
-                      <small>Auf der Karte anzeigen</small>
+                      <small>{t('briefing.showOnMap')}</small>
                     </span>
                     <strong>
                       {crystalRating > 0
                         ? `${'★'.repeat(crystalRating)}${'☆'.repeat(
                             5 - crystalRating,
                           )}`
-                        : 'Kein Vorkommen'}
+                        : t('briefing.noCrystalDeposit')}
                     </strong>
                   </button>
                 ),
               )}
             </div>
-            <p>
-              Das Ergebnis ist ab jetzt auf dem Grundstück
-              sichtbar. Bei einem Vorkommen kann dort ein Harvester
-              auf Kristallproduktion umgerüstet werden.
-            </p>
+            <p>{t('briefing.explorationHint')}</p>
           </article>
         )}
       </div>

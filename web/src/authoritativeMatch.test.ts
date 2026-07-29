@@ -171,6 +171,19 @@ describe('Autoritativer Match-Serverkern', () => {
     expect(
       completed.snapshot.state.colonies.orion.population,
     ).toBe(orionPopulation - 1)
+    expect(match.getSnapshot().lastRoundReport).toBeNull()
+    expect(
+      match.getSnapshot('agima').lastRoundReport,
+    ).toMatchObject({
+      roundPlayed: 1,
+      populationChange: 1,
+    })
+    expect(
+      match.getSnapshot('orion').lastRoundReport,
+    ).toMatchObject({
+      roundPlayed: 1,
+      populationChange: -1,
+    })
   })
 
   it('validiert Rundenpläne an der authentifizierten Grenze', () => {
