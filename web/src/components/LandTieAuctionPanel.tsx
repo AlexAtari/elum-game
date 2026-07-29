@@ -12,6 +12,7 @@ import {
   type LandAuctionTie,
   HARVESTER_CREDIT_COST,
   HARVESTER_ORE_COST,
+  LAND_AUCTION_TIMING,
   MARKET_PRICES,
   type RivalColonyState,
 } from '../game'
@@ -20,8 +21,9 @@ import AuctionPriceScale from './AuctionPriceScale'
 import AuctionTimer from './AuctionTimer'
 import './LandTieAuctionPanel.css'
 
-const preparationSeconds = 5
-const landTieSeconds = 10
+const preparationSeconds =
+  LAND_AUCTION_TIMING.announcementSeconds
+const landTieSeconds = LAND_AUCTION_TIMING.auctionSeconds
 const movementMilliseconds = 300
 const orionMovementMilliseconds = 1100
 const resultDisplayMilliseconds = 1200

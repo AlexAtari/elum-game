@@ -326,7 +326,16 @@ export type MarketTiming = {
   auctionSeconds: number
 }
 
+export type LandAuctionTiming = {
+  announcementSeconds: number
+  auctionSeconds: number
+}
+
 export const LAND_MINIMUM_BID = 25
+export const LAND_AUCTION_TIMING: LandAuctionTiming = {
+  announcementSeconds: 5,
+  auctionSeconds: 10,
+}
 export const HARVESTER_CREDIT_COST = 30
 export const HARVESTER_ORE_COST = 3
 export const GLOBAL_EVENT_CHANCE = 0.4

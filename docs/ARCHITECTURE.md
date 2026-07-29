@@ -165,6 +165,39 @@ Kommando selbst vertraut werden. Ein Server-/Transportadapter muss
 den authentifizierten Sitz mit `participantId` abgleichen, bevor er
 das Kommando an diese Schicht übergibt.
 
+### Autoritativer Match-Serverkern
+
+`authoritativeMatch.ts` kapselt einen laufenden `GameState` hinter
+einer transportneutralen Servergrenze. Ein vorgeschalteter Transport
+authentifiziert eine Verbindung und übergibt anschließend eine
+`AuthenticatedSeat`-Bindung aus undurchsichtiger `sessionId` und
+`ParticipantId`. Der Kern akzeptiert nur menschlich konfigurierte
+Sitze, verhindert gleichzeitige Doppelbelegung und vergleicht bei
+jedem Kommando die gebundene Identität mit dessen `participantId`.
+Der Kommandoinhalt selbst gilt damit nicht als Identitätsnachweis.
+
+Erfolgreiche Kommandos erhöhen eine monotone Snapshot-Revision.
+Abonnenten erhalten vollständige, strukturierte Kopien aus
+`GameState`, Revision und optionaler autoritativer Phasenfrist.
+Fehlerhafte, fremde oder nicht authentifizierte Kommandos verändern
+weder Zustand noch Revision und werden nicht verteilt. Fehler eines
+einzelnen Abonnenten können die Zustandsmaschine nicht unterbrechen.
+
+Die Phasenkommandos beider Auktionsarten sind für Client-Sitzungen
+gesperrt. Der Serverkern ermittelt stattdessen aus der kanonischen
+Phase und den gemeinsamen Zeitwerten eine Frist, hält sie bei
+wirtschaftlichen Kommandos innerhalb derselben Phase stabil und
+führt bei Ablauf selbst ein normal validiertes Kommando aus. Jeder
+Snapshot enthält dafür ein absolutes `deadlineAt`; ein Client kann
+daraus seinen Countdown darstellen, ohne selbst Autorität über den
+Phasenwechsel zu besitzen.
+
+Der Kern enthält bewusst noch keinen WebSocket- oder HTTP-Server.
+Authentifizierung, Lobby, Wiederverbindungsprotokoll und
+Serialisierung über eine konkrete Verbindung bleiben Aufgaben des
+nächsten dünnen Transportadapters. Die bestehende lokale
+React-Partie verwendet weiterhin direkt die Kommandoschicht.
+
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
 Entfernen laufen über reine Funktionen in `game.ts`; React hält davon

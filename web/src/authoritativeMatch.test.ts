@@ -1,0 +1,411 @@
+import { describe, expect, it } from 'vitest'
+import {
+  createPlayableInitialGameState,
+  type GameState,
+} from './game'
+import {
+  createAuthoritativeMatch,
+  type MatchClock,
+} from './authoritativeMatch'
+import type { GameCommand } from './gameCommands'
+
+class FakeClock implements MatchClock {
+  private currentTime = 1_000
+  private nextTimerId = 0
+  private readonly timers = new Map<
+    number,
+    {
+      dueAt: number
+      callback: () => void
+    }
+  >()
+
+  now = () => this.currentTime
+
+  setTimeout = (
+    callback: () => void,
+    delayMilliseconds: number,
+  ) => {
+    this.nextTimerId += 1
+    this.timers.set(this.nextTimerId, {
+      dueAt: this.currentTime + delayMilliseconds,
+      callback,
+    })
+    return this.nextTimerId
+  }
+
+  clearTimeout = (handle: unknown) => {
+    this.timers.delete(Number(handle))
+  }
+
+  advance(milliseconds: number) {
+    const targetTime = this.currentTime + milliseconds
+
+    while (true) {
+      const nextTimer = [...this.timers.entries()]
+        .filter(([, timer]) => timer.dueAt <= targetTime)
+        .sort(
+          ([firstId, first], [secondId, second]) =>
+            first.dueAt - second.dueAt ||
+            firstId - secondId,
+        )[0]
+
+      if (!nextTimer) {
+        break
+      }
+
+      const [timerId, timer] = nextTimer
+      this.timers.delete(timerId)
+      this.currentTime = timer.dueAt
+      timer.callback()
+    }
+
+    this.currentTime = targetTime
+  }
+}
+
+function createCommand(
+  command: Omit<
+    GameCommand,
+    'version' | 'commandId' | 'expectedRound'
+  >,
+  commandId: string,
+): GameCommand {
+  return {
+    ...command,
+    version: 1,
+    commandId,
+    expectedRound: 1,
+  } as GameCommand
+}
+
+function withRemoteOrion(state: GameState): GameState {
+  return {
+    ...state,
+    match: {
+      ...state.match,
+      participants: {
+        ...state.match.participants,
+        orion: {
+          ...state.match.participants.orion,
+          controller: {
+            kind: 'human',
+            input: 'remote',
+          },
+        },
+      },
+    },
+  }
+}
+
+describe('Autoritativer Match-Serverkern', () => {
+  it('bindet authentifizierte Sitzungen und verhindert Identitätswechsel', () => {
+    const state = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const subscriberErrors: unknown[] = []
+    const match = createAuthoritativeMatch(state, {
+      onSubscriberError: (error) => {
+        subscriberErrors.push(error)
+      },
+    })
+    const revisions: number[] = []
+
+    match.subscribe(() => {
+      throw new Error('disconnected transport')
+    })
+    match.subscribe((snapshot) => {
+      revisions.push(snapshot.revision)
+    })
+
+    expect(
+      match.connectSeat({
+        sessionId: 'agima-session',
+        participantId: 'agima',
+      }),
+    ).toMatchObject({ ok: true })
+    expect(
+      match.connectSeat({
+        sessionId: 'orion-session',
+        participantId: 'orion',
+      }),
+    ).toMatchObject({ ok: true })
+    expect(
+      match.connectSeat({
+        sessionId: 'second-orion-session',
+        participantId: 'orion',
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'seat-already-connected',
+    })
+    expect(
+      match.connectSeat({
+        sessionId: 'orion-session',
+        participantId: 'agima',
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'session-already-bound',
+    })
+    expect(
+      match.connectSeat({
+        sessionId: 'vega-session',
+        participantId: 'vega',
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'seat-not-human',
+    })
+    expect(
+      match.connectSeat({
+        sessionId: 'unknown-seat-session',
+        participantId: 'unknown',
+      }),
+    ).toEqual({
+      ok: false,
+      error: 'invalid-seat',
+    })
+
+    const spoofed = match.submitCommand(
+      'agima-session',
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'order-harvester-build',
+          payload: {},
+        },
+        'spoofed-orion-build',
+      ),
+    )
+    const unauthenticated = match.submitCommand(
+      'unknown-session',
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'order-harvester-build',
+          payload: {},
+        },
+        'unknown-session-build',
+      ),
+    )
+    const accepted = match.submitCommand(
+      'agima-session',
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'order-harvester-build',
+          payload: {},
+        },
+        'authenticated-build',
+      ),
+    )
+
+    expect(spoofed).toMatchObject({
+      ok: false,
+      error: 'participant-mismatch',
+    })
+    expect(unauthenticated).toMatchObject({
+      ok: false,
+      error: 'unauthenticated-session',
+    })
+    expect(accepted).toMatchObject({
+      ok: true,
+      snapshot: {
+        revision: 1,
+      },
+    })
+    expect(revisions).toEqual([0, 1])
+    expect(subscriberErrors).toHaveLength(2)
+
+    const externalSnapshot = match.getSnapshot()
+    externalSnapshot.state.colonies.agima.credits = 0
+    expect(
+      match.getSnapshot().state.colonies.agima.credits,
+    ).not.toBe(0)
+  })
+
+  it('steuert Ressourcenmarktphasen nach autoritativen Fristen', () => {
+    const clock = new FakeClock()
+    const match = createAuthoritativeMatch(
+      createPlayableInitialGameState(),
+      { clock },
+    )
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+
+    const initiated = match.submitCommand(
+      'agima-session',
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'initiate-resource-market',
+          payload: { resource: 'food' },
+        },
+        'market-init',
+      ),
+    )
+
+    expect(initiated).toMatchObject({
+      ok: true,
+      snapshot: {
+        revision: 1,
+        phaseTiming: {
+          kind: 'resource-market',
+          resource: 'food',
+          phase: 'announcement',
+          deadlineAt: 6_000,
+        },
+      },
+    })
+
+    const prematureClientTransition = match.submitCommand(
+      'agima-session',
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'advance-resource-market-phase',
+          payload: {
+            resource: 'food',
+            expectedPhase: 'announcement',
+          },
+        },
+        'client-phase-transition',
+      ),
+    )
+    expect(prematureClientTransition).toMatchObject({
+      ok: false,
+      error: 'server-controlled-action',
+    })
+
+    clock.advance(5_000)
+    expect(match.getSnapshot()).toMatchObject({
+      revision: 2,
+      state: {
+        activeResourceMarket: {
+          phase: 'declaration',
+        },
+      },
+      phaseTiming: {
+        phase: 'declaration',
+        deadlineAt: 11_000,
+      },
+    })
+
+    const withRole = match.submitCommand(
+      'agima-session',
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'set-market-role',
+          payload: {
+            resource: 'food',
+            role: 'buyer',
+          },
+        },
+        'market-role',
+      ),
+    )
+    expect(withRole.ok).toBe(true)
+    expect(withRole.snapshot.phaseTiming?.deadlineAt).toBe(11_000)
+
+    clock.advance(5_000)
+    expect(match.getSnapshot()).toMatchObject({
+      revision: 4,
+      state: {
+        activeResourceMarket: {
+          phase: 'auction',
+        },
+      },
+      phaseTiming: {
+        phase: 'auction',
+        deadlineAt: 41_000,
+      },
+    })
+
+    clock.advance(30_000)
+    expect(match.getSnapshot()).toMatchObject({
+      revision: 5,
+      state: {
+        activeResourceMarket: {
+          phase: 'finished',
+        },
+      },
+      phaseTiming: null,
+    })
+  })
+
+  it('steuert auch Grundstücksphase und Live-Gebote autoritativ', () => {
+    const clock = new FakeClock()
+    const initialState = createPlayableInitialGameState()
+    const tileId = initialState.colonies.agima.ownedTileIds[0]
+    const state: GameState = {
+      ...initialState,
+      landAuctionTie: {
+        tileId,
+        tiedBid: 30,
+        minimumBid: 31,
+        phase: 'announcement',
+        openingBids: { agima: 30, orion: 30 },
+        initialLeaderId: null,
+        liveBids: {
+          bids: { agima: 30, orion: 30 },
+          leaderId: null,
+        },
+      },
+    }
+    const match = createAuthoritativeMatch(state, { clock })
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+
+    expect(match.getSnapshot().phaseTiming).toEqual({
+      kind: 'land-auction',
+      tileId,
+      phase: 'announcement',
+      deadlineAt: 6_000,
+    })
+
+    clock.advance(5_000)
+    expect(
+      match.getSnapshot().state.landAuctionTie?.phase,
+    ).toBe('auction')
+
+    const raised = match.submitCommand(
+      'agima-session',
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'move-land-auction-bid',
+          payload: {
+            tileId,
+            direction: 'raise',
+          },
+        },
+        'live-land-bid',
+      ),
+    )
+
+    expect(
+      raised.snapshot.state.landAuctionTie?.liveBids,
+    ).toEqual({
+      bids: { agima: 31, orion: 30 },
+      leaderId: 'agima',
+    })
+    expect(raised.snapshot.phaseTiming?.deadlineAt).toBe(16_000)
+
+    clock.advance(10_000)
+    expect(match.getSnapshot()).toMatchObject({
+      revision: 3,
+      state: {
+        landAuctionTie: {
+          phase: 'finished',
+        },
+      },
+      phaseTiming: null,
+    })
+  })
+})

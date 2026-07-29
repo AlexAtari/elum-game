@@ -314,11 +314,19 @@ werden.
 - lokale Countdowns lösen validierte Phasenkommandos aus, statt
   selbst den Phasenzustand zu halten; sichtbare Bewegungen und
   KI-Auswahl bleiben Singleplayer-Adapter der grafischen Komponenten
+- transportneutraler autoritativer Match-Serverkern bindet
+  authentifizierte Sitzungen an menschliche Teilnehmer, verhindert
+  Identitätsspoofing und verteilt revisionsnummerierte
+  Zustands-Snapshots
+- der Serverkern sperrt Phasenwechsel von Clients, plant
+  Ressourcen- und Grundstücksauktionsfristen aus den gemeinsamen
+  Zeitwerten und veröffentlicht das autoritative `deadlineAt`
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Transport, Sitzautorisierung,
-  serverseitige Zeitplanung und Zustandsverteilung ergänzen; danach
-  den verbleibenden Kernzufall vollständig seedbasiert ausführen
+- nächster Strukturschritt: echten Verbindungstransport, Lobby und
+  Wiederverbindung an den Serverkern anbinden und die React-Clients
+  im Mehrspielermodus aus Server-Snapshots speisen; danach den
+  verbleibenden Kernzufall vollständig seedbasiert ausführen
 
 ### Nächster Regelstand
 

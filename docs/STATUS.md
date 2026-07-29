@@ -80,6 +80,17 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Quelle des Phasenzustands
 - Countdown, Avatarbewegungen und KI-Auswahl bleiben vorerst lokale
   Darstellung beziehungsweise Singleplayer-Adapter
+- transportneutraler autoritativer Match-Serverkern mit
+  Sitzungsbindung an menschliche `ParticipantId`, Abwehr von
+  Identitätswechseln und vom Serverzustand isolierten,
+  revisionsnummerierten Zustands-Snapshots
+- Client-Kommandos für Auktionsphasen sind an der Servergrenze
+  gesperrt; der Serverkern plant die Fristen aus den gemeinsamen
+  Markt- und Grundstückszeiten und führt fällige Phasenkommandos
+  selbst aus
+- Zustandsabonnements erhalten nach jedem erfolgreichen Kommando
+  sowie jedem serverseitigen Phasenwechsel den vollständigen
+  Snapshot einschließlich autoritativem `deadlineAt`
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -190,12 +201,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Als nächstes folgt der Transport-/Serveradapter: Er gleicht den
-authentifizierten Sitz mit der `participantId` jedes Kommandos ab,
-verteilt kanonische Zustandsstände an entfernte Clients und übernimmt
-das zeitgesteuerte Auslösen der bereits vorhandenen
-Phasenkommandos. Countdown und grafische Avatarbewegungen bleiben
-darauf aufbauende Clientdarstellung.
+Als nächstes wird der transportneutrale Serverkern an einen echten
+Verbindungstransport und eine Lobby angebunden. Der Transport
+authentifiziert Sitzungen, übergibt nur bestätigte Sitzidentitäten an
+den Serverkern und serialisiert dessen Snapshots an die Clients.
+Danach muss die React-Oberfläche im Mehrspielermodus ihre lokalen
+Phasentimer durch das autoritative `deadlineAt` ersetzen.
 
 ## Grundstücksauktion – aktueller Sollstand
 
