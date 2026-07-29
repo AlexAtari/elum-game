@@ -365,11 +365,14 @@ werden.
   Runde reproduzierbar aus Match-Seed und Rundennummer gewählt,
   einmalig für alle Kolonien aktiviert und im gemeinsamen Briefing
   angekündigt
+- die Multiplayeransicht leitet die offizielle Rangliste für jeden
+  menschlichen Sitz aus dem autoritativen Zustand ab: Platzierung in
+  der kompakten Statuszeile, vollständige Übersicht im HQ und
+  gemeinsamer Zwischenstand vor dem privaten Rundenbriefing
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Rangliste in der Mehrspieleransicht aus
-  dem gemeinsamen Zustand darstellen und danach lokale Ereignisse
-  teilnehmerbezogen serverseitig auslösen;
+- nächster Strukturschritt: lokale Ereignisse teilnehmerbezogen
+  serverseitig auswählen, anwenden und darstellen;
   danach Backend-Hosting, TLS und Origin-Policy für öffentlichen
   Betrieb festlegen
 

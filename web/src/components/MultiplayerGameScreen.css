@@ -74,6 +74,10 @@
   background: rgba(255, 255, 255, 0.045);
 }
 
+.network-headquarters > .network-leaderboard {
+  margin-top: 18px;
+}
+
 .network-market-launcher h3,
 .network-supply-panel h3 {
   margin-top: 0;

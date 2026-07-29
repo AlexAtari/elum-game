@@ -313,6 +313,15 @@ Runde im kanonischen Zustand. Das Briefing zeigt dieses neue
 Ereignis, während der private `RoundReport` weiterhin die
 Wirtschaftsdaten der gerade abgeschlossenen Runde beschreibt.
 
+`createParticipantLeaderboardEntries` leitet dieselbe offizielle
+Sortierung für einen beliebigen menschlichen Sitz ab und markiert nur
+diesen Eintrag als eigene Kolonie. Die Multiplayeransicht zeigt nach
+jeder Abrechnung zunächst den gemeinsamen Zwischenstand und danach
+das private Briefing. Außerhalb dieses Übergangs bleibt die aktuelle
+Platzierung kompakt in der Statuszeile; im HQ steht die vollständige
+Rangliste ohne zusätzlichen Serverzustand bereit, da alle Werte aus
+dem autoritativen `GameState` abgeleitet werden.
+
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
 Entfernen laufen über reine Funktionen in `game.ts`; React hält davon

@@ -319,6 +319,9 @@ export const de = {
     'Gemeinsame Zentralkuppel mit vier Kolonie-Hauptquartieren',
   'multiplayerGame.resourceMarkets': 'Ressourcenmärkte',
   'multiplayerGame.finishPlanning': 'Planung abschließen',
+  'multiplayerGame.place': 'Platz',
+  'multiplayerGame.toRoundBriefing':
+    'Weiter zu Ereignissen und Koloniebericht',
   'multiplayerGame.leave': 'Verbindung verlassen',
   'multiplayerGame.landAuction': 'Grundstücksauktion',
   'multiplayerGame.resourceMarket': 'Ressourcenmarkt',

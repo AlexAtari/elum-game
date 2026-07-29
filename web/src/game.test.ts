@@ -10,6 +10,7 @@ import {
   completeResourceMarket,
   createInitialGameState,
   createLeaderboardEntries,
+  createParticipantLeaderboardEntries,
   executeMarketTrade,
   getEventScale,
   getRoundsUntilSupplyShip,
@@ -1127,6 +1128,24 @@ describe('Rangliste', () => {
     expect(entries.indexOf(player)).toBeLessThan(
       entries.indexOf(orion),
     )
+  })
+
+  it('markiert in einer entfernten Rangliste den zugewiesenen Sitz als Spieler', () => {
+    const state = createInitialGameState()
+    const entries = createParticipantLeaderboardEntries(
+      state,
+      'orion',
+    )
+
+    expect(
+      entries.find((entry) => entry.id === 'orion'),
+    ).toMatchObject({
+      isPlayer: true,
+      name: state.colonies.orion.name,
+    })
+    expect(
+      entries.find((entry) => entry.id === 'agima')?.isPlayer,
+    ).toBe(false)
   })
 
   it('entwickelt die gespeicherten KI-Kolonien pro Runde weiter', () => {

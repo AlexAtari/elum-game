@@ -47,7 +47,9 @@ ausschließlich Server-Snapshots und Netzwerkkommandos. Nach der
 gemeinsamen Abrechnung erhält jeder Sitz ein privates Rundenbriefing
 einschließlich antippbarer Explorationsergebnisse. Das globale
 Ereignis der neuen Runde wird serverseitig für alle Kolonien
-ausgewählt, aktiviert und im Briefing angekündigt.
+ausgewählt, aktiviert und im Briefing angekündigt. Die gemeinsame
+Rangliste erscheint nach jeder Abrechnung, dauerhaft im HQ und als
+kompakte aktuelle Platzierung in der Kolonieansicht.
 
 Für öffentliches Hosting werden ein dauerhaft laufender Dienst, TLS
 (`wss://`) und eine konkrete Origin-Policy benötigt.

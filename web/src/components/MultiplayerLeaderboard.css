@@ -1,0 +1,130 @@
+.network-leaderboard {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.network-leaderboard-interstitial {
+  padding: 28px;
+  background: rgba(14, 21, 38, 0.9);
+}
+
+.network-leaderboard-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.network-leaderboard-heading h2 {
+  margin: 6px 0 0;
+}
+
+.network-leaderboard-heading > p {
+  max-width: 520px;
+  margin: 0;
+  color: #8995aa;
+  line-height: 1.5;
+}
+
+.network-leaderboard-list {
+  display: grid;
+  gap: 9px;
+}
+
+.network-leaderboard-entry {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.2fr) minmax(360px, 2fr);
+  align-items: center;
+  gap: 18px;
+  padding: 13px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.network-leaderboard-entry.is-player {
+  border-color: rgba(121, 221, 185, 0.5);
+  background: rgba(121, 221, 185, 0.09);
+}
+
+.network-leaderboard-entry.is-leading {
+  box-shadow: inset 3px 0 0 #f0c96d;
+}
+
+.network-leaderboard-identity {
+  display: grid;
+  grid-template-columns: 34px 30px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.network-leaderboard-rank {
+  color: #f0c96d;
+  font-size: 1.05rem;
+}
+
+.network-leaderboard-identity > div {
+  display: grid;
+  min-width: 0;
+}
+
+.network-leaderboard-identity > div > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.network-leaderboard-identity small {
+  color: #79ddb9;
+}
+
+.network-leaderboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(70px, 1fr));
+  gap: 8px;
+}
+
+.network-leaderboard-stats > span {
+  display: grid;
+  gap: 3px;
+}
+
+.network-leaderboard-stats small {
+  color: #8995aa;
+  font-size: 0.72rem;
+}
+
+.network-leaderboard-final {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 13px;
+  color: #f7e6b7;
+  background: rgba(240, 201, 109, 0.1);
+}
+
+@media (max-width: 700px) {
+  .network-leaderboard,
+  .network-leaderboard-interstitial {
+    padding: 14px;
+  }
+
+  .network-leaderboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .network-leaderboard-entry {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .network-leaderboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

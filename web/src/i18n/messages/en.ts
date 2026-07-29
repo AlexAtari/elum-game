@@ -320,6 +320,9 @@ export const en = {
     'Shared central dome with four colony headquarters',
   'multiplayerGame.resourceMarkets': 'Resource markets',
   'multiplayerGame.finishPlanning': 'Finish planning',
+  'multiplayerGame.place': 'Place',
+  'multiplayerGame.toRoundBriefing':
+    'Continue to events and colony report',
   'multiplayerGame.leave': 'Leave connection',
   'multiplayerGame.landAuction': 'Land auction',
   'multiplayerGame.resourceMarket': 'Resource market',

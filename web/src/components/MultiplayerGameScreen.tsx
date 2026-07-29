@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import headquartersImage from '../assets/hq-four-colonies.webp'
 import {
   calculateColonySupplyPreview,
+  createParticipantLeaderboardEntries,
   getHarvesterCreditCost,
   getWarehousePrices,
   isColonyHarvesterBuildBlocked,
@@ -9,6 +10,7 @@ import {
   isColonyHarvesterRetoolingBlocked,
   isColonyLandBidBlocked,
   isColonyMarketInitiationBlocked,
+  isGameFinished,
   selectColonyHarvesterAssignments,
   selectOtherColonyTileIds,
   type MarketResource,
@@ -25,6 +27,7 @@ import type {
 } from '../multiplayerProtocol'
 import type { AuthoritativeMatchSnapshot } from '../authoritativeMatch'
 import HexMap from './HexMap'
+import MultiplayerLeaderboard from './MultiplayerLeaderboard'
 import RoundBriefingPanel from './RoundBriefingPanel'
 import './MultiplayerGameScreen.css'
 
@@ -68,6 +71,10 @@ function MultiplayerGameScreen({
   const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
   const [dismissedReportRound, setDismissedReportRound] =
     useState<number | null>(null)
+  const [
+    dismissedLeaderboardRound,
+    setDismissedLeaderboardRound,
+  ] = useState<number | null>(null)
   const [focusedTileId, setFocusedTileId] = useState<
     string | null
   >(null)
@@ -84,6 +91,16 @@ function MultiplayerGameScreen({
     () => selectOtherColonyTileIds(state, participantId),
     [participantId, state],
   )
+  const leaderboardEntries = useMemo(
+    () =>
+      createParticipantLeaderboardEntries(
+        state,
+        participantId,
+      ),
+    [participantId, state],
+  )
+  const currentPlacement =
+    leaderboardEntries.findIndex((entry) => entry.isPlayer) + 1
   const ready =
     snapshot.roundReadiness.readyParticipantIds.includes(
       participantId,
@@ -390,6 +407,44 @@ function MultiplayerGameScreen({
 
   if (
     lastRoundReport &&
+    dismissedLeaderboardRound !==
+      lastRoundReport.roundPlayed
+  ) {
+    const finalLeaderboard = isGameFinished(
+      lastRoundReport.roundPlayed,
+    )
+
+    return (
+      <main className="network-game-screen">
+        <header className="network-game-header">
+          <div>
+            <span className="eyebrow">E.L.U.M.</span>
+            <h1>{colony.name}</h1>
+          </div>
+          <div className="round-badge">
+            {t('app.round', { round: state.round })}
+          </div>
+        </header>
+        <MultiplayerLeaderboard
+          entries={leaderboardEntries}
+          mode="interstitial"
+          roundPlayed={lastRoundReport.roundPlayed}
+          isFinal={finalLeaderboard}
+          onContinue={
+            finalLeaderboard
+              ? undefined
+              : () =>
+                  setDismissedLeaderboardRound(
+                    lastRoundReport.roundPlayed,
+                  )
+          }
+        />
+      </main>
+    )
+  }
+
+  if (
+    lastRoundReport &&
     dismissedReportRound !==
       lastRoundReport.roundPlayed
   ) {
@@ -448,6 +503,10 @@ function MultiplayerGameScreen({
       </header>
 
       <section className="compact-status-panel">
+        <span className="compact-rank">
+          <small>{t('multiplayerGame.place')}</small>
+          <strong>{currentPlacement}.</strong>
+        </span>
         <span>👥 <strong>{number(colony.population)}</strong></span>
         <span>💰 <strong>{number(colony.credits)}</strong></span>
         <span>🌾 <strong>{number(colony.resources.food)}</strong></span>
@@ -581,6 +640,11 @@ function MultiplayerGameScreen({
               <p>{t('multiplayerGame.headquartersHint')}</p>
             </div>
           </div>
+
+          <MultiplayerLeaderboard
+            entries={leaderboardEntries}
+            mode="headquarters"
+          />
 
           <div className="network-market-launcher">
             <h3>{t('multiplayerGame.resourceMarkets')}</h3>

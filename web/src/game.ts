@@ -309,7 +309,7 @@ export type RoundReport = {
 }
 
 export type LeaderboardEntry = {
-  id: 'player' | 'orion' | 'nova' | 'vega'
+  id: 'player' | ParticipantId
   name: string
   icon: string
   population: number
@@ -1275,48 +1275,53 @@ export function createLeaderboardEntries(
   playerHarvesterCount: number = selectLocalColony(currentState)
     .harvesters,
 ): LeaderboardEntry[] {
+  return createParticipantLeaderboardEntries(
+    currentState,
+    'agima',
+    playerHarvesterCount,
+  ).map((entry) =>
+    entry.id === 'agima'
+      ? {
+          ...entry,
+          id: 'player',
+        }
+      : entry,
+  )
+}
+
+export function createParticipantLeaderboardEntries(
+  currentState: GameState,
+  activeParticipantId: ParticipantId,
+  activeHarvesterCount: number = currentState.colonies[
+    activeParticipantId
+  ].harvesters,
+): LeaderboardEntry[] {
   const crystalReferencePrice =
     currentState.market.crystals.referencePrice
   const colonies = selectColonies(currentState)
-  const playerColony = {
-    ...colonies.agima,
-    harvesters: playerHarvesterCount,
-  }
 
-  const entries: LeaderboardEntry[] = [
-    {
-      id: 'player',
-      name: playerColony.name,
-      icon: playerColony.icon,
-      population: playerColony.population,
-      credits: playerColony.credits,
-      wealth:
-        playerColony.credits +
-        playerColony.resources.crystals *
-          crystalReferencePrice,
-      resources: getResourceTotal(playerColony.resources),
-      harvesters: playerColony.harvesters,
-      isPlayer: true,
-    },
-    ...(['orion', 'nova', 'vega'] as const).map(
-      (participantId) => ({
+  const entries: LeaderboardEntry[] = participantIds.map(
+    (participantId) => {
+      const colony = colonies[participantId]
+
+      return {
         id: participantId,
-        name: colonies[participantId].name,
-        icon: colonies[participantId].icon,
-        population: colonies[participantId].population,
-        credits: colonies[participantId].credits,
+        name: colony.name,
+        icon: colony.icon,
+        population: colony.population,
+        credits: colony.credits,
         wealth:
-          colonies[participantId].credits +
-          colonies[participantId].resources.crystals *
-            crystalReferencePrice,
-        resources: getResourceTotal(
-          colonies[participantId].resources,
-        ),
-        harvesters: colonies[participantId].harvesters,
-        isPlayer: false,
-      }),
-    ),
-  ]
+          colony.credits +
+          colony.resources.crystals * crystalReferencePrice,
+        resources: getResourceTotal(colony.resources),
+        harvesters:
+          participantId === activeParticipantId
+            ? activeHarvesterCount
+            : colony.harvesters,
+        isPlayer: participantId === activeParticipantId,
+      }
+    },
+  )
 
   return entries.sort(
     (first, second) =>

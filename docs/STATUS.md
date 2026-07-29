@@ -156,6 +156,15 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - das Multiplayer-Briefing kündigt das für die neu beginnende Runde
   aktive globale Ereignis an; der private Wirtschaftsbericht bleibt
   davon getrennt der gerade abgeschlossenen Runde zugeordnet
+- teilnehmerneutrale Multiplayer-Rangliste mit der offiziellen
+  Sortierung nach Bevölkerung, Vermögen einschließlich
+  Kristallreferenzkurs, übrigen Ressourcen und Harvestern
+- jeder menschliche Sitz sieht seine aktuelle Platzierung in der
+  kompakten Statuszeile, die vollständige Rangliste im HQ und nach
+  jeder Abrechnung zuerst den gemeinsamen Zwischenstand, danach das
+  private Ereignis- und Koloniebriefing
+- nach der Abrechnung der 20. Runde bleibt die Abschlussrangliste
+  stehen und verhindert weitere Planungsaktionen im Client
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -267,13 +276,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 ## Nächster Architekturbaustein
 
 Die regelkritischen Browseraktionen, die Rundenbarriere, globale
-Ereignisse und das teilnehmerbezogene Rundenbriefing laufen im
-Mehrspielerpfad jetzt über den autoritativen Server. Als Nächstes
-werden Rangliste und danach lokale Ereignisse in dieser Ansicht
-ergänzt. Für einen öffentlichen Mehrspielerbetrieb bleiben
-anschließend Backend-Hosting, TLS mit `wss://`, Origin-Policy und
-betriebliche Überwachung zu entscheiden; GitHub Pages hostet
-weiterhin nur das statische Frontend.
+Ereignisse, Rangliste und das teilnehmerbezogene Rundenbriefing
+laufen im Mehrspielerpfad jetzt über den autoritativen Serverzustand.
+Als Nächstes werden lokale Ereignisse pro menschlichem Sitz ergänzt.
+Für einen öffentlichen Mehrspielerbetrieb bleiben anschließend
+Backend-Hosting, TLS mit `wss://`, Origin-Policy und betriebliche
+Überwachung zu entscheiden; GitHub Pages hostet weiterhin nur das
+statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 
