@@ -1,5 +1,6 @@
 import { createRivalMarketSelection } from '../rivalMarket'
 import { getInterstellarCrystalBuyerOffer } from '../interstellarCrystalBuyer'
+import type { ParticipantId } from '../match'
 import {
   useCallback,
   useEffect,
@@ -11,7 +12,6 @@ import {
   getWarehousePrices,
   marketResourceTypes,
   moveMarketOffer,
-  type MarketCounterparty,
   type MarketDirection,
   type MarketResource,
   type MarketRole,
@@ -28,6 +28,11 @@ type MarketStage =
   | 'auction'
   | 'finished'
   | 'skipped'
+
+type MarketUiCounterparty =
+  | RivalId
+  | 'warehouse'
+  | 'interstellar-buyer'
 
 type MarketPanelProps = {
   roundPlayed: number
@@ -51,7 +56,18 @@ type MarketPanelProps = {
     resource: MarketResource,
     direction: MarketDirection,
     price: number,
-    counterparty: MarketCounterparty,
+    counterparty: MarketUiCounterparty,
+  ) => void
+  onSetRole: (
+    participantId: ParticipantId,
+    resource: MarketResource,
+    role: MarketRole,
+  ) => void
+  onSetOffer: (
+    participantId: ParticipantId,
+    resource: MarketResource,
+    active: boolean,
+    price: number,
   ) => void
   onComplete: (resource: MarketResource) => void
 }
@@ -147,6 +163,8 @@ function MarketPanel({
   completionLabel,
   initiatorName,
   onTrade,
+  onSetRole,
+  onSetOffer,
   onComplete,
 }: MarketPanelProps) {
   const marketTiming = getMarketTiming(roundPlayed)
@@ -231,7 +249,7 @@ function MarketPanel({
     number | null
   >(null)
   const [lastTradePartner, setLastTradePartner] = useState<
-    MarketCounterparty | null
+    MarketUiCounterparty | null
   >(null)
   const nextPlayerMovementAt = useRef(0)
 
@@ -241,6 +259,24 @@ function MarketPanel({
     setPlayerOfferActive(false)
     setOrionParked(false)
   }, [])
+
+  useEffect(() => {
+    onSetRole('agima', resource, role)
+  }, [onSetRole, resource, role])
+
+  useEffect(() => {
+    onSetOffer(
+      'agima',
+      resource,
+      playerOfferActive,
+      playerPrice,
+    )
+  }, [
+    onSetOffer,
+    playerOfferActive,
+    playerPrice,
+    resource,
+  ])
 
   useEffect(() => {
     if (stage !== 'introduction') {
@@ -362,6 +398,40 @@ function MarketPanel({
     orionParticipates && orionUnitsRemaining > 0
   const orionRetreating =
     orionParticipates && !orionActive && !orionParked
+
+  useEffect(() => {
+    if (orionRole === 'pending') {
+      return
+    }
+
+    onSetRole(activeRivalId, resource, orionRole)
+  }, [
+    activeRivalId,
+    onSetRole,
+    orionRole,
+    resource,
+  ])
+
+  useEffect(() => {
+    if (orionRole === 'pending') {
+      return
+    }
+
+    onSetOffer(
+      activeRivalId,
+      resource,
+      orionActive,
+      orionPrice,
+    )
+  }, [
+    activeRivalId,
+    onSetOffer,
+    orionActive,
+    orionPrice,
+    orionRole,
+    resource,
+  ])
+
   const orionPriceLimit = clampPrice(
     orionDecision.limitPrice,
     minimumPrice,
@@ -447,7 +517,7 @@ function MarketPanel({
         interstellarBuyer.offerPrice,
       )
     : warehousePrices.buyPrice
-  const staticBuyerCounterparty: MarketCounterparty =
+  const staticBuyerCounterparty: MarketUiCounterparty =
     isInterstellarBuyerPresent &&
     interstellarBuyer.offerPrice >= warehousePrices.buyPrice
       ? 'interstellar-buyer'
@@ -475,7 +545,7 @@ function MarketPanel({
       : orionLeadsBuyers
         ? orionPrice
         : staticBuyerPrice
-  const activeCounterparty: MarketCounterparty =
+  const activeCounterparty: MarketUiCounterparty =
     role === 'seller'
       ? orionLeadsBuyers
         ? activeRivalId

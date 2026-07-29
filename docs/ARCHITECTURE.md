@@ -145,7 +145,10 @@ Die erste geschlossene Kommandogruppe umfasst:
 - Harvester vom Grundstück entfernen,
 - Harvesterbau beauftragen,
 - verdecktes Grundstücksgebot abgeben,
-- eigenes Grundstücksgebot zurücknehmen.
+- eigenes Grundstücksgebot zurücknehmen,
+- Ressourcenmarkt starten und abschließen,
+- Marktrolle und aktives Preisangebot setzen,
+- einzelne Markttransaktion ausführen.
 
 Die zugrunde liegenden Operationen in `game.ts` akzeptieren einen
 beliebigen `ParticipantId`. Agima-Wrapper bleiben für bestehende
@@ -214,11 +217,24 @@ ergänzt. Die aktuelle grafische Komponente stellt weiterhin nur
 Agima und Orion dar. Eine Mehrspieleroberfläche muss zusätzliche
 Bieter sichtbar machen, ohne das Zustandsmodell erneut zu ändern.
 
-Der Ressourcenmarkt ist noch nicht Teil der Kommandoschicht. Seine
-Marktrollen, Angebote und Auktionszustände werden als nächstes
-teilnehmerneutral modelliert. Danach kann auch er denselben
-Kommandopfad verwenden und der verbleibende Kernzufall
-reproduzierbar über den Match-Seed laufen.
+`GameState.activeResourceMarket` hält Ressource, Runde, Initiator,
+Rollen und aktive Preisangebote nach `ParticipantId`. Marktstart,
+Rollenerklärung, Preisangebot, Transaktion und Abschluss laufen über
+dieselbe Kommandoschicht. Lager- und interstellarer Handel verwenden
+denselben Teilnehmerparameter wie direkte Koloniegeschäfte. Vor
+einer Transaktion prüft der Kern passende Käufer-/Verkäuferrollen,
+aktive Angebote, Preisberührung, Credits, Bestand und
+Lagerverfügbarkeit. Nur der Initiator darf den aktiven Markt
+abschließen.
+
+Die grafische Marktkomponente bleibt ein Singleplayer-Adapter: Sie
+berechnet Countdown, sichtbare Bewegungen und die Auswahl des aktiven
+KI-Gegenübers lokal, spiegelt aber jede wirtschaftlich relevante
+Rolle und Preisposition über Kommandos in den kanonischen Zustand.
+Für echten Mehrspielerbetrieb müssen die zeitlichen Markt- und
+Grundstücksphasen als serverautoritativ fortschaltbare
+Zustandsmaschine modelliert werden. Danach kann der verbleibende
+Kernzufall reproduzierbar über den Match-Seed laufen.
 
 Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.
 Nicht menschlich belegte Sitze können mit den vorhandenen KI-Profilen

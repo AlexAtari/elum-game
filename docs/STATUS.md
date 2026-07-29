@@ -43,14 +43,15 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - versionierte, vollständig serialisierbare Kommandoschicht für
   Harvester einsetzen, Produktion ändern, Harvester entfernen,
   Harvesterbau beauftragen sowie Grundstücksgebote abgeben und
-  zurücknehmen
+  zurücknehmen; Ressourcenmärkte starten, Rollen und Preisangebote
+  setzen, Einzeltransaktionen ausführen und Märkte abschließen
 - Laufzeitprüfung von Kommandoformat, Teilnehmer, erwarteter Runde
   und Aktionslegalität; erfolgreiche Kommando-IDs werden begrenzt im
   Spielzustand gespeichert und dadurch höchstens einmal ausgeführt
 - dieselben teilnehmerbezogenen Kommandooperationen funktionieren
   für lokale und entfernte menschliche Sitze; die React-Oberfläche
-  sendet ihre Harvester-, Bau- und Grundstücksgebotsaktionen bereits
-  ausschließlich über diese Grenze
+  sendet ihre Harvester-, Bau-, Grundstücks- und Marktaktionen
+  bereits ausschließlich über diese Grenze
 - verdeckte Grundstücksgebote, reservierte Credits, Führender und
   Eröffnungsgebote der grafischen Auktion sind nach
   `ParticipantId` gespeichert; Reservierung, Erstattung, Siegerpreis
@@ -59,6 +60,17 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - die vorhandene grafische Oberfläche zeigt weiterhin den
   Agima-Orion-Konflikt; das Kernmodell kann zusätzliche Bieter
   aufnehmen, deren Darstellung folgt mit der Mehrspieler-UI
+- aktiver Ressourcenmarkt, Initiator, Rollen und Preisangebote aller
+  beteiligten Kolonien liegen serialisierbar im `GameState`;
+  Marktstart und Abschluss sind dadurch nicht mehr nur lokaler
+  React-Zustand
+- Lagerhandel, interstellarer Kristallverkauf und direkte
+  Koloniegeschäfte funktionieren für beliebige `ParticipantId`;
+  Transaktionskommandos prüfen aktive Rolle, Angebot, Gegenangebot,
+  Preis, Credits und Bestand
+- die grafischen Marktstufen, Countdown und Avatarbewegungen bleiben
+  vorerst UI-lokal; ihre serverautoritativ synchronisierte
+  Zustandsmaschine ist der nächste Mehrspielerbaustein
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -169,13 +181,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Der Ressourcenmarkt läuft noch über direkte, auf die lokale
-Oberfläche zugeschnittene Aktionen. Als nächstes werden Marktrollen,
-Angebote und Auktionszustände auf beliebige Match-Sitze
-verallgemeinert und anschließend in dieselbe Kommandoschicht
-aufgenommen. Die Autorisierung, welcher Netzwerkclient welchen
-`participantId` senden darf, gehört danach in den
-Transport-/Serveradapter und nicht in das Kommandoformat selbst.
+Als nächstes wird der zeitliche Ablauf von Grundstücks- und
+Ressourcenauktionen als serverautoritativ fortschaltbare
+Phasenzustandsmaschine modelliert. Countdown und grafische
+Avatarbewegungen sind derzeit noch lokale Darstellung. Danach kann
+ein Transport-/Serveradapter den authentifizierten Sitz mit der
+`participantId` jedes Kommandos abgleichen und Zustandsstände an
+entfernte Clients verteilen.
 
 ## Grundstücksauktion – aktueller Sollstand
 

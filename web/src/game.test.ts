@@ -678,8 +678,12 @@ describe('Markthandel', () => {
       afterFoodAuction,
       'food',
     )
-    const afterEnergyAuction = initiateResourceMarket(
+    const afterFoodCompletion = completeResourceMarket(
       afterFoodAuction,
+      'food',
+    )
+    const afterEnergyAuction = initiateResourceMarket(
+      afterFoodCompletion,
       'energy',
     )
 
@@ -703,6 +707,7 @@ describe('Markthandel', () => {
       'crystals',
     ] as const) {
       state = initiateResourceMarket(state, resource)
+      state = completeResourceMarket(state, resource)
     }
 
     const nextState = runRound(state, {}, normalSupply).nextState

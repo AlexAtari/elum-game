@@ -242,6 +242,254 @@ describe('UI-unabhängige Spielkommandos', () => {
     })
   })
 
+  it('führt einen entfernten Ressourcenmarkt vollständig über Kommandos aus', () => {
+    const initialState = createPlayableInitialGameState()
+    const initiated = executeGameCommand(
+      initialState,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'initiate-resource-market',
+          payload: { resource: 'food' },
+        },
+        'market-init-orion-1',
+      ),
+    )
+    const withRole = executeGameCommand(
+      initiated.state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'set-market-role',
+          payload: {
+            resource: 'food',
+            role: 'buyer',
+          },
+        },
+        'market-role-orion-1',
+      ),
+    )
+    const belowWarehouseOffer = executeGameCommand(
+      withRole.state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'set-market-offer',
+          payload: {
+            resource: 'food',
+            active: true,
+            price: 10,
+          },
+        },
+        'market-offer-orion-too-low',
+      ),
+    )
+    const rejectedWarehouseTrade = executeGameCommand(
+      belowWarehouseOffer.state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'execute-market-trade',
+          payload: {
+            resource: 'food',
+            direction: 'buy',
+            price: 11,
+            counterparty: 'warehouse',
+          },
+        },
+        'market-trade-orion-too-low',
+      ),
+    )
+    const withOffer = executeGameCommand(
+      belowWarehouseOffer.state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'set-market-offer',
+          payload: {
+            resource: 'food',
+            active: true,
+            price: 11,
+          },
+        },
+        'market-offer-orion-1',
+      ),
+    )
+    const traded = executeGameCommand(
+      withOffer.state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'execute-market-trade',
+          payload: {
+            resource: 'food',
+            direction: 'buy',
+            price: 11,
+            counterparty: 'warehouse',
+          },
+        },
+        'market-trade-orion-1',
+      ),
+    )
+    const rejectedCompletion = executeGameCommand(
+      traded.state,
+      createCommand(
+        {
+          participantId: 'nova',
+          type: 'complete-resource-market',
+          payload: { resource: 'food' },
+        },
+        'market-complete-nova-1',
+      ),
+    )
+    const completed = executeGameCommand(
+      traded.state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'complete-resource-market',
+          payload: { resource: 'food' },
+        },
+        'market-complete-orion-1',
+      ),
+    )
+
+    expect(initiated.ok).toBe(true)
+    expect(initiated.state.activeResourceMarket).toMatchObject({
+      resource: 'food',
+      initiatorId: 'orion',
+    })
+    expect(withRole.ok).toBe(true)
+    expect(rejectedWarehouseTrade).toMatchObject({
+      ok: false,
+      error: 'illegal-action',
+      state: belowWarehouseOffer.state,
+    })
+    expect(withOffer.ok).toBe(true)
+    expect(traded.ok).toBe(true)
+    expect(traded.state.colonies.orion.credits).toBe(
+      initialState.colonies.orion.credits - 11,
+    )
+    expect(traded.state.colonies.orion.resources.food).toBe(
+      initialState.colonies.orion.resources.food + 1,
+    )
+    expect(traded.state.market.food.warehouseStock).toBe(19)
+    expect(rejectedCompletion).toMatchObject({
+      ok: false,
+      error: 'illegal-action',
+      state: traded.state,
+    })
+    expect(completed.ok).toBe(true)
+    expect(completed.state.activeResourceMarket).toBeNull()
+  })
+
+  it('validiert direkte Marktangebote beider Teilnehmer vor dem Handel', () => {
+    const initialState = createPlayableInitialGameState()
+    const commands: GameCommand[] = [
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'initiate-resource-market',
+          payload: { resource: 'food' },
+        },
+        'direct-market-init',
+      ),
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'set-market-role',
+          payload: { resource: 'food', role: 'buyer' },
+        },
+        'direct-market-orion-role',
+      ),
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'set-market-offer',
+          payload: {
+            resource: 'food',
+            active: true,
+            price: 10,
+          },
+        },
+        'direct-market-orion-offer',
+      ),
+      createCommand(
+        {
+          participantId: 'nova',
+          type: 'set-market-role',
+          payload: { resource: 'food', role: 'seller' },
+        },
+        'direct-market-nova-role',
+      ),
+      createCommand(
+        {
+          participantId: 'nova',
+          type: 'set-market-offer',
+          payload: {
+            resource: 'food',
+            active: true,
+            price: 10,
+          },
+        },
+        'direct-market-nova-offer',
+      ),
+    ]
+    const preparedState = commands.reduce(
+      (state, command) =>
+        executeGameCommand(state, command).state,
+      initialState,
+    )
+    const validTrade = createCommand(
+      {
+        participantId: 'orion',
+        type: 'execute-market-trade',
+        payload: {
+          resource: 'food',
+          direction: 'buy',
+          price: 10,
+          counterparty: 'nova',
+        },
+      },
+      'direct-market-trade',
+    )
+    const invalidPrice = {
+      ...validTrade,
+      commandId: 'direct-market-invalid-price',
+      payload: {
+        ...validTrade.payload,
+        price: 1,
+      },
+    }
+    const rejected = executeGameCommand(
+      preparedState,
+      invalidPrice,
+    )
+    const traded = executeGameCommand(
+      preparedState,
+      validTrade,
+    )
+
+    expect(rejected).toMatchObject({
+      ok: false,
+      error: 'illegal-action',
+      state: preparedState,
+    })
+    expect(traded.ok).toBe(true)
+    expect(traded.state.colonies.orion.credits).toBe(
+      initialState.colonies.orion.credits - 10,
+    )
+    expect(traded.state.colonies.nova.credits).toBe(
+      initialState.colonies.nova.credits + 10,
+    )
+    expect(traded.state.colonies.orion.resources.food).toBe(
+      initialState.colonies.orion.resources.food + 1,
+    )
+    expect(traded.state.colonies.nova.resources.food).toBe(
+      initialState.colonies.nova.resources.food - 1,
+    )
+  })
+
   it('wendet lokale Ereignissperren nur auf den betroffenen Sitz an', () => {
     const state = {
       ...createPlayableInitialGameState(),
@@ -278,6 +526,44 @@ describe('UI-unabhängige Spielkommandos', () => {
     expect(
       orionResult.state.colonies.orion.harvestersInConstruction,
     ).toBe(1)
+  })
+
+  it('wendet die lokale Kommunikationssperre nur auf Agimas Marktstart an', () => {
+    const state = {
+      ...createPlayableInitialGameState(),
+      activeLocalEvent: 'communications-outage' as const,
+    }
+    const agimaResult = executeGameCommand(
+      state,
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'initiate-resource-market',
+          payload: { resource: 'food' },
+        },
+        'agima-market-blocked',
+      ),
+    )
+    const orionResult = executeGameCommand(
+      state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'initiate-resource-market',
+          payload: { resource: 'food' },
+        },
+        'orion-market-allowed',
+      ),
+    )
+
+    expect(agimaResult).toMatchObject({
+      ok: false,
+      error: 'illegal-action',
+    })
+    expect(orionResult.ok).toBe(true)
+    expect(
+      orionResult.state.activeResourceMarket?.initiatorId,
+    ).toBe('orion')
   })
 
   it('weist veraltete und nach Regeln illegale Kommandos zurück', () => {

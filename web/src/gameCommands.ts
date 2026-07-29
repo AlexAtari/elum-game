@@ -2,10 +2,19 @@ import {
   assignColonyHarvester,
   changeColonyHarvesterProduction,
   cancelColonyLandBid,
+  completeColonyResourceMarket,
+  executeActiveMarketTrade,
+  initiateColonyResourceMarket,
   orderColonyHarvesterBuild,
   placeColonyLandBid,
   removeColonyHarvester,
+  setColonyMarketOffer,
+  setColonyMarketRole,
   type GameState,
+  type MarketCounterparty,
+  type MarketDirection,
+  type MarketResource,
+  type MarketRole,
   type ProductionType,
 } from './game'
 import {
@@ -56,6 +65,42 @@ export type GameCommand =
       type: 'cancel-land-bid'
       payload: Record<string, never>
     })
+  | (GameCommandBase & {
+      type: 'initiate-resource-market'
+      payload: {
+        resource: MarketResource
+      }
+    })
+  | (GameCommandBase & {
+      type: 'execute-market-trade'
+      payload: {
+        resource: MarketResource
+        direction: MarketDirection
+        price: number
+        counterparty: MarketCounterparty
+      }
+    })
+  | (GameCommandBase & {
+      type: 'complete-resource-market'
+      payload: {
+        resource: MarketResource
+      }
+    })
+  | (GameCommandBase & {
+      type: 'set-market-role'
+      payload: {
+        resource: MarketResource
+        role: MarketRole
+      }
+    })
+  | (GameCommandBase & {
+      type: 'set-market-offer'
+      payload: {
+        resource: MarketResource
+        active: boolean
+        price: number
+      }
+    })
 
 export type GameCommandAction =
   GameCommand extends infer Command
@@ -95,6 +140,18 @@ const productionTypes: ProductionType[] = [
   'ore',
   'crystals',
 ]
+const marketResources: MarketResource[] = [
+  'food',
+  'energy',
+  'ore',
+  'crystals',
+]
+const marketDirections: MarketDirection[] = ['buy', 'sell']
+const marketRoles: MarketRole[] = [
+  'neutral',
+  'buyer',
+  'seller',
+]
 const maximumRememberedCommandIds = 512
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -118,6 +175,41 @@ function isProductionType(
   return (
     typeof value === 'string' &&
     productionTypes.includes(value as ProductionType)
+  )
+}
+
+function isMarketResource(
+  value: unknown,
+): value is MarketResource {
+  return (
+    typeof value === 'string' &&
+    marketResources.includes(value as MarketResource)
+  )
+}
+
+function isMarketDirection(
+  value: unknown,
+): value is MarketDirection {
+  return (
+    typeof value === 'string' &&
+    marketDirections.includes(value as MarketDirection)
+  )
+}
+
+function isMarketRole(value: unknown): value is MarketRole {
+  return (
+    typeof value === 'string' &&
+    marketRoles.includes(value as MarketRole)
+  )
+}
+
+function isMarketCounterparty(
+  value: unknown,
+): value is MarketCounterparty {
+  return (
+    isParticipantId(value) ||
+    value === 'warehouse' ||
+    value === 'interstellar-buyer'
   )
 }
 
@@ -230,6 +322,85 @@ export function parseGameCommand(
     }
   }
 
+  if (
+    input.type === 'initiate-resource-market' ||
+    input.type === 'complete-resource-market'
+  ) {
+    if (!isMarketResource(payload.resource)) {
+      return null
+    }
+
+    return {
+      ...base,
+      type: input.type,
+      payload: {
+        resource: payload.resource,
+      },
+    }
+  }
+
+  if (input.type === 'execute-market-trade') {
+    if (
+      !isMarketResource(payload.resource) ||
+      !isMarketDirection(payload.direction) ||
+      !Number.isInteger(payload.price) ||
+      Number(payload.price) <= 0 ||
+      !isMarketCounterparty(payload.counterparty)
+    ) {
+      return null
+    }
+
+    return {
+      ...base,
+      type: 'execute-market-trade',
+      payload: {
+        resource: payload.resource,
+        direction: payload.direction,
+        price: Number(payload.price),
+        counterparty: payload.counterparty,
+      },
+    }
+  }
+
+  if (input.type === 'set-market-role') {
+    if (
+      !isMarketResource(payload.resource) ||
+      !isMarketRole(payload.role)
+    ) {
+      return null
+    }
+
+    return {
+      ...base,
+      type: 'set-market-role',
+      payload: {
+        resource: payload.resource,
+        role: payload.role,
+      },
+    }
+  }
+
+  if (input.type === 'set-market-offer') {
+    if (
+      !isMarketResource(payload.resource) ||
+      typeof payload.active !== 'boolean' ||
+      !Number.isInteger(payload.price) ||
+      Number(payload.price) <= 0
+    ) {
+      return null
+    }
+
+    return {
+      ...base,
+      type: 'set-market-offer',
+      payload: {
+        resource: payload.resource,
+        active: payload.active,
+        price: Number(payload.price),
+      },
+    }
+  }
+
   return null
 }
 
@@ -274,6 +445,44 @@ function applyGameCommand(
       return cancelColonyLandBid(
         currentState,
         command.participantId,
+      )
+    case 'initiate-resource-market':
+      return initiateColonyResourceMarket(
+        currentState,
+        command.participantId,
+        command.payload.resource,
+      )
+    case 'execute-market-trade':
+      return executeActiveMarketTrade(
+        currentState,
+        command.participantId,
+        command.payload.resource,
+        command.payload.direction,
+        command.payload.price,
+        command.payload.counterparty,
+      )
+    case 'complete-resource-market':
+      return completeColonyResourceMarket(
+        currentState,
+        command.participantId,
+        command.payload.resource,
+      )
+    case 'set-market-role':
+      return setColonyMarketRole(
+        currentState,
+        command.participantId,
+        command.payload.resource,
+        command.payload.role,
+      )
+    case 'set-market-offer':
+      return setColonyMarketOffer(
+        currentState,
+        command.participantId,
+        command.payload.resource,
+        {
+          active: command.payload.active,
+          price: command.payload.price,
+        },
       )
   }
 }

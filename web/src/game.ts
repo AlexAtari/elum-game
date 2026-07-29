@@ -46,7 +46,7 @@ export type Resources = {
 export type MarketResource = keyof Resources
 export type MarketDirection = 'buy' | 'sell'
 export type MarketCounterparty =
-  | RivalId
+  | ParticipantId
   | 'warehouse'
   | 'interstellar-buyer'
 export type MarketRole = 'neutral' | 'buyer' | 'seller'
@@ -100,6 +100,14 @@ export type MarketState = Record<
   MarketResource,
   ResourceMarketState
 >
+
+export type ActiveResourceMarket = {
+  resource: MarketResource
+  roundPlayed: number
+  initiatorId: ParticipantId
+  roles: Partial<Record<ParticipantId, MarketRole>>
+  offers: Partial<Record<ParticipantId, MarketOffer>>
+}
 
 export type RivalId = 'orion' | 'nova' | 'vega'
 
@@ -186,6 +194,7 @@ export type GameState = {
   colonies: ColoniesState
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
+  activeResourceMarket: ActiveResourceMarket | null
   initiatedMarketResources: MarketResource[]
   activeGlobalEvent: GlobalEventId | null
   activeLocalEvent: LocalEventId | null
@@ -647,9 +656,21 @@ export function getHarvesterCreditCost(
 export function isMarketInitiationBlocked(
   currentState: GameState,
 ): boolean {
+  return isColonyMarketInitiationBlocked(
+    currentState,
+    'agima',
+  )
+}
+
+export function isColonyMarketInitiationBlocked(
+  currentState: GameState,
+  participantId: ParticipantId,
+): boolean {
   return (
     currentState.activeGlobalEvent === 'trade-blockade' ||
-    currentState.activeLocalEvent === 'communications-outage'
+    (participantId === 'agima' &&
+      currentState.activeLocalEvent ===
+        'communications-outage')
   )
 }
 
@@ -1884,6 +1905,7 @@ export function createInitialGameState(): GameState {
     },
     pendingLandBid: null,
     landAuctionTie: null,
+    activeResourceMarket: null,
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,
@@ -2067,13 +2089,14 @@ export function executeColonyTrade(
   )
 }
 
-function executeWarehouseTrade(
+export function executeColonyWarehouseTrade(
   currentState: GameState,
+  participantId: ParticipantId,
   resource: MarketResource,
   direction: MarketDirection,
   price: number,
 ): GameState {
-  const localColony = selectLocalColony(currentState)
+  const participant = selectColonies(currentState)[participantId]
 
   if (!Number.isInteger(price) || price <= 0) {
     return currentState
@@ -2081,7 +2104,7 @@ function executeWarehouseTrade(
 
   if (direction === 'buy') {
     if (
-      localColony.credits < price ||
+      participant.credits < price ||
       currentState.market[resource].warehouseStock <= 0
     ) {
       return currentState
@@ -2089,7 +2112,7 @@ function executeWarehouseTrade(
 
     const stateAfterTrade = updateColony(
       currentState,
-      'agima',
+      participantId,
       (colony) => ({
         ...colony,
         credits: colony.credits - price,
@@ -2115,13 +2138,13 @@ function executeWarehouseTrade(
     }
   }
 
-  if (localColony.resources[resource] <= 0) {
+  if (participant.resources[resource] <= 0) {
     return currentState
   }
 
   const stateAfterTrade = updateColony(
     currentState,
-    'agima',
+    participantId,
     (colony) => ({
       ...colony,
       credits: colony.credits + price,
@@ -2147,14 +2170,15 @@ function executeWarehouseTrade(
   }
 }
 
-export function executeMarketTrade(
+export function executeColonyMarketTrade(
   currentState: GameState,
+  participantId: ParticipantId,
   resource: MarketResource,
   direction: MarketDirection,
   price: number,
   counterparty: MarketCounterparty = 'orion',
 ): GameState {
-  const localColony = selectLocalColony(currentState)
+  const participant = selectColonies(currentState)[participantId]
 
   if (counterparty === 'interstellar-buyer') {
     const buyerOffer = getInterstellarCrystalBuyerOffer(
@@ -2170,14 +2194,14 @@ export function executeMarketTrade(
       price <= 0 ||
       price > buyerOffer.offerPrice ||
       !buyerOffer.isAvailable ||
-      localColony.resources.crystals < 1
+      participant.resources.crystals < 1
     ) {
       return currentState
     }
 
     const stateAfterTrade = updateColony(
       currentState,
-      'agima',
+      participantId,
       (colony) => ({
         ...colony,
         credits: colony.credits + price,
@@ -2196,8 +2220,9 @@ export function executeMarketTrade(
   }
 
   if (counterparty === 'warehouse') {
-    return executeWarehouseTrade(
+    return executeColonyWarehouseTrade(
       currentState,
+      participantId,
       resource,
       direction,
       price,
@@ -2207,7 +2232,7 @@ export function executeMarketTrade(
   return direction === 'buy'
     ? executeColonyTrade(
         currentState,
-        'agima',
+        participantId,
         counterparty,
         resource,
         price,
@@ -2215,19 +2240,136 @@ export function executeMarketTrade(
     : executeColonyTrade(
         currentState,
         counterparty,
-        'agima',
+        participantId,
         resource,
         price,
       )
 }
 
-
-export function initiateResourceMarket(
+export function executeActiveMarketTrade(
   currentState: GameState,
+  participantId: ParticipantId,
+  resource: MarketResource,
+  direction: MarketDirection,
+  price: number,
+  counterparty: MarketCounterparty,
+) {
+  const activeMarket = currentState.activeResourceMarket
+  const role = activeMarket?.roles[participantId]
+  const ownOffer = activeMarket?.offers[participantId]
+
+  if (
+    !activeMarket ||
+    activeMarket.resource !== resource ||
+    role === undefined ||
+    role === 'neutral' ||
+    !ownOffer?.active ||
+    (direction === 'buy' && role !== 'buyer') ||
+    (direction === 'sell' && role !== 'seller')
+  ) {
+    return currentState
+  }
+
+  if (counterparty === 'warehouse') {
+    const warehousePrices = getWarehousePrices(
+      resource,
+      currentState.market[resource].referencePrice,
+    )
+    const expectedPrice =
+      direction === 'buy'
+        ? warehousePrices.sellPrice
+        : warehousePrices.buyPrice
+
+    if (
+      price !== expectedPrice ||
+      (direction === 'buy' &&
+        ownOffer.price < expectedPrice) ||
+      (direction === 'sell' &&
+        ownOffer.price > expectedPrice)
+    ) {
+      return currentState
+    }
+  } else if (counterparty === 'interstellar-buyer') {
+    const buyerOffer = getInterstellarCrystalBuyerOffer(
+      currentState.round,
+      currentState.market.crystals.referencePrice,
+      currentState.interstellarCrystalPurchases ?? 0,
+    )
+
+    if (
+      direction !== 'sell' ||
+      resource !== 'crystals' ||
+      price !== buyerOffer.offerPrice ||
+      ownOffer.price > buyerOffer.offerPrice
+    ) {
+      return currentState
+    }
+  } else {
+    const counterpartyRole =
+      activeMarket.roles[counterparty]
+    const counterpartyOffer =
+      activeMarket.offers[counterparty]
+    const buyerId =
+      direction === 'buy' ? participantId : counterparty
+    const sellerId =
+      direction === 'sell' ? participantId : counterparty
+    const buyerOffer = activeMarket.offers[buyerId]
+    const sellerOffer = activeMarket.offers[sellerId]
+
+    if (
+      counterparty === participantId ||
+      counterpartyRole === undefined ||
+      counterpartyRole === 'neutral' ||
+      !counterpartyOffer?.active ||
+      activeMarket.roles[buyerId] !== 'buyer' ||
+      activeMarket.roles[sellerId] !== 'seller' ||
+      !buyerOffer?.active ||
+      !sellerOffer?.active ||
+      price !== sellerOffer.price ||
+      buyerOffer.price < sellerOffer.price
+    ) {
+      return currentState
+    }
+  }
+
+  return executeColonyMarketTrade(
+    currentState,
+    participantId,
+    resource,
+    direction,
+    price,
+    counterparty,
+  )
+}
+
+export function executeMarketTrade(
+  currentState: GameState,
+  resource: MarketResource,
+  direction: MarketDirection,
+  price: number,
+  counterparty: MarketCounterparty = 'orion',
+) {
+  return executeColonyMarketTrade(
+    currentState,
+    'agima',
+    resource,
+    direction,
+    price,
+    counterparty,
+  )
+}
+
+export function initiateColonyResourceMarket(
+  currentState: GameState,
+  participantId: ParticipantId,
   resource: MarketResource,
 ): GameState {
   if (
-    isMarketInitiationBlocked(currentState) ||
+    isColonyMarketInitiationBlocked(
+      currentState,
+      participantId,
+    ) ||
+    currentState.activeResourceMarket !== null ||
     currentState.initiatedMarketResources.includes(resource)
   ) {
     return currentState
@@ -2235,10 +2377,96 @@ export function initiateResourceMarket(
 
   return {
     ...currentState,
+    activeResourceMarket: {
+      resource,
+      roundPlayed: currentState.round,
+      initiatorId: participantId,
+      roles: {},
+      offers: {},
+    },
     initiatedMarketResources: [
       ...currentState.initiatedMarketResources,
       resource,
     ],
+  }
+}
+
+export function initiateResourceMarket(
+  currentState: GameState,
+  resource: MarketResource,
+) {
+  return initiateColonyResourceMarket(
+    currentState,
+    'agima',
+    resource,
+  )
+}
+
+export function setColonyMarketRole(
+  currentState: GameState,
+  participantId: ParticipantId,
+  resource: MarketResource,
+  role: MarketRole,
+) {
+  const activeMarket = currentState.activeResourceMarket
+
+  if (!activeMarket || activeMarket.resource !== resource) {
+    return currentState
+  }
+
+  const offers = { ...activeMarket.offers }
+
+  if (role === 'neutral') {
+    delete offers[participantId]
+  }
+
+  return {
+    ...currentState,
+    activeResourceMarket: {
+      ...activeMarket,
+      roles: {
+        ...activeMarket.roles,
+        [participantId]: role,
+      },
+      offers,
+    },
+  }
+}
+
+export function setColonyMarketOffer(
+  currentState: GameState,
+  participantId: ParticipantId,
+  resource: MarketResource,
+  offer: MarketOffer,
+) {
+  const activeMarket = currentState.activeResourceMarket
+  const role = activeMarket?.roles[participantId]
+  const warehousePrices = getWarehousePrices(
+    resource,
+    currentState.market[resource].referencePrice,
+  )
+
+  if (
+    !activeMarket ||
+    activeMarket.resource !== resource ||
+    role === undefined ||
+    role === 'neutral' ||
+    !Number.isInteger(offer.price) ||
+    offer.price < warehousePrices.buyPrice ||
+    offer.price > warehousePrices.sellPrice
+  ) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    activeResourceMarket: {
+      ...activeMarket,
+      offers: {
+        ...activeMarket.offers,
+        [participantId]: { ...offer },
+      },
+    },
   }
 }
 
@@ -2285,6 +2513,10 @@ export function completeResourceMarket(
 
   return {
     ...currentState,
+    activeResourceMarket:
+      currentState.activeResourceMarket?.resource === resource
+        ? null
+        : currentState.activeResourceMarket,
     market: {
       ...currentState.market,
       [resource]: {
@@ -2294,6 +2526,24 @@ export function completeResourceMarket(
       },
     },
   }
+}
+
+export function completeColonyResourceMarket(
+  currentState: GameState,
+  participantId: ParticipantId,
+  resource: MarketResource,
+) {
+  const activeMarket = currentState.activeResourceMarket
+
+  if (
+    !activeMarket ||
+    activeMarket.resource !== resource ||
+    activeMarket.initiatorId !== participantId
+  ) {
+    return currentState
+  }
+
+  return completeResourceMarket(currentState, resource)
 }
 
 export function completeRoundAfterMarket(
@@ -3190,6 +3440,7 @@ export function runRound(
           })(),
         }
       : null,
+    activeResourceMarket: null,
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,

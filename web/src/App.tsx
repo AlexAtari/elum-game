@@ -20,13 +20,10 @@ import {
   beginLandTieBreak,
   cancelColonyLandBid,
   calculateSupplyPreview,
-  completeResourceMarket,
   createLeaderboardEntries,
-  executeMarketTrade,
   getRoundsUntilSupplyShip,
   isGameFinished,
   getHarvesterCreditCost,
-  initiateResourceMarket,
   isHarvesterBuildBlocked,
   isHarvesterRelocationBlocked,
   isHarvesterRetoolingBlocked,
@@ -58,6 +55,7 @@ import {
   type GameCommandAction,
 } from './gameCommands'
 import { useI18n } from './i18n/I18nContext'
+import type { ParticipantId } from './match'
 import './App.css'
 
 const supplyLabelKeys = [
@@ -66,11 +64,6 @@ const supplyLabelKeys = [
   'supply.normal',
   'supply.extra',
 ] as const
-
-type ActiveMarket = {
-  roundPlayed: number
-  resource: MarketResource
-}
 
 type PendingRound = {
   harvesters: HarvesterAssignments
@@ -96,8 +89,6 @@ function App() {
     useState<RoundReport | null>(null)
   const [foodSupplyLevel, setFoodSupplyLevel] = useState(2)
   const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
-  const [activeMarket, setActiveMarket] =
-    useState<ActiveMarket | null>(null)
   const [pendingRound, setPendingRound] =
     useState<PendingRound | null>(null)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
@@ -141,6 +132,7 @@ function App() {
     isHarvesterRetoolingBlocked(gameState)
   const harvesterRelocationBlocked =
     isHarvesterRelocationBlocked(gameState)
+  const activeMarket = gameState.activeResourceMarket
   const activeResourceMarket = activeMarket
     ? gameState.market[activeMarket.resource]
     : null
@@ -186,7 +178,6 @@ function App() {
     setLastReport(null)
     setFoodSupplyLevel(2)
     setEnergySupplyLevel(2)
-    setActiveMarket(null)
     setPendingRound(null)
     setShowLeaderboard(false)
     setShowRoundBriefing(false)
@@ -229,8 +220,9 @@ function App() {
     showRoundBriefing,
   ])
 
-  const dispatchPlayerCommand = useCallback(
+  const dispatchParticipantCommand = useCallback(
     (
+      participantId: ParticipantId,
       action: GameCommandAction,
       afterSuccess?: (state: GameState) => GameState,
     ) => {
@@ -238,7 +230,7 @@ function App() {
         ...action,
         version: 1,
         commandId: createClientCommandId(),
-        participantId: 'agima',
+        participantId,
         expectedRound: gameState.round,
       } as const
 
@@ -254,6 +246,18 @@ function App() {
       })
     },
     [gameState.round],
+  )
+  const dispatchPlayerCommand = useCallback(
+    (
+      action: GameCommandAction,
+      afterSuccess?: (state: GameState) => GameState,
+    ) =>
+      dispatchParticipantCommand(
+        'agima',
+        action,
+        afterSuccess,
+      ),
+    [dispatchParticipantCommand],
   )
 
   const assignHarvester = (
@@ -317,17 +321,46 @@ function App() {
       price: number,
       counterparty: MarketCounterparty,
     ) => {
-      setGameState((currentState) =>
-        executeMarketTrade(
-          currentState,
+      dispatchPlayerCommand({
+        type: 'execute-market-trade',
+        payload: {
           resource,
           direction,
           price,
           counterparty,
-        ),
-      )
+        },
+      })
     },
-    [],
+    [dispatchPlayerCommand],
+  )
+
+  const setMarketRole = useCallback(
+    (
+      participantId: ParticipantId,
+      resource: MarketResource,
+      role: 'neutral' | 'buyer' | 'seller',
+    ) => {
+      dispatchParticipantCommand(participantId, {
+        type: 'set-market-role',
+        payload: { resource, role },
+      })
+    },
+    [dispatchParticipantCommand],
+  )
+
+  const setMarketOffer = useCallback(
+    (
+      participantId: ParticipantId,
+      resource: MarketResource,
+      active: boolean,
+      price: number,
+    ) => {
+      dispatchParticipantCommand(participantId, {
+        type: 'set-market-offer',
+        payload: { resource, active, price },
+      })
+    },
+    [dispatchParticipantCommand],
   )
 
   const applyCompletedRound = useCallback(
@@ -335,7 +368,6 @@ function App() {
       setGameState(completedRound.nextState)
       setLastReport(completedRound.report)
       setPendingRound(null)
-      setActiveMarket(null)
       setPendingLocalEvent(null)
       setActiveLocalEvent(null)
       setShowRoundBriefing(false)
@@ -354,20 +386,17 @@ function App() {
         return
       }
 
-      setGameState((currentState) =>
-        initiateResourceMarket(currentState, resource),
-      )
-      setActiveMarket({
-        roundPlayed: gameState.round,
-        resource,
+      dispatchPlayerCommand({
+        type: 'initiate-resource-market',
+        payload: { resource },
       })
       setActiveLocalEvent(null)
     },
     [
       activeMarket,
       gameState.initiatedMarketResources,
-      gameState.round,
       marketInitiationBlocked,
+      dispatchPlayerCommand,
     ],
   )
 
@@ -380,12 +409,12 @@ function App() {
         return
       }
 
-      setGameState((currentState) =>
-        completeResourceMarket(currentState, resource),
-      )
-      setActiveMarket(null)
+      dispatchPlayerCommand({
+        type: 'complete-resource-market',
+        payload: { resource },
+      })
     },
-    [activeMarket],
+    [activeMarket, dispatchPlayerCommand],
   )
 
   const completeLandTieAuction = useCallback(
@@ -586,6 +615,8 @@ function App() {
             initiatorName="Agima"
             completionLabel={t('market.backToPlanning')}
             onTrade={tradeMarketResource}
+            onSetRole={setMarketRole}
+            onSetOffer={setMarketOffer}
             onComplete={completeMarketResource}
           />
         ) : showLeaderboard && lastReport ? (

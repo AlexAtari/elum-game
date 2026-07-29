@@ -269,7 +269,8 @@ werden.
   Zuweisungen teilnehmerbezogen im serialisierbaren `GameState`
 - erste validierte, UI-unabhängige Kommandoschicht aktiv:
   teilnehmerbezogene Harvesterzuweisung, Produktionsänderung,
-  Entfernung, Bauauftrag sowie Grundstücksgebot und Rücknahme;
+  Entfernung, Bauauftrag, Grundstücksgebot und Rücknahme sowie
+  Marktstart, Rolle, Preisangebot, Transaktion und Marktabschluss;
   React verwendet bereits denselben serialisierbaren Pfad wie
   spätere entfernte Eingaben
 - Kommandos tragen Version, eindeutige ID, Teilnehmer und erwartete
@@ -301,12 +302,18 @@ werden.
 - die bestehende grafische Auktionsansicht bleibt vorerst ein
   Agima-Orion-Adapter; zusätzliche Bieter benötigen nur noch eine
   erweiterte Darstellung, kein neues Kernzustandsmodell
+- aktiver Ressourcenmarkt, Initiator, Rollen und Preisangebote
+  liegen teilnehmerneutral im `GameState`; direkte Geschäfte,
+  HQ-Lager und interstellarer Käufer verwenden dieselbe
+  teilnehmerbezogene Kommando- und Prüfgrenze
+- Countdown, sichtbare Marktbewegungen und KI-Auswahl bleiben als
+  Singleplayer-Adapter lokal in der grafischen Marktkomponente
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Ressourcenmarkt auf beliebige
-  Teilnehmer verallgemeinern und anschließend ebenfalls als
-  Kommandos führen; danach den verbleibenden Kernzufall vollständig
-  seedbasiert ausführen
+- nächster Strukturschritt: zeitliche Auktionsphasen
+  serverautoritativ modellieren, anschließend Transport,
+  Sitzautorisierung und Zustandsverteilung ergänzen; danach den
+  verbleibenden Kernzufall vollständig seedbasiert ausführen
 
 ### Nächster Regelstand
 
