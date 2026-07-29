@@ -7,11 +7,9 @@ import {
   useState,
 } from 'react'
 import {
-  lowerLandTieBid,
-  raiseLandTieBid,
   tiles,
+  type LandAuctionPhase,
   type LandAuctionTie,
-  type LandTieBidState,
   HARVESTER_CREDIT_COST,
   HARVESTER_ORE_COST,
   MARKET_PRICES,
@@ -35,7 +33,16 @@ type LandTieAuctionPanelProps = {
   credits: number
   orion: RivalColonyState
   roundPlayed: number
-  onComplete: (bids: LandTieBidState) => void
+  onAdvancePhase: (
+    tileId: string,
+    expectedPhase: LandAuctionPhase,
+  ) => void
+  onMoveBid: (
+    participantId: 'agima' | 'orion',
+    tileId: string,
+    direction: 'raise' | 'lower',
+  ) => void
+  onComplete: () => void
 }
 
 function bidPosition(
@@ -57,6 +64,8 @@ function LandTieAuctionPanel({
   credits,
   orion,
   roundPlayed,
+  onAdvancePhase,
+  onMoveBid,
   onComplete,
 }: LandTieAuctionPanelProps) {
   const tile = tiles.find((candidate) => candidate.id === tie.tileId)
@@ -96,22 +105,36 @@ function LandTieAuctionPanel({
       tie.tiedBid + 30,
     ),
   )
-  const [stage, setStage] =
-    useState<LandTieStage>('preparation')
-  const [secondsLeft, setSecondsLeft] =
-    useState(preparationSeconds)
-  const [bids, setBids] = useState<LandTieBidState>({
-    bids: { ...tie.openingBids },
-    leaderId: tie.initialLeaderId,
+  const stage: LandTieStage =
+    tie.phase === 'announcement'
+      ? 'preparation'
+      : tie.phase
+  const phaseDuration =
+    tie.phase === 'announcement'
+      ? preparationSeconds
+      : tie.phase === 'auction'
+        ? landTieSeconds
+        : 0
+  const [countdown, setCountdown] = useState({
+    phase: tie.phase,
+    seconds: phaseDuration,
+    advanceRequested: false,
   })
+  const bids = tie.liveBids
   const [playerBehindStart, setPlayerBehindStart] =
     useState(tie.initialLeaderId !== 'agima')
-  const bidsRef = useRef(bids)
   const nextPlayerMovementAt = useRef(0)
-
-  useEffect(() => {
-    bidsRef.current = bids
-  }, [bids])
+  if (countdown.phase !== tie.phase) {
+    setCountdown({
+      phase: tie.phase,
+      seconds: phaseDuration,
+      advanceRequested: false,
+    })
+  }
+  const secondsLeft =
+    countdown.phase === tie.phase
+      ? countdown.seconds
+      : phaseDuration
 
   const raisePlayerBid = useCallback(() => {
     if (
@@ -126,17 +149,22 @@ function LandTieAuctionPanel({
 
     if (
       playerBehindStart &&
-      (bidsRef.current.bids.agima ?? 0) >= tie.minimumBid
+      (bids.bids.agima ?? 0) >= tie.minimumBid
     ) {
       setPlayerBehindStart(false)
       return
     }
 
     setPlayerBehindStart(false)
-    setBids((currentBids) =>
-      raiseLandTieBid(currentBids, 'agima', credits),
-    )
-  }, [credits, playerBehindStart, stage, tie.minimumBid])
+    onMoveBid('agima', tie.tileId, 'raise')
+  }, [
+    bids.bids.agima,
+    onMoveBid,
+    playerBehindStart,
+    stage,
+    tie.minimumBid,
+    tie.tileId,
+  ])
 
   const lowerPlayerBid = useCallback(() => {
     if (
@@ -149,20 +177,20 @@ function LandTieAuctionPanel({
 
     nextPlayerMovementAt.current =
       Date.now() + movementMilliseconds
-    const currentPlayerBid = bidsRef.current.bids.agima ?? 0
-
-    setBids((currentBids) =>
-      lowerLandTieBid(
-        currentBids,
-        'agima',
-        tie.minimumBid,
-      ),
-    )
+    const currentPlayerBid = bids.bids.agima ?? 0
+    onMoveBid('agima', tie.tileId, 'lower')
 
     if (currentPlayerBid === tie.minimumBid) {
       setPlayerBehindStart(true)
     }
-  }, [playerBehindStart, stage, tie.minimumBid])
+  }, [
+    bids.bids.agima,
+    onMoveBid,
+    playerBehindStart,
+    stage,
+    tie.minimumBid,
+    tie.tileId,
+  ])
 
   useEffect(() => {
     if (stage !== 'auction') {
@@ -185,30 +213,39 @@ function LandTieAuctionPanel({
   }, [lowerPlayerBid, raisePlayerBid, stage])
 
   useEffect(() => {
-    if (stage === 'finished') {
+    if (
+      tie.phase === 'finished' ||
+      countdown.advanceRequested
+    ) {
       return
     }
 
-    const timer = window.setTimeout(
-      () => {
-        if (secondsLeft > 0) {
-          setSecondsLeft(secondsLeft - 1)
-          return
-        }
+    const timer = window.setTimeout(() => {
+      if (secondsLeft > 0) {
+        setCountdown({
+          phase: tie.phase,
+          seconds: secondsLeft - 1,
+          advanceRequested: false,
+        })
+        return
+      }
 
-        if (stage === 'preparation') {
-          setStage('auction')
-          setSecondsLeft(landTieSeconds)
-          return
-        }
-
-        setStage('finished')
-      },
-      secondsLeft === 0 ? 300 : 1000,
-    )
+      setCountdown({
+        phase: tie.phase,
+        seconds: 0,
+        advanceRequested: true,
+      })
+      onAdvancePhase(tie.tileId, tie.phase)
+    }, secondsLeft === 0 ? 300 : 1000)
 
     return () => window.clearTimeout(timer)
-  }, [secondsLeft, stage])
+  }, [
+    countdown.advanceRequested,
+    onAdvancePhase,
+    secondsLeft,
+    tie.phase,
+    tie.tileId,
+  ])
 
   useEffect(() => {
     if (stage !== 'auction') {
@@ -216,19 +253,29 @@ function LandTieAuctionPanel({
     }
 
     const orionMovement = window.setInterval(() => {
-      setBids((currentBids) =>
-        currentBids.leaderId === 'orion'
-          ? currentBids
-          : raiseLandTieBid(
-              currentBids,
-              'orion',
-              orionBidLimit,
-            ),
+      const nextOrionBid = Math.max(
+        (bids.bids.orion ?? 0) + 1,
+        (bids.bids.agima ?? 0) + 1,
       )
+
+      if (
+        bids.leaderId !== 'orion' &&
+        nextOrionBid <= orionBidLimit
+      ) {
+        onMoveBid('orion', tie.tileId, 'raise')
+      }
     }, orionMovementMilliseconds)
 
     return () => window.clearInterval(orionMovement)
-  }, [orionBidLimit, stage])
+  }, [
+    bids.bids.agima,
+    bids.bids.orion,
+    bids.leaderId,
+    onMoveBid,
+    orionBidLimit,
+    stage,
+    tie.tileId,
+  ])
 
   useEffect(() => {
     if (stage !== 'finished') {
@@ -236,7 +283,7 @@ function LandTieAuctionPanel({
     }
 
     const resultPause = window.setTimeout(
-      () => onComplete(bidsRef.current),
+      onComplete,
       resultDisplayMilliseconds,
     )
 

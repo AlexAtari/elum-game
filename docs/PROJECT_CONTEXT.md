@@ -271,6 +271,8 @@ werden.
   teilnehmerbezogene Harvesterzuweisung, Produktionsänderung,
   Entfernung, Bauauftrag, Grundstücksgebot und Rücknahme sowie
   Marktstart, Rolle, Preisangebot, Transaktion und Marktabschluss;
+  zusätzlich erwartungsgebundene Phasenwechsel beider
+  Auktionsarten und Live-Gebotsbewegungen der Grundstücksauktion;
   React verwendet bereits denselben serialisierbaren Pfad wie
   spätere entfernte Eingaben
 - Kommandos tragen Version, eindeutige ID, Teilnehmer und erwartete
@@ -297,23 +299,26 @@ werden.
   beidseitig in Credits und Ressourcen verbucht
 - Grundstücksgebote, Reservierungen, Eröffnungsgebote und Führung
   der grafischen Auktion sind teilnehmerneutral gespeichert;
+  Phase und laufende Gebote liegen ebenfalls kanonisch im
+  `GameState`;
   Rundenabrechnung und Landgewinn beliebiger Bieter schreiben über
   die gemeinsame Koloniegrenze
 - die bestehende grafische Auktionsansicht bleibt vorerst ein
   Agima-Orion-Adapter; zusätzliche Bieter benötigen nur noch eine
   erweiterte Darstellung, kein neues Kernzustandsmodell
 - aktiver Ressourcenmarkt, Initiator, Rollen und Preisangebote
-  liegen teilnehmerneutral im `GameState`; direkte Geschäfte,
+  sowie die aktuelle Phase liegen teilnehmerneutral im `GameState`;
+  direkte Geschäfte,
   HQ-Lager und interstellarer Käufer verwenden dieselbe
   teilnehmerbezogene Kommando- und Prüfgrenze
-- Countdown, sichtbare Marktbewegungen und KI-Auswahl bleiben als
-  Singleplayer-Adapter lokal in der grafischen Marktkomponente
+- lokale Countdowns lösen validierte Phasenkommandos aus, statt
+  selbst den Phasenzustand zu halten; sichtbare Bewegungen und
+  KI-Auswahl bleiben Singleplayer-Adapter der grafischen Komponenten
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: zeitliche Auktionsphasen
-  serverautoritativ modellieren, anschließend Transport,
-  Sitzautorisierung und Zustandsverteilung ergänzen; danach den
-  verbleibenden Kernzufall vollständig seedbasiert ausführen
+- nächster Strukturschritt: Transport, Sitzautorisierung,
+  serverseitige Zeitplanung und Zustandsverteilung ergänzen; danach
+  den verbleibenden Kernzufall vollständig seedbasiert ausführen
 
 ### Nächster Regelstand
 

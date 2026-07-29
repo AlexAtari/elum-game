@@ -44,7 +44,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Harvester einsetzen, Produktion ändern, Harvester entfernen,
   Harvesterbau beauftragen sowie Grundstücksgebote abgeben und
   zurücknehmen; Ressourcenmärkte starten, Rollen und Preisangebote
-  setzen, Einzeltransaktionen ausführen und Märkte abschließen
+  setzen, Einzeltransaktionen ausführen und Märkte abschließen;
+  Grundstücks- und Ressourcenauktionen phasenweise fortschalten
+  sowie Live-Gebote der grafischen Grundstücksauktion bewegen
 - Laufzeitprüfung von Kommandoformat, Teilnehmer, erwarteter Runde
   und Aktionslegalität; erfolgreiche Kommando-IDs werden begrenzt im
   Spielzustand gespeichert und dadurch höchstens einmal ausgeführt
@@ -57,20 +59,27 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   `ParticipantId` gespeichert; Reservierung, Erstattung, Siegerpreis
   und Besitzübertragung verwenden keine fest verdrahtete
   Spieler-/Orion-Seite mehr
+- Phase, laufende Gebote und aktueller Führender der grafischen
+  Grundstücksauktion liegen im `GameState`; Spieler und Orion
+  verändern sie über dieselbe validierte Kommandogrenze
 - die vorhandene grafische Oberfläche zeigt weiterhin den
   Agima-Orion-Konflikt; das Kernmodell kann zusätzliche Bieter
   aufnehmen, deren Darstellung folgt mit der Mehrspieler-UI
 - aktiver Ressourcenmarkt, Initiator, Rollen und Preisangebote aller
-  beteiligten Kolonien liegen serialisierbar im `GameState`;
+  beteiligten Kolonien sowie die aktuelle Marktphase liegen
+  serialisierbar im `GameState`;
   Marktstart und Abschluss sind dadurch nicht mehr nur lokaler
   React-Zustand
 - Lagerhandel, interstellarer Kristallverkauf und direkte
   Koloniegeschäfte funktionieren für beliebige `ParticipantId`;
   Transaktionskommandos prüfen aktive Rolle, Angebot, Gegenangebot,
   Preis, Credits und Bestand
-- die grafischen Marktstufen, Countdown und Avatarbewegungen bleiben
-  vorerst UI-lokal; ihre serverautoritativ synchronisierte
-  Zustandsmaschine ist der nächste Mehrspielerbaustein
+- Markt- und Grundstücksphasen werden nur über validierte,
+  erwartungsgebundene Kommandos fortgeschaltet; lokale Timer lösen
+  diese Kommandos im Singleplayer aus, sind aber nicht mehr die
+  Quelle des Phasenzustands
+- Countdown, Avatarbewegungen und KI-Auswahl bleiben vorerst lokale
+  Darstellung beziehungsweise Singleplayer-Adapter
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -181,13 +190,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Als nächstes wird der zeitliche Ablauf von Grundstücks- und
-Ressourcenauktionen als serverautoritativ fortschaltbare
-Phasenzustandsmaschine modelliert. Countdown und grafische
-Avatarbewegungen sind derzeit noch lokale Darstellung. Danach kann
-ein Transport-/Serveradapter den authentifizierten Sitz mit der
-`participantId` jedes Kommandos abgleichen und Zustandsstände an
-entfernte Clients verteilen.
+Als nächstes folgt der Transport-/Serveradapter: Er gleicht den
+authentifizierten Sitz mit der `participantId` jedes Kommandos ab,
+verteilt kanonische Zustandsstände an entfernte Clients und übernimmt
+das zeitgesteuerte Auslösen der bereits vorhandenen
+Phasenkommandos. Countdown und grafische Avatarbewegungen bleiben
+darauf aufbauende Clientdarstellung.
 
 ## Grundstücksauktion – aktueller Sollstand
 

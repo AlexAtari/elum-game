@@ -13,6 +13,7 @@ import {
   marketResourceTypes,
   moveMarketOffer,
   type MarketDirection,
+  type ResourceMarketPhase,
   type MarketResource,
   type MarketRole,
   type RivalColonies,
@@ -52,6 +53,7 @@ type MarketPanelProps = {
   invitationSeconds?: number
   completionLabel?: string
   initiatorName?: string
+  phase: ResourceMarketPhase
   onTrade: (
     resource: MarketResource,
     direction: MarketDirection,
@@ -68,6 +70,10 @@ type MarketPanelProps = {
     resource: MarketResource,
     active: boolean,
     price: number,
+  ) => void
+  onAdvancePhase: (
+    resource: MarketResource,
+    expectedPhase: ResourceMarketPhase,
   ) => void
   onComplete: (resource: MarketResource) => void
 }
@@ -162,9 +168,11 @@ function MarketPanel({
   invitationSeconds,
   completionLabel,
   initiatorName,
+  phase,
   onTrade,
   onSetRole,
   onSetOffer,
+  onAdvancePhase,
   onComplete,
 }: MarketPanelProps) {
   const marketTiming = getMarketTiming(roundPlayed)
@@ -187,9 +195,17 @@ function MarketPanel({
     resource === 'crystals' && interstellarBuyer.isAvailable
   const minimumPrice = warehousePrices.buyPrice
   const maximumPrice = warehousePrices.sellPrice
-  const [stage, setStage] =
-    useState<MarketStage>('introduction')
   const [role, setRole] = useState<MarketRole>('neutral')
+  const stage: MarketStage =
+    phase === 'announcement'
+      ? 'introduction'
+      : phase === 'declaration'
+        ? 'declaration'
+        : phase === 'auction'
+          ? 'auction'
+          : role === 'neutral'
+            ? 'skipped'
+            : 'finished'
   const rivalMarketSelection =
     createRivalMarketSelection(
       rivals,
@@ -228,9 +244,19 @@ function MarketPanel({
   const [orionRole, setOrionRole] = useState<
     MarketRole | 'pending'
   >('pending')
-  const [secondsLeft, setSecondsLeft] = useState(
-    introductionSeconds,
-  )
+  const phaseDuration =
+    phase === 'announcement'
+      ? introductionSeconds
+      : phase === 'declaration'
+        ? declarationSeconds
+        : phase === 'auction'
+          ? auctionSeconds
+          : 0
+  const [countdown, setCountdown] = useState({
+    phase,
+    seconds: phaseDuration,
+    advanceRequested: false,
+  })
   const [playerPrice, setPlayerPrice] = useState(
     referencePrice,
   )
@@ -252,6 +278,17 @@ function MarketPanel({
     MarketUiCounterparty | null
   >(null)
   const nextPlayerMovementAt = useRef(0)
+  if (countdown.phase !== phase) {
+    setCountdown({
+      phase,
+      seconds: phaseDuration,
+      advanceRequested: false,
+    })
+  }
+  const secondsLeft =
+    countdown.phase === phase
+      ? countdown.seconds
+      : phaseDuration
 
   const chooseRole = useCallback((nextRole: MarketRole) => {
     setRole(nextRole)
@@ -261,10 +298,18 @@ function MarketPanel({
   }, [])
 
   useEffect(() => {
+    if (stage !== 'declaration') {
+      return
+    }
+
     onSetRole('agima', resource, role)
-  }, [onSetRole, resource, role])
+  }, [onSetRole, resource, role, stage])
 
   useEffect(() => {
+    if (stage !== 'auction') {
+      return
+    }
+
     onSetOffer(
       'agima',
       resource,
@@ -276,28 +321,8 @@ function MarketPanel({
     playerOfferActive,
     playerPrice,
     resource,
+    stage,
   ])
-
-  useEffect(() => {
-    if (stage !== 'introduction') {
-      return
-    }
-
-    const timer = window.setTimeout(
-      () => {
-        if (secondsLeft > 0) {
-          setSecondsLeft(secondsLeft - 1)
-          return
-        }
-
-        setStage('declaration')
-        setSecondsLeft(declarationSeconds)
-      },
-      secondsLeft === 0 ? 300 : 1000,
-    )
-
-    return () => window.clearTimeout(timer)
-  }, [declarationSeconds, secondsLeft, stage])
 
   useEffect(() => {
     if (stage !== 'declaration') {
@@ -311,52 +336,48 @@ function MarketPanel({
     }, orionDecisionMilliseconds)
 
     return () => window.clearTimeout(timer)
-  }, [resource, role, roundPlayed, stage])
-
-  useEffect(() => {
-    if (stage !== 'declaration') {
-      return
-    }
-
-    const timer = window.setInterval(() => {
-      setSecondsLeft((currentSeconds) => {
-        if (currentSeconds > 1) {
-          return currentSeconds - 1
-        }
-
-        setActiveRivalId(plannedRivalId)
-        setOrionRole(plannedOrionRole)
-        setOrionUnitsRemaining(plannedOrionUnits)
-
-        if (role === 'neutral') {
-          setStage('skipped')
-          return 0
-        }
-
-        setPlayerPrice(
-          role === 'seller' ? maximumPrice : minimumPrice,
-        )
-        setPlayerOfferActive(false)
-        setOrionPrice(
-          role === 'seller' ? minimumPrice : maximumPrice,
-        )
-        setOrionResourceAmount(
-        rivals[plannedRivalId].resources[resource],
-      )
-        setOrionParked(false)
-        setStage('auction')
-        return auctionSeconds
-      })
-    }, 1000)
-
-    return () => window.clearInterval(timer)
   }, [
-    auctionSeconds,
-    maximumPrice,
-    minimumPrice,
+    plannedOrionRole,
+    plannedOrionUnits,
+    plannedRivalId,
     resource,
     role,
     roundPlayed,
+    stage,
+  ])
+
+  useEffect(() => {
+    if (stage !== 'auction') {
+      return
+    }
+
+    const initializeAuction = window.setTimeout(() => {
+      setActiveRivalId(plannedRivalId)
+      setOrionRole(plannedOrionRole)
+      setOrionUnitsRemaining(plannedOrionUnits)
+      setPlayerPrice(
+        role === 'seller' ? maximumPrice : minimumPrice,
+      )
+      setPlayerOfferActive(false)
+      setOrionPrice(
+        role === 'seller' ? minimumPrice : maximumPrice,
+      )
+      setOrionResourceAmount(
+        rivals[plannedRivalId].resources[resource],
+      )
+      setOrionParked(false)
+    }, 0)
+
+    return () => window.clearTimeout(initializeAuction)
+  }, [
+    maximumPrice,
+    minimumPrice,
+    plannedOrionRole,
+    plannedOrionUnits,
+    plannedRivalId,
+    resource,
+    rivals,
+    role,
     stage,
   ])
 
@@ -374,23 +395,39 @@ function MarketPanel({
   }, [onComplete, resource, stage])
 
   useEffect(() => {
-    if (stage !== 'auction') {
+    if (
+      phase === 'finished' ||
+      countdown.advanceRequested
+    ) {
       return
     }
 
-    const timer = window.setInterval(() => {
-      setSecondsLeft((currentSeconds) => {
-        if (currentSeconds > 1) {
-          return currentSeconds - 1
-        }
+    const timer = window.setTimeout(() => {
+      if (secondsLeft > 0) {
+        setCountdown({
+          phase,
+          seconds: secondsLeft - 1,
+          advanceRequested: false,
+        })
+        return
+      }
 
-        setStage('finished')
-        return 0
+      setCountdown({
+        phase,
+        seconds: 0,
+        advanceRequested: true,
       })
-    }, 1000)
+      onAdvancePhase(resource, phase)
+    }, secondsLeft === 0 ? 300 : 1000)
 
-    return () => window.clearInterval(timer)
-  }, [stage])
+    return () => window.clearTimeout(timer)
+  }, [
+    onAdvancePhase,
+    countdown.advanceRequested,
+    phase,
+    resource,
+    secondsLeft,
+  ])
 
   const orionParticipates =
     orionRole !== 'pending' && orionRole !== 'neutral'
@@ -400,7 +437,10 @@ function MarketPanel({
     orionParticipates && !orionActive && !orionParked
 
   useEffect(() => {
-    if (orionRole === 'pending') {
+    if (
+      stage !== 'declaration' ||
+      orionRole === 'pending'
+    ) {
       return
     }
 
@@ -410,10 +450,11 @@ function MarketPanel({
     onSetRole,
     orionRole,
     resource,
+    stage,
   ])
 
   useEffect(() => {
-    if (orionRole === 'pending') {
+    if (stage !== 'auction' || orionRole === 'pending') {
       return
     }
 
@@ -430,6 +471,7 @@ function MarketPanel({
     orionPrice,
     orionRole,
     resource,
+    stage,
   ])
 
   const orionPriceLimit = clampPrice(

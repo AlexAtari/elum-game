@@ -1260,8 +1260,13 @@ describe('Grundstücksauktion', () => {
       tileId: freeAuctionTileId,
       tiedBid: 36,
       minimumBid: 37,
+      phase: 'announcement',
       openingBids: { agima: 36, orion: 35 },
       initialLeaderId: 'agima',
+      liveBids: {
+        bids: { agima: 36, orion: 35 },
+        leaderId: 'agima',
+      },
     })
 
     const resolvedState = resolveLandTieBreak(
@@ -1332,8 +1337,13 @@ describe('Grundstücksauktion', () => {
       tileId: freeAuctionTileId,
       tiedBid: 35,
       minimumBid: 36,
+      phase: 'announcement',
       openingBids: { agima: 30, orion: 35 },
       initialLeaderId: 'orion',
+      liveBids: {
+        bids: { agima: 30, orion: 35 },
+        leaderId: 'orion',
+      },
     })
 
     const resolvedState = resolveLandTieBreak(
@@ -1378,8 +1388,13 @@ describe('Grundstücksauktion', () => {
       tileId: freeAuctionTileId,
       tiedBid: 30,
       minimumBid: 31,
+      phase: 'announcement',
       openingBids: { agima: 30, orion: 30 },
       initialLeaderId: null,
+      liveBids: {
+        bids: { agima: 30, orion: 30 },
+        leaderId: null,
+      },
     })
   })
 
@@ -1440,12 +1455,21 @@ describe('Grundstücksauktion', () => {
       tileId: freeAuctionTileId,
       tiedBid: 32,
       minimumBid: 33,
+      phase: 'announcement',
       openingBids: {
         agima: 30,
         orion: 31,
         nova: 32,
       },
       initialLeaderId: 'nova',
+      liveBids: {
+        bids: {
+          agima: 30,
+          orion: 31,
+          nova: 32,
+        },
+        leaderId: 'nova',
+      },
     })
     expect(auctionState.colonies.agima.credits).toBe(
       state.colonies.agima.credits,

@@ -206,6 +206,93 @@ describe('UI-unabhängige Spielkommandos', () => {
     })
   })
 
+  it('führt die grafische Grundstücksauktion vollständig über Kommandos', () => {
+    const initialState = createPlayableInitialGameState()
+    const tileId = initialState.colonies.agima.ownedTileIds[0]
+    const auctionState = {
+      ...initialState,
+      landAuctionTie: {
+        tileId,
+        tiedBid: 30,
+        minimumBid: 31,
+        phase: 'announcement' as const,
+        openingBids: { agima: 30, orion: 30 },
+        initialLeaderId: null,
+        liveBids: {
+          bids: { agima: 30, orion: 30 },
+          leaderId: null,
+        },
+      },
+    }
+    const started = executeGameCommand(
+      auctionState,
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'advance-land-auction-phase',
+          payload: {
+            tileId,
+            expectedPhase: 'announcement',
+          },
+        },
+        'land-auction-start',
+      ),
+    )
+    const raised = executeGameCommand(
+      started.state,
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'move-land-auction-bid',
+          payload: { tileId, direction: 'raise' },
+        },
+        'land-auction-raise',
+      ),
+    )
+    const staleTransition = executeGameCommand(
+      raised.state,
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'advance-land-auction-phase',
+          payload: {
+            tileId,
+            expectedPhase: 'announcement',
+          },
+        },
+        'land-auction-stale-phase',
+      ),
+    )
+    const finished = executeGameCommand(
+      raised.state,
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'advance-land-auction-phase',
+          payload: {
+            tileId,
+            expectedPhase: 'auction',
+          },
+        },
+        'land-auction-finish',
+      ),
+    )
+
+    expect(started.state.landAuctionTie?.phase).toBe('auction')
+    expect(raised.state.landAuctionTie?.liveBids).toEqual({
+      bids: { agima: 31, orion: 30 },
+      leaderId: 'agima',
+    })
+    expect(staleTransition).toMatchObject({
+      ok: false,
+      error: 'illegal-action',
+      state: raised.state,
+    })
+    expect(finished.state.landAuctionTie?.phase).toBe(
+      'finished',
+    )
+  })
+
   it('führt ein Baukommando atomar und nur einmal aus', () => {
     const state = createPlayableInitialGameState()
     const command = createCommand(
@@ -256,7 +343,20 @@ describe('UI-unabhängige Spielkommandos', () => {
       ),
     )
     const withRole = executeGameCommand(
-      initiated.state,
+      executeGameCommand(
+        initiated.state,
+        createCommand(
+          {
+            participantId: 'orion',
+            type: 'advance-resource-market-phase',
+            payload: {
+              resource: 'food',
+              expectedPhase: 'announcement',
+            },
+          },
+          'market-declaration-orion-1',
+        ),
+      ).state,
       createCommand(
         {
           participantId: 'orion',
@@ -270,7 +370,20 @@ describe('UI-unabhängige Spielkommandos', () => {
       ),
     )
     const belowWarehouseOffer = executeGameCommand(
-      withRole.state,
+      executeGameCommand(
+        withRole.state,
+        createCommand(
+          {
+            participantId: 'orion',
+            type: 'advance-resource-market-phase',
+            payload: {
+              resource: 'food',
+              expectedPhase: 'declaration',
+            },
+          },
+          'market-auction-orion-1',
+        ),
+      ).state,
       createCommand(
         {
           participantId: 'orion',
@@ -332,7 +445,20 @@ describe('UI-unabhängige Spielkommandos', () => {
       ),
     )
     const rejectedCompletion = executeGameCommand(
-      traded.state,
+      executeGameCommand(
+        traded.state,
+        createCommand(
+          {
+            participantId: 'orion',
+            type: 'advance-resource-market-phase',
+            payload: {
+              resource: 'food',
+              expectedPhase: 'auction',
+            },
+          },
+          'market-finished-orion-1',
+        ),
+      ).state,
       createCommand(
         {
           participantId: 'nova',
@@ -343,7 +469,7 @@ describe('UI-unabhängige Spielkommandos', () => {
       ),
     )
     const completed = executeGameCommand(
-      traded.state,
+      rejectedCompletion.state,
       createCommand(
         {
           participantId: 'orion',
@@ -377,8 +503,10 @@ describe('UI-unabhängige Spielkommandos', () => {
     expect(rejectedCompletion).toMatchObject({
       ok: false,
       error: 'illegal-action',
-      state: traded.state,
     })
+    expect(
+      rejectedCompletion.state.activeResourceMarket?.phase,
+    ).toBe('finished')
     expect(completed.ok).toBe(true)
     expect(completed.state.activeResourceMarket).toBeNull()
   })
@@ -397,10 +525,40 @@ describe('UI-unabhängige Spielkommandos', () => {
       createCommand(
         {
           participantId: 'orion',
+          type: 'advance-resource-market-phase',
+          payload: {
+            resource: 'food',
+            expectedPhase: 'announcement',
+          },
+        },
+        'direct-market-declaration',
+      ),
+      createCommand(
+        {
+          participantId: 'orion',
           type: 'set-market-role',
           payload: { resource: 'food', role: 'buyer' },
         },
         'direct-market-orion-role',
+      ),
+      createCommand(
+        {
+          participantId: 'nova',
+          type: 'set-market-role',
+          payload: { resource: 'food', role: 'seller' },
+        },
+        'direct-market-nova-role',
+      ),
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'advance-resource-market-phase',
+          payload: {
+            resource: 'food',
+            expectedPhase: 'declaration',
+          },
+        },
+        'direct-market-auction',
       ),
       createCommand(
         {
@@ -413,14 +571,6 @@ describe('UI-unabhängige Spielkommandos', () => {
           },
         },
         'direct-market-orion-offer',
-      ),
-      createCommand(
-        {
-          participantId: 'nova',
-          type: 'set-market-role',
-          payload: { resource: 'food', role: 'seller' },
-        },
-        'direct-market-nova-role',
       ),
       createCommand(
         {

@@ -148,7 +148,10 @@ Die erste geschlossene Kommandogruppe umfasst:
 - eigenes Grundstücksgebot zurücknehmen,
 - Ressourcenmarkt starten und abschließen,
 - Marktrolle und aktives Preisangebot setzen,
-- einzelne Markttransaktion ausführen.
+- einzelne Markttransaktion ausführen,
+- Ressourcenmarktphase erwartungsgebunden fortschalten,
+- Grundstücksauktionsphase erwartungsgebunden fortschalten,
+- laufendes Gebot einer Grundstücksauktion erhöhen oder senken.
 
 Die zugrunde liegenden Operationen in `game.ts` akzeptieren einen
 beliebigen `ParticipantId`. Agima-Wrapper bleiben für bestehende
@@ -217,8 +220,19 @@ ergänzt. Die aktuelle grafische Komponente stellt weiterhin nur
 Agima und Orion dar. Eine Mehrspieleroberfläche muss zusätzliche
 Bieter sichtbar machen, ohne das Zustandsmodell erneut zu ändern.
 
+Während der grafischen Auktion liegen auch `phase`, `liveBids` und
+der aktuelle Führende im `GameState`. `announcement → auction →
+finished` wird durch Kommandos mit erwarteter Ausgangsphase
+fortgeschaltet. Veraltete oder doppelte Übergänge verändern den
+Zustand nicht. Auch die sichtbaren Gebotsbewegungen von Agima und
+Orion verwenden dieselbe Kommandooperation.
+
 `GameState.activeResourceMarket` hält Ressource, Runde, Initiator,
-Rollen und aktive Preisangebote nach `ParticipantId`. Marktstart,
+Phase, Rollen und aktive Preisangebote nach `ParticipantId`.
+`announcement → declaration → auction → finished` wird durch den
+Initiator und mit Prüfung der erwarteten Ausgangsphase
+fortgeschaltet. Eine neutrale Initiatorrolle beendet den Markt nach
+der Erklärung direkt. Marktstart,
 Rollenerklärung, Preisangebot, Transaktion und Abschluss laufen über
 dieselbe Kommandoschicht. Lager- und interstellarer Handel verwenden
 denselben Teilnehmerparameter wie direkte Koloniegeschäfte. Vor
@@ -230,11 +244,12 @@ abschließen.
 Die grafische Marktkomponente bleibt ein Singleplayer-Adapter: Sie
 berechnet Countdown, sichtbare Bewegungen und die Auswahl des aktiven
 KI-Gegenübers lokal, spiegelt aber jede wirtschaftlich relevante
-Rolle und Preisposition über Kommandos in den kanonischen Zustand.
-Für echten Mehrspielerbetrieb müssen die zeitlichen Markt- und
-Grundstücksphasen als serverautoritativ fortschaltbare
-Zustandsmaschine modelliert werden. Danach kann der verbleibende
-Kernzufall reproduzierbar über den Match-Seed laufen.
+Rolle, Preisposition und abgelaufene Phase über Kommandos in den
+kanonischen Zustand. Für echten Mehrspielerbetrieb übernimmt ein
+Serveradapter die Zeitplanung und verteilt die resultierenden
+Zustände; das bereits vorhandene Phasenmodell bleibt dabei
+unverändert. Danach kann der verbleibende Kernzufall reproduzierbar
+über den Match-Seed laufen.
 
 Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.
 Nicht menschlich belegte Sitze können mit den vorhandenen KI-Profilen

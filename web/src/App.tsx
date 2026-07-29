@@ -40,11 +40,12 @@ import {
   type LocalEventId,
   type HarvesterAssignments,
   type GameState,
-  type LandTieBidState,
+  type LandAuctionPhase,
   type MarketCounterparty,
   type MarketDirection,
   type MarketResource,
   type ProductionType,
+  type ResourceMarketPhase,
   type RoundReport,
   type SupplyPlan,
   createPlayableInitialGameState,
@@ -363,6 +364,43 @@ function App() {
     [dispatchParticipantCommand],
   )
 
+  const advanceMarketPhase = useCallback(
+    (
+      resource: MarketResource,
+      expectedPhase: ResourceMarketPhase,
+    ) => {
+      dispatchPlayerCommand({
+        type: 'advance-resource-market-phase',
+        payload: { resource, expectedPhase },
+      })
+    },
+    [dispatchPlayerCommand],
+  )
+
+  const advanceLandAuction = useCallback(
+    (tileId: string, expectedPhase: LandAuctionPhase) => {
+      dispatchPlayerCommand({
+        type: 'advance-land-auction-phase',
+        payload: { tileId, expectedPhase },
+      })
+    },
+    [dispatchPlayerCommand],
+  )
+
+  const moveLandAuction = useCallback(
+    (
+      participantId: 'agima' | 'orion',
+      tileId: string,
+      direction: 'raise' | 'lower',
+    ) => {
+      dispatchParticipantCommand(participantId, {
+        type: 'move-land-auction-bid',
+        payload: { tileId, direction },
+      })
+    },
+    [dispatchParticipantCommand],
+  )
+
   const applyCompletedRound = useCallback(
     (completedRound: ReturnType<typeof runRound>) => {
       setGameState(completedRound.nextState)
@@ -418,12 +456,17 @@ function App() {
   )
 
   const completeLandTieAuction = useCallback(
-    (bids: LandTieBidState) => {
-      if (!pendingRound) {
+    () => {
+      const tie = gameState.landAuctionTie
+
+      if (!pendingRound || !tie || tie.phase !== 'finished') {
         return
       }
 
-      const resolvedState = resolveLandTieBreak(gameState, bids)
+      const resolvedState = resolveLandTieBreak(
+        gameState,
+        tie.liveBids,
+      )
       const completedRound = runRound(
         resolvedState,
         pendingRound.harvesters,
@@ -580,6 +623,8 @@ function App() {
             credits={localColony.credits}
             orion={rivals.orion}
             roundPlayed={gameState.round}
+            onAdvancePhase={advanceLandAuction}
+            onMoveBid={moveLandAuction}
             onComplete={completeLandTieAuction}
           />
         ) : activeMarket !== null && activeResourceMarket ? (
@@ -614,9 +659,11 @@ function App() {
             nextResource={null}
             initiatorName="Agima"
             completionLabel={t('market.backToPlanning')}
+            phase={activeMarket.phase}
             onTrade={tradeMarketResource}
             onSetRole={setMarketRole}
             onSetOffer={setMarketOffer}
+            onAdvancePhase={advanceMarketPhase}
             onComplete={completeMarketResource}
           />
         ) : showLeaderboard && lastReport ? (

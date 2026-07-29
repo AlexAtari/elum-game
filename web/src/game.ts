@@ -101,10 +101,17 @@ export type MarketState = Record<
   ResourceMarketState
 >
 
+export type ResourceMarketPhase =
+  | 'announcement'
+  | 'declaration'
+  | 'auction'
+  | 'finished'
+
 export type ActiveResourceMarket = {
   resource: MarketResource
   roundPlayed: number
   initiatorId: ParticipantId
+  phase: ResourceMarketPhase
   roles: Partial<Record<ParticipantId, MarketRole>>
   offers: Partial<Record<ParticipantId, MarketOffer>>
 }
@@ -217,9 +224,16 @@ export type LandAuctionTie = {
   tileId: string
   tiedBid: number
   minimumBid: number
+  phase: LandAuctionPhase
   openingBids: Partial<Record<ParticipantId, number>>
   initialLeaderId: ParticipantId | null
+  liveBids: LandTieBidState
 }
+
+export type LandAuctionPhase =
+  | 'announcement'
+  | 'auction'
+  | 'finished'
 
 export type LandTieBidState = {
   bids: Partial<Record<ParticipantId, number>>
@@ -2261,6 +2275,7 @@ export function executeActiveMarketTrade(
   if (
     !activeMarket ||
     activeMarket.resource !== resource ||
+    activeMarket.phase !== 'auction' ||
     role === undefined ||
     role === 'neutral' ||
     !ownOffer?.active ||
@@ -2381,6 +2396,7 @@ export function initiateColonyResourceMarket(
       resource,
       roundPlayed: currentState.round,
       initiatorId: participantId,
+      phase: 'announcement',
       roles: {},
       offers: {},
     },
@@ -2410,7 +2426,11 @@ export function setColonyMarketRole(
 ) {
   const activeMarket = currentState.activeResourceMarket
 
-  if (!activeMarket || activeMarket.resource !== resource) {
+  if (
+    !activeMarket ||
+    activeMarket.resource !== resource ||
+    activeMarket.phase !== 'declaration'
+  ) {
     return currentState
   }
 
@@ -2449,6 +2469,7 @@ export function setColonyMarketOffer(
   if (
     !activeMarket ||
     activeMarket.resource !== resource ||
+    activeMarket.phase !== 'auction' ||
     role === undefined ||
     role === 'neutral' ||
     !Number.isInteger(offer.price) ||
@@ -2466,6 +2487,43 @@ export function setColonyMarketOffer(
         ...activeMarket.offers,
         [participantId]: { ...offer },
       },
+    },
+  }
+}
+
+export function advanceColonyResourceMarketPhase(
+  currentState: GameState,
+  participantId: ParticipantId,
+  resource: MarketResource,
+  expectedPhase: ResourceMarketPhase,
+): GameState {
+  const activeMarket = currentState.activeResourceMarket
+
+  if (
+    !activeMarket ||
+    activeMarket.resource !== resource ||
+    activeMarket.initiatorId !== participantId ||
+    activeMarket.phase !== expectedPhase ||
+    expectedPhase === 'finished'
+  ) {
+    return currentState
+  }
+
+  const nextPhase: ResourceMarketPhase =
+    expectedPhase === 'announcement'
+      ? 'declaration'
+      : expectedPhase === 'declaration'
+        ? activeMarket.roles[participantId] === 'buyer' ||
+          activeMarket.roles[participantId] === 'seller'
+          ? 'auction'
+          : 'finished'
+        : 'finished'
+
+  return {
+    ...currentState,
+    activeResourceMarket: {
+      ...activeMarket,
+      phase: nextPhase,
     },
   }
 }
@@ -2538,7 +2596,8 @@ export function completeColonyResourceMarket(
   if (
     !activeMarket ||
     activeMarket.resource !== resource ||
-    activeMarket.initiatorId !== participantId
+    activeMarket.initiatorId !== participantId ||
+    activeMarket.phase !== 'finished'
   ) {
     return currentState
   }
@@ -2741,11 +2800,19 @@ export function cancelColonyLandBid(
           tileId: bid.tileId,
           tiedBid: bid.tieMinimum - 1,
           minimumBid: bid.tieMinimum,
+          phase: 'announcement',
           openingBids: remainingBids,
           initialLeaderId:
             remainingLeaders.length === 1
               ? remainingLeaders[0][0]
               : null,
+          liveBids: {
+            bids: remainingBids,
+            leaderId:
+              remainingLeaders.length === 1
+                ? remainingLeaders[0][0]
+                : null,
+          },
         }
       : null,
   }
@@ -2801,11 +2868,94 @@ export function beginLandTieBreak(
       tileId: bid.tileId,
       tiedBid: startingBid,
       minimumBid: startingBid + 1,
+      phase: 'announcement',
       openingBids: { ...bid.bids },
       initialLeaderId:
         startingLeaders.length === 1
           ? startingLeaders[0][0]
           : null,
+      liveBids: {
+        bids: { ...bid.bids },
+        leaderId:
+          startingLeaders.length === 1
+            ? startingLeaders[0][0]
+            : null,
+      },
+    },
+  }
+}
+
+export function advanceLandAuctionPhase(
+  currentState: GameState,
+  participantId: ParticipantId,
+  tileId: string,
+  expectedPhase: LandAuctionPhase,
+): GameState {
+  const tie = currentState.landAuctionTie
+
+  if (
+    !tie ||
+    tie.tileId !== tileId ||
+    tie.phase !== expectedPhase ||
+    expectedPhase === 'finished' ||
+    tie.openingBids[participantId] === undefined
+  ) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    landAuctionTie: {
+      ...tie,
+      phase:
+        expectedPhase === 'announcement'
+          ? 'auction'
+          : 'finished',
+    },
+  }
+}
+
+export function moveLandAuctionBid(
+  currentState: GameState,
+  participantId: ParticipantId,
+  tileId: string,
+  direction: 'raise' | 'lower',
+): GameState {
+  const tie = currentState.landAuctionTie
+  const colony = currentState.colonies[participantId]
+
+  if (
+    !tie ||
+    tie.tileId !== tileId ||
+    tie.phase !== 'auction' ||
+    tie.openingBids[participantId] === undefined ||
+    !colony
+  ) {
+    return currentState
+  }
+
+  const liveBids =
+    direction === 'raise'
+      ? raiseLandTieBid(
+          tie.liveBids,
+          participantId,
+          colony.credits,
+        )
+      : lowerLandTieBid(
+          tie.liveBids,
+          participantId,
+          tie.minimumBid,
+        )
+
+  if (liveBids === tie.liveBids) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    landAuctionTie: {
+      ...tie,
+      liveBids,
     },
   }
 }
@@ -3426,6 +3576,7 @@ export function runRound(
             Math.max(
               ...landBidEntries.map(([, amount]) => amount),
             ) + 1,
+          phase: 'announcement',
           openingBids: { ...landBid!.bids },
           initialLeaderId: (() => {
             const highestBid = Math.max(
@@ -3438,6 +3589,20 @@ export function runRound(
               ? leaders[0][0]
               : null
           })(),
+          liveBids: {
+            bids: { ...landBid!.bids },
+            leaderId: (() => {
+              const highestBid = Math.max(
+                ...landBidEntries.map(([, amount]) => amount),
+              )
+              const leaders = landBidEntries.filter(
+                ([, amount]) => amount === highestBid,
+              )
+              return leaders.length === 1
+                ? leaders[0][0]
+                : null
+            })(),
+          },
         }
       : null,
     activeResourceMarket: null,

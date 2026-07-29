@@ -1,10 +1,13 @@
 import {
+  advanceColonyResourceMarketPhase,
+  advanceLandAuctionPhase,
   assignColonyHarvester,
   changeColonyHarvesterProduction,
   cancelColonyLandBid,
   completeColonyResourceMarket,
   executeActiveMarketTrade,
   initiateColonyResourceMarket,
+  moveLandAuctionBid,
   orderColonyHarvesterBuild,
   placeColonyLandBid,
   removeColonyHarvester,
@@ -15,7 +18,9 @@ import {
   type MarketDirection,
   type MarketResource,
   type MarketRole,
+  type LandAuctionPhase,
   type ProductionType,
+  type ResourceMarketPhase,
 } from './game'
 import {
   participantIds,
@@ -101,6 +106,27 @@ export type GameCommand =
         price: number
       }
     })
+  | (GameCommandBase & {
+      type: 'advance-resource-market-phase'
+      payload: {
+        resource: MarketResource
+        expectedPhase: ResourceMarketPhase
+      }
+    })
+  | (GameCommandBase & {
+      type: 'advance-land-auction-phase'
+      payload: {
+        tileId: string
+        expectedPhase: LandAuctionPhase
+      }
+    })
+  | (GameCommandBase & {
+      type: 'move-land-auction-bid'
+      payload: {
+        tileId: string
+        direction: 'raise' | 'lower'
+      }
+    })
 
 export type GameCommandAction =
   GameCommand extends infer Command
@@ -152,6 +178,17 @@ const marketRoles: MarketRole[] = [
   'buyer',
   'seller',
 ]
+const resourceMarketPhases: ResourceMarketPhase[] = [
+  'announcement',
+  'declaration',
+  'auction',
+  'finished',
+]
+const landAuctionPhases: LandAuctionPhase[] = [
+  'announcement',
+  'auction',
+  'finished',
+]
 const maximumRememberedCommandIds = 512
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -200,6 +237,26 @@ function isMarketRole(value: unknown): value is MarketRole {
   return (
     typeof value === 'string' &&
     marketRoles.includes(value as MarketRole)
+  )
+}
+
+function isResourceMarketPhase(
+  value: unknown,
+): value is ResourceMarketPhase {
+  return (
+    typeof value === 'string' &&
+    resourceMarketPhases.includes(
+      value as ResourceMarketPhase,
+    )
+  )
+}
+
+function isLandAuctionPhase(
+  value: unknown,
+): value is LandAuctionPhase {
+  return (
+    typeof value === 'string' &&
+    landAuctionPhases.includes(value as LandAuctionPhase)
   )
 }
 
@@ -401,6 +458,63 @@ export function parseGameCommand(
     }
   }
 
+  if (input.type === 'advance-resource-market-phase') {
+    if (
+      !isMarketResource(payload.resource) ||
+      !isResourceMarketPhase(payload.expectedPhase)
+    ) {
+      return null
+    }
+
+    return {
+      ...base,
+      type: 'advance-resource-market-phase',
+      payload: {
+        resource: payload.resource,
+        expectedPhase: payload.expectedPhase,
+      },
+    }
+  }
+
+  if (input.type === 'advance-land-auction-phase') {
+    if (
+      typeof payload.tileId !== 'string' ||
+      payload.tileId.length === 0 ||
+      !isLandAuctionPhase(payload.expectedPhase)
+    ) {
+      return null
+    }
+
+    return {
+      ...base,
+      type: 'advance-land-auction-phase',
+      payload: {
+        tileId: payload.tileId,
+        expectedPhase: payload.expectedPhase,
+      },
+    }
+  }
+
+  if (input.type === 'move-land-auction-bid') {
+    if (
+      typeof payload.tileId !== 'string' ||
+      payload.tileId.length === 0 ||
+      (payload.direction !== 'raise' &&
+        payload.direction !== 'lower')
+    ) {
+      return null
+    }
+
+    return {
+      ...base,
+      type: 'move-land-auction-bid',
+      payload: {
+        tileId: payload.tileId,
+        direction: payload.direction,
+      },
+    }
+  }
+
   return null
 }
 
@@ -483,6 +597,27 @@ function applyGameCommand(
           active: command.payload.active,
           price: command.payload.price,
         },
+      )
+    case 'advance-resource-market-phase':
+      return advanceColonyResourceMarketPhase(
+        currentState,
+        command.participantId,
+        command.payload.resource,
+        command.payload.expectedPhase,
+      )
+    case 'advance-land-auction-phase':
+      return advanceLandAuctionPhase(
+        currentState,
+        command.participantId,
+        command.payload.tileId,
+        command.payload.expectedPhase,
+      )
+    case 'move-land-auction-bid':
+      return moveLandAuctionBid(
+        currentState,
+        command.participantId,
+        command.payload.tileId,
+        command.payload.direction,
       )
   }
 }
