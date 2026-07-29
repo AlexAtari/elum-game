@@ -340,11 +340,17 @@ werden.
   menschliche Koloniepläne in genau einer autoritativen
   Rundenabrechnung zusammen; offene Grundstücksauktionen werden
   vorher serverseitig beendet
+- lokaler Node-WebSocket-Adapter verbindet echte JSON-Sockets mit
+  Lobby und Matchkern, begrenzt Payloads und bietet einen
+  Health-Endpunkt; Zwei-Client-Start, Disconnect und Reconnect sind
+  als Integrationstest abgedeckt
+- Startskript bindet sicher standardmäßig nur an Loopback und kann
+  für Smartphone-Tests explizit im lokalen WLAN freigegeben werden
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Hosting und echten
-  Verbindungstransport festlegen; danach Lobby in React darstellen
-  und Clients aus Server-Snapshots speisen
+- nächster Strukturschritt: Lobby in React darstellen und Clients
+  aus Server-Snapshots speisen; danach Backend-Hosting, TLS und
+  Origin-Policy für öffentlichen Betrieb festlegen
 
 ### Nächster Regelstand
 

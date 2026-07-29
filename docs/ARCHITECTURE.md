@@ -212,12 +212,21 @@ bleiben wie im Regelmodell auf Agima beschränkt. Die gemeinsame
 Rundenmetadaten-, KI-, Grundstücks- und Meteorabrechnung läuft genau
 einmal.
 
-Der Kern enthält bewusst noch keinen WebSocket- oder HTTP-Server.
-Die nachfolgende Lobby übernimmt Sitzvergabe und Wiederverbindung;
-Authentifizierung der Netzverbindung und Serialisierung über eine
-konkrete Leitung bleiben Aufgaben des dünnen Transportadapters. Die
-bestehende lokale React-Partie verwendet weiterhin direkt die
-Kommandoschicht.
+`server/websocketGameServer.ts` bildet die konkrete, weiterhin dünne
+lokale Leitung. Ein Node-HTTP-Server stellt `/health` bereit und
+übergibt ausschließlich Upgrades auf
+`/multiplayer?lobby=<Lobby-ID>` an `ws`. Jede Verbindung erhält eine
+zufällige interne Verbindungs-ID; Textnachrichten werden als JSON an
+die Lobby weitergereicht, Lobbyantworten an genau den zugehörigen
+Socket serialisiert. Binärnachrichten, falsche Pfade und zu große
+Payloads werden abgewiesen. Disconnects werden der Lobby gemeldet,
+damit deren Reconnect-Modell unverändert greift.
+
+Der Adapter enthält keine Spielregeln und keinen eigenen Lobby- oder
+Matchzustand. Standardmäßig bindet das Startskript nur an
+`127.0.0.1`; für Smartphone-Tests im lokalen WLAN kann es explizit an
+`0.0.0.0` gebunden werden. Die bestehende lokale React-Partie
+verwendet weiterhin direkt die Kommandoschicht.
 
 ### Multiplayer-Protokoll und Lobby
 
@@ -247,19 +256,20 @@ Verbindungs-ID binden und liefert sofort den aktuellen Lobby- und
 Match-Snapshot. Transportfehler werden isoliert, damit ein
 geschlossener Socket keine Zustandsoperation unterbricht.
 
-Für die spätere konkrete Leitung muss ein WebSocket- oder
-vergleichbarer Adapter Verbindungs-IDs erzeugen, Nachrichten an
-`handleMessage` übergeben und die typisierten Servernachrichten
-versenden. Token-Erzeugung und Authentifizierung verbleiben auf der
-Serverseite. GitHub Pages kann weiterhin das Frontend hosten, aber
-nicht diesen dauerhaft laufenden Dienst.
+Der lokale WebSocket-Adapter ist durch einen echten
+Zwei-Client-Integrationstest einschließlich Matchstart, Disconnect
+und Reconnect abgesichert. Token-Erzeugung und Sitzbindung verbleiben
+auf der Serverseite. GitHub Pages kann weiterhin nur das Frontend
+hosten, aber nicht diesen dauerhaft laufenden Dienst. Für öffentlichen
+Betrieb fehlen deshalb noch Backend-Hosting, TLS mit `wss://`,
+Origin-Policy sowie betriebliche Überwachung.
 
 Die lokale React-Partie koordiniert ihre Runde weiterhin in
 `App.tsx`; ein späterer Mehrspieler-Client verwendet stattdessen
 `submit-round-plan` und übernimmt ausschließlich Server-Snapshots.
-Als nächster Infrastrukturbaustein kann deshalb ein konkreter
-Verbindungstransport an den nun vollständigen autoritativen
-Rundenablauf angeschlossen werden.
+Als nächster Baustein kann die React-Lobby den vorhandenen Transport
+verwenden und ihre Partie ausschließlich aus Server-Snapshots
+speisen.
 
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und

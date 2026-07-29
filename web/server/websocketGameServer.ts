@@ -1,0 +1,314 @@
+import { randomUUID } from 'node:crypto'
+import {
+  createServer,
+  type IncomingMessage,
+  type Server as HttpServer,
+} from 'node:http'
+import {
+  WebSocket,
+  WebSocketServer,
+  type RawData,
+} from 'ws'
+import {
+  createMultiplayerLobby,
+  type MultiplayerLobby,
+} from '../src/multiplayerLobby'
+
+export type WebSocketGameServerOptions = {
+  host?: string
+  port?: number
+  lobbyId?: string
+  seed?: number
+  maxPayloadBytes?: number
+  allowedOrigins?: string[]
+  createConnectionId?: () => string
+  onError?: (error: unknown) => void
+}
+
+export type WebSocketGameServerAddress = {
+  host: string
+  port: number
+  lobbyId: string
+  websocketPath: string
+}
+
+const WEBSOCKET_PATH = '/multiplayer'
+const HEALTH_PATH = '/health'
+const DEFAULT_MAX_PAYLOAD_BYTES = 64 * 1024
+
+function rejectUpgrade(
+  request: IncomingMessage,
+  statusCode: number,
+  statusText: string,
+) {
+  request.socket.write(
+    `HTTP/1.1 ${statusCode} ${statusText}\r\n` +
+      'Connection: close\r\n' +
+      'Content-Length: 0\r\n' +
+      '\r\n',
+  )
+  request.socket.destroy()
+}
+
+function parseRequestUrl(request: IncomingMessage) {
+  return new URL(request.url ?? '/', 'http://localhost')
+}
+
+function parseJsonMessage(data: RawData) {
+  try {
+    return JSON.parse(data.toString()) as unknown
+  } catch {
+    return null
+  }
+}
+
+export class WebSocketGameServer {
+  private readonly host: string
+  private readonly port: number
+  private readonly lobbyId: string
+  private readonly allowedOrigins: Set<string> | null
+  private readonly createConnectionId: () => string
+  private readonly onError: (error: unknown) => void
+  private readonly sockets = new Map<string, WebSocket>()
+  private readonly httpServer: HttpServer
+  private readonly webSocketServer: WebSocketServer
+  private readonly lobby: MultiplayerLobby
+  private listening = false
+  private closing = false
+
+  constructor(options: WebSocketGameServerOptions = {}) {
+    this.host = options.host ?? '127.0.0.1'
+    this.port = options.port ?? 8787
+    this.lobbyId = options.lobbyId ?? 'mars-alpha'
+    this.allowedOrigins = options.allowedOrigins
+      ? new Set(options.allowedOrigins)
+      : null
+    this.createConnectionId =
+      options.createConnectionId ?? randomUUID
+    this.onError = options.onError ?? (() => undefined)
+    this.httpServer = createServer((request, response) => {
+      const url = parseRequestUrl(request)
+
+      if (request.method === 'GET' && url.pathname === HEALTH_PATH) {
+        response.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-store',
+        })
+        response.end(
+          JSON.stringify({
+            ok: true,
+            lobbyId: this.lobbyId,
+          }),
+        )
+        return
+      }
+
+      response.writeHead(404, {
+        'Content-Type': 'application/json; charset=utf-8',
+      })
+      response.end(JSON.stringify({ error: 'not-found' }))
+    })
+    this.webSocketServer = new WebSocketServer({
+      noServer: true,
+      maxPayload:
+        options.maxPayloadBytes ?? DEFAULT_MAX_PAYLOAD_BYTES,
+    })
+    this.lobby = createMultiplayerLobby({
+      lobbyId: this.lobbyId,
+      seed: options.seed,
+      emit: (connectionId, message) => {
+        const socket = this.sockets.get(connectionId)
+
+        if (socket?.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(message), (error) => {
+            if (error) {
+              this.onError(error)
+            }
+          })
+        }
+      },
+      onEmitError: this.onError,
+    })
+
+    this.httpServer.on('upgrade', (request, socket, head) => {
+      const url = parseRequestUrl(request)
+      const origin = request.headers.origin
+
+      if (
+        url.pathname !== WEBSOCKET_PATH ||
+        url.searchParams.get('lobby') !== this.lobbyId
+      ) {
+        rejectUpgrade(request, 404, 'Not Found')
+        return
+      }
+
+      if (
+        this.allowedOrigins !== null &&
+        (origin === undefined || !this.allowedOrigins.has(origin))
+      ) {
+        rejectUpgrade(request, 403, 'Forbidden')
+        return
+      }
+
+      this.webSocketServer.handleUpgrade(
+        request,
+        socket,
+        head,
+        (webSocket) => {
+          this.webSocketServer.emit(
+            'connection',
+            webSocket,
+            request,
+          )
+        },
+      )
+    })
+
+    this.webSocketServer.on('connection', (socket) => {
+      const connectionId = this.createUniqueConnectionId()
+      this.sockets.set(connectionId, socket)
+
+      socket.on('message', (data, isBinary) => {
+        if (isBinary) {
+          socket.close(1003, 'JSON text messages required')
+          return
+        }
+
+        this.lobby.handleMessage(
+          connectionId,
+          parseJsonMessage(data),
+        )
+      })
+      socket.on('error', this.onError)
+      socket.once('close', () => {
+        this.sockets.delete(connectionId)
+        this.lobby.disconnect(connectionId)
+      })
+    })
+    this.httpServer.on('clientError', (error, socket) => {
+      this.onError(error)
+
+      if (socket.writable) {
+        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
+      }
+    })
+    this.httpServer.on('error', this.onError)
+    this.webSocketServer.on('error', this.onError)
+  }
+
+  async listen(): Promise<WebSocketGameServerAddress> {
+    if (this.listening) {
+      return this.getAddress()
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      const onError = (error: Error) => {
+        this.httpServer.off('listening', onListening)
+        reject(error)
+      }
+      const onListening = () => {
+        this.httpServer.off('error', onError)
+        resolve()
+      }
+
+      this.httpServer.once('error', onError)
+      this.httpServer.once('listening', onListening)
+      this.httpServer.listen(this.port, this.host)
+    })
+    this.listening = true
+    return this.getAddress()
+  }
+
+  getAddress(): WebSocketGameServerAddress {
+    const address = this.httpServer.address()
+
+    if (!address || typeof address === 'string') {
+      throw new Error('WebSocket game server is not listening.')
+    }
+
+    return {
+      host: address.address,
+      port: address.port,
+      lobbyId: this.lobbyId,
+      websocketPath: WEBSOCKET_PATH,
+    }
+  }
+
+  async close() {
+    if (this.closing) {
+      return
+    }
+
+    this.closing = true
+    this.lobby.dispose()
+
+    for (const socket of this.sockets.values()) {
+      socket.close(1001, 'Server shutting down')
+    }
+    this.sockets.clear()
+
+    await Promise.all([
+      new Promise<void>((resolve) => {
+        this.webSocketServer.close(() => resolve())
+      }),
+      this.closeHttpServer(),
+    ])
+    this.listening = false
+  }
+
+  private createUniqueConnectionId() {
+    for (let attempt = 0; attempt < 16; attempt += 1) {
+      const connectionId = this.createConnectionId()
+
+      if (
+        connectionId.length > 0 &&
+        connectionId.length <= 128 &&
+        !this.sockets.has(connectionId)
+      ) {
+        return connectionId
+      }
+    }
+
+    throw new Error('Unable to create a unique connection id.')
+  }
+
+  private async closeHttpServer() {
+    if (!this.listening) {
+      return
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      this.httpServer.close((error) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
+    })
+  }
+}
+
+export function createWebSocketGameServer(
+  options: WebSocketGameServerOptions = {},
+) {
+  return new WebSocketGameServer(options)
+}
+
+export function formatWebSocketUrl(
+  address: Pick<
+    WebSocketGameServerAddress,
+    'host' | 'port' | 'lobbyId' | 'websocketPath'
+  >,
+) {
+  const host =
+    address.host.includes(':') &&
+    !address.host.startsWith('[')
+      ? `[${address.host}]`
+      : address.host
+
+  return (
+    `ws://${host}:${address.port}${address.websocketPath}` +
+    `?lobby=${encodeURIComponent(address.lobbyId)}`
+  )
+}

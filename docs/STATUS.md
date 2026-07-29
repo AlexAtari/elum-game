@@ -116,6 +116,15 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - freie KI-Sitze werden in derselben Abrechnung serverseitig
   fortgeführt; eine offene grafische Grundstücksauktion wird zuvor
   vollständig über die autoritativen Phasen aufgelöst
+- startbarer lokaler Node-WebSocket-Server verbindet JSON-Clients
+  mit der transportneutralen Lobby und dem autoritativen Matchkern
+- feste Lobby-URL, maximale Payloadgröße, Ablehnung von Binärdaten,
+  Health-Endpunkt, zufällige Verbindungs-IDs und sauberes
+  Disconnect-/Shutdown-Verhalten sind implementiert
+- echter Transporttest deckt zwei Clients, gemeinsamen Matchstart
+  sowie Sitzübernahme per Reconnect-Token ab
+- Loopback ist die sichere Standardbindung; für Smartphone-Tests
+  kann der Server bewusst im lokalen WLAN geöffnet werden
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
