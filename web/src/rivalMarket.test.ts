@@ -11,12 +11,12 @@ import {
 describe('Marktteilnahme aller Rivalen', () => {
   it('lässt Nova bei Nahrungsmangel als Käufer teilnehmen', () => {
     const state = createInitialGameState()
-    state.rivals.orion.resources.food = 20
-    state.rivals.nova.resources.food = 0
-    state.rivals.vega.resources.food = 20
+    state.colonies.orion.resources.food = 20
+    state.colonies.nova.resources.food = 0
+    state.colonies.vega.resources.food = 20
 
     const selection = createRivalMarketSelection(
-      state.rivals,
+      state.colonies,
       3,
       'food',
       'seller',
@@ -33,11 +33,11 @@ describe('Marktteilnahme aller Rivalen', () => {
 
   it('lässt Vega industriellen Erzbedarf selbst bewerten', () => {
     const state = createInitialGameState()
-    state.rivals.vega.resources.ore = 0
-    state.rivals.vega.credits = 100
+    state.colonies.vega.resources.ore = 0
+    state.colonies.vega.credits = 100
 
     const selection = createRivalMarketSelection(
-      state.rivals,
+      state.colonies,
       3,
       'ore',
       'seller',
@@ -53,12 +53,12 @@ describe('Marktteilnahme aller Rivalen', () => {
 
   it('wählt beim Verkauf den Rivalen mit dem besten Kaufpreis', () => {
     const state = createInitialGameState()
-    state.rivals.orion.resources.energy = 0
-    state.rivals.nova.resources.energy = 3
-    state.rivals.vega.resources.energy = 20
+    state.colonies.orion.resources.energy = 0
+    state.colonies.nova.resources.energy = 3
+    state.colonies.vega.resources.energy = 20
 
     const selection = createRivalMarketSelection(
-      state.rivals,
+      state.colonies,
       4,
       'energy',
       'seller',
@@ -88,10 +88,10 @@ describe('Marktteilnahme aller Rivalen', () => {
 
   it('verbucht einen Verkauf an Nova in beiden Kolonien', () => {
     const state = createInitialGameState()
-    state.resources.food = 5
-    state.credits = 50
-    state.rivals.nova.resources.food = 0
-    state.rivals.nova.credits = 100
+    state.colonies.agima.resources.food = 5
+    state.colonies.agima.credits = 50
+    state.colonies.nova.resources.food = 0
+    state.colonies.nova.credits = 100
 
     const next = executeMarketTrade(
       state,
@@ -101,11 +101,11 @@ describe('Marktteilnahme aller Rivalen', () => {
       'nova',
     )
 
-    expect(next.resources.food).toBe(4)
-    expect(next.credits).toBe(58)
-    expect(next.rivals.nova.resources.food).toBe(1)
-    expect(next.rivals.nova.credits).toBe(92)
-    expect(next.rivals.orion).toEqual(state.rivals.orion)
+    expect(next.colonies.agima.resources.food).toBe(4)
+    expect(next.colonies.agima.credits).toBe(58)
+    expect(next.colonies.nova.resources.food).toBe(1)
+    expect(next.colonies.nova.credits).toBe(92)
+    expect(next.colonies.orion).toEqual(state.colonies.orion)
   })
 
   it('verbucht auch den bisherigen Standardhandel mit Orion beidseitig', () => {
@@ -118,24 +118,24 @@ describe('Marktteilnahme aller Rivalen', () => {
       'orion',
     )
 
-    expect(next.resources.food).toBe(
-      state.resources.food + 1,
+    expect(next.colonies.agima.resources.food).toBe(
+      state.colonies.agima.resources.food + 1,
     )
-    expect(next.credits).toBe(state.credits - 8)
-    expect(next.rivals.orion.resources.food).toBe(
-      state.rivals.orion.resources.food - 1,
+    expect(next.colonies.agima.credits).toBe(state.colonies.agima.credits - 8)
+    expect(next.colonies.orion.resources.food).toBe(
+      state.colonies.orion.resources.food - 1,
     )
-    expect(next.rivals.orion.credits).toBe(
-      state.rivals.orion.credits + 8,
+    expect(next.colonies.orion.credits).toBe(
+      state.colonies.orion.credits + 8,
     )
   })
 
   it('verbucht einen Kauf von Vega in beiden Kolonien', () => {
     const state = createInitialGameState()
-    state.resources.ore = 0
-    state.credits = 100
-    state.rivals.vega.resources.ore = 5
-    state.rivals.vega.credits = 20
+    state.colonies.agima.resources.ore = 0
+    state.colonies.agima.credits = 100
+    state.colonies.vega.resources.ore = 5
+    state.colonies.vega.credits = 20
 
     const next = executeMarketTrade(
       state,
@@ -145,11 +145,11 @@ describe('Marktteilnahme aller Rivalen', () => {
       'vega',
     )
 
-    expect(next.resources.ore).toBe(1)
-    expect(next.credits).toBe(85)
-    expect(next.rivals.vega.resources.ore).toBe(4)
-    expect(next.rivals.vega.credits).toBe(35)
-    expect(next.rivals.orion).toEqual(state.rivals.orion)
+    expect(next.colonies.agima.resources.ore).toBe(1)
+    expect(next.colonies.agima.credits).toBe(85)
+    expect(next.colonies.vega.resources.ore).toBe(4)
+    expect(next.colonies.vega.credits).toBe(35)
+    expect(next.colonies.orion).toEqual(state.colonies.orion)
   })
 
 })

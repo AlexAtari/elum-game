@@ -193,18 +193,18 @@ describe('Orions Harvester-Umrüstung', () => {
 
     expect(foodTile).toBeDefined()
 
-    state.rivals.orion.credits = 100
-    state.rivals.orion.resources.food = 0
-    state.rivals.orion.resources.energy = 20
-    state.rivals.orion.resources.ore = 0
-    state.rivals.orion.ownedTileIds = [foodTile!.id]
-    state.rivals.orion.lastLandPurchaseRound = 1
-    state.rivals.orion.harvesterAssignments = {
+    state.colonies.orion.credits = 100
+    state.colonies.orion.resources.food = 0
+    state.colonies.orion.resources.energy = 20
+    state.colonies.orion.resources.ore = 0
+    state.colonies.orion.ownedTileIds = [foodTile!.id]
+    state.colonies.orion.lastLandPurchaseRound = 1
+    state.colonies.orion.harvesterAssignments = {
       [foodTile!.id]: 'ore',
     }
 
     const next = advanceRivalColonies(
-      state.rivals,
+      state.colonies,
       4,
       null,
     )

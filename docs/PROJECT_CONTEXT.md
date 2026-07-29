@@ -261,15 +261,12 @@ werden.
   Browser-Spielzustand angebunden
 - versionierte, JSON-serialisierbare Match-Konfiguration mit vier
   gleichartigen Sitzen, konfigurierbaren menschlichen oder
-  KI-Controllern und seedbasierten Startkorridoren; der dynamische
-  Koloniezustand bleibt bis zum nächsten Migrationsschritt noch
-  asymmetrisch
-- gemeinsamer Kolonie-Grundtyp und symmetrische Leseansicht für alle
-  vier Teilnehmer; Status, Karte und Rangliste verwenden diese
-  Struktur bereits
-- vollständiger Spieler-Harvesterstand einschließlich freier
-  Harvester und Zuweisungen im serialisierbaren `GameState`; die
-  übrigen dynamischen Schreibpfade werden noch schrittweise migriert
+  KI-Controllern und seedbasierten Startkorridoren
+- kanonische, JSON-serialisierbare `GameState.colonies`-Map als
+  einzige dynamische Zustandsquelle aller vier Teilnehmer; alte
+  Agima-Wurzelfelder und der separate `rivals`-Record sind entfernt
+- vollständiger Harvesterstand einschließlich freier Harvester und
+  Zuweisungen teilnehmerbezogen im serialisierbaren `GameState`
 - teilnehmerbezogene Schreibgrenze für die dynamischen Grunddaten;
   Ereignisse, Spieler-Harvesterbau, direkter Koloniehandel und
   autonome Rivalen-Landkäufe verwenden sie bereits
@@ -280,8 +277,9 @@ werden.
   Koloniegrenze
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: physisch getrennte Agima-Felder und
-  `rivals` durch eine kanonische `colonies`-Map ersetzen
+- nächster Strukturschritt: Spielaktionen als validierte,
+  UI-unabhängige Befehle abbilden und den verbleibenden Kernzufall
+  vollständig seedbasiert ausführen
 
 ### Nächster Regelstand
 

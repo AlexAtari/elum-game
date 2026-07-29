@@ -14,6 +14,7 @@ import {
   runRound,
   selectColonies,
   selectOpponentTileIds,
+  selectRivalColonies,
   updateColony,
   tiles,
 } from './game'
@@ -28,18 +29,31 @@ function getFreeAdjacentTileId(
   state: ReturnType<typeof createPlayableInitialGameState>,
 ) {
   const startTile = tiles.find(
-    (tile) => tile.id === state.ownedTileIds[1],
+    (tile) => tile.id === state.colonies.agima.ownedTileIds[1],
   )!
 
   return startTile.neighborIds.find(
     (tileId) =>
-      !state.ownedTileIds.includes(tileId) &&
-      !state.opponentTileIds.includes(tileId) &&
+      !state.colonies.agima.ownedTileIds.includes(tileId) &&
+      !selectOpponentTileIds(state).includes(tileId) &&
       tiles.find((tile) => tile.id === tileId)?.owner === 'free',
   )!
 }
 
 describe('Gemeinsame Kolonieansicht', () => {
+  it('speichert dynamische Koloniedaten ausschließlich in der kanonischen Map', () => {
+    const state = createPlayableInitialGameState()
+    const serializedState = JSON.parse(JSON.stringify(state))
+
+    expect(serializedState.colonies).toEqual(state.colonies)
+    expect(serializedState).not.toHaveProperty('population')
+    expect(serializedState).not.toHaveProperty('credits')
+    expect(serializedState).not.toHaveProperty('resources')
+    expect(serializedState).not.toHaveProperty('ownedTileIds')
+    expect(serializedState).not.toHaveProperty('opponentTileIds')
+    expect(serializedState).not.toHaveProperty('rivals')
+  })
+
   it('normalisiert alle vier Kolonien in dieselbe Struktur', () => {
     const state = createPlayableInitialGameState()
     const colonies = selectColonies(state)
@@ -50,9 +64,9 @@ describe('Gemeinsame Kolonieansicht', () => {
       const colony = colonies[participantId]
 
       expect(colony.id).toBe(participantId)
-      expect(colony.population).toBe(state.population)
-      expect(colony.credits).toBe(state.credits)
-      expect(colony.resources).toEqual(state.resources)
+      expect(colony.population).toBe(state.colonies.agima.population)
+      expect(colony.credits).toBe(state.colonies.agima.credits)
+      expect(colony.resources).toEqual(state.colonies.agima.resources)
       expect(colony.harvesters).toBe(STARTING_HARVESTERS)
       expect(colony.harvestersInConstruction).toBe(0)
       expect(colony.ownedTileIds).toHaveLength(2)
@@ -63,7 +77,9 @@ describe('Gemeinsame Kolonieansicht', () => {
     const state = createPlayableInitialGameState()
 
     expect(selectOpponentTileIds(state)).toEqual(
-      state.opponentTileIds,
+      Object.values(selectRivalColonies(state)).flatMap(
+        (rival) => rival.ownedTileIds ?? [],
+      ),
     )
   })
 
@@ -115,12 +131,14 @@ describe('Gemeinsame Kolonieansicht', () => {
       'TEST-NOVA',
     )
 
-    expect(withNovaLand.ownedTileIds).toContain('TEST-AGIMA')
-    expect(withNovaLand.rivals.nova.ownedTileIds).toContain(
+    expect(withNovaLand.colonies.agima.ownedTileIds).toContain('TEST-AGIMA')
+    expect(withNovaLand.colonies.nova.ownedTileIds).toContain(
       'TEST-NOVA',
     )
-    expect(withNovaLand.opponentTileIds).toContain('TEST-NOVA')
-    expect(withNovaLand.opponentTileIds).not.toContain(
+    expect(selectOpponentTileIds(withNovaLand)).toContain(
+      'TEST-NOVA',
+    )
+    expect(selectOpponentTileIds(withNovaLand)).not.toContain(
       'TEST-AGIMA',
     )
   })
@@ -152,14 +170,14 @@ describe('Gemeinsame Kolonieansicht', () => {
   it('überführt die Rivalen-Rundenabrechnung verlustfrei in den Spielzustand', () => {
     const state = createPlayableInitialGameState()
     const expectedRivals = advanceRivalColonies(
-      state.rivals,
+      selectRivalColonies(state),
       state.round,
       state.activeGlobalEvent,
       state.meteorImpacts,
     )
     const next = advanceRivalColoniesInGame(state)
 
-    expect(next.rivals).toEqual(expectedRivals)
+    expect(selectRivalColonies(next)).toEqual(expectedRivals)
     expect(selectColonies(next).agima).toEqual(
       selectColonies(state).agima,
     )
@@ -213,14 +231,21 @@ describe('Gemeinsame Kolonieansicht', () => {
   })
 
   it('führt fertiggestellte Harvester in der Gesamtzahl fort', () => {
+    const initialState = createPlayableInitialGameState()
     const state = {
-      ...createPlayableInitialGameState(),
-      harvestersInConstruction: 2,
+      ...initialState,
+      colonies: {
+        ...initialState.colonies,
+        agima: {
+          ...initialState.colonies.agima,
+          harvestersInConstruction: 2,
+        },
+      },
     }
     const completedRound = runRound(state, {}, normalSupply)
 
     expect(completedRound.report.completedHarvesters).toBe(2)
-    expect(completedRound.nextState.harvesters).toBe(
+    expect(completedRound.nextState.colonies.agima.harvesters).toBe(
       STARTING_HARVESTERS + 2,
     )
     expect(
@@ -242,12 +267,12 @@ describe('Gemeinsame Kolonieansicht', () => {
       'energy',
     )
 
-    expect(assignedState.freeHarvesterPool).toHaveLength(1)
-    expect(assignedState.harvesterAssignments[tileId]).toEqual({
+    expect(assignedState.colonies.agima.freeHarvesterPool).toHaveLength(1)
+    expect(assignedState.colonies.agima.harvesterAssignments[tileId]).toEqual({
       production: 'food',
       isNew: true,
     })
-    expect(changedState.harvesterAssignments[tileId]).toEqual({
+    expect(changedState.colonies.agima.harvesterAssignments[tileId]).toEqual({
       production: 'energy',
       isNew: true,
     })
@@ -260,7 +285,7 @@ describe('Gemeinsame Kolonieansicht', () => {
       tileId,
     )
 
-    expect(removedState.harvesterAssignments[tileId]).toBeUndefined()
-    expect(removedState.freeHarvesterPool).toHaveLength(2)
+    expect(removedState.colonies.agima.harvesterAssignments[tileId]).toBeUndefined()
+    expect(removedState.colonies.agima.freeHarvesterPool).toHaveLength(2)
   })
 })

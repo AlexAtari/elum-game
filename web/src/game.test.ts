@@ -38,6 +38,8 @@ import {
   runRound,
   selectGlobalEvent,
   selectLocalEvent,
+  selectOpponentTileIds,
+  selectRivalColonies,
   tiles,
   type GameState,
   type HarvesterAssignments,
@@ -50,6 +52,22 @@ import {
 const normalSupply = {
   foodLevel: 2,
   energyLevel: 2,
+}
+
+function withAgima(
+  state: GameState,
+  update: Partial<GameState['colonies']['agima']>,
+): GameState {
+  return {
+    ...state,
+    colonies: {
+      ...state.colonies,
+      agima: {
+        ...state.colonies.agima,
+        ...update,
+      },
+    },
+  }
 }
 
 const [firstStartTileId, secondStartTileId] =
@@ -99,14 +117,14 @@ describe('Planetengraph-Karte', () => {
         isNew: false,
       },
     })
-    const suppliedState = {
-      ...createInitialGameState(),
+    const initialState = createInitialGameState()
+    const suppliedState = withAgima(initialState, {
       resources: {
-        ...createInitialGameState().resources,
+        ...initialState.colonies.agima.resources,
         food: 20,
         energy: 20,
       },
-    }
+    })
 
     const naturalResult = runRound(
       suppliedState,
@@ -133,7 +151,7 @@ describe('Planetengraph-Karte', () => {
 
     expect(naturalResult.report.produced.crystals).toBe(5)
     expect(
-      naturalResult.nextState.resources.crystals,
+      naturalResult.nextState.colonies.agima.resources.crystals,
     ).toBe(5)
     expect(meteorResult.report.produced.crystals).toBe(3)
   })
@@ -219,14 +237,14 @@ describe('Ereignisse', () => {
   })
 
   it('wendet lokale Gewinne und Verluste sofort an', () => {
-    const initialState = {
-      ...createInitialGameState(),
+    const baseState = createInitialGameState()
+    const initialState = withAgima(baseState, {
       resources: {
-        ...createInitialGameState().resources,
+        ...baseState.colonies.agima.resources,
         food: 1,
         energy: 1,
       },
-    }
+    })
     const withCredits = applyLocalEvent(
       initialState,
       'credit-grant',
@@ -240,9 +258,9 @@ describe('Ereignisse', () => {
       'energy-leak',
     )
 
-    expect(withCredits.credits).toBe(115)
-    expect(afterFoodLoss.resources.food).toBe(0)
-    expect(afterEnergyLoss.resources.energy).toBe(0)
+    expect(withCredits.colonies.agima.credits).toBe(115)
+    expect(afterFoodLoss.colonies.agima.resources.food).toBe(0)
+    expect(afterEnergyLoss.colonies.agima.resources.energy).toBe(0)
   })
 
   it('skaliert lokale Mengenereignisse mit der aktuellen Runde', () => {
@@ -256,42 +274,47 @@ describe('Ereignisse', () => {
     }
 
     expect(
-      applyLocalEvent(roundSevenState, 'ore-cache').resources.ore,
+      applyLocalEvent(roundSevenState, 'ore-cache').colonies.agima
+        .resources.ore,
     ).toBe(9)
     expect(
       applyLocalEvent(roundThirteenState, 'new-settlers')
-        .population,
+        .colonies.agima.population,
     ).toBe(14)
   })
 
   it('wendet globale Zuschüsse und Kristallstörungen auf alle Kolonien an', () => {
-    const roundSevenState = {
-      ...createInitialGameState(),
-      round: 7,
+    const baseState = createInitialGameState()
+    const roundSevenState = withAgima(baseState, {
+      ...baseState.colonies.agima,
       resources: {
-        ...createInitialGameState().resources,
+        ...baseState.colonies.agima.resources,
         crystals: 1,
       },
+    })
+    const roundSevenEventState = {
+      ...roundSevenState,
+      round: 7,
     }
     const withGrant = activateGlobalEvent(
-      roundSevenState,
+      roundSevenEventState,
       'colonial-grant',
     )
     const withCrystals = activateGlobalEvent(
-      roundSevenState,
+      roundSevenEventState,
       'crystal-rain',
     )
     const afterDisruption = activateGlobalEvent(
-      roundSevenState,
+      roundSevenEventState,
       'crystal-disruption',
     )
 
-    expect(withGrant.credits).toBe(130)
-    expect(withGrant.rivals.orion.credits).toBe(126)
-    expect(withCrystals.resources.crystals).toBe(3)
-    expect(withCrystals.rivals.orion.resources.crystals).toBe(2)
-    expect(afterDisruption.resources.crystals).toBe(0)
-    expect(afterDisruption.rivals.orion.resources.crystals).toBe(
+    expect(withGrant.colonies.agima.credits).toBe(130)
+    expect(withGrant.colonies.orion.credits).toBe(126)
+    expect(withCrystals.colonies.agima.resources.crystals).toBe(3)
+    expect(withCrystals.colonies.orion.resources.crystals).toBe(2)
+    expect(afterDisruption.colonies.agima.resources.crystals).toBe(0)
+    expect(afterDisruption.colonies.orion.resources.crystals).toBe(
       0,
     )
   })
@@ -407,7 +430,7 @@ describe('Ereignisse', () => {
     expect(result.report.produced.food).toBe(5)
     expect(result.report.globalEvent).toBe('fertile-season')
     expect(result.nextState.activeGlobalEvent).toBeNull()
-    expect(result.nextState.rivals.orion.resources.food).toBe(10)
+    expect(result.nextState.colonies.orion.resources.food).toBe(10)
   })
 
   it('skaliert globale Produktionsmodifikatoren ab Runde sieben', () => {
@@ -658,8 +681,8 @@ describe('Markthandel', () => {
       8,
     )
 
-    expect(state.credits).toBe(92)
-    expect(state.resources.food).toBe(11)
+    expect(state.colonies.agima.credits).toBe(92)
+    expect(state.colonies.agima.resources.food).toBe(11)
   })
 
   it('verkauft eine Einheit und erhält den Handelspreis', () => {
@@ -670,19 +693,19 @@ describe('Markthandel', () => {
       8,
     )
 
-    expect(state.credits).toBe(108)
-    expect(state.resources.food).toBe(9)
+    expect(state.colonies.agima.credits).toBe(108)
+    expect(state.colonies.agima.resources.food).toBe(9)
   })
 
   it('verhindert Handel ohne Geld oder Vorrat', () => {
-    const emptyState: GameState = {
-      ...createInitialGameState(),
+    const baseState = createInitialGameState()
+    const emptyState = withAgima(baseState, {
       credits: 0,
       resources: {
-        ...createInitialGameState().resources,
+        ...baseState.colonies.agima.resources,
         food: 0,
       },
-    }
+    })
 
     expect(
       executeMarketTrade(emptyState, 'food', 'buy', 8),
@@ -701,8 +724,8 @@ describe('Markthandel', () => {
       'warehouse',
     )
 
-    expect(state.resources.food).toBe(9)
-    expect(state.credits).toBe(105)
+    expect(state.colonies.agima.resources.food).toBe(9)
+    expect(state.colonies.agima.credits).toBe(105)
     expect(state.market.food.warehouseStock).toBe(21)
     expect(state.market.food.netWarehouseFlow).toBe(1)
   })
@@ -760,7 +783,7 @@ describe('Markthandel', () => {
       'energy',
     )
 
-    expect(tradedState.resources.energy).toBe(11)
+    expect(tradedState.colonies.agima.resources.energy).toBe(11)
     expect(tradedState.market.energy.warehouseStock).toBe(19)
     expect(nextState.market.energy.referencePrice).toBe(9)
   })
@@ -778,8 +801,8 @@ describe('Markthandel', () => {
       'ore',
     )
 
-    expect(tradedState.credits).toBe(80)
-    expect(tradedState.resources.ore).toBe(6)
+    expect(tradedState.colonies.agima.credits).toBe(80)
+    expect(tradedState.colonies.agima.resources.ore).toBe(6)
     expect(tradedState.market.ore.warehouseStock).toBe(19)
     expect(nextState.market.ore.referencePrice).toBe(16)
   })
@@ -797,20 +820,22 @@ describe('Markthandel', () => {
       'crystals',
     )
 
-    expect(tradedState.credits).toBe(50)
-    expect(tradedState.resources.crystals).toBe(1)
+    expect(tradedState.colonies.agima.credits).toBe(50)
+    expect(tradedState.colonies.agima.resources.crystals).toBe(1)
     expect(tradedState.market.crystals.warehouseStock).toBe(9)
     expect(nextState.market.crystals.referencePrice).toBe(41)
   })
 
   it('verkauft Kristalle bis zur Rundenkapazität an den interstellaren Käufer', () => {
+    const baseState = createInitialGameState()
     const initialState: GameState = {
-      ...createInitialGameState(),
+      ...withAgima(baseState, {
+        resources: {
+          ...baseState.colonies.agima.resources,
+          crystals: 3,
+        },
+      }),
       round: 5,
-      resources: {
-        ...createInitialGameState().resources,
-        crystals: 3,
-      },
     }
     const firstSale = executeMarketTrade(
       initialState,
@@ -835,11 +860,11 @@ describe('Markthandel', () => {
     )
 
     expect(secondSale).toMatchObject({
-      credits: 172,
       interstellarCrystalPurchases: 2,
-      resources: {
-        crystals: 1,
-      },
+    })
+    expect(secondSale.colonies.agima).toMatchObject({
+      credits: 172,
+      resources: { crystals: 1 },
     })
     expect(rejectedThirdSale).toBe(secondSale)
     expect(secondSale.market.crystals.warehouseStock).toBe(10)
@@ -847,12 +872,14 @@ describe('Markthandel', () => {
   })
 
   it('weist ungültige Geschäfte mit dem Kristallkäufer zurück und setzt die Kapazität rundenweise zurück', () => {
+    const baseState = createInitialGameState()
     const state: GameState = {
-      ...createInitialGameState(),
-      resources: {
-        ...createInitialGameState().resources,
-        crystals: 2,
-      },
+      ...withAgima(baseState, {
+        resources: {
+          ...baseState.colonies.agima.resources,
+          crystals: 2,
+        },
+      }),
       interstellarCrystalPurchases: 1,
     }
 
@@ -890,13 +917,13 @@ describe('Markthandel', () => {
   })
 
   it('rechnet Marktkäufe vor Versorgung und Bevölkerung ab', () => {
-    const hungryState: GameState = {
-      ...createInitialGameState(),
+    const baseState = createInitialGameState()
+    const hungryState = withAgima(baseState, {
       resources: {
-        ...createInitialGameState().resources,
+        ...baseState.colonies.agima.resources,
         food: 0,
       },
-    }
+    })
     const firstPurchase = executeMarketTrade(
       hungryState,
       'food',
@@ -932,30 +959,34 @@ describe('Markthandel', () => {
 
     expect(
       runRound(hungryState, {}, normalSupply).nextState
-        .population,
+        .colonies.agima.population,
     ).toBe(9)
     expect(result.report.consumedFood).toBe(2)
-    expect(result.nextState.resources.food).toBe(0)
-    expect(result.nextState.population).toBe(11)
+    expect(result.nextState.colonies.agima.resources.food).toBe(0)
+    expect(result.nextState.colonies.agima.population).toBe(11)
   })
 })
 
 describe('Rangliste', () => {
   it('zeigt echte Koloniewerte und sortiert Bevölkerung zuerst', () => {
+    const baseState = createInitialGameState()
     const state: GameState = {
-      ...createInitialGameState(),
-      population: 15,
-      credits: 42,
-      resources: {
-        food: 3,
-        energy: 4,
-        ore: 5,
-        crystals: 6,
-      },
-      rivals: {
-        ...createInitialGameState().rivals,
+      ...baseState,
+      colonies: {
+        ...baseState.colonies,
+        agima: {
+          ...baseState.colonies.agima,
+          population: 15,
+          credits: 42,
+          resources: {
+            food: 3,
+            energy: 4,
+            ore: 5,
+            crystals: 6,
+          },
+        },
         orion: {
-          ...createInitialGameState().rivals.orion,
+          ...baseState.colonies.orion,
           population: 14,
           credits: 31,
           resources: {
@@ -990,20 +1021,24 @@ describe('Rangliste', () => {
   })
 
   it('wertet bei gleicher Bevölkerung Kristalle zum offiziellen Referenzkurs', () => {
+    const baseState = createInitialGameState()
     const state: GameState = {
-      ...createInitialGameState(),
-      population: 10,
-      credits: 40,
-      resources: {
-        food: 0,
-        energy: 0,
-        ore: 0,
-        crystals: 2,
-      },
-      rivals: {
-        ...createInitialGameState().rivals,
+      ...baseState,
+      colonies: {
+        ...baseState.colonies,
+        agima: {
+          ...baseState.colonies.agima,
+          population: 10,
+          credits: 40,
+          resources: {
+            food: 0,
+            energy: 0,
+            ore: 0,
+            crystals: 2,
+          },
+        },
         orion: {
-          ...createInitialGameState().rivals.orion,
+          ...baseState.colonies.orion,
           population: 10,
           credits: 100,
           resources: {
@@ -1027,7 +1062,9 @@ describe('Rangliste', () => {
   })
 
   it('entwickelt die gespeicherten KI-Kolonien pro Runde weiter', () => {
-    const initialRivals = createInitialGameState().rivals
+    const initialRivals = selectRivalColonies(
+      createInitialGameState(),
+    )
     const nextRivals = advanceRivalColonies(initialRivals, 1)
 
     expect(nextRivals.orion).toMatchObject({
@@ -1045,7 +1082,9 @@ describe('Rangliste', () => {
   })
 
   it('lässt eine unversorgte KI-Bevölkerung schrumpfen', () => {
-    const initialRivals = createInitialGameState().rivals
+    const initialRivals = selectRivalColonies(
+      createInitialGameState(),
+    )
     const nextRivals = advanceRivalColonies(
       {
         ...initialRivals,
@@ -1068,9 +1107,9 @@ describe('Rangliste', () => {
     const state = createInitialGameState()
     const result = runRound(state, {}, normalSupply)
 
-    expect(result.nextState.rivals.orion.population).toBe(11)
-    expect(result.nextState.rivals.nova.population).toBe(10)
-    expect(result.nextState.rivals.vega.population).toBe(12)
+    expect(result.nextState.colonies.orion.population).toBe(11)
+    expect(result.nextState.colonies.nova.population).toBe(10)
+    expect(result.nextState.colonies.vega.population).toBe(12)
   })
 })
 
@@ -1078,9 +1117,9 @@ describe('Harvesterbau', () => {
   it('bezahlt den Bauauftrag sofort mit Credits und Erz', () => {
     const state = orderHarvesterBuild(createInitialGameState())
 
-    expect(state.credits).toBe(70)
-    expect(state.resources.ore).toBe(2)
-    expect(state.harvestersInConstruction).toBe(1)
+    expect(state.colonies.agima.credits).toBe(70)
+    expect(state.colonies.agima.resources.ore).toBe(2)
+    expect(state.colonies.agima.harvestersInConstruction).toBe(1)
   })
 
   it('verhindert einen Auftrag bei unzureichenden Ressourcen', () => {
@@ -1090,26 +1129,26 @@ describe('Harvesterbau', () => {
     const secondOrder = orderHarvesterBuild(firstOrder)
 
     expect(secondOrder).toBe(firstOrder)
-    expect(secondOrder.harvestersInConstruction).toBe(1)
+    expect(secondOrder.colonies.agima.harvestersInConstruction).toBe(1)
   })
 
   it('stellt mehrere bezahlte Harvester zu Beginn der nächsten Runde fertig', () => {
-    const richState: GameState = {
-      ...createInitialGameState(),
+    const baseState = createInitialGameState()
+    const richState = withAgima(baseState, {
       credits: 200,
       resources: {
-        ...createInitialGameState().resources,
+        ...baseState.colonies.agima.resources,
         ore: 10,
       },
-    }
+    })
     const firstOrder = orderHarvesterBuild(richState)
     const secondOrder = orderHarvesterBuild(firstOrder)
     const result = runRound(secondOrder, {}, normalSupply)
 
     expect(result.report.completedHarvesters).toBe(2)
-    expect(result.nextState.harvestersInConstruction).toBe(0)
-    expect(result.nextState.credits).toBe(140)
-    expect(result.nextState.resources.ore).toBe(4)
+    expect(result.nextState.colonies.agima.harvestersInConstruction).toBe(0)
+    expect(result.nextState.colonies.agima.credits).toBe(140)
+    expect(result.nextState.colonies.agima.resources.ore).toBe(4)
   })
 })
 
@@ -1133,14 +1172,14 @@ describe('Grundstücksauktion', () => {
       35,
     )
 
-    expect(state.credits).toBe(70)
+    expect(state.colonies.agima.credits).toBe(70)
     expect(state.pendingLandBid).toEqual({
       tileId: freeAuctionTileId,
       amount: 30,
       rivalBid: 35,
       tieMinimum: undefined,
     })
-    expect(state.ownedTileIds).toEqual(PLAYER_START_TILE_IDS)
+    expect(state.colonies.agima.ownedTileIds).toEqual(PLAYER_START_TILE_IDS)
   })
 
   it('erstattet ein zurückgenommenes Gebot', () => {
@@ -1152,7 +1191,7 @@ describe('Grundstücksauktion', () => {
     )
     const state = cancelLandBid(reservedState)
 
-    expect(state.credits).toBe(100)
+    expect(state.colonies.agima.credits).toBe(100)
     expect(state.pendingLandBid).toBeNull()
   })
 
@@ -1167,7 +1206,7 @@ describe('Grundstücksauktion', () => {
     const auctionState = beginLandTieBreak(state)
 
     expect(preview.report.landAuction?.outcome).toBe('tie')
-    expect(auctionState.credits).toBe(100)
+    expect(auctionState.colonies.agima.credits).toBe(100)
     expect(auctionState.pendingLandBid).toBeNull()
     expect(auctionState.landAuctionTie).toEqual({
       tileId: freeAuctionTileId,
@@ -1193,8 +1232,8 @@ describe('Grundstücksauktion', () => {
     )
 
     expect(result.report.landAuction?.outcome).toBe('won')
-    expect(result.nextState.ownedTileIds).toContain(freeAuctionTileId)
-    expect(result.nextState.credits).toBe(64)
+    expect(result.nextState.colonies.agima.ownedTileIds).toContain(freeAuctionTileId)
+    expect(result.nextState.colonies.agima.credits).toBe(64)
   })
 
   it('startet auch bei höherem Orion-Gebot eine Grundstücksauktion', () => {
@@ -1208,7 +1247,7 @@ describe('Grundstücksauktion', () => {
     const auctionState = beginLandTieBreak(state)
 
     expect(preview.report.landAuction?.outcome).toBe('tie')
-    expect(auctionState.credits).toBe(100)
+    expect(auctionState.colonies.agima.credits).toBe(100)
     expect(auctionState.landAuctionTie).toEqual({
       tileId: freeAuctionTileId,
       tiedBid: 35,
@@ -1233,15 +1272,17 @@ describe('Grundstücksauktion', () => {
     )
 
     expect(result.report.landAuction?.outcome).toBe('lost')
-    expect(result.nextState.ownedTileIds).toEqual(
+    expect(result.nextState.colonies.agima.ownedTileIds).toEqual(
       PLAYER_START_TILE_IDS,
     )
-    expect(result.nextState.opponentTileIds).toContain(freeAuctionTileId)
+    expect(selectOpponentTileIds(result.nextState)).toContain(
+      freeAuctionTileId,
+    )
     expect(
-      result.nextState.rivals.orion.ownedTileIds,
+      result.nextState.colonies.orion.ownedTileIds,
     ).toContain(freeAuctionTileId)
-    expect(result.nextState.credits).toBe(100)
-    expect(result.nextState.rivals.orion.credits).toBe(61)
+    expect(result.nextState.colonies.agima.credits).toBe(100)
+    expect(result.nextState.colonies.orion.credits).toBe(61)
   })
 
   it('startet bei Gleichstand eine grafische Stichauktion', () => {
@@ -1253,7 +1294,7 @@ describe('Grundstücksauktion', () => {
     )
     const tieState = beginLandTieBreak(state)
 
-    expect(tieState.credits).toBe(100)
+    expect(tieState.colonies.agima.credits).toBe(100)
     expect(tieState.pendingLandBid).toBeNull()
     expect(tieState.landAuctionTie).toEqual({
       tileId: freeAuctionTileId,
@@ -1379,7 +1420,7 @@ describe('Grundstücksauktion', () => {
       leader: 'player',
     })
 
-    expect(resolvedState.credits).toBe(69)
+    expect(resolvedState.colonies.agima.credits).toBe(69)
     expect(resolvedState.landAuctionTie).toBeNull()
     expect(resolvedState.pendingLandBid).toEqual({
       tileId: freeAuctionTileId,
@@ -1392,15 +1433,14 @@ describe('Grundstücksauktion', () => {
     const result = runRound(resolvedState, {}, normalSupply)
 
     expect(result.report.landAuction?.outcome).toBe('won')
-    expect(result.nextState.ownedTileIds).toContain(freeAuctionTileId)
-    expect(result.nextState.credits).toBe(69)
+    expect(result.nextState.colonies.agima.ownedTileIds).toContain(freeAuctionTileId)
+    expect(result.nextState.colonies.agima.credits).toBe(69)
   })
 
   it('löst eine nicht bezahlbare Stichauktion ohne Sackgasse auf', () => {
-    const poorState: GameState = {
-      ...createInitialGameState(),
+    const poorState = withAgima(createInitialGameState(), {
       credits: 30,
-    }
+    })
     const tieState = beginLandTieBreak(
       placeLandBid(poorState, freeAuctionTileId, 30, 30),
     )
@@ -1410,7 +1450,7 @@ describe('Grundstücksauktion', () => {
       leader: 'orion',
     })
 
-    expect(resolvedState.credits).toBe(30)
+    expect(resolvedState.colonies.agima.credits).toBe(30)
     expect(resolvedState.landAuctionTie).toBeNull()
     expect(resolvedState.pendingLandBid).toEqual({
       tileId: freeAuctionTileId,
@@ -1423,12 +1463,14 @@ describe('Grundstücksauktion', () => {
     const result = runRound(resolvedState, {}, normalSupply)
 
     expect(result.report.landAuction?.outcome).toBe('lost')
-    expect(result.nextState.credits).toBe(30)
-    expect(result.nextState.opponentTileIds).toContain(freeAuctionTileId)
+    expect(result.nextState.colonies.agima.credits).toBe(30)
+    expect(selectOpponentTileIds(result.nextState)).toContain(
+      freeAuctionTileId,
+    )
     expect(
-      result.nextState.rivals.orion.ownedTileIds,
+      result.nextState.colonies.orion.ownedTileIds,
     ).toContain(freeAuctionTileId)
-    expect(result.nextState.rivals.orion.credits).toBe(65)
+    expect(result.nextState.colonies.orion.credits).toBe(65)
   })
 
   it('vergibt das Feld bei gleichem Schlussgebot an den zuerst Führenden', () => {
@@ -1453,7 +1495,7 @@ describe('Grundstücksauktion', () => {
       rivalBid: 31,
       outcome: 'won',
     })
-    expect(result.nextState.ownedTileIds).toContain(freeAuctionTileId)
+    expect(result.nextState.colonies.agima.ownedTileIds).toContain(freeAuctionTileId)
   })
 
   it('lässt das Feld frei, wenn niemand das Gebot erhöht', () => {
@@ -1471,11 +1513,13 @@ describe('Grundstücksauktion', () => {
       leader: null,
     })
 
-    expect(resolvedState.credits).toBe(100)
+    expect(resolvedState.colonies.agima.credits).toBe(100)
     expect(resolvedState.landAuctionTie).toBeNull()
     expect(resolvedState.pendingLandBid).toBeNull()
-    expect(resolvedState.ownedTileIds).not.toContain(freeAuctionTileId)
-    expect(resolvedState.opponentTileIds).not.toContain(freeAuctionTileId)
+    expect(resolvedState.colonies.agima.ownedTileIds).not.toContain(freeAuctionTileId)
+    expect(selectOpponentTileIds(resolvedState)).not.toContain(
+      freeAuctionTileId,
+    )
   })
 })
 
@@ -1487,28 +1531,28 @@ describe('Versorgung und Bevölkerung', () => {
       normalSupply,
     )
 
-    expect(result.nextState.population).toBe(11)
-    expect(result.nextState.resources.food).toBe(8)
-    expect(result.nextState.resources.energy).toBe(8)
+    expect(result.nextState.colonies.agima.population).toBe(11)
+    expect(result.nextState.colonies.agima.resources.food).toBe(8)
+    expect(result.nextState.colonies.agima.resources.energy).toBe(8)
     expect(result.report.populationChange).toBe(1)
   })
 
   it('richtet die Bevölkerungsentwicklung nach der knapperen Ressource aus', () => {
-    const state: GameState = {
-      ...createInitialGameState(),
+    const baseState = createInitialGameState()
+    const state = withAgima(baseState, {
       population: 11,
       resources: {
-        ...createInitialGameState().resources,
+        ...baseState.colonies.agima.resources,
         food: 3,
       },
-    }
+    })
 
     const result = runRound(state, {}, normalSupply)
 
     expect(result.report.consumedFood).toBe(3)
     expect(result.report.consumedEnergyByHq).toBe(4)
     expect(result.report.populationChange).toBe(0)
-    expect(result.nextState.population).toBe(11)
+    expect(result.nextState.colonies.agima.population).toBe(11)
   })
 })
 
@@ -1565,7 +1609,7 @@ describe('Harvesterproduktion', () => {
 
     expect(result.report.produced.energy).toBe(4)
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
-    expect(result.nextState.resources.energy).toBe(11)
+    expect(result.nextState.colonies.agima.resources.energy).toBe(11)
     expect(result.nextHarvesters[secondStartTileId]).toEqual({
       production: 'energy',
       isNew: false,
@@ -1573,13 +1617,13 @@ describe('Harvesterproduktion', () => {
   })
 
   it('deaktiviert bei Energiemangel zuerst den schwächeren Harvester', () => {
-    const state: GameState = {
-      ...createInitialGameState(),
+    const baseState = createInitialGameState()
+    const state = withAgima(baseState, {
       resources: {
-        ...createInitialGameState().resources,
+        ...baseState.colonies.agima.resources,
         energy: 3,
       },
-    }
+    })
     const harvesters: HarvesterAssignments = {
       [firstStartTileId]: {
         production: 'energy',
@@ -1598,7 +1642,7 @@ describe('Harvesterproduktion', () => {
     ])
     expect(result.report.produced.energy).toBe(4)
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
-    expect(result.nextState.resources.energy).toBe(4)
+    expect(result.nextState.colonies.agima.resources.energy).toBe(4)
   })
 })
 
@@ -1664,13 +1708,13 @@ describe('Umrüstung und Versetzung', () => {
   })
 
   it('pausiert eine Umrüstung, wenn nach der Versorgung keine Energie bleibt', () => {
-    const state: GameState = {
-      ...createInitialGameState(),
+    const baseState = createInitialGameState()
+    const state = withAgima(baseState, {
       resources: {
-        ...createInitialGameState().resources,
+        ...baseState.colonies.agima.resources,
         energy: 2,
       },
-    }
+    })
     const harvesters: HarvesterAssignments = {
       [secondStartTileId]: {
         production: 'energy',

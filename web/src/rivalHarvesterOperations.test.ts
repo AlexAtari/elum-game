@@ -39,7 +39,7 @@ describe('Gemeinsame Harvesterlogik der Rivalen', () => {
     expect(freeTile).toBeDefined()
 
     for (const rivalId of ['nova', 'vega'] as RivalId[]) {
-      const rival = state.rivals[rivalId]
+      const rival = state.colonies[rivalId]
       rival.ownedTileIds = [freeTile!.id]
       rival.lastLandPurchaseRound = 1
 
@@ -64,7 +64,7 @@ describe('Gemeinsame Harvesterlogik der Rivalen', () => {
     expect(freeTiles).toHaveLength(rivalIds.length)
 
     rivalIds.forEach((rivalId, index) => {
-      const rival = state.rivals[rivalId]
+      const rival = state.colonies[rivalId]
       const tileId = freeTiles[index].id
 
       rival.credits = 0
@@ -77,7 +77,7 @@ describe('Gemeinsame Harvesterlogik der Rivalen', () => {
     })
 
     const next = advanceRivalColonies(
-      state.rivals,
+      state.colonies,
       3,
       null,
     )
@@ -100,7 +100,7 @@ describe('Gemeinsame Harvesterlogik der Rivalen', () => {
 
     expect(foodTile).toBeDefined()
 
-    const vega = state.rivals.vega
+    const vega = state.colonies.vega
     vega.credits = 100
     vega.resources.food = 0
     vega.resources.energy = 20
@@ -135,7 +135,7 @@ describe('Gemeinsame Harvesterlogik der Rivalen', () => {
 
     expect(foodTile).toBeDefined()
 
-    const nova = state.rivals.nova
+    const nova = state.colonies.nova
     nova.credits = 100
     nova.resources.food = 0
     nova.resources.energy = 20
@@ -147,7 +147,7 @@ describe('Gemeinsame Harvesterlogik der Rivalen', () => {
     }
 
     const next = advanceRivalColonies(
-      state.rivals,
+      state.colonies,
       4,
       null,
     )

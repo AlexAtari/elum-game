@@ -7,6 +7,7 @@ import {
 } from './rivalAutonomousLand'
 import {
   createPlayableInitialGameState,
+  selectOpponentTileIds,
   tiles,
   type RivalId,
 } from './game'
@@ -23,7 +24,8 @@ function createRoundTwoState() {
   state.pendingLandBid = null
   state.landAuctionTie = null
 
-  for (const rival of Object.values(state.rivals)) {
+  for (const rivalId of rivalIds) {
+    const rival = state.colonies[rivalId]
     rival.harvesters = 3
     rival.credits = 100
     rival.resources.food = 20
@@ -52,7 +54,7 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
     const initialTileIds = new Set(
       rivalIds.flatMap(
         (rivalId) =>
-          state.rivals[rivalId].ownedTileIds ?? [],
+          state.colonies[rivalId].ownedTileIds ?? [],
       ),
     )
     const next =
@@ -60,7 +62,7 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
     const purchasedTileIds = rivalIds.flatMap(
       (rivalId) =>
         (
-          next.rivals[rivalId].ownedTileIds ?? []
+          next.colonies[rivalId].ownedTileIds ?? []
         ).filter((tileId) => !initialTileIds.has(tileId)),
     )
 
@@ -69,15 +71,15 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
 
     for (const rivalId of rivalIds) {
       expect(
-        next.rivals[rivalId].ownedTileIds,
+        next.colonies[rivalId].ownedTileIds,
       ).toHaveLength(3)
-      expect(next.rivals[rivalId].credits).toBeLessThan(
-        state.rivals[rivalId].credits,
+      expect(next.colonies[rivalId].credits).toBeLessThan(
+        state.colonies[rivalId].credits,
       )
     }
 
     for (const tileId of purchasedTileIds) {
-      expect(next.opponentTileIds).toContain(tileId)
+      expect(selectOpponentTileIds(next)).toContain(tileId)
       expect(
         tiles.find((tile) => tile.id === tileId)?.owner,
       ).toBe('free')
@@ -104,7 +106,7 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
 
   it('erschließt für einen brachliegenden Harvester auch im Versorgungsnotfall Land', () => {
     const state = createRoundTwoState()
-    state.rivals.nova.resources.food = 0
+    state.colonies.nova.resources.food = 0
 
     expect(
       getAutonomousRivalLandDecision(state, 'nova'),
@@ -128,7 +130,7 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
       afterFirstPurchase,
     )
     expect(
-      afterSecondAttempt.rivals.vega.ownedTileIds,
+      afterSecondAttempt.colonies.vega.ownedTileIds,
     ).toHaveLength(3)
   })
 

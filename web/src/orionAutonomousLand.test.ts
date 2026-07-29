@@ -6,14 +6,15 @@ import {
 import {
   createPlayableInitialGameState,
   LAND_MINIMUM_BID,
+  selectOpponentTileIds,
   tiles,
 } from './game'
 
 function createRoundTwoState() {
   const state = createPlayableInitialGameState()
   state.round = 2
-  state.rivals.orion.harvesters = 3
-  state.rivals.orion.credits = 100
+  state.colonies.orion.harvesters = 3
+  state.colonies.orion.credits = 100
   return state
 }
 
@@ -48,14 +49,14 @@ describe('Orions selbstständiger Grundstückskauf', () => {
     const next =
       applyAutonomousOrionLandPurchase(state)
 
-    expect(next.rivals.orion.credits).toBe(
-      state.rivals.orion.credits - decision!.bid,
+    expect(next.colonies.orion.credits).toBe(
+      state.colonies.orion.credits - decision!.bid,
     )
-    expect(next.rivals.orion.ownedTileIds).toContain(
+    expect(next.colonies.orion.ownedTileIds).toContain(
       decision!.tileId,
     )
-    expect(next.opponentTileIds).toContain(decision!.tileId)
-    expect(next.rivals.orion.lastLandPurchaseRound).toBe(2)
+    expect(selectOpponentTileIds(next)).toContain(decision!.tileId)
+    expect(next.colonies.orion.lastLandPurchaseRound).toBe(2)
   })
 
   it('kauft in derselben Runde kein zweites Grundstück', () => {
@@ -94,16 +95,10 @@ describe('Orions selbstständiger Grundstückskauf', () => {
     const state = createRoundTwoState()
     const freeTileIds = tiles
       .filter((tile) => tile.owner === 'free')
-      .slice(0, state.rivals.orion.harvesters)
+      .slice(0, state.colonies.orion.harvesters)
       .map((tile) => tile.id)
 
-    state.rivals.orion.ownedTileIds = freeTileIds
-    state.opponentTileIds = [
-      ...new Set([
-        ...state.opponentTileIds,
-        ...freeTileIds,
-      ]),
-    ]
+    state.colonies.orion.ownedTileIds = freeTileIds
 
     expect(
       getAutonomousOrionLandDecision(state),

@@ -116,9 +116,19 @@ export type ColonyState = ColonyEconomyState & {
   icon: string
   harvestersInConstruction: number
   ownedTileIds: string[]
+  harvesterAssignments:
+    | HarvesterAssignments
+    | Partial<Record<string, ProductionType>>
+  freeHarvesterPool: FreeHarvester[]
+  lastLandPurchaseRound?: number
+  lastConsumedEnergyByHq?: number
+  lastConsumedEnergyByHarvesters?: number
+  inactiveHarvesterIds?: string[]
+  lastHarvesterRetoolRound?: number
+  lastRetooledHarvesterId?: string
+  lastHarvesterRetoolCost?: number
+  lastHarvesterBuildDecision?: AgentHarvesterDecision['reason']
 }
-
-export type ColoniesState = Record<ParticipantId, ColonyState>
 
 export type RivalColonyState = ColonyEconomyState & {
   id: RivalId
@@ -126,10 +136,11 @@ export type RivalColonyState = ColonyEconomyState & {
   icon: string
   harvestersInConstruction?: number
   ownedTileIds?: string[]
-  lastLandPurchaseRound?: number
   harvesterAssignments?: Partial<
     Record<string, ProductionType>
   >
+  freeHarvesterPool?: FreeHarvester[]
+  lastLandPurchaseRound?: number
   lastConsumedEnergyByHq?: number
   lastConsumedEnergyByHarvesters?: number
   inactiveHarvesterIds?: string[]
@@ -141,16 +152,37 @@ export type RivalColonyState = ColonyEconomyState & {
 
 export type RivalColonies = Record<RivalId, RivalColonyState>
 
-export type GameState = ColonyEconomyState & {
+export type LocalColonyState = Omit<
+  ColonyState,
+  'id' | 'harvesterAssignments'
+> & {
+  id: 'agima'
+  harvesterAssignments: HarvesterAssignments
+}
+
+export type CanonicalRivalColonyState = Omit<
+  ColonyState,
+  'id' | 'harvesterAssignments'
+> & {
+  id: RivalId
+  harvesterAssignments: Partial<
+    Record<string, ProductionType>
+  >
+}
+
+export type ColoniesState = {
+  agima: LocalColonyState
+  orion: CanonicalRivalColonyState & { id: 'orion' }
+  nova: CanonicalRivalColonyState & { id: 'nova' }
+  vega: CanonicalRivalColonyState & { id: 'vega' }
+}
+
+export type GameState = {
   match: MatchConfiguration
   round: number
-  ownedTileIds: string[]
-  opponentTileIds: string[]
+  colonies: ColoniesState
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
-  harvestersInConstruction: number
-  harvesterAssignments: HarvesterAssignments
-  freeHarvesterPool: FreeHarvester[]
   initiatedMarketResources: MarketResource[]
   activeGlobalEvent: GlobalEventId | null
   activeLocalEvent: LocalEventId | null
@@ -159,7 +191,6 @@ export type GameState = ColonyEconomyState & {
   meteorImpacts?: MeteorImpact[]
   interstellarCrystalPurchases?: number
   market: MarketState
-  rivals: RivalColonies
 }
 
 export type LandBid = {
@@ -659,9 +690,9 @@ export function assignPlayerHarvester(
   tileId: string,
   production: ProductionType,
 ): GameState {
-  const currentHarvesters =
-    currentState.harvesterAssignments
-  const currentPool = currentState.freeHarvesterPool
+  const localColony = selectLocalColony(currentState)
+  const currentHarvesters = localColony.harvesterAssignments
+  const currentPool = localColony.freeHarvesterPool
 
   if (currentPool.length <= 0 || currentHarvesters[tileId]) {
     return currentState
@@ -682,8 +713,8 @@ export function assignPlayerHarvester(
     return currentState
   }
 
-  return {
-    ...currentState,
+  return updateColony(currentState, 'agima', (colony) => ({
+    ...colony,
     freeHarvesterPool: currentPool.filter(
       (_, index) => index !== selectedHarvesterIndex,
     ),
@@ -703,7 +734,7 @@ export function assignPlayerHarvester(
               isNew: false,
             },
     },
-  }
+  }))
 }
 
 export function changePlayerHarvesterProduction(
@@ -716,7 +747,7 @@ export function changePlayerHarvesterProduction(
   }
 
   const currentHarvesters =
-    currentState.harvesterAssignments
+    selectLocalColony(currentState).harvesterAssignments
   const currentAssignment = currentHarvesters[tileId]
 
   if (!currentAssignment) {
@@ -724,8 +755,8 @@ export function changePlayerHarvesterProduction(
   }
 
   if (currentAssignment.isNew) {
-    return {
-      ...currentState,
+    return updateColony(currentState, 'agima', (colony) => ({
+      ...colony,
       harvesterAssignments: {
         ...currentHarvesters,
         [tileId]: {
@@ -733,12 +764,12 @@ export function changePlayerHarvesterProduction(
           isNew: true,
         },
       },
-    }
+    }))
   }
 
   if (currentAssignment.retoolingReason === 'relocation') {
-    return {
-      ...currentState,
+    return updateColony(currentState, 'agima', (colony) => ({
+      ...colony,
       harvesterAssignments: {
         ...currentHarvesters,
         [tileId]: {
@@ -746,12 +777,12 @@ export function changePlayerHarvesterProduction(
           pendingProduction: production,
         },
       },
-    }
+    }))
   }
 
   if (production === currentAssignment.production) {
-    return {
-      ...currentState,
+    return updateColony(currentState, 'agima', (colony) => ({
+      ...colony,
       harvesterAssignments: {
         ...currentHarvesters,
         [tileId]: {
@@ -759,11 +790,11 @@ export function changePlayerHarvesterProduction(
           isNew: false,
         },
       },
-    }
+    }))
   }
 
-  return {
-    ...currentState,
+  return updateColony(currentState, 'agima', (colony) => ({
+    ...colony,
     harvesterAssignments: {
       ...currentHarvesters,
       [tileId]: {
@@ -772,15 +803,16 @@ export function changePlayerHarvesterProduction(
         retoolingReason: 'production-change',
       },
     },
-  }
+  }))
 }
 
 export function removePlayerHarvester(
   currentState: GameState,
   tileId: string,
 ): GameState {
+  const localColony = selectLocalColony(currentState)
   const currentAssignment =
-    currentState.harvesterAssignments[tileId]
+    localColony.harvesterAssignments[tileId]
 
   if (
     !currentAssignment ||
@@ -791,22 +823,22 @@ export function removePlayerHarvester(
   }
 
   const updatedHarvesters = {
-    ...currentState.harvesterAssignments,
+    ...localColony.harvesterAssignments,
   }
   delete updatedHarvesters[tileId]
 
-  return {
-    ...currentState,
+  return updateColony(currentState, 'agima', (colony) => ({
+    ...colony,
     harvesterAssignments: updatedHarvesters,
     freeHarvesterPool: [
-      ...currentState.freeHarvesterPool,
+      ...localColony.freeHarvesterPool,
       currentAssignment.isNew
         ? {}
         : {
             previousProduction: currentAssignment.production,
           },
     ],
-  }
+  }))
 }
 
 export const MARKET_PRICES: Record<MarketResource, number> = {
@@ -882,41 +914,19 @@ function getResourceTotal(resources: Resources) {
 export function selectColonies(
   currentState: GameState,
 ): ColoniesState {
-  return {
-    agima: {
-      id: 'agima',
-      name: 'Kolonie Agima',
-      icon: '🧑‍🚀',
-      population: currentState.population,
-      credits: currentState.credits,
-      resources: currentState.resources,
-      harvesters: currentState.harvesters,
-      harvestersInConstruction:
-        currentState.harvestersInConstruction,
-      ownedTileIds: currentState.ownedTileIds,
-    },
-    orion: {
-      ...currentState.rivals.orion,
-      harvestersInConstruction:
-        currentState.rivals.orion.harvestersInConstruction ?? 0,
-      ownedTileIds:
-        currentState.rivals.orion.ownedTileIds ?? [],
-    },
-    nova: {
-      ...currentState.rivals.nova,
-      harvestersInConstruction:
-        currentState.rivals.nova.harvestersInConstruction ?? 0,
-      ownedTileIds:
-        currentState.rivals.nova.ownedTileIds ?? [],
-    },
-    vega: {
-      ...currentState.rivals.vega,
-      harvestersInConstruction:
-        currentState.rivals.vega.harvestersInConstruction ?? 0,
-      ownedTileIds:
-        currentState.rivals.vega.ownedTileIds ?? [],
-    },
-  }
+  return currentState.colonies
+}
+
+export function selectLocalColony(currentState: GameState) {
+  return currentState.colonies.agima
+}
+
+export function selectRivalColonies(
+  currentState: GameState,
+): RivalColonies {
+  const { orion, nova, vega } = currentState.colonies
+
+  return { orion, nova, vega } as RivalColonies
 }
 
 export function selectOpponentTileIds(
@@ -937,40 +947,12 @@ export function updateColony(
   const currentColony = selectColonies(currentState)[participantId]
   const nextColony = update(currentColony)
 
-  if (participantId === 'agima') {
-    return {
-      ...currentState,
-      population: nextColony.population,
-      credits: nextColony.credits,
-      resources: nextColony.resources,
-      harvesters: nextColony.harvesters,
-      harvestersInConstruction:
-        nextColony.harvestersInConstruction,
-      ownedTileIds: nextColony.ownedTileIds,
-    }
-  }
-
-  const currentRival = currentState.rivals[participantId]
-  const nextRivals: RivalColonies = {
-    ...currentState.rivals,
-    [participantId]: {
-      ...currentRival,
-      population: nextColony.population,
-      credits: nextColony.credits,
-      resources: nextColony.resources,
-      harvesters: nextColony.harvesters,
-      harvestersInConstruction:
-        nextColony.harvestersInConstruction,
-      ownedTileIds: nextColony.ownedTileIds,
-    },
-  }
-
   return {
     ...currentState,
-    rivals: nextRivals,
-    opponentTileIds: Object.values(nextRivals).flatMap(
-      (rival) => rival.ownedTileIds ?? [],
-    ),
+    colonies: {
+      ...currentState.colonies,
+      [participantId]: nextColony,
+    },
   }
 }
 
@@ -997,7 +979,8 @@ export function addColonyOwnedTile(
 
 export function createLeaderboardEntries(
   currentState: GameState,
-  playerHarvesterCount: number = currentState.harvesters,
+  playerHarvesterCount: number = selectLocalColony(currentState)
+    .harvesters,
 ): LeaderboardEntry[] {
   const crystalReferencePrice =
     currentState.market.crystals.referencePrice
@@ -1326,7 +1309,7 @@ export function advanceRivalColoniesInGame(
   currentState: GameState,
 ): GameState {
   const advancedRivals = advanceRivalColonies(
-    currentState.rivals,
+    selectRivalColonies(currentState),
     currentState.round,
     currentState.activeGlobalEvent,
     currentState.meteorImpacts,
@@ -1350,13 +1333,21 @@ export function advanceRivalColoniesInGame(
         }),
       )
 
-      return {
-        ...stateWithEconomy,
-        rivals: {
-          ...stateWithEconomy.rivals,
-          [participantId]: advancedRival,
-        },
-      }
+      return updateColony(
+        stateWithEconomy,
+        participantId,
+        (colony) => ({
+          ...colony,
+          ...advancedRival,
+          harvestersInConstruction:
+            advancedRival.harvestersInConstruction ?? 0,
+          ownedTileIds: advancedRival.ownedTileIds ?? [],
+          harvesterAssignments:
+            advancedRival.harvesterAssignments ?? {},
+          freeHarvesterPool:
+            advancedRival.freeHarvesterPool ?? [],
+        }),
+      )
     },
     currentState,
   )
@@ -1581,27 +1572,89 @@ export function getHexDistanceFromHq(tile: Tile) {
 }
 
 export function createInitialGameState(): GameState {
+  const emptyResources = {
+    food: 10,
+    energy: 10,
+    ore: 5,
+    crystals: 0,
+  }
+
   return {
     match: createMatchConfiguration({
       seed: browserMatchConfiguration.seed,
     }),
     round: 1,
-    population: 10,
-    credits: 100,
-    harvesters: 0,
-    resources: {
-      food: 10,
-      energy: 10,
-      ore: 5,
-      crystals: 0,
+    colonies: {
+      agima: {
+        id: 'agima',
+        name: 'Kolonie Agima',
+        icon: '🧑‍🚀',
+        population: 10,
+        credits: 100,
+        harvesters: 0,
+        resources: { ...emptyResources },
+        harvestersInConstruction: 0,
+        ownedTileIds: [...PLAYER_START_TILE_IDS],
+        harvesterAssignments: {},
+        freeHarvesterPool: [],
+      },
+      orion: {
+        id: 'orion',
+        name: 'Konsortium Orion',
+        icon: '🤖',
+        population: 10,
+        credits: 96,
+        resources: {
+          food: 8,
+          energy: 8,
+          ore: 6,
+          crystals: 0,
+        },
+        harvesters: 2,
+        harvestersInConstruction: 0,
+        ownedTileIds: [],
+        harvesterAssignments: {},
+        freeHarvesterPool: [],
+      },
+      nova: {
+        id: 'nova',
+        name: 'Kolonie Nova',
+        icon: '👩‍🚀',
+        population: 9,
+        credits: 112,
+        resources: {
+          food: 9,
+          energy: 8,
+          ore: 7,
+          crystals: 0,
+        },
+        harvesters: 2,
+        harvestersInConstruction: 0,
+        ownedTileIds: [],
+        harvesterAssignments: {},
+        freeHarvesterPool: [],
+      },
+      vega: {
+        id: 'vega',
+        name: 'Kolonie Vega',
+        icon: '🧑‍🚀',
+        population: 11,
+        credits: 84,
+        resources: {
+          food: 6,
+          energy: 7,
+          ore: 7,
+          crystals: 0,
+        },
+        harvesters: 3,
+        harvestersInConstruction: 0,
+        ownedTileIds: [],
+        harvesterAssignments: {},
+        freeHarvesterPool: [],
+      },
     },
-    ownedTileIds: [...PLAYER_START_TILE_IDS],
-    opponentTileIds: [],
     pendingLandBid: null,
     landAuctionTie: null,
-    harvestersInConstruction: 0,
-    harvesterAssignments: {},
-    freeHarvesterPool: [],
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,
@@ -1631,50 +1684,6 @@ export function createInitialGameState(): GameState {
         netWarehouseFlow: 0,
       },
     },
-    rivals: {
-      orion: {
-        id: 'orion',
-        name: 'Konsortium Orion',
-        icon: '🤖',
-        population: 10,
-        credits: 96,
-        resources: {
-          food: 8,
-          energy: 8,
-          ore: 6,
-          crystals: 0,
-        },
-        harvesters: 2,
-      },
-      nova: {
-        id: 'nova',
-        name: 'Kolonie Nova',
-        icon: '👩‍🚀',
-        population: 9,
-        credits: 112,
-        resources: {
-          food: 9,
-          energy: 8,
-          ore: 7,
-          crystals: 0,
-        },
-        harvesters: 2,
-      },
-      vega: {
-        id: 'vega',
-        name: 'Kolonie Vega',
-        icon: '🧑‍🚀',
-        population: 11,
-        credits: 84,
-        resources: {
-          food: 6,
-          energy: 7,
-          ore: 7,
-          crystals: 0,
-        },
-        harvesters: 3,
-      },
-    },
   }
 }
 
@@ -1686,8 +1695,9 @@ export function createPlayableInitialGameState(
   meteorSeed: number = 1,
 ): GameState {
   const state = createInitialGameState()
+  const localColony = selectLocalColony(state)
   const sharedResources = {
-    ...state.resources,
+    ...localColony.resources,
     crystals: STARTING_CRYSTALS,
   }
 
@@ -1697,32 +1707,35 @@ export function createPlayableInitialGameState(
     meteorSchedule: createMeteorSchedule(meteorSeed),
     meteorImpacts: [],
     interstellarCrystalPurchases: 0,
-    credits: STARTING_CREDITS,
-    harvesters: STARTING_HARVESTERS,
-    harvesterAssignments: {},
-    freeHarvesterPool: Array.from(
-      { length: STARTING_HARVESTERS },
-      () => ({}),
-    ),
-    resources: { ...sharedResources },
-    opponentTileIds: Object.values(rivalStartTileIds).flat(),
-    rivals: Object.fromEntries(
-      Object.entries(state.rivals).map(
-        ([id, rival]) => [
-          id,
+    colonies: Object.fromEntries(
+      participantIds.map((participantId) => {
+        const colony = state.colonies[participantId]
+
+        return [
+          participantId,
           {
-            ...rival,
-            population: state.population,
+            ...colony,
+            population: localColony.population,
             credits: STARTING_CREDITS,
             resources: { ...sharedResources },
             harvesters: STARTING_HARVESTERS,
-            ownedTileIds: [
-              ...rivalStartTileIds[id as RivalId],
-            ],
+            ownedTileIds:
+              participantId === 'agima'
+                ? [...PLAYER_START_TILE_IDS]
+                : [
+                    ...rivalStartTileIds[
+                      participantId as RivalId
+                    ],
+                  ],
+            harvesterAssignments: {},
+            freeHarvesterPool: Array.from(
+              { length: STARTING_HARVESTERS },
+              () => ({}),
+            ),
           },
-        ],
-      ),
-    ) as RivalColonies,
+        ]
+      }),
+    ) as ColoniesState,
   }
 }
 
@@ -1812,13 +1825,15 @@ function executeWarehouseTrade(
   direction: MarketDirection,
   price: number,
 ): GameState {
+  const localColony = selectLocalColony(currentState)
+
   if (!Number.isInteger(price) || price <= 0) {
     return currentState
   }
 
   if (direction === 'buy') {
     if (
-      currentState.credits < price ||
+      localColony.credits < price ||
       currentState.market[resource].warehouseStock <= 0
     ) {
       return currentState
@@ -1852,7 +1867,7 @@ function executeWarehouseTrade(
     }
   }
 
-  if (currentState.resources[resource] <= 0) {
+  if (localColony.resources[resource] <= 0) {
     return currentState
   }
 
@@ -1891,6 +1906,8 @@ export function executeMarketTrade(
   price: number,
   counterparty: MarketCounterparty = 'orion',
 ): GameState {
+  const localColony = selectLocalColony(currentState)
+
   if (counterparty === 'interstellar-buyer') {
     const buyerOffer = getInterstellarCrystalBuyerOffer(
       currentState.round,
@@ -1905,7 +1922,7 @@ export function executeMarketTrade(
       price <= 0 ||
       price > buyerOffer.offerPrice ||
       !buyerOffer.isAvailable ||
-      currentState.resources.crystals < 1
+      localColony.resources.crystals < 1
     ) {
       return currentState
     }
@@ -2078,7 +2095,7 @@ export function placeLandBid(
     !tile ||
     tile.owner !== 'free' ||
     colony.ownedTileIds.includes(tileId) ||
-    currentState.opponentTileIds.includes(tileId) ||
+    selectOpponentTileIds(currentState).includes(tileId) ||
     !colony.ownedTileIds.some((ownedTileId) =>
       areTilesAdjacent(
         targetPlanetMap,
@@ -2293,6 +2310,7 @@ export function resolveLandTieBreak(
   bids: LandTieBidState,
 ): GameState {
   const tie = currentState.landAuctionTie
+  const localColony = selectLocalColony(currentState)
 
   if (!tie) {
     return currentState
@@ -2318,7 +2336,7 @@ export function resolveLandTieBreak(
     bids.leader === 'player' &&
     (bids.playerBid < bids.orionBid ||
       bids.playerBid < playerMinimumWinningBid ||
-      currentState.credits < bids.playerBid)
+      localColony.credits < bids.playerBid)
   ) {
     return currentState
   }
@@ -2383,8 +2401,9 @@ export function calculateSupplyPreview(
   currentState: GameState,
   supplyPlan: SupplyPlan,
 ): SupplyPreview {
+  const localColony = selectLocalColony(currentState)
   const populationGroups = Math.ceil(
-    currentState.population / 10,
+    localColony.population / 10,
   )
 
   const plannedFood =
@@ -2394,12 +2413,12 @@ export function calculateSupplyPreview(
     populationGroups * supplyPlan.energyLevel
 
   const consumedFood = Math.min(
-    currentState.resources.food,
+    localColony.resources.food,
     plannedFood,
   )
 
   const consumedEnergyByHq = Math.min(
-    currentState.resources.energy,
+    localColony.resources.energy,
     plannedEnergy,
   )
 
@@ -2431,9 +2450,9 @@ export function calculateSupplyPreview(
     plannedEnergy,
     consumedFood,
     consumedEnergyByHq,
-    remainingFood: currentState.resources.food - consumedFood,
+    remainingFood: localColony.resources.food - consumedFood,
     remainingEnergyBeforeHarvesters:
-      currentState.resources.energy - consumedEnergyByHq,
+      localColony.resources.energy - consumedEnergyByHq,
     populationChange,
     hasShortage:
       consumedFood < plannedFood ||
@@ -2450,6 +2469,7 @@ export function runRound(
   nextHarvesters: HarvesterAssignments
   report: RoundReport
 } {
+  const localColony = selectLocalColony(currentState)
   const supplyPreview = calculateSupplyPreview(
     currentState,
     supplyPlan,
@@ -2462,7 +2482,7 @@ export function runRound(
   } = supplyPreview
 
   const energyAfterHq =
-    currentState.resources.energy - consumedEnergyByHq
+    localColony.resources.energy - consumedEnergyByHq
 
   const harvesterTasks: Array<{
     id: string
@@ -2686,16 +2706,14 @@ export function runRound(
         ],
       }),
     )
-    stateAfterLandAuction = {
-      ...stateAfterLandAuction,
-      rivals: {
-        ...stateAfterLandAuction.rivals,
-        orion: {
-          ...stateAfterLandAuction.rivals.orion,
-          lastLandPurchaseRound: currentState.round,
-        },
-      },
-    }
+    stateAfterLandAuction = updateColony(
+      stateAfterLandAuction,
+      'orion',
+      (colony) => ({
+        ...colony,
+        lastLandPurchaseRound: currentState.round,
+      }),
+    )
   }
 
   if (playerWonLand) {
@@ -2735,14 +2753,6 @@ export function runRound(
       GAME_ROUND_LIMIT,
       currentState.round + 1,
     ),
-    harvesterAssignments: nextHarvesters,
-    freeHarvesterPool: [
-      ...currentState.freeHarvesterPool,
-      ...Array.from(
-        { length: currentState.harvestersInConstruction },
-        () => ({}),
-      ),
-    ],
     pendingLandBid: null,
     landAuctionTie: tiedLandAuction
       ? {
@@ -2795,6 +2805,14 @@ export function runRound(
         colony.harvesters +
         colony.harvestersInConstruction,
       harvestersInConstruction: 0,
+      harvesterAssignments: nextHarvesters,
+      freeHarvesterPool: [
+        ...localColony.freeHarvesterPool,
+        ...Array.from(
+          { length: localColony.harvestersInConstruction },
+          () => ({}),
+        ),
+      ],
       resources: {
         food:
           colony.resources.food -
@@ -2829,7 +2847,7 @@ export function runRound(
       pausedRetoolingIds,
       landAuction,
       completedHarvesters:
-        currentState.harvestersInConstruction,
+        localColony.harvestersInConstruction,
       globalEvent: currentState.activeGlobalEvent,
       meteorImpact,
     },

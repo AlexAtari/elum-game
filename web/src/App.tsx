@@ -38,7 +38,9 @@ import {
   removePlayerHarvester,
   runRound,
   selectColonies,
+  selectLocalColony,
   selectOpponentTileIds,
+  selectRivalColonies,
   selectGlobalEvent,
   selectLocalEvent,
   type LocalEventId,
@@ -95,14 +97,21 @@ function App() {
   const [activeLocalEvent, setActiveLocalEvent] =
     useState<LocalEventId | null>(null)
 
-  const harvesters = gameState.harvesterAssignments
-  const freeHarvesterPool = gameState.freeHarvesterPool
-  const freeHarvesters = freeHarvesterPool.length
   const colonies = useMemo(
     () => selectColonies(gameState),
     [gameState],
   )
-  const localColony = colonies.agima
+  const localColony = useMemo(
+    () => selectLocalColony(gameState),
+    [gameState],
+  )
+  const rivals = useMemo(
+    () => selectRivalColonies(gameState),
+    [gameState],
+  )
+  const harvesters = localColony.harvesterAssignments
+  const freeHarvesterPool = localColony.freeHarvesterPool
+  const freeHarvesters = freeHarvesterPool.length
   const opponentTileIds = useMemo(
     () => selectOpponentTileIds(gameState),
     [gameState],
@@ -495,7 +504,7 @@ function App() {
             key={`${gameState.round}-${gameState.landAuctionTie.tileId}`}
             tie={gameState.landAuctionTie}
             credits={localColony.credits}
-            orion={gameState.rivals.orion}
+            orion={rivals.orion}
             roundPlayed={gameState.round}
             onComplete={completeLandTieAuction}
           />
@@ -513,7 +522,7 @@ function App() {
             interstellarCrystalPurchases={
               gameState.interstellarCrystalPurchases ?? 0
             }
-            rivals={gameState.rivals}
+            rivals={rivals}
             rivalResourceAmounts={{
               orion:
                 colonies.orion.resources[

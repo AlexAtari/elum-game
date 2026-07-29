@@ -7,6 +7,7 @@ import {
   LAND_MINIMUM_BID,
   MARKET_PRICES,
   placeLandBid,
+  selectRivalColonies,
   tiles,
   type GameState,
 } from './game'
@@ -31,7 +32,7 @@ export function applyStrategicOrionBid(
   const decision = createSealedLandBidDecision(
     {
       round: currentState.round,
-      colony: currentState.rivals.orion,
+      colony: selectRivalColonies(currentState).orion,
       referencePrices: MARKET_PRICES,
       legalActions: {
         harvesterBuild: {

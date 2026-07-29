@@ -9,8 +9,11 @@ import {
   advanceRivalColonies,
   createPlayableInitialGameState,
   playableMarketResources,
+  selectLocalColony,
+  selectRivalColonies,
   tiles,
   type GameState,
+  type CanonicalRivalColonyState,
   type MarketResource,
   type ProductionType,
   type Resources,
@@ -259,13 +262,27 @@ function cloneMarketValues(
   return { ...values }
 }
 
+function toCanonicalRival(
+  colony: RivalColonyState,
+): CanonicalRivalColonyState {
+  return {
+    ...colony,
+    harvestersInConstruction:
+      colony.harvestersInConstruction ?? 0,
+    ownedTileIds: colony.ownedTileIds ?? [],
+    harvesterAssignments:
+      colony.harvesterAssignments ?? {},
+    freeHarvesterPool: colony.freeHarvesterPool ?? [],
+  }
+}
+
 function getSimulationColony(
   state: InternalSimulationState,
   participantId: SimulationParticipantId,
 ): RivalColonyState {
   return participantId === 'agima'
     ? state.agima
-    : state.game.rivals[participantId]
+    : selectRivalColonies(state.game)[participantId]
 }
 
 function updateSimulationColony(
@@ -283,23 +300,29 @@ function updateSimulationColony(
       agima,
       game: {
         ...state.game,
-        population: agima.population,
-        credits: agima.credits,
-        resources: cloneResources(agima.resources),
+        colonies: {
+          ...state.game.colonies,
+          agima: {
+            ...state.game.colonies.agima,
+            population: agima.population,
+            credits: agima.credits,
+            resources: cloneResources(agima.resources),
+          },
+        },
       },
     }
   }
 
   const rival = update(
-    state.game.rivals[participantId],
+    selectRivalColonies(state.game)[participantId],
   )
 
   return {
     ...state,
     game: {
       ...state.game,
-      rivals: {
-        ...state.game.rivals,
+      colonies: {
+        ...state.game.colonies,
         [participantId]: rival,
       },
     },
@@ -1191,13 +1214,15 @@ function createAgimaAgent(
 ): RivalColonyState {
   return applyStartingLand(
     {
-      ...game.rivals.orion,
+      ...selectRivalColonies(game).orion,
       id: 'orion',
       name: 'Agima',
       icon: '🧑‍🚀',
-      population: game.population,
-      credits: game.credits,
-      resources: cloneResources(game.resources),
+      population: selectLocalColony(game).population,
+      credits: selectLocalColony(game).credits,
+      resources: cloneResources(
+        selectLocalColony(game).resources,
+      ),
       harvesters: STARTING_HARVESTERS,
     },
     startingLand,
@@ -1267,7 +1292,7 @@ function applySimulationMeteorImpact(
     state.game.meteorImpacts ?? []
   const soldTileIds = [
     ...(state.agima.ownedTileIds ?? []),
-    ...Object.values(state.game.rivals).flatMap(
+    ...Object.values(selectRivalColonies(state.game)).flatMap(
       (rival) => rival.ownedTileIds ?? [],
     ),
   ]
@@ -1299,10 +1324,10 @@ function applyAgimaLandPurchase(
 ): InternalSimulationState {
   const decisionState: GameState = {
     ...state.game,
-    rivals: {
-      ...state.game.rivals,
+    colonies: {
+      ...state.game.colonies,
       orion: {
-        ...state.agima,
+        ...toCanonicalRival(state.agima),
         id: 'orion',
         ownedTileIds: [
           ...(state.agima.ownedTileIds ?? []),
@@ -1327,10 +1352,16 @@ function applyAgimaLandPurchase(
     ...state,
     game: {
       ...state.game,
-      ownedTileIds: [
-        ...state.game.ownedTileIds,
-        decision.tileId,
-      ],
+      colonies: {
+        ...state.game.colonies,
+        agima: {
+          ...state.game.colonies.agima,
+          ownedTileIds: [
+            ...state.game.colonies.agima.ownedTileIds,
+            decision.tileId,
+          ],
+        },
+      },
     },
     agima: {
       ...state.agima,
@@ -1419,17 +1450,17 @@ function createRoundSnapshot(
       ),
       orion: createParticipantSnapshot(
         'orion',
-        state.game.rivals.orion,
+        selectRivalColonies(state.game).orion,
         state.market.prices.crystals,
       ),
       nova: createParticipantSnapshot(
         'nova',
-        state.game.rivals.nova,
+        selectRivalColonies(state.game).nova,
         state.market.prices.crystals,
       ),
       vega: createParticipantSnapshot(
         'vega',
-        state.game.rivals.vega,
+        selectRivalColonies(state.game).vega,
         state.market.prices.crystals,
       ),
     },
@@ -1549,29 +1580,45 @@ function createInitialSimulationState(
   })
   const rivals: RivalColonies = {
     orion: applyStartingLand(
-      withInitialCrystals(baseGame.rivals.orion),
+      withInitialCrystals(
+        selectRivalColonies(baseGame).orion,
+      ),
       startingLand.orion,
     ),
     nova: applyStartingLand(
-      withInitialCrystals(baseGame.rivals.nova),
+      withInitialCrystals(
+        selectRivalColonies(baseGame).nova,
+      ),
       startingLand.nova,
     ),
     vega: applyStartingLand(
-      withInitialCrystals(baseGame.rivals.vega),
+      withInitialCrystals(
+        selectRivalColonies(baseGame).vega,
+      ),
       startingLand.vega,
     ),
   }
   const game: GameState = {
     ...baseGame,
-    ownedTileIds: [
-      ...startingLand.agima.tileIds,
-    ],
-    opponentTileIds: [
-      ...startingLand.orion.tileIds,
-      ...startingLand.nova.tileIds,
-      ...startingLand.vega.tileIds,
-    ],
-    rivals,
+    colonies: {
+      ...baseGame.colonies,
+      agima: {
+        ...baseGame.colonies.agima,
+        ownedTileIds: [...startingLand.agima.tileIds],
+      },
+      orion: {
+        ...toCanonicalRival(rivals.orion),
+        id: 'orion',
+      },
+      nova: {
+        ...toCanonicalRival(rivals.nova),
+        id: 'nova',
+      },
+      vega: {
+        ...toCanonicalRival(rivals.vega),
+        id: 'vega',
+      },
+    },
   }
 
   const market: SimulationMarketState = {
@@ -1635,7 +1682,7 @@ function advanceSimulationRound(
         lastRoundMarketTransactions: [],
       }
   const nextRivals = advanceRivalColonies(
-    withMarket.game.rivals,
+    selectRivalColonies(withMarket.game),
     round,
     null,
     withMarket.game.meteorImpacts,
@@ -1654,12 +1701,27 @@ function advanceSimulationRound(
         GAME_ROUND_LIMIT,
         round + 1,
       ),
-      population: nextAgima.population,
-      credits: nextAgima.credits,
-      resources: cloneResources(
-        nextAgima.resources,
-      ),
-      rivals: nextRivals,
+      colonies: {
+        ...withMarket.game.colonies,
+        agima: {
+          ...withMarket.game.colonies.agima,
+          population: nextAgima.population,
+          credits: nextAgima.credits,
+          resources: cloneResources(nextAgima.resources),
+        },
+        orion: {
+          ...toCanonicalRival(nextRivals.orion),
+          id: 'orion',
+        },
+        nova: {
+          ...toCanonicalRival(nextRivals.nova),
+          id: 'nova',
+        },
+        vega: {
+          ...toCanonicalRival(nextRivals.vega),
+          id: 'vega',
+        },
+      },
     },
     agima: nextAgima,
   }, round)

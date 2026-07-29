@@ -193,12 +193,12 @@ describe('Orions Harvester-Zuweisungen', () => {
     )
     expect(freeTile).toBeDefined()
 
-    state.rivals.orion.credits = 0
-    state.rivals.orion.ownedTileIds = [freeTile!.id]
-    state.rivals.orion.lastLandPurchaseRound = 2
+    state.colonies.orion.credits = 0
+    state.colonies.orion.ownedTileIds = [freeTile!.id]
+    state.colonies.orion.lastLandPurchaseRound = 2
 
     const next = advanceRivalColonies(
-      state.rivals,
+      state.colonies,
       3,
       null,
     )

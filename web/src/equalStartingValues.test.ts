@@ -4,19 +4,20 @@ import {
   STARTING_CRYSTALS,
   STARTING_HARVESTERS,
   createPlayableInitialGameState,
+  selectOpponentTileIds,
 } from './game'
 
 describe('Gleiche Startwerte aller Spieler', () => {
   it('startet Agima, Orion, Nova und Vega wirtschaftlich identisch', () => {
     const state = createPlayableInitialGameState()
 
-    expect(state.credits).toBe(STARTING_CREDITS)
-    expect(state.harvesters).toBe(STARTING_HARVESTERS)
+    expect(state.colonies.agima.credits).toBe(STARTING_CREDITS)
+    expect(state.colonies.agima.harvesters).toBe(STARTING_HARVESTERS)
 
-    for (const rival of Object.values(state.rivals)) {
-      expect(rival.credits).toBe(state.credits)
-      expect(rival.population).toBe(state.population)
-      expect(rival.resources).toEqual(state.resources)
+    for (const rival of Object.values(state.colonies)) {
+      expect(rival.credits).toBe(state.colonies.agima.credits)
+      expect(rival.population).toBe(state.colonies.agima.population)
+      expect(rival.resources).toEqual(state.colonies.agima.resources)
       expect(rival.harvesters).toBe(
         STARTING_HARVESTERS,
       )
@@ -30,10 +31,10 @@ describe('Gleiche Startwerte aller Spieler', () => {
 
     const state = createPlayableInitialGameState()
 
-    expect(state.resources.crystals).toBe(
+    expect(state.colonies.agima.resources.crystals).toBe(
       STARTING_CRYSTALS,
     )
-    for (const rival of Object.values(state.rivals)) {
+    for (const rival of Object.values(state.colonies)) {
       expect(rival.resources.crystals).toBe(
         STARTING_CRYSTALS,
       )
@@ -43,28 +44,30 @@ describe('Gleiche Startwerte aller Spieler', () => {
   it('teilt keine veränderbaren Ressourcenobjekte', () => {
     const state = createPlayableInitialGameState()
 
-    expect(state.rivals.orion.resources).not.toBe(
-      state.resources,
+    expect(state.colonies.orion.resources).not.toBe(
+      state.colonies.agima.resources,
     )
-    expect(state.rivals.nova.resources).not.toBe(
-      state.rivals.orion.resources,
+    expect(state.colonies.nova.resources).not.toBe(
+      state.colonies.orion.resources,
     )
-    expect(state.rivals.vega.resources).not.toBe(
-      state.rivals.nova.resources,
+    expect(state.colonies.vega.resources).not.toBe(
+      state.colonies.nova.resources,
     )
   })
 
   it('gibt jeder Kolonie genau zwei eigene Startfelder', () => {
     const state = createPlayableInitialGameState()
-    const rivalTileIds = Object.values(state.rivals).flatMap(
-      (rival) => rival.ownedTileIds ?? [],
+    const rivalTileIds = (
+      ['orion', 'nova', 'vega'] as const
+    ).flatMap(
+      (rivalId) => state.colonies[rivalId].ownedTileIds,
     )
 
-    expect(state.ownedTileIds).toHaveLength(2)
+    expect(state.colonies.agima.ownedTileIds).toHaveLength(2)
     expect(rivalTileIds).toHaveLength(6)
-    expect(state.opponentTileIds).toEqual(rivalTileIds)
+    expect(selectOpponentTileIds(state)).toEqual(rivalTileIds)
     expect(
-      new Set([...state.ownedTileIds, ...rivalTileIds]).size,
+      new Set([...state.colonies.agima.ownedTileIds, ...rivalTileIds]).size,
     ).toBe(8)
   })
 })

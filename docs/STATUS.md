@@ -30,6 +30,11 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   der versionierten Match-Konfiguration
 - gemeinsamer `ColonyState`-Grundtyp und symmetrische,
   UI-unabhängige Leseansicht auf Agima, Orion, Nova und Vega
+- eine kanonische, serialisierbare `GameState.colonies`-Map als
+  einzige dynamische Zustandsquelle aller vier Kolonien
+- frühere Agima-Wirtschaftsfelder auf der Spielzustandswurzel, der
+  separate `rivals`-Record und die gespeicherte
+  `opponentTileIds`-Kopie sind entfernt; Gegnerbesitz wird abgeleitet
 - Harvester-Gesamtzahl, freie Harvester und sämtliche
   Spielerzuweisungen liegen im serialisierbaren Spielzustand statt
   in getrennten React-Zuständen
@@ -204,18 +209,16 @@ Patchdateien sind nicht automatisch Teil des Projektstands.
 
 Nach UI- und Dokumentationsarbeiten:
 
-1. die alte physische Trennung von Agima-Feldern und `rivals` durch
-   eine kanonische `colonies`-Map ersetzen,
-2. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
+1. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
-3. Produktions- und Marktentscheidungen stärker differenzieren,
+2. Produktions- und Marktentscheidungen stärker differenzieren,
    damit Angebot und Nachfrage nicht synchron verlaufen,
-4. Versorgungssignale reduzieren, ohne das HQ-Sicherheitsnetz
+3. Versorgungssignale reduzieren, ohne das HQ-Sicherheitsnetz
    pauschal zu vergrößern,
-5. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
+4. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
    dass Kristalladern
    innerhalb von 20 Runden tatsächlich erreichbar werden,
-6. Karten- und Ereignisbalancing mit Playtests prüfen.
+5. Karten- und Ereignisbalancing mit Playtests prüfen.
 
 ## Später, nicht Teil des aktuellen Kerns
 

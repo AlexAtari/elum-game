@@ -12,6 +12,9 @@ import {
   LAND_MINIMUM_BID,
   MARKET_PRICES,
   isLandBidBlocked,
+  selectLocalColony,
+  selectOpponentTileIds,
+  selectRivalColonies,
   tiles,
   updateColony,
   type GameState,
@@ -33,9 +36,11 @@ function createAgentContext(
   rivalId: RivalId,
   landCandidates: AgentLandCandidate[],
 ): AgentContext {
+  const rival = selectRivalColonies(currentState)[rivalId]
+
   return {
     round: currentState.round,
-    colony: currentState.rivals[rivalId],
+    colony: rival,
     referencePrices: MARKET_PRICES,
     legalActions: {
       harvesterBuild: {
@@ -44,9 +49,7 @@ function createAgentContext(
       },
       harvesterEnergyCost: 1,
       hasIdleHarvester:
-        currentState.rivals[rivalId].harvesters >
-        (currentState.rivals[rivalId].ownedTileIds?.length ??
-          0),
+        rival.harvesters > (rival.ownedTileIds?.length ?? 0),
       landCandidates,
     },
   }
@@ -68,7 +71,7 @@ export function getAutonomousRivalLandDecision(
   currentState: GameState,
   rivalId: RivalId,
 ): AgentSealedLandBidDecision | null {
-  const rival = currentState.rivals[rivalId]
+  const rival = selectRivalColonies(currentState)[rivalId]
   const rivalTileIds = rival.ownedTileIds ?? []
 
   if (
@@ -84,8 +87,8 @@ export function getAutonomousRivalLandDecision(
   }
 
   const occupiedTileIds = new Set([
-    ...currentState.ownedTileIds,
-    ...currentState.opponentTileIds,
+    ...selectLocalColony(currentState).ownedTileIds,
+    ...selectOpponentTileIds(currentState),
   ])
   const rivalTiles = tiles.filter((tile) =>
     rivalTileIds.includes(tile.id),
@@ -163,12 +166,12 @@ export function applyAutonomousRivalLandPurchase(
     return currentState
   }
 
-  const rival = currentState.rivals[rivalId]
+  const rival = selectRivalColonies(currentState)[rivalId]
 
   if (
     decision.bid <= 0 ||
     decision.bid > rival.credits ||
-    currentState.opponentTileIds.includes(
+    selectOpponentTileIds(currentState).includes(
       decision.tileId,
     )
   ) {
@@ -188,16 +191,14 @@ export function applyAutonomousRivalLandPurchase(
     }),
   )
 
-  return {
-    ...stateAfterPurchase,
-    rivals: {
-      ...stateAfterPurchase.rivals,
-      [rivalId]: {
-        ...stateAfterPurchase.rivals[rivalId],
-        lastLandPurchaseRound: currentState.round,
-      },
-    },
-  }
+  return updateColony(
+    stateAfterPurchase,
+    rivalId,
+    (colony) => ({
+      ...colony,
+      lastLandPurchaseRound: currentState.round,
+    }),
+  )
 }
 
 export function applyAutonomousRivalLandPurchases(

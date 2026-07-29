@@ -103,19 +103,19 @@ Regeln, Kosten und Aktionsgrenzen verwenden.
 - eine versionierte, vollständig JSON-serialisierbare Konfiguration,
 - seedbasierte Startkorridore mit genau zwei Feldern je Teilnehmer.
 
-`GameState.match` führt diese Konfiguration im Browserzustand mit. Sie
-ist zunächst bewusst nur unveränderliche Partiemetadaten. Der noch
-asymmetrische dynamische Zustand von Agima und den drei Rivalen wird
-in einem eigenen Folgeschritt migriert, damit während der Umstellung
-keine zwei veränderbaren Zustandsquellen entstehen.
+`GameState.match` führt diese Konfiguration im Browserzustand mit.
+`GameState.colonies` ist die einzige gespeicherte Quelle für die
+dynamischen Daten aller vier Sitze. Bevölkerung, Credits, Ressourcen,
+Harvester, Bauaufträge, Grundstücke und Harvesterzuweisungen liegen
+dort teilnehmerbezogen. Frühere Agima-Felder auf der Wurzel,
+`opponentTileIds` und der separate `rivals`-Record wurden entfernt.
+Gegnerischer Besitz wird bei Bedarf aus der Kolonie-Map abgeleitet.
 
-`ColonyEconomyState` definiert inzwischen die gemeinsamen
-Wirtschaftsfelder aller Kolonien. `selectColonies` normalisiert den
-bestehenden Browserzustand zu einer einheitlichen
-`Record<ParticipantId, ColonyState>`-Leseansicht. Statusanzeige,
-Karte und Rangliste lesen Agima und die Rivalen dadurch über dieselbe
-Struktur. Die Leseansicht wird bei Bedarf erzeugt und ist keine zweite
-gespeicherte Zustandsquelle.
+`ColonyEconomyState` definiert die gemeinsamen Wirtschaftsfelder.
+`selectColonies`, `selectLocalColony` und `selectRivalColonies`
+stellen gezielte Leseansichten auf der kanonischen Map bereit.
+Statusanzeige, Karte, Markt und Rangliste lesen damit ohne
+Zustandskopien.
 
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
@@ -123,16 +123,10 @@ Entfernen laufen über reine Funktionen in `game.ts`; React hält davon
 keine eigene Kopie mehr. Dadurch enthält ein serialisierter
 Browserzustand erstmals den vollständigen Harvesterstand von Agima.
 
-Die ersten gemeinsamen Schreibpfade sind im folgenden Schritt
-ergänzt. Ein einheitliches Harvester-Zuweisungsmodell für alle vier
-Kolonien bleibt weiterhin offen.
-
 `updateColony` bildet inzwischen die zentrale Schreibgrenze für die
 dynamischen Grunddaten eines beliebigen Teilnehmers. Der Aufrufer
-arbeitet immer mit demselben `ColonyState`; die Funktion kapselt
-vorübergehend noch die unterschiedliche physische Ablage von Agima
-und den Rivalen. Bei Rivalenbesitz leitet sie zusätzlich die
-kompatible Liste aller gegnerischen Felder neu ab.
+arbeitet immer mit demselben `ColonyState`; die Funktion ersetzt
+atomar genau den betreffenden Eintrag in `GameState.colonies`.
 
 Darauf bauen `addColonyOwnedTile` und `executeColonyTrade` auf.
 Letztere überträgt Credits und genau eine Ressourceneinheit atomar
@@ -153,12 +147,17 @@ die zusätzlichen Diagnosefelder der KI. Browserpartie und Simulation
 verwenden damit weiterhin dieselben Rivalenregeln, ohne ihre
 Zustandscontainer zu vermischen.
 
-Die wirtschaftlichen Browser-Schreibpfade sind damit hinter der
-gemeinsamen Grenze gekapselt. Als nächster Strukturwechsel kann die
-alte physische Trennung der Agima-Grundfelder und des `rivals`-Records
-durch eine einzige kanonische `colonies`-Map ersetzt werden. Das
-aktuelle Modell der grafischen Auktion bleibt bis zu seiner späteren
-Mehrbieter-Erweiterung noch auf Agima und Orion zugeschnitten.
+Browser- und Simulationsadapter greifen auf gespeicherten
+Browserzustand nur noch über `colonies` oder die Selektoren zu. Die
+Headless-Simulation behält ihren eigenen internen Agima-Agentenstand,
+spiegelt ihn an ihrer Browserzustandsgrenze jedoch ebenfalls in die
+kanonische Map. Das aktuelle Modell der grafischen Auktion bleibt bis
+zu seiner späteren Mehrbieter-Erweiterung noch auf Agima und Orion
+zugeschnitten.
+
+Als nächster Strukturbaustein sollen Spielaktionen als validierte,
+UI-unabhängige Befehle modelliert werden. Danach kann auch der
+verbleibende Kernzufall reproduzierbar über den Match-Seed laufen.
 
 Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.
 Nicht menschlich belegte Sitze können mit den vorhandenen KI-Profilen

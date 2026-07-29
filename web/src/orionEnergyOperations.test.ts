@@ -74,20 +74,20 @@ describe('Orions Harvester-Energie', () => {
 
     expect(freeTiles).toHaveLength(2)
 
-    state.rivals.orion.credits = 0
-    state.rivals.orion.population = 10
-    state.rivals.orion.resources.energy = 10
-    state.rivals.orion.ownedTileIds = freeTiles.map(
+    state.colonies.orion.credits = 0
+    state.colonies.orion.population = 10
+    state.colonies.orion.resources.energy = 10
+    state.colonies.orion.ownedTileIds = freeTiles.map(
       (tile) => tile.id,
     )
-    state.rivals.orion.lastLandPurchaseRound = 1
-    state.rivals.orion.harvesterAssignments = {
+    state.colonies.orion.lastLandPurchaseRound = 1
+    state.colonies.orion.harvesterAssignments = {
       [freeTiles[0].id]: 'food',
       [freeTiles[1].id]: 'ore',
     }
 
     const next = advanceRivalColonies(
-      state.rivals,
+      state.colonies,
       3,
       null,
     )
@@ -112,21 +112,21 @@ describe('Orions Harvester-Energie', () => {
       freeTiles.find((tile) => tile.id !== energyTile.id) ??
       freeTiles[1]
 
-    state.rivals.orion.credits = 0
-    state.rivals.orion.population = 10
-    state.rivals.orion.resources.energy = 3
-    state.rivals.orion.ownedTileIds = [
+    state.colonies.orion.credits = 0
+    state.colonies.orion.population = 10
+    state.colonies.orion.resources.energy = 3
+    state.colonies.orion.ownedTileIds = [
       energyTile.id,
       otherTile.id,
     ]
-    state.rivals.orion.lastLandPurchaseRound = 1
-    state.rivals.orion.harvesterAssignments = {
+    state.colonies.orion.lastLandPurchaseRound = 1
+    state.colonies.orion.harvesterAssignments = {
       [energyTile.id]: 'energy',
       [otherTile.id]: 'ore',
     }
 
     const next = advanceRivalColonies(
-      state.rivals,
+      state.colonies,
       3,
       null,
     )
