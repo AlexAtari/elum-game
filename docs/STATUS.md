@@ -40,6 +40,16 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   in getrennten React-Zuständen
 - UI-unabhängige Zustandsoperationen für Einsetzen, Umrüsten und
   Entfernen der Spieler-Harvester
+- versionierte, vollständig serialisierbare Kommandoschicht für
+  Harvester einsetzen, Produktion ändern, Harvester entfernen und
+  Harvesterbau beauftragen
+- Laufzeitprüfung von Kommandoformat, Teilnehmer, erwarteter Runde
+  und Aktionslegalität; erfolgreiche Kommando-IDs werden begrenzt im
+  Spielzustand gespeichert und dadurch höchstens einmal ausgeführt
+- dieselben teilnehmerbezogenen Kommandooperationen funktionieren
+  für lokale und entfernte menschliche Sitze; die React-Oberfläche
+  sendet ihre vier Harvester-/Bauaktionen bereits ausschließlich
+  über diese Grenze
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -147,6 +157,16 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - seedbasierte Meteore und kapazitätsbegrenzter interstellarer
   Kristallkäufer in der Headless-Simulation
 - GitHub-Pages-Deployment mit Test, Lint und Build
+
+## Nächster Architekturbaustein
+
+Grundstücks- und Ressourcenauktionen laufen noch über ihre bisherigen
+direkten Agima-/Orion-Pfade. Vor ihrer Aufnahme in die Kommandoschicht
+müssen Gebote, Marktrollen und Auktionszustände von den beiden fest
+verdrahteten Teilnehmern gelöst und auf beliebige Match-Sitze
+verallgemeinert werden. Die Autorisierung, welcher Netzwerkclient
+welchen `participantId` senden darf, gehört anschließend in den
+Transport-/Serveradapter und nicht in das Kommandoformat selbst.
 
 ## Grundstücksauktion – aktueller Sollstand
 

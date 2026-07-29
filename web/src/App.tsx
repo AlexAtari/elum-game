@@ -16,13 +16,11 @@ import { applyAutonomousRivalLandPurchases } from './rivalAutonomousLand'
 import { placeStrategicOrionLandBid } from './orionLandBid'
 import {
   activateGlobalEvent,
-  assignPlayerHarvester,
   applyLocalEvent,
   beginLandTieBreak,
   cancelLandBid,
   calculateSupplyPreview,
   completeResourceMarket,
-  changePlayerHarvesterProduction,
   createLeaderboardEntries,
   executeMarketTrade,
   getRoundsUntilSupplyShip,
@@ -34,9 +32,7 @@ import {
   isHarvesterRetoolingBlocked,
   isLandBidBlocked,
   isMarketInitiationBlocked,
-  orderHarvesterBuild,
   resolveLandTieBreak,
-  removePlayerHarvester,
   runRound,
   selectColonies,
   selectLocalColony,
@@ -56,6 +52,10 @@ import {
   createPlayableInitialGameState,
   HARVESTER_ORE_COST,
 } from './game'
+import {
+  executeGameCommand,
+  type GameCommandAction,
+} from './gameCommands'
 import { useI18n } from './i18n/I18nContext'
 import './App.css'
 
@@ -77,6 +77,13 @@ type PendingRound = {
 }
 
 type PlanningView = 'colony' | 'headquarters'
+
+let clientCommandSequence = 0
+
+function createClientCommandId() {
+  clientCommandSequence += 1
+  return `local-${Date.now()}-${clientCommandSequence}`
+}
 
 function App() {
   const { number, t } = useI18n()
@@ -221,32 +228,49 @@ function App() {
     showRoundBriefing,
   ])
 
+  const dispatchPlayerCommand = useCallback(
+    (action: GameCommandAction) => {
+      const command = {
+        ...action,
+        version: 1,
+        commandId: createClientCommandId(),
+        participantId: 'agima',
+        expectedRound: gameState.round,
+      } as const
+
+      setGameState(
+        (currentState) =>
+          executeGameCommand(currentState, command).state,
+      )
+    },
+    [gameState.round],
+  )
+
   const assignHarvester = (
     tileId: string,
     production: ProductionType,
   ) => {
-    setGameState((currentState) =>
-      assignPlayerHarvester(currentState, tileId, production),
-    )
+    dispatchPlayerCommand({
+      type: 'assign-harvester',
+      payload: { tileId, production },
+    })
   }
 
   const changeHarvesterProduction = (
     tileId: string,
     production: ProductionType,
   ) => {
-    setGameState((currentState) =>
-      changePlayerHarvesterProduction(
-        currentState,
-        tileId,
-        production,
-      ),
-    )
+    dispatchPlayerCommand({
+      type: 'change-harvester-production',
+      payload: { tileId, production },
+    })
   }
 
   const removeHarvester = (tileId: string) => {
-    setGameState((currentState) =>
-      removePlayerHarvester(currentState, tileId),
-    )
+    dispatchPlayerCommand({
+      type: 'remove-harvester',
+      payload: { tileId },
+    })
   }
 
   const submitLandBid = (tileId: string, amount: number) => {
@@ -260,7 +284,10 @@ function App() {
   }
 
   const buildHarvester = () => {
-    setGameState(orderHarvesterBuild)
+    dispatchPlayerCommand({
+      type: 'order-harvester-build',
+      payload: {},
+    })
   }
 
   const tradeMarketResource = useCallback(

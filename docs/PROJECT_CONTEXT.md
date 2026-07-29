@@ -267,6 +267,13 @@ werden.
   Agima-Wurzelfelder und der separate `rivals`-Record sind entfernt
 - vollständiger Harvesterstand einschließlich freier Harvester und
   Zuweisungen teilnehmerbezogen im serialisierbaren `GameState`
+- erste validierte, UI-unabhängige Kommandoschicht aktiv:
+  teilnehmerbezogene Harvesterzuweisung, Produktionsänderung,
+  Entfernung und Bauauftrag; React verwendet bereits denselben
+  serialisierbaren Pfad wie spätere entfernte Eingaben
+- Kommandos tragen Version, eindeutige ID, Teilnehmer und erwartete
+  Runde; erfolgreiche IDs werden für höchstens-einmal-Ausführung im
+  Spielzustand gespeichert
 - teilnehmerbezogene Kristall-Exploration: Kauf in Runde N,
   verborgene Exploration in N+1, Offenlegung und Förderung ab N+2
 - Infosheet meldet abgeschlossene Explorationen beim Eintritt in
@@ -291,8 +298,9 @@ werden.
   Koloniegrenze
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Spielaktionen als validierte,
-  UI-unabhängige Befehle abbilden und den verbleibenden Kernzufall
+- nächster Strukturschritt: Grundstücks- und Marktauktionen auf
+  beliebige Teilnehmer verallgemeinern und anschließend ebenfalls
+  als Kommandos führen; danach den verbleibenden Kernzufall
   vollständig seedbasiert ausführen
 
 ### Nächster Regelstand

@@ -117,6 +117,46 @@ stellen gezielte Leseansichten auf der kanonischen Map bereit.
 Statusanzeige, Karte, Markt und Rangliste lesen damit ohne
 Zustandskopien.
 
+### Validierte Spielkommandos
+
+`gameCommands.ts` bildet die erste UI- und transport-unabhängige
+Schreibgrenze für Spielerentscheidungen. Ein `GameCommand` enthält:
+
+- Protokollversion `1`,
+- eine bis 128 Zeichen lange `commandId`,
+- den handelnden `participantId`,
+- die vom Absender erwartete Runde,
+- einen diskriminierten Aktionstyp mit geprüftem Payload.
+
+`parseGameCommand` nimmt ausdrücklich `unknown` entgegen und erzeugt
+aus zulässigen Eingaben ein normalisiertes, serialisierbares
+Kommando. Fremde Objektfelder werden nicht in das normalisierte
+Kommando übernommen. `executeGameCommand` lehnt fehlerhafte,
+veraltete, doppelte oder nach den Kernregeln illegale Aktionen mit
+einem stabilen Fehlercode ab. Nur erfolgreiche Kommandos erzeugen
+einen neuen `GameState`; ihre IDs werden in
+`processedCommandIds` gespeichert. Die Liste ist auf die letzten 512
+Erfolge begrenzt.
+
+Die erste geschlossene Kommandogruppe umfasst:
+
+- Harvester aus dem freien Pool einsetzen,
+- Harvesterproduktion ändern,
+- Harvester vom Grundstück entfernen,
+- Harvesterbau beauftragen.
+
+Die zugrunde liegenden Operationen in `game.ts` akzeptieren einen
+beliebigen `ParticipantId`. Agima-Wrapper bleiben für bestehende
+Headless-Aufrufer kompatibel. `App.tsx` erzeugt für sichtbare
+Spielereingaben nur noch die vier entsprechenden Kommandos. Ob ein
+Kommando lokal oder über das Netzwerk eintrifft, verändert seine
+Validierung und Ausführung nicht.
+
+Die Identität eines Netzwerkclients darf später nicht aus dem
+Kommando selbst vertraut werden. Ein Server-/Transportadapter muss
+den authentifizierten Sitz mit `participantId` abgleichen, bevor er
+das Kommando an diese Schicht übergibt.
+
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
 Entfernen laufen über reine Funktionen in `game.ts`; React hält davon
@@ -163,8 +203,11 @@ kanonische Map. Das aktuelle Modell der grafischen Auktion bleibt bis
 zu seiner späteren Mehrbieter-Erweiterung noch auf Agima und Orion
 zugeschnitten.
 
-Als nächster Strukturbaustein sollen Spielaktionen als validierte,
-UI-unabhängige Befehle modelliert werden. Danach kann auch der
+Grundstücks- und Ressourcenauktionen sind noch nicht Teil dieser
+Schicht: Ihr aktuelles Zustandsmodell ist weiterhin auf Agima und
+Orion zugeschnitten. Zuerst werden Gebote, Marktrollen und
+Auktionszustände teilnehmerneutral modelliert; anschließend können
+auch sie denselben Kommandopfad verwenden. Danach kann der
 verbleibende Kernzufall reproduzierbar über den Match-Seed laufen.
 
 Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.

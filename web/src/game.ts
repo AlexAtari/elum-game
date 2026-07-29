@@ -182,6 +182,7 @@ export type ColoniesState = {
 export type GameState = {
   match: MatchConfiguration
   round: number
+  processedCommandIds?: string[]
   colonies: ColoniesState
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
@@ -669,38 +670,134 @@ export function isLandBidBlocked(
 export function isHarvesterBuildBlocked(
   currentState: GameState,
 ): boolean {
+  return isColonyHarvesterBuildBlocked(
+    currentState,
+    'agima',
+  )
+}
+
+export function isColonyHarvesterBuildBlocked(
+  currentState: GameState,
+  participantId: ParticipantId,
+): boolean {
   return (
     currentState.activeGlobalEvent ===
       'supply-chain-disruption' ||
-    currentState.activeLocalEvent === 'labor-strike'
+    (participantId === 'agima' &&
+      currentState.activeLocalEvent === 'labor-strike')
   )
 }
 
 export function isHarvesterRetoolingBlocked(
   currentState: GameState,
 ): boolean {
+  return isColonyHarvesterRetoolingBlocked(
+    currentState,
+    'agima',
+  )
+}
+
+export function isColonyHarvesterRetoolingBlocked(
+  currentState: GameState,
+  participantId: ParticipantId,
+): boolean {
   return (
     currentState.activeGlobalEvent === 'ion-fog' ||
-    currentState.activeLocalEvent === 'wrong-spare-parts'
+    (participantId === 'agima' &&
+      currentState.activeLocalEvent === 'wrong-spare-parts')
   )
 }
 
 export function isHarvesterRelocationBlocked(
   currentState: GameState,
 ): boolean {
-  return currentState.activeGlobalEvent === 'ion-fog'
+  return isColonyHarvesterRelocationBlocked(
+    currentState,
+    'agima',
+  )
 }
 
-export function assignPlayerHarvester(
+export function isColonyHarvesterRelocationBlocked(
   currentState: GameState,
+  participantId: ParticipantId,
+): boolean {
+  return (
+    !participantIds.includes(participantId) ||
+    currentState.activeGlobalEvent === 'ion-fog'
+  )
+}
+
+function normalizeColonyHarvesterAssignments(
+  assignments: ColonyState['harvesterAssignments'],
+): HarvesterAssignments {
+  return Object.fromEntries(
+    Object.entries(assignments).map(([tileId, assignment]) => [
+      tileId,
+      typeof assignment === 'string'
+        ? {
+            production: assignment,
+            isNew: false,
+          }
+        : assignment,
+    ]),
+  )
+}
+
+function canColonyUseProduction(
+  currentState: GameState,
+  participantId: ParticipantId,
+  tileId: string,
+  production: ProductionType,
+) {
+  const tile = tiles.find((candidate) => candidate.id === tileId)
+
+  if (
+    !tile ||
+    !selectColonies(currentState)[participantId].ownedTileIds.includes(
+      tileId,
+    )
+  ) {
+    return false
+  }
+
+  return (
+    production !== 'crystals' ||
+    (isColonyCrystalDiscovered(
+      currentState,
+      participantId,
+      tileId,
+    ) &&
+      getEffectiveCrystalRating(
+        tileId,
+        targetCrystalRatings,
+        currentState.meteorImpacts ?? [],
+      ) > 0)
+  )
+}
+
+export function assignColonyHarvester(
+  currentState: GameState,
+  participantId: ParticipantId,
   tileId: string,
   production: ProductionType,
 ): GameState {
-  const localColony = selectLocalColony(currentState)
-  const currentHarvesters = localColony.harvesterAssignments
-  const currentPool = localColony.freeHarvesterPool
+  const colony = selectColonies(currentState)[participantId]
+  const currentHarvesters =
+    normalizeColonyHarvesterAssignments(
+      colony.harvesterAssignments,
+    )
+  const currentPool = colony.freeHarvesterPool
 
-  if (currentPool.length <= 0 || currentHarvesters[tileId]) {
+  if (
+    !canColonyUseProduction(
+      currentState,
+      participantId,
+      tileId,
+      production,
+    ) ||
+    currentPool.length <= 0 ||
+    currentHarvesters[tileId]
+  ) {
     return currentState
   }
 
@@ -714,13 +811,16 @@ export function assignPlayerHarvester(
   if (
     !selectedHarvester ||
     (selectedHarvester.previousProduction !== undefined &&
-      isHarvesterRelocationBlocked(currentState))
+      isColonyHarvesterRelocationBlocked(
+        currentState,
+        participantId,
+      ))
   ) {
     return currentState
   }
 
-  return updateColony(currentState, 'agima', (colony) => ({
-    ...colony,
+  return updateColony(currentState, participantId, (currentColony) => ({
+    ...currentColony,
     freeHarvesterPool: currentPool.filter(
       (_, index) => index !== selectedHarvesterIndex,
     ),
@@ -743,17 +843,45 @@ export function assignPlayerHarvester(
   }))
 }
 
-export function changePlayerHarvesterProduction(
+export function assignPlayerHarvester(
   currentState: GameState,
   tileId: string,
   production: ProductionType,
+) {
+  return assignColonyHarvester(
+    currentState,
+    'agima',
+    tileId,
+    production,
+  )
+}
+
+export function changeColonyHarvesterProduction(
+  currentState: GameState,
+  participantId: ParticipantId,
+  tileId: string,
+  production: ProductionType,
 ): GameState {
-  if (isHarvesterRetoolingBlocked(currentState)) {
+  if (
+    isColonyHarvesterRetoolingBlocked(
+      currentState,
+      participantId,
+    ) ||
+    !canColonyUseProduction(
+      currentState,
+      participantId,
+      tileId,
+      production,
+    )
+  ) {
     return currentState
   }
 
   const currentHarvesters =
-    selectLocalColony(currentState).harvesterAssignments
+    normalizeColonyHarvesterAssignments(
+      selectColonies(currentState)[participantId]
+        .harvesterAssignments,
+    )
   const currentAssignment = currentHarvesters[tileId]
 
   if (!currentAssignment) {
@@ -761,7 +889,7 @@ export function changePlayerHarvesterProduction(
   }
 
   if (currentAssignment.isNew) {
-    return updateColony(currentState, 'agima', (colony) => ({
+    return updateColony(currentState, participantId, (colony) => ({
       ...colony,
       harvesterAssignments: {
         ...currentHarvesters,
@@ -774,7 +902,7 @@ export function changePlayerHarvesterProduction(
   }
 
   if (currentAssignment.retoolingReason === 'relocation') {
-    return updateColony(currentState, 'agima', (colony) => ({
+    return updateColony(currentState, participantId, (colony) => ({
       ...colony,
       harvesterAssignments: {
         ...currentHarvesters,
@@ -787,7 +915,7 @@ export function changePlayerHarvesterProduction(
   }
 
   if (production === currentAssignment.production) {
-    return updateColony(currentState, 'agima', (colony) => ({
+    return updateColony(currentState, participantId, (colony) => ({
       ...colony,
       harvesterAssignments: {
         ...currentHarvesters,
@@ -799,7 +927,7 @@ export function changePlayerHarvesterProduction(
     }))
   }
 
-  return updateColony(currentState, 'agima', (colony) => ({
+  return updateColony(currentState, participantId, (colony) => ({
     ...colony,
     harvesterAssignments: {
       ...currentHarvesters,
@@ -812,32 +940,53 @@ export function changePlayerHarvesterProduction(
   }))
 }
 
-export function removePlayerHarvester(
+export function changePlayerHarvesterProduction(
   currentState: GameState,
   tileId: string,
+  production: ProductionType,
+) {
+  return changeColonyHarvesterProduction(
+    currentState,
+    'agima',
+    tileId,
+    production,
+  )
+}
+
+export function removeColonyHarvester(
+  currentState: GameState,
+  participantId: ParticipantId,
+  tileId: string,
 ): GameState {
-  const localColony = selectLocalColony(currentState)
+  const colony = selectColonies(currentState)[participantId]
+  const currentHarvesters =
+    normalizeColonyHarvesterAssignments(
+      colony.harvesterAssignments,
+    )
   const currentAssignment =
-    localColony.harvesterAssignments[tileId]
+    currentHarvesters[tileId]
 
   if (
     !currentAssignment ||
     (!currentAssignment.isNew &&
-      isHarvesterRelocationBlocked(currentState))
+      isColonyHarvesterRelocationBlocked(
+        currentState,
+        participantId,
+      ))
   ) {
     return currentState
   }
 
   const updatedHarvesters = {
-    ...localColony.harvesterAssignments,
+    ...currentHarvesters,
   }
   delete updatedHarvesters[tileId]
 
-  return updateColony(currentState, 'agima', (colony) => ({
-    ...colony,
+  return updateColony(currentState, participantId, (currentColony) => ({
+    ...currentColony,
     harvesterAssignments: updatedHarvesters,
     freeHarvesterPool: [
-      ...localColony.freeHarvesterPool,
+      ...colony.freeHarvesterPool,
       currentAssignment.isNew
         ? {}
         : {
@@ -845,6 +994,17 @@ export function removePlayerHarvester(
           },
     ],
   }))
+}
+
+export function removePlayerHarvester(
+  currentState: GameState,
+  tileId: string,
+) {
+  return removeColonyHarvester(
+    currentState,
+    'agima',
+    tileId,
+  )
 }
 
 export const MARKET_PRICES: Record<MarketResource, number> = {
@@ -1635,6 +1795,7 @@ export function createInitialGameState(): GameState {
       seed: browserMatchConfiguration.seed,
     }),
     round: 1,
+    processedCommandIds: [],
     colonies: {
       agima: {
         id: 'agima',
@@ -1806,21 +1967,25 @@ export function createPlayableInitialGameState(
 }
 
 
-export function orderHarvesterBuild(
+export function orderColonyHarvesterBuild(
   currentState: GameState,
+  participantId: ParticipantId,
 ): GameState {
   const creditCost = getHarvesterCreditCost(currentState)
-  const colony = selectColonies(currentState).agima
+  const colony = selectColonies(currentState)[participantId]
 
   if (
-    isHarvesterBuildBlocked(currentState) ||
+    isColonyHarvesterBuildBlocked(
+      currentState,
+      participantId,
+    ) ||
     colony.credits < creditCost ||
     colony.resources.ore < HARVESTER_ORE_COST
   ) {
     return currentState
   }
 
-  return updateColony(currentState, 'agima', (currentColony) => ({
+  return updateColony(currentState, participantId, (currentColony) => ({
     ...currentColony,
     credits: currentColony.credits - creditCost,
     resources: {
@@ -1830,6 +1995,12 @@ export function orderHarvesterBuild(
     harvestersInConstruction:
       currentColony.harvestersInConstruction + 1,
   }))
+}
+
+export function orderHarvesterBuild(
+  currentState: GameState,
+) {
+  return orderColonyHarvesterBuild(currentState, 'agima')
 }
 
 export function executeColonyTrade(
