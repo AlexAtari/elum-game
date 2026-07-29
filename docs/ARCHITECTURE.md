@@ -123,9 +123,28 @@ Entfernen laufen über reine Funktionen in `game.ts`; React hält davon
 keine eigene Kopie mehr. Dadurch enthält ein serialisierter
 Browserzustand erstmals den vollständigen Harvesterstand von Agima.
 
-Noch offen sind die gemeinsamen Schreibpfade für Ressourcen,
-Bevölkerung, Grundstücke und Rivalen sowie ein einheitliches
-Harvester-Zuweisungsmodell für alle vier Kolonien.
+Die ersten gemeinsamen Schreibpfade sind im folgenden Schritt
+ergänzt. Ein einheitliches Harvester-Zuweisungsmodell für alle vier
+Kolonien bleibt weiterhin offen.
+
+`updateColony` bildet inzwischen die zentrale Schreibgrenze für die
+dynamischen Grunddaten eines beliebigen Teilnehmers. Der Aufrufer
+arbeitet immer mit demselben `ColonyState`; die Funktion kapselt
+vorübergehend noch die unterschiedliche physische Ablage von Agima
+und den Rivalen. Bei Rivalenbesitz leitet sie zusätzlich die
+kompatible Liste aller gegnerischen Felder neu ab.
+
+Darauf bauen `addColonyOwnedTile` und `executeColonyTrade` auf.
+Letztere überträgt Credits und genau eine Ressourceneinheit atomar
+zwischen zwei beliebigen Teilnehmersitzen. Auch Orion verwendet im
+Browsermarkt nun diesen beidseitigen Transaktionspfad. Globale und
+lokale Ereignisse, der Spieler-Harvesterbau sowie autonome
+Rivalen-Landkäufe schreiben ebenfalls über `updateColony`.
+
+Noch nicht migriert sind insbesondere die Rundenabrechnung, die
+grafische Grundstücksauktion und Teile der autonomen
+Rivalenoperationen. Sie bleiben bis zum jeweiligen Folgeschritt durch
+die bestehende Testsuite abgesichert.
 
 Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.
 Nicht menschlich belegte Sitze können mit den vorhandenen KI-Profilen

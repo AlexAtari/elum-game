@@ -18,6 +18,7 @@ import {
 } from './meteor'
 import {
   createMatchConfiguration,
+  participantIds,
   type MatchConfiguration,
   type ParticipantId,
 } from './match'
@@ -481,34 +482,26 @@ export function activateGlobalEvent(
         ? -(amount ?? 0)
         : 0
 
-  return {
+  const stateWithEvent = {
     ...currentState,
     activeGlobalEvent: event,
-    credits: currentState.credits + creditsDifference,
-    resources: {
-      ...currentState.resources,
-      crystals: Math.max(
-        0,
-        currentState.resources.crystals + crystalDifference,
-      ),
-    },
-    rivals: Object.fromEntries(
-      Object.entries(currentState.rivals).map(([id, rival]) => [
-        id,
-        {
-          ...rival,
-          credits: rival.credits + creditsDifference,
-          resources: {
-            ...rival.resources,
-            crystals: Math.max(
-              0,
-              rival.resources.crystals + crystalDifference,
-            ),
-          },
-        },
-      ]),
-    ) as RivalColonies,
   }
+
+  return participantIds.reduce(
+    (state, participantId) =>
+      updateColony(state, participantId, (colony) => ({
+        ...colony,
+        credits: colony.credits + creditsDifference,
+        resources: {
+          ...colony.resources,
+          crystals: Math.max(
+            0,
+            colony.resources.crystals + crystalDifference,
+          ),
+        },
+      })),
+    stateWithEvent,
+  )
 }
 
 export function applyLocalEvent(
@@ -517,63 +510,70 @@ export function applyLocalEvent(
 ): GameState {
   const amount =
     getLocalEventAmount(event, currentState.round) ?? 0
-  const nextState: GameState = {
+  const stateWithEvent: GameState = {
     ...currentState,
     activeLocalEvent: event,
-    resources: {
-      ...currentState.resources,
-    },
   }
 
-  switch (event) {
-    case 'food-cache':
-      nextState.resources.food += amount
-      break
-    case 'energy-cache':
-      nextState.resources.energy += amount
-      break
-    case 'ore-cache':
-      nextState.resources.ore += amount
-      break
-    case 'crystal-fragment':
-      nextState.resources.crystals += amount
-      break
-    case 'credit-grant':
-      nextState.credits += amount
-      break
-    case 'new-settlers':
-      nextState.population += amount
-      break
-    case 'spoiled-food':
-      nextState.resources.food = Math.max(
-        0,
-        nextState.resources.food - amount,
-      )
-      break
-    case 'energy-leak':
-      nextState.resources.energy = Math.max(
-        0,
-        nextState.resources.energy - amount,
-      )
-      break
-    case 'ore-theft':
-      nextState.resources.ore = Math.max(
-        0,
-        nextState.resources.ore - amount,
-      )
-      break
-    case 'credit-fraud':
-      nextState.credits = Math.max(0, nextState.credits - amount)
-      break
-    case 'harvester-breakdown':
-    case 'labor-strike':
-    case 'communications-outage':
-    case 'land-registry-error':
-    case 'wrong-spare-parts':
-      break
-  }
+  return updateColony(stateWithEvent, 'agima', (colony) => {
+    const nextColony: ColonyState = {
+      ...colony,
+      resources: { ...colony.resources },
+    }
 
-  return nextState
+    switch (event) {
+      case 'food-cache':
+        nextColony.resources.food += amount
+        break
+      case 'energy-cache':
+        nextColony.resources.energy += amount
+        break
+      case 'ore-cache':
+        nextColony.resources.ore += amount
+        break
+      case 'crystal-fragment':
+        nextColony.resources.crystals += amount
+        break
+      case 'credit-grant':
+        nextColony.credits += amount
+        break
+      case 'new-settlers':
+        nextColony.population += amount
+        break
+      case 'spoiled-food':
+        nextColony.resources.food = Math.max(
+          0,
+          nextColony.resources.food - amount,
+        )
+        break
+      case 'energy-leak':
+        nextColony.resources.energy = Math.max(
+          0,
+          nextColony.resources.energy - amount,
+        )
+        break
+      case 'ore-theft':
+        nextColony.resources.ore = Math.max(
+          0,
+          nextColony.resources.ore - amount,
+        )
+        break
+      case 'credit-fraud':
+        nextColony.credits = Math.max(
+          0,
+          nextColony.credits - amount,
+        )
+        break
+      case 'harvester-breakdown':
+      case 'labor-strike':
+      case 'communications-outage':
+      case 'land-registry-error':
+      case 'wrong-spare-parts':
+        break
+    }
+
+    return nextColony
+  })
 }
 
 export function getGlobalProductionModifier(
@@ -926,6 +926,72 @@ export function selectOpponentTileIds(
 
   return (['orion', 'nova', 'vega'] as const).flatMap(
     (participantId) => colonies[participantId].ownedTileIds,
+  )
+}
+
+export function updateColony(
+  currentState: GameState,
+  participantId: ParticipantId,
+  update: (colony: ColonyState) => ColonyState,
+): GameState {
+  const currentColony = selectColonies(currentState)[participantId]
+  const nextColony = update(currentColony)
+
+  if (participantId === 'agima') {
+    return {
+      ...currentState,
+      population: nextColony.population,
+      credits: nextColony.credits,
+      resources: nextColony.resources,
+      harvesters: nextColony.harvesters,
+      harvestersInConstruction:
+        nextColony.harvestersInConstruction,
+      ownedTileIds: nextColony.ownedTileIds,
+    }
+  }
+
+  const currentRival = currentState.rivals[participantId]
+  const nextRivals: RivalColonies = {
+    ...currentState.rivals,
+    [participantId]: {
+      ...currentRival,
+      population: nextColony.population,
+      credits: nextColony.credits,
+      resources: nextColony.resources,
+      harvesters: nextColony.harvesters,
+      harvestersInConstruction:
+        nextColony.harvestersInConstruction,
+      ownedTileIds: nextColony.ownedTileIds,
+    },
+  }
+
+  return {
+    ...currentState,
+    rivals: nextRivals,
+    opponentTileIds: Object.values(nextRivals).flatMap(
+      (rival) => rival.ownedTileIds ?? [],
+    ),
+  }
+}
+
+export function addColonyOwnedTile(
+  currentState: GameState,
+  participantId: ParticipantId,
+  tileId: string,
+): GameState {
+  const colony = selectColonies(currentState)[participantId]
+
+  if (colony.ownedTileIds.includes(tileId)) {
+    return currentState
+  }
+
+  return updateColony(
+    currentState,
+    participantId,
+    (currentColony) => ({
+      ...currentColony,
+      ownedTileIds: [...currentColony.ownedTileIds, tileId],
+    }),
   )
 }
 
@@ -1625,33 +1691,86 @@ export function orderHarvesterBuild(
   currentState: GameState,
 ): GameState {
   const creditCost = getHarvesterCreditCost(currentState)
+  const colony = selectColonies(currentState).agima
 
   if (
     isHarvesterBuildBlocked(currentState) ||
-    currentState.credits < creditCost ||
-    currentState.resources.ore < HARVESTER_ORE_COST
+    colony.credits < creditCost ||
+    colony.resources.ore < HARVESTER_ORE_COST
   ) {
     return currentState
   }
 
-  return {
-    ...currentState,
-    credits: currentState.credits - creditCost,
+  return updateColony(currentState, 'agima', (currentColony) => ({
+    ...currentColony,
+    credits: currentColony.credits - creditCost,
     resources: {
-      ...currentState.resources,
-      ore: currentState.resources.ore - HARVESTER_ORE_COST,
+      ...currentColony.resources,
+      ore: currentColony.resources.ore - HARVESTER_ORE_COST,
     },
     harvestersInConstruction:
-      currentState.harvestersInConstruction + 1,
-  }
+      currentColony.harvestersInConstruction + 1,
+  }))
 }
 
-function executeLegacyMarketTrade(
+export function executeColonyTrade(
+  currentState: GameState,
+  buyerId: ParticipantId,
+  sellerId: ParticipantId,
+  resource: MarketResource,
+  price: number,
+): GameState {
+  if (
+    buyerId === sellerId ||
+    !Number.isInteger(price) ||
+    price <= 0
+  ) {
+    return currentState
+  }
+
+  const colonies = selectColonies(currentState)
+  const buyer = colonies[buyerId]
+  const seller = colonies[sellerId]
+
+  if (
+    buyer.credits < price ||
+    seller.resources[resource] < 1
+  ) {
+    return currentState
+  }
+
+  const stateAfterBuyer = updateColony(
+    currentState,
+    buyerId,
+    (colony) => ({
+      ...colony,
+      credits: colony.credits - price,
+      resources: {
+        ...colony.resources,
+        [resource]: colony.resources[resource] + 1,
+      },
+    }),
+  )
+
+  return updateColony(
+    stateAfterBuyer,
+    sellerId,
+    (colony) => ({
+      ...colony,
+      credits: colony.credits + price,
+      resources: {
+        ...colony.resources,
+        [resource]: colony.resources[resource] - 1,
+      },
+    }),
+  )
+}
+
+function executeWarehouseTrade(
   currentState: GameState,
   resource: MarketResource,
   direction: MarketDirection,
   price: number,
-  counterparty: MarketCounterparty = 'orion',
 ): GameState {
   if (!Number.isInteger(price) || price <= 0) {
     return currentState
@@ -1660,32 +1779,36 @@ function executeLegacyMarketTrade(
   if (direction === 'buy') {
     if (
       currentState.credits < price ||
-      (counterparty === 'warehouse' &&
-        currentState.market[resource].warehouseStock <= 0)
+      currentState.market[resource].warehouseStock <= 0
     ) {
       return currentState
     }
 
+    const stateAfterTrade = updateColony(
+      currentState,
+      'agima',
+      (colony) => ({
+        ...colony,
+        credits: colony.credits - price,
+        resources: {
+          ...colony.resources,
+          [resource]: colony.resources[resource] + 1,
+        },
+      }),
+    )
+
     return {
-      ...currentState,
-      credits: currentState.credits - price,
-      resources: {
-        ...currentState.resources,
-        [resource]: currentState.resources[resource] + 1,
+      ...stateAfterTrade,
+      market: {
+        ...stateAfterTrade.market,
+        [resource]: {
+          ...stateAfterTrade.market[resource],
+          warehouseStock:
+            stateAfterTrade.market[resource].warehouseStock - 1,
+          netWarehouseFlow:
+            stateAfterTrade.market[resource].netWarehouseFlow - 1,
+        },
       },
-      market:
-        counterparty === 'warehouse'
-          ? {
-              ...currentState.market,
-              [resource]: {
-                ...currentState.market[resource],
-                warehouseStock:
-                  currentState.market[resource].warehouseStock - 1,
-                netWarehouseFlow:
-                  currentState.market[resource].netWarehouseFlow - 1,
-              },
-            }
-          : currentState.market,
     }
   }
 
@@ -1693,26 +1816,31 @@ function executeLegacyMarketTrade(
     return currentState
   }
 
+  const stateAfterTrade = updateColony(
+    currentState,
+    'agima',
+    (colony) => ({
+      ...colony,
+      credits: colony.credits + price,
+      resources: {
+        ...colony.resources,
+        [resource]: colony.resources[resource] - 1,
+      },
+    }),
+  )
+
   return {
-    ...currentState,
-    credits: currentState.credits + price,
-    resources: {
-      ...currentState.resources,
-      [resource]: currentState.resources[resource] - 1,
+    ...stateAfterTrade,
+    market: {
+      ...stateAfterTrade.market,
+      [resource]: {
+        ...stateAfterTrade.market[resource],
+        warehouseStock:
+          stateAfterTrade.market[resource].warehouseStock + 1,
+        netWarehouseFlow:
+          stateAfterTrade.market[resource].netWarehouseFlow + 1,
+      },
     },
-    market:
-      counterparty === 'warehouse'
-        ? {
-            ...currentState.market,
-            [resource]: {
-              ...currentState.market[resource],
-              warehouseStock:
-                currentState.market[resource].warehouseStock + 1,
-              netWarehouseFlow:
-                currentState.market[resource].netWarehouseFlow + 1,
-            },
-          }
-        : currentState.market,
   }
 }
 
@@ -1742,92 +1870,50 @@ export function executeMarketTrade(
       return currentState
     }
 
+    const stateAfterTrade = updateColony(
+      currentState,
+      'agima',
+      (colony) => ({
+        ...colony,
+        credits: colony.credits + price,
+        resources: {
+          ...colony.resources,
+          crystals: colony.resources.crystals - 1,
+        },
+      }),
+    )
+
     return {
-      ...currentState,
-      credits: currentState.credits + price,
-      resources: {
-        ...currentState.resources,
-        crystals: currentState.resources.crystals - 1,
-      },
+      ...stateAfterTrade,
       interstellarCrystalPurchases:
         (currentState.interstellarCrystalPurchases ?? 0) + 1,
     }
   }
 
-  if (
-    counterparty === 'warehouse' ||
-    counterparty === 'orion'
-  ) {
-    return executeLegacyMarketTrade(
+  if (counterparty === 'warehouse') {
+    return executeWarehouseTrade(
       currentState,
       resource,
       direction,
       price,
-      counterparty,
     )
   }
 
-  const rival = currentState.rivals[counterparty]
-
-  if (direction === 'buy') {
-    if (
-      currentState.credits < price ||
-      rival.resources[resource] < 1
-    ) {
-      return currentState
-    }
-
-    return {
-      ...currentState,
-      credits: currentState.credits - price,
-      resources: {
-        ...currentState.resources,
-        [resource]:
-          currentState.resources[resource] + 1,
-      },
-      rivals: {
-        ...currentState.rivals,
-        [counterparty]: {
-          ...rival,
-          credits: rival.credits + price,
-          resources: {
-            ...rival.resources,
-            [resource]:
-              rival.resources[resource] - 1,
-          },
-        },
-      },
-    }
-  }
-
-  if (
-    currentState.resources[resource] < 1 ||
-    rival.credits < price
-  ) {
-    return currentState
-  }
-
-  return {
-    ...currentState,
-    credits: currentState.credits + price,
-    resources: {
-      ...currentState.resources,
-      [resource]:
-        currentState.resources[resource] - 1,
-    },
-    rivals: {
-      ...currentState.rivals,
-      [counterparty]: {
-        ...rival,
-        credits: rival.credits - price,
-        resources: {
-          ...rival.resources,
-          [resource]:
-            rival.resources[resource] + 1,
-        },
-      },
-    },
-  }
+  return direction === 'buy'
+    ? executeColonyTrade(
+        currentState,
+        'agima',
+        counterparty,
+        resource,
+        price,
+      )
+    : executeColonyTrade(
+        currentState,
+        counterparty,
+        'agima',
+        resource,
+        price,
+      )
 }
 
 
@@ -1940,6 +2026,7 @@ export function placeLandBid(
   rivalBidOverride?: number,
 ): GameState {
   const tile = tiles.find((candidate) => candidate.id === tileId)
+  const colony = selectColonies(currentState).agima
   const tie = currentState.landAuctionTie
   const minimumBid =
     tie?.tileId === tileId
@@ -1950,9 +2037,9 @@ export function placeLandBid(
     isLandBidBlocked(currentState) ||
     !tile ||
     tile.owner !== 'free' ||
-    currentState.ownedTileIds.includes(tileId) ||
+    colony.ownedTileIds.includes(tileId) ||
     currentState.opponentTileIds.includes(tileId) ||
-    !currentState.ownedTileIds.some((ownedTileId) =>
+    !colony.ownedTileIds.some((ownedTileId) =>
       areTilesAdjacent(
         targetPlanetMap,
         ownedTileId,
@@ -1963,14 +2050,22 @@ export function placeLandBid(
     (tie !== null && tie.tileId !== tileId) ||
     !Number.isInteger(amount) ||
     amount < minimumBid ||
-    currentState.credits < amount
+    colony.credits < amount
   ) {
     return currentState
   }
 
+  const stateAfterReservation = updateColony(
+    currentState,
+    'agima',
+    (currentColony) => ({
+      ...currentColony,
+      credits: currentColony.credits - amount,
+    }),
+  )
+
   return {
-    ...currentState,
-    credits: currentState.credits - amount,
+    ...stateAfterReservation,
     pendingLandBid: {
       tileId,
       amount,
@@ -1991,11 +2086,19 @@ export function cancelLandBid(
     return currentState
   }
 
+  const stateAfterRefund = updateColony(
+    currentState,
+    'agima',
+    (colony) => ({
+      ...colony,
+      credits:
+        colony.credits +
+        (bid.reservedCredits ?? bid.amount),
+    }),
+  )
+
   return {
-    ...currentState,
-    credits:
-      currentState.credits +
-      (bid.reservedCredits ?? bid.amount),
+    ...stateAfterRefund,
     pendingLandBid: null,
     landAuctionTie: bid.tieMinimum
       ? {
@@ -2035,11 +2138,19 @@ export function beginLandTieBreak(
         ? 'orion'
         : null
 
+  const stateAfterRefund = updateColony(
+    currentState,
+    'agima',
+    (colony) => ({
+      ...colony,
+      credits:
+        colony.credits +
+        (bid.reservedCredits ?? bid.amount),
+    }),
+  )
+
   return {
-    ...currentState,
-    credits:
-      currentState.credits +
-      (bid.reservedCredits ?? bid.amount),
+    ...stateAfterRefund,
     pendingLandBid: null,
     landAuctionTie: {
       tileId: bid.tileId,
@@ -2181,12 +2292,15 @@ export function resolveLandTieBreak(
   }
 
   const playerWon = bids.leader === 'player'
+  const stateAfterPayment = playerWon
+    ? updateColony(currentState, 'agima', (colony) => ({
+        ...colony,
+        credits: colony.credits - bids.playerBid,
+      }))
+    : currentState
 
   return {
-    ...currentState,
-    credits: playerWon
-      ? currentState.credits - bids.playerBid
-      : currentState.credits,
+    ...stateAfterPayment,
     pendingLandBid: {
       tileId: tie.tileId,
       amount: bids.playerBid,

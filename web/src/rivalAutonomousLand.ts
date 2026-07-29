@@ -13,6 +13,7 @@ import {
   MARKET_PRICES,
   isLandBidBlocked,
   tiles,
+  updateColony,
   type GameState,
   type RivalId,
 } from './game'
@@ -163,7 +164,6 @@ export function applyAutonomousRivalLandPurchase(
   }
 
   const rival = currentState.rivals[rivalId]
-  const rivalTileIds = rival.ownedTileIds ?? []
 
   if (
     decision.bid <= 0 ||
@@ -175,21 +175,25 @@ export function applyAutonomousRivalLandPurchase(
     return currentState
   }
 
+  const stateAfterPurchase = updateColony(
+    currentState,
+    rivalId,
+    (colony) => ({
+      ...colony,
+      credits: colony.credits - decision.bid,
+      ownedTileIds: [
+        ...colony.ownedTileIds,
+        decision.tileId,
+      ],
+    }),
+  )
+
   return {
-    ...currentState,
-    opponentTileIds: [
-      ...currentState.opponentTileIds,
-      decision.tileId,
-    ],
+    ...stateAfterPurchase,
     rivals: {
-      ...currentState.rivals,
+      ...stateAfterPurchase.rivals,
       [rivalId]: {
-        ...rival,
-        credits: rival.credits - decision.bid,
-        ownedTileIds: [
-          ...rivalTileIds,
-          decision.tileId,
-        ],
+        ...stateAfterPurchase.rivals[rivalId],
         lastLandPurchaseRound: currentState.round,
       },
     },

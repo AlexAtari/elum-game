@@ -2,13 +2,16 @@ import { describe, expect, it } from 'vitest'
 import {
   STARTING_HARVESTERS,
   PLAYER_START_TILE_IDS,
+  addColonyOwnedTile,
   assignPlayerHarvester,
   changePlayerHarvesterProduction,
   createPlayableInitialGameState,
+  executeColonyTrade,
   removePlayerHarvester,
   runRound,
   selectColonies,
   selectOpponentTileIds,
+  updateColony,
 } from './game'
 import { participantIds } from './match'
 
@@ -43,6 +46,88 @@ describe('Gemeinsame Kolonieansicht', () => {
     expect(selectOpponentTileIds(state)).toEqual(
       state.opponentTileIds,
     )
+  })
+
+  it('aktualisiert Wirtschaftsdaten jedes Teilnehmers über dieselbe Grenze', () => {
+    for (const participantId of participantIds) {
+      const state = createPlayableInitialGameState()
+      const before = selectColonies(state)
+      const next = updateColony(
+        state,
+        participantId,
+        (colony) => ({
+          ...colony,
+          population: colony.population + 1,
+          credits: colony.credits + 7,
+          resources: {
+            ...colony.resources,
+            food: colony.resources.food + 2,
+          },
+        }),
+      )
+      const after = selectColonies(next)
+
+      expect(after[participantId]).toMatchObject({
+        population: before[participantId].population + 1,
+        credits: before[participantId].credits + 7,
+        resources: {
+          food: before[participantId].resources.food + 2,
+        },
+      })
+
+      for (const otherId of participantIds) {
+        if (otherId !== participantId) {
+          expect(after[otherId]).toEqual(before[otherId])
+        }
+      }
+    }
+  })
+
+  it('synchronisiert Grundstücksbesitz für Agima und Rivalen', () => {
+    const state = createPlayableInitialGameState()
+    const withAgimaLand = addColonyOwnedTile(
+      state,
+      'agima',
+      'TEST-AGIMA',
+    )
+    const withNovaLand = addColonyOwnedTile(
+      withAgimaLand,
+      'nova',
+      'TEST-NOVA',
+    )
+
+    expect(withNovaLand.ownedTileIds).toContain('TEST-AGIMA')
+    expect(withNovaLand.rivals.nova.ownedTileIds).toContain(
+      'TEST-NOVA',
+    )
+    expect(withNovaLand.opponentTileIds).toContain('TEST-NOVA')
+    expect(withNovaLand.opponentTileIds).not.toContain(
+      'TEST-AGIMA',
+    )
+  })
+
+  it('überträgt Handel zwischen beliebigen Koloniesitzen beidseitig', () => {
+    const state = createPlayableInitialGameState()
+    const before = selectColonies(state)
+    const next = executeColonyTrade(
+      state,
+      'orion',
+      'nova',
+      'food',
+      8,
+    )
+    const after = selectColonies(next)
+
+    expect(after.orion.credits).toBe(before.orion.credits - 8)
+    expect(after.orion.resources.food).toBe(
+      before.orion.resources.food + 1,
+    )
+    expect(after.nova.credits).toBe(before.nova.credits + 8)
+    expect(after.nova.resources.food).toBe(
+      before.nova.resources.food - 1,
+    )
+    expect(after.agima).toEqual(before.agima)
+    expect(after.vega).toEqual(before.vega)
   })
 
   it('führt fertiggestellte Harvester in der Gesamtzahl fort', () => {

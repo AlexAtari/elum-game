@@ -108,6 +108,28 @@ describe('Marktteilnahme aller Rivalen', () => {
     expect(next.rivals.orion).toEqual(state.rivals.orion)
   })
 
+  it('verbucht auch den bisherigen Standardhandel mit Orion beidseitig', () => {
+    const state = createInitialGameState()
+    const next = executeMarketTrade(
+      state,
+      'food',
+      'buy',
+      8,
+      'orion',
+    )
+
+    expect(next.resources.food).toBe(
+      state.resources.food + 1,
+    )
+    expect(next.credits).toBe(state.credits - 8)
+    expect(next.rivals.orion.resources.food).toBe(
+      state.rivals.orion.resources.food - 1,
+    )
+    expect(next.rivals.orion.credits).toBe(
+      state.rivals.orion.credits + 8,
+    )
+  })
+
   it('verbucht einen Kauf von Vega in beiden Kolonien', () => {
     const state = createInitialGameState()
     state.resources.ore = 0

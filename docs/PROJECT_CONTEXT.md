@@ -270,6 +270,11 @@ werden.
 - vollständiger Spieler-Harvesterstand einschließlich freier
   Harvester und Zuweisungen im serialisierbaren `GameState`; die
   übrigen dynamischen Schreibpfade werden noch schrittweise migriert
+- teilnehmerbezogene Schreibgrenze für die dynamischen Grunddaten;
+  Ereignisse, Spieler-Harvesterbau, direkter Koloniehandel und
+  autonome Rivalen-Landkäufe verwenden sie bereits
+- direkte Orion-Geschäfte werden wie Nova- und Vega-Geschäfte
+  beidseitig in Credits und Ressourcen verbucht
 
 ### Nächster Regelstand
 

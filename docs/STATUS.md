@@ -35,6 +35,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   in getrennten React-Zuständen
 - UI-unabhängige Zustandsoperationen für Einsetzen, Umrüsten und
   Entfernen der Spieler-Harvester
+- gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
+  Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
+- globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
+  direkter Koloniehandel und autonome Rivalenkäufe verwenden diese
+  gemeinsame Schreibgrenze
+- direkte Geschäfte mit Orion werden wie Geschäfte mit Nova und Vega
+  vollständig in beiden beteiligten Kolonien verbucht
 - drehbare Browserkugel mit zentralem HQ und 91 Grundstücken
 - UI-unabhängiges Kartenmodell mit Feld-IDs, symmetrischen
   Nachbarlisten und berechneten Graphdistanzen
@@ -190,8 +197,9 @@ Patchdateien sind nicht automatisch Teil des Projektstands.
 
 Nach UI- und Dokumentationsarbeiten:
 
-1. die noch asymmetrischen Schreibpfade für Wirtschaft, Besitz und
-   Rivalen schrittweise auf die gemeinsame Kolonieansicht überführen,
+1. Rundenabrechnung, grafische Grundstücksauktion und verbleibende
+   Rivalenoperationen auf die gemeinsame Kolonieschreibgrenze
+   überführen,
 2. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
 3. Produktions- und Marktentscheidungen stärker differenzieren,
