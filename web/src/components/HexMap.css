@@ -237,25 +237,37 @@
 .hex-owner-label {
   pointer-events: none;
   fill: #79ddb9;
-  font-size: 5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  paint-order: stroke fill;
+  stroke: rgba(4, 10, 21, 0.92);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .hex-pending-label {
   pointer-events: none;
   fill: #ffd28a;
-  font-size: 5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  paint-order: stroke fill;
+  stroke: rgba(4, 10, 21, 0.92);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .hex-opponent-label {
   pointer-events: none;
   fill: #e4b6f7;
-  font-size: 5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  paint-order: stroke fill;
+  stroke: rgba(4, 10, 21, 0.92);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .hex-opponent-label.rival-nova {
@@ -515,6 +527,15 @@
 
   .hex-map-viewport {
     height: clamp(430px, 68vh, 620px);
+  }
+
+  .hex-owner-label,
+  .hex-opponent-label {
+    font-size: 20px;
+  }
+
+  .hex-pending-label {
+    font-size: 17px;
   }
 }
 .hex-production-label {

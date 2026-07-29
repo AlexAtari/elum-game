@@ -69,7 +69,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in
   Detailansicht und barrierefreien Bezeichnungen erhalten
 - getrennte Besitzanzeige für Orion, Nova und Vega statt einer
-  gemeinsamen Orion-Beschriftung aller Rivalenfelder
+  gemeinsamen Orion-Beschriftung aller Rivalenfelder; kontrastreiche,
+  mobil vergrößerte Kolonienamen bleiben auch auf der
+  unvergrößerten Kugel lesbar
 - ruhige Felder ohne permanente Polygonrahmen; Konturen erscheinen
   bei Hover, Tastaturfokus oder Auswahl, notwendige Spielmarkierungen
   bleiben sichtbar

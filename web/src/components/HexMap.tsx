@@ -739,7 +739,7 @@ function HexMap({
                         y={position.y + 14 * cameraState.zoom}
                         textAnchor="middle"
                       >
-                        DEIN FELD
+                        AGIMA
                       </text>
                     )}
 
