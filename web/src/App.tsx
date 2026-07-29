@@ -9,6 +9,7 @@ import HexMap from './components/HexMap'
 import LandTieAuctionPanel from './components/LandTieAuctionPanel'
 import LeaderboardPanel from './components/LeaderboardPanel'
 import LocalEventNotice from './components/LocalEventNotice'
+import MultiplayerLobbyScreen from './components/MultiplayerLobbyScreen'
 import MarketLauncher from './components/MarketLauncher'
 import MarketPanel from './components/MarketPanel'
 import RoundBriefingPanel from './components/RoundBriefingPanel'
@@ -83,6 +84,8 @@ function createClientCommandId() {
 function App() {
   const { number, t } = useI18n()
   const [gameStarted, setGameStarted] = useState(false)
+  const [showMultiplayerLobby, setShowMultiplayerLobby] =
+    useState(false)
   const [gameState, setGameState] = useState(
     () => createPlayableInitialGameState(Date.now()),
   )
@@ -1000,6 +1003,14 @@ function App() {
     )
   }
 
+  if (showMultiplayerLobby) {
+    return (
+      <MultiplayerLobbyScreen
+        onBack={() => setShowMultiplayerLobby(false)}
+      />
+    )
+  }
+
   return (
     <main className="start-screen">
       <div className="start-card">
@@ -1019,6 +1030,14 @@ function App() {
           onClick={startNewGame}
         >
           {t('start.newColony')}
+        </button>
+
+        <button
+          className="secondary-button multiplayer-start-button"
+          type="button"
+          onClick={() => setShowMultiplayerLobby(true)}
+        >
+          {t('start.multiplayer')}
         </button>
 
         <p className="version">{t('start.version')}</p>

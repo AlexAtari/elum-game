@@ -1,0 +1,523 @@
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import { useI18n } from '../i18n/I18nContext'
+import {
+  buildMultiplayerWebSocketUrl,
+  createDefaultMultiplayerServerUrl,
+} from '../multiplayerClient'
+import type {
+  LobbySeatSnapshot,
+  LobbySnapshot,
+  MultiplayerClientMessage,
+  MultiplayerServerError,
+  MultiplayerServerMessage,
+} from '../multiplayerProtocol'
+import type { ParticipantId } from '../match'
+import './MultiplayerLobbyScreen.css'
+
+type MultiplayerLobbyScreenProps = {
+  onBack: () => void
+}
+
+type ConnectionStatus =
+  | 'idle'
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+
+type StoredSession = {
+  endpoint: string
+  reconnectToken: string
+}
+
+const participantOrder: ParticipantId[] = [
+  'agima',
+  'orion',
+  'nova',
+  'vega',
+]
+
+const participantIcons: Record<ParticipantId, string> = {
+  agima: '🌱',
+  orion: '🛰️',
+  nova: '🔭',
+  vega: '⚙️',
+}
+
+const sessionStorageKey = 'elum.multiplayer.session'
+
+let requestSequence = 0
+
+function createRequestId() {
+  requestSequence += 1
+  return `browser-${Date.now()}-${requestSequence}`
+}
+
+function readStoredSession(): StoredSession | null {
+  try {
+    const value = window.localStorage.getItem(sessionStorageKey)
+
+    if (!value) {
+      return null
+    }
+
+    const parsed = JSON.parse(value) as Partial<StoredSession>
+
+    return typeof parsed.endpoint === 'string' &&
+      typeof parsed.reconnectToken === 'string'
+      ? {
+          endpoint: parsed.endpoint,
+          reconnectToken: parsed.reconnectToken,
+        }
+      : null
+  } catch {
+    return null
+  }
+}
+
+function describeSeat(
+  seat: LobbySeatSnapshot,
+  t: ReturnType<typeof useI18n>['t'],
+) {
+  if (seat.kind === 'open') {
+    return t('multiplayer.seatOpen')
+  }
+
+  if (seat.kind === 'ai') {
+    return t('multiplayer.seatAi')
+  }
+
+  if (!seat.connected) {
+    return t('multiplayer.seatDisconnected')
+  }
+
+  return seat.ready
+    ? t('multiplayer.seatReady')
+    : t('multiplayer.seatPlanning')
+}
+
+function errorKey(error: MultiplayerServerError) {
+  switch (error) {
+    case 'lobby-full':
+      return 'multiplayer.errorLobbyFull' as const
+    case 'lobby-already-started':
+      return 'multiplayer.errorAlreadyStarted' as const
+    case 'players-not-ready':
+      return 'multiplayer.errorPlayersNotReady' as const
+    case 'not-host':
+      return 'multiplayer.errorNotHost' as const
+    case 'unknown-session':
+      return 'multiplayer.errorUnknownSession' as const
+    default:
+      return 'multiplayer.errorRequest' as const
+  }
+}
+
+export default function MultiplayerLobbyScreen({
+  onBack,
+}: MultiplayerLobbyScreenProps) {
+  const { t } = useI18n()
+  const socketRef = useRef<WebSocket | null>(null)
+  const endpointRef = useRef('')
+  const resumeAttemptRef = useRef(false)
+  const displayNameRef = useRef('')
+  const [serverUrl, setServerUrl] = useState(() =>
+    createDefaultMultiplayerServerUrl(window.location),
+  )
+  const [lobbyId, setLobbyId] = useState('mars-alpha')
+  const [displayName, setDisplayName] = useState('')
+  const [status, setStatus] =
+    useState<ConnectionStatus>('idle')
+  const [participantId, setParticipantId] =
+    useState<ParticipantId | null>(null)
+  const [snapshot, setSnapshot] =
+    useState<LobbySnapshot | null>(null)
+  const [matchRound, setMatchRound] = useState<number | null>(
+    null,
+  )
+  const [error, setError] = useState<string | null>(null)
+
+  const ownSeat = participantId
+    ? snapshot?.seats[participantId] ?? null
+    : null
+  const humanSeats = snapshot
+    ? participantOrder
+        .map((id) => snapshot.seats[id])
+        .filter(
+          (
+            seat,
+          ): seat is Extract<
+            LobbySeatSnapshot,
+            { kind: 'human' }
+          > => seat.kind === 'human',
+        )
+    : []
+  const canStart =
+    ownSeat?.kind === 'human' &&
+    ownSeat.isHost &&
+    humanSeats.length > 0 &&
+    humanSeats.every((seat) => seat.connected && seat.ready)
+  const endpoint = useMemo(() => {
+    try {
+      return buildMultiplayerWebSocketUrl(serverUrl, lobbyId)
+    } catch {
+      return null
+    }
+  }, [lobbyId, serverUrl])
+
+  useEffect(
+    () => () => {
+      socketRef.current?.close()
+    },
+    [],
+  )
+
+  const send = (message: MultiplayerClientMessage) => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message))
+    }
+  }
+
+  const sendJoin = () => {
+    send({
+      version: 1,
+      requestId: createRequestId(),
+      type: 'join-lobby',
+      payload: {
+        displayName: displayNameRef.current,
+      },
+    })
+  }
+
+  const connect = () => {
+    if (!endpoint || displayName.trim().length === 0) {
+      setError(t('multiplayer.errorConnectionData'))
+      return
+    }
+
+    socketRef.current?.close()
+    setError(null)
+    setStatus('connecting')
+    setSnapshot(null)
+    setMatchRound(null)
+    displayNameRef.current = displayName.trim()
+    endpointRef.current = endpoint
+    const socket = new WebSocket(endpoint)
+    socketRef.current = socket
+
+    socket.addEventListener('open', () => {
+      if (socketRef.current !== socket) {
+        return
+      }
+
+      setStatus('connected')
+      const storedSession = readStoredSession()
+
+      if (
+        storedSession?.endpoint === endpoint &&
+        storedSession.reconnectToken
+      ) {
+        resumeAttemptRef.current = true
+        send({
+          version: 1,
+          requestId: createRequestId(),
+          type: 'resume-session',
+          payload: {
+            reconnectToken: storedSession.reconnectToken,
+          },
+        })
+      } else {
+        resumeAttemptRef.current = false
+        sendJoin()
+      }
+    })
+
+    socket.addEventListener('message', (event) => {
+      if (
+        socketRef.current !== socket ||
+        typeof event.data !== 'string'
+      ) {
+        return
+      }
+
+      let message: MultiplayerServerMessage
+
+      try {
+        message = JSON.parse(
+          event.data,
+        ) as MultiplayerServerMessage
+      } catch {
+        setError(t('multiplayer.errorInvalidResponse'))
+        return
+      }
+
+      if (message.type === 'session-established') {
+        resumeAttemptRef.current = false
+        setParticipantId(message.payload.participantId)
+        window.localStorage.setItem(
+          sessionStorageKey,
+          JSON.stringify({
+            endpoint: endpointRef.current,
+            reconnectToken: message.payload.reconnectToken,
+          } satisfies StoredSession),
+        )
+        return
+      }
+
+      if (message.type === 'lobby-snapshot') {
+        setSnapshot(message.payload)
+        return
+      }
+
+      if (message.type === 'match-snapshot') {
+        setMatchRound(message.payload.state.round)
+        return
+      }
+
+      const serverError =
+        message.type === 'request-error'
+          ? message.payload.error
+          : message.type === 'command-result' &&
+              message.payload.ok === false
+            ? message.payload.error
+            : null
+
+      if (serverError !== null) {
+
+        if (
+          serverError === 'unknown-session' &&
+          resumeAttemptRef.current
+        ) {
+          resumeAttemptRef.current = false
+          window.localStorage.removeItem(sessionStorageKey)
+          sendJoin()
+          return
+        }
+
+        setError(t(errorKey(serverError)))
+      }
+    })
+
+    socket.addEventListener('close', () => {
+      if (socketRef.current === socket) {
+        setStatus('disconnected')
+      }
+    })
+    socket.addEventListener('error', () => {
+      if (socketRef.current === socket) {
+        setError(t('multiplayer.errorConnection'))
+      }
+    })
+  }
+
+  const toggleReady = () => {
+    if (ownSeat?.kind !== 'human') {
+      return
+    }
+
+    send({
+      version: 1,
+      requestId: createRequestId(),
+      type: 'set-ready',
+      payload: { ready: !ownSeat.ready },
+    })
+  }
+
+  const startMatch = () => {
+    send({
+      version: 1,
+      requestId: createRequestId(),
+      type: 'start-match',
+      payload: {},
+    })
+  }
+
+  const leave = () => {
+    socketRef.current?.close()
+    socketRef.current = null
+    onBack()
+  }
+
+  return (
+    <main className="multiplayer-screen">
+      <section className="multiplayer-card">
+        <header className="multiplayer-header">
+          <div>
+            <p className="eyebrow">
+              {t('multiplayer.eyebrow')}
+            </p>
+            <h1>{t('multiplayer.title')}</h1>
+            <p>{t('multiplayer.description')}</p>
+          </div>
+          <span
+            className={`connection-pill connection-${status}`}
+          >
+            {t(`multiplayer.status.${status}`)}
+          </span>
+        </header>
+
+        {status === 'idle' || status === 'disconnected' ? (
+          <div className="multiplayer-connect-form">
+            <label>
+              <span>{t('multiplayer.name')}</span>
+              <input
+                autoComplete="nickname"
+                maxLength={24}
+                value={displayName}
+                onChange={(event) =>
+                  setDisplayName(event.target.value)
+                }
+                placeholder={t('multiplayer.namePlaceholder')}
+              />
+            </label>
+            <label>
+              <span>{t('multiplayer.server')}</span>
+              <input
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                value={serverUrl}
+                onChange={(event) =>
+                  setServerUrl(event.target.value)
+                }
+              />
+            </label>
+            <label>
+              <span>{t('multiplayer.lobby')}</span>
+              <input
+                autoCapitalize="none"
+                maxLength={128}
+                value={lobbyId}
+                onChange={(event) =>
+                  setLobbyId(event.target.value)
+                }
+              />
+            </label>
+            <button
+              className="start-button multiplayer-connect-button"
+              type="button"
+              onClick={connect}
+            >
+              {status === 'disconnected'
+                ? t('multiplayer.reconnect')
+                : t('multiplayer.connect')}
+            </button>
+            <p className="multiplayer-hint">
+              {t('multiplayer.localServerHint')}
+            </p>
+          </div>
+        ) : null}
+
+        {snapshot ? (
+          <>
+            <div className="multiplayer-lobby-meta">
+              <div>
+                <small>{t('multiplayer.lobby')}</small>
+                <strong>{snapshot.lobbyId}</strong>
+              </div>
+              <div>
+                <small>{t('multiplayer.yourColony')}</small>
+                <strong>
+                  {participantId
+                    ? participantId.toUpperCase()
+                    : '—'}
+                </strong>
+              </div>
+            </div>
+
+            <div className="multiplayer-seat-grid">
+              {participantOrder.map((id) => {
+                const seat = snapshot.seats[id]
+                const isOwnSeat = participantId === id
+
+                return (
+                  <article
+                    className={`multiplayer-seat ${
+                      isOwnSeat ? 'is-own-seat' : ''
+                    }`}
+                    key={id}
+                  >
+                    <span className="multiplayer-seat-icon">
+                      {participantIcons[id]}
+                    </span>
+                    <div>
+                      <small>{id.toUpperCase()}</small>
+                      <strong>
+                        {seat.kind === 'human'
+                          ? seat.displayName
+                          : seat.kind === 'ai'
+                            ? t('multiplayer.computer')
+                            : '—'}
+                      </strong>
+                      <span>{describeSeat(seat, t)}</span>
+                    </div>
+                    {seat.kind === 'human' && seat.isHost ? (
+                      <em>{t('multiplayer.host')}</em>
+                    ) : null}
+                  </article>
+                )
+              })}
+            </div>
+
+            {snapshot.phase === 'playing' ? (
+              <div className="multiplayer-match-started">
+                <span>🚀</span>
+                <div>
+                  <h2>{t('multiplayer.matchStarted')}</h2>
+                  <p>
+                    {t('multiplayer.matchStartedHint', {
+                      round: matchRound ?? 1,
+                    })}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="multiplayer-actions">
+                <button
+                  className="multiplayer-ready-button"
+                  type="button"
+                  onClick={toggleReady}
+                >
+                  {ownSeat?.kind === 'human' && ownSeat.ready
+                    ? t('multiplayer.notReady')
+                    : t('multiplayer.ready')}
+                </button>
+                {ownSeat?.kind === 'human' &&
+                ownSeat.isHost ? (
+                  <button
+                    className="start-button"
+                    disabled={!canStart}
+                    type="button"
+                    onClick={startMatch}
+                  >
+                    {t('multiplayer.startMatch')}
+                  </button>
+                ) : (
+                  <p>{t('multiplayer.waitForHost')}</p>
+                )}
+              </div>
+            )}
+          </>
+        ) : null}
+
+        {error ? (
+          <p className="multiplayer-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+
+        <button
+          className="secondary-button multiplayer-back-button"
+          type="button"
+          onClick={leave}
+        >
+          {t('multiplayer.back')}
+        </button>
+      </section>
+    </main>
+  )
+}

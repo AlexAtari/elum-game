@@ -242,7 +242,59 @@ export const de = {
   'start.subtitle':
     'Errichte auf Agima die erfolgreichste Kolonie.',
   'start.newColony': 'Neue Kolonie',
+  'start.multiplayer': 'Mehrspieler',
   'start.version': 'Prototype 0.2',
+
+  'multiplayer.eyebrow': 'Gemeinsame Expedition',
+  'multiplayer.title': 'Mehrspieler-Lobby',
+  'multiplayer.description':
+    'Bis zu vier Kolonien verbinden sich mit derselben autoritativen Partie. Freie Sitze übernimmt beim Start die KI.',
+  'multiplayer.status.idle': 'Nicht verbunden',
+  'multiplayer.status.connecting': 'Verbindung …',
+  'multiplayer.status.connected': 'Verbunden',
+  'multiplayer.status.disconnected': 'Getrennt',
+  'multiplayer.name': 'Dein Name',
+  'multiplayer.namePlaceholder': 'Kolonieleitung',
+  'multiplayer.server': 'Server',
+  'multiplayer.lobby': 'Lobby',
+  'multiplayer.connect': 'Lobby beitreten',
+  'multiplayer.reconnect': 'Erneut verbinden',
+  'multiplayer.localServerHint':
+    'Für lokale Tests muss der Multiplayer-Server auf dem Rechner laufen. Smartphones verwenden dessen WLAN-IP.',
+  'multiplayer.yourColony': 'Deine Kolonie',
+  'multiplayer.seatOpen': 'Freier Sitz',
+  'multiplayer.seatAi': 'KI-Kolonie',
+  'multiplayer.computer': 'Computer',
+  'multiplayer.seatDisconnected': 'Verbindung getrennt',
+  'multiplayer.seatReady': 'Bereit',
+  'multiplayer.seatPlanning': 'Noch nicht bereit',
+  'multiplayer.host': 'Host',
+  'multiplayer.ready': 'Ich bin bereit',
+  'multiplayer.notReady': 'Bereitschaft zurücknehmen',
+  'multiplayer.startMatch': 'Partie starten',
+  'multiplayer.waitForHost':
+    'Der Host startet, sobald alle bereit sind.',
+  'multiplayer.matchStarted': 'Die Expedition ist gestartet',
+  'multiplayer.matchStartedHint':
+    'Der gemeinsame Serverzustand steht in Runde {{round}} bereit. Als Nächstes wird die Spielansicht an diese Snapshots angeschlossen.',
+  'multiplayer.back': 'Zurück zum Start',
+  'multiplayer.errorConnectionData':
+    'Bitte Name, Server und Lobby prüfen.',
+  'multiplayer.errorConnection':
+    'Der Multiplayer-Server ist nicht erreichbar.',
+  'multiplayer.errorInvalidResponse':
+    'Der Server hat eine unlesbare Antwort gesendet.',
+  'multiplayer.errorLobbyFull': 'Diese Lobby ist bereits voll.',
+  'multiplayer.errorAlreadyStarted':
+    'Diese Partie wurde bereits gestartet.',
+  'multiplayer.errorPlayersNotReady':
+    'Noch sind nicht alle verbundenen Spieler bereit.',
+  'multiplayer.errorNotHost':
+    'Nur der Host kann die Partie starten.',
+  'multiplayer.errorUnknownSession':
+    'Die gespeicherte Sitzung ist nicht mehr gültig.',
+  'multiplayer.errorRequest':
+    'Der Server hat diese Aktion abgelehnt.',
 } as const
 
 export type TranslationKey = keyof typeof de

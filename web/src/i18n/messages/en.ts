@@ -243,5 +243,57 @@ export const en = {
   'start.tagline': 'Exploration · Logistics · Utilization · Mining',
   'start.subtitle': 'Build the most successful colony on Agima.',
   'start.newColony': 'New colony',
+  'start.multiplayer': 'Multiplayer',
   'start.version': 'Prototype 0.2',
+
+  'multiplayer.eyebrow': 'Joint expedition',
+  'multiplayer.title': 'Multiplayer lobby',
+  'multiplayer.description':
+    'Up to four colonies connect to the same authoritative match. AI takes over open seats when the match starts.',
+  'multiplayer.status.idle': 'Not connected',
+  'multiplayer.status.connecting': 'Connecting …',
+  'multiplayer.status.connected': 'Connected',
+  'multiplayer.status.disconnected': 'Disconnected',
+  'multiplayer.name': 'Your name',
+  'multiplayer.namePlaceholder': 'Colony commander',
+  'multiplayer.server': 'Server',
+  'multiplayer.lobby': 'Lobby',
+  'multiplayer.connect': 'Join lobby',
+  'multiplayer.reconnect': 'Reconnect',
+  'multiplayer.localServerHint':
+    'The multiplayer server must be running for local tests. Smartphones use the computer’s Wi-Fi address.',
+  'multiplayer.yourColony': 'Your colony',
+  'multiplayer.seatOpen': 'Open seat',
+  'multiplayer.seatAi': 'AI colony',
+  'multiplayer.computer': 'Computer',
+  'multiplayer.seatDisconnected': 'Disconnected',
+  'multiplayer.seatReady': 'Ready',
+  'multiplayer.seatPlanning': 'Not ready yet',
+  'multiplayer.host': 'Host',
+  'multiplayer.ready': 'I am ready',
+  'multiplayer.notReady': 'Withdraw readiness',
+  'multiplayer.startMatch': 'Start match',
+  'multiplayer.waitForHost':
+    'The host starts once everyone is ready.',
+  'multiplayer.matchStarted': 'The expedition has started',
+  'multiplayer.matchStartedHint':
+    'The shared server state is ready in round {{round}}. The game view will be connected to these snapshots next.',
+  'multiplayer.back': 'Back to start',
+  'multiplayer.errorConnectionData':
+    'Please check name, server and lobby.',
+  'multiplayer.errorConnection':
+    'The multiplayer server cannot be reached.',
+  'multiplayer.errorInvalidResponse':
+    'The server sent an unreadable response.',
+  'multiplayer.errorLobbyFull': 'This lobby is already full.',
+  'multiplayer.errorAlreadyStarted':
+    'This match has already started.',
+  'multiplayer.errorPlayersNotReady':
+    'Not all connected players are ready yet.',
+  'multiplayer.errorNotHost':
+    'Only the host can start the match.',
+  'multiplayer.errorUnknownSession':
+    'The stored session is no longer valid.',
+  'multiplayer.errorRequest':
+    'The server rejected this action.',
 } satisfies Record<TranslationKey, string>

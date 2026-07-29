@@ -125,6 +125,18 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sowie Sitzübernahme per Reconnect-Token ab
 - Loopback ist die sichere Standardbindung; für Smartphone-Tests
   kann der Server bewusst im lokalen WLAN geöffnet werden
+- Startseite enthält eine responsive Mehrspieler-Lobby neben dem
+  unveränderten Einzelspielerstart
+- sichtbare Eingaben für Name, WebSocket-Server und Lobby-ID sowie
+  Vier-Sitz-Übersicht, Verbindungsstatus, Bereitschaft und
+  Host-Startsteuerung sind implementiert
+- Browserclient übernimmt Lobby- und Match-Snapshots, speichert das
+  geheime Reconnect-Token nur lokal und nimmt denselben Sitz nach
+  einem Verbindungsabbruch automatisch wieder auf
+- nach dem Start werden freie Sitze sichtbar als KI übernommen und
+  die autoritative Runde angezeigt; die eigentliche Spielansicht
+  sendet noch keine Netzwerkkommandos und bleibt deshalb vorerst
+  bewusst vom Mehrspielerpfad getrennt
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,

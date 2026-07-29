@@ -1,0 +1,303 @@
+.multiplayer-screen {
+  min-height: 100vh;
+  padding: 24px;
+  color: #f6f7fb;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(190, 100, 54, 0.2), transparent 32%),
+    radial-gradient(circle at 85% 70%, rgba(121, 221, 185, 0.14), transparent 30%),
+    linear-gradient(145deg, #090d18, #121a2c);
+}
+
+.multiplayer-card {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  background: rgba(14, 21, 38, 0.88);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36);
+}
+
+.multiplayer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.multiplayer-header h1 {
+  margin: 8px 0;
+  font-size: clamp(2rem, 7vw, 3.8rem);
+}
+
+.multiplayer-header p:last-child {
+  max-width: 620px;
+  margin: 0;
+  color: #aeb8cb;
+}
+
+.connection-pill {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: #aeb8cb;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.connection-connected {
+  border-color: rgba(121, 221, 185, 0.35);
+  color: #9cf0d1;
+  background: rgba(121, 221, 185, 0.1);
+}
+
+.connection-connecting {
+  color: #ffd28a;
+}
+
+.connection-disconnected {
+  color: #ff9d9d;
+}
+
+.multiplayer-connect-form {
+  display: grid;
+  grid-template-columns: 1fr 1.45fr 0.8fr;
+  gap: 14px;
+  margin-top: 28px;
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.multiplayer-connect-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.multiplayer-connect-form label span,
+.multiplayer-lobby-meta small,
+.multiplayer-seat small {
+  color: #8995aa;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.multiplayer-connect-form input {
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 11px;
+  outline: none;
+  color: #f6f7fb;
+  background: rgba(5, 9, 17, 0.65);
+}
+
+.multiplayer-connect-form input:focus {
+  border-color: rgba(121, 221, 185, 0.65);
+  box-shadow: 0 0 0 3px rgba(121, 221, 185, 0.1);
+}
+
+.multiplayer-connect-button {
+  align-self: end;
+  min-height: 45px;
+  padding: 10px 18px;
+}
+
+.multiplayer-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #738096;
+  font-size: 0.82rem;
+}
+
+.multiplayer-lobby-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.multiplayer-lobby-meta > div {
+  display: grid;
+  gap: 4px;
+  min-width: 150px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.multiplayer-seat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.multiplayer-seat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.multiplayer-seat.is-own-seat {
+  border-color: rgba(121, 221, 185, 0.5);
+  background: rgba(121, 221, 185, 0.08);
+}
+
+.multiplayer-seat-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 1.35rem;
+}
+
+.multiplayer-seat > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.multiplayer-seat strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multiplayer-seat > div > span {
+  color: #8995aa;
+  font-size: 0.78rem;
+}
+
+.multiplayer-seat em {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #ffd28a;
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.multiplayer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.multiplayer-actions p {
+  margin: 0;
+  color: #8995aa;
+}
+
+.multiplayer-ready-button {
+  cursor: pointer;
+  padding: 14px 20px;
+  border: 1px solid rgba(121, 221, 185, 0.4);
+  border-radius: 14px;
+  color: #9cf0d1;
+  background: rgba(121, 221, 185, 0.08);
+  font-weight: 800;
+}
+
+.multiplayer-actions .start-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+  transform: none;
+}
+
+.multiplayer-match-started {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid rgba(121, 221, 185, 0.35);
+  border-radius: 16px;
+  background: rgba(121, 221, 185, 0.08);
+}
+
+.multiplayer-match-started > span {
+  font-size: 2rem;
+}
+
+.multiplayer-match-started h2,
+.multiplayer-match-started p {
+  margin: 0;
+}
+
+.multiplayer-match-started p {
+  margin-top: 4px;
+  color: #aeb8cb;
+}
+
+.multiplayer-error {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #ffc1c1;
+  background: rgba(220, 72, 72, 0.13);
+}
+
+.multiplayer-back-button {
+  margin-top: 24px;
+}
+
+@media (max-width: 780px) {
+  .multiplayer-screen {
+    padding: 10px;
+  }
+
+  .multiplayer-card {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  .multiplayer-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .connection-pill {
+    align-self: flex-start;
+  }
+
+  .multiplayer-connect-form,
+  .multiplayer-seat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .multiplayer-lobby-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .multiplayer-lobby-meta > div {
+    min-width: 0;
+  }
+
+  .multiplayer-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .multiplayer-actions button {
+    width: 100%;
+  }
+}

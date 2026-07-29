@@ -37,8 +37,12 @@ Konfiguration:
 Der Health-Endpunkt liegt unter
 `http://<RECHNER-IP>:8787/health`.
 
-Der WebSocket-Transport ist derzeit lokale Entwicklungsinfrastruktur.
-Die React-Oberfläche verwendet ihn noch nicht; Lobby- und
-Mehrspieleransichten folgen als nächstes. Für öffentliches Hosting
-werden ein dauerhaft laufender Dienst, TLS (`wss://`) und eine
-konkrete Origin-Policy benötigt.
+Die React-Startseite enthält eine Mehrspieler-Lobby. Sie leitet den
+Server standardmäßig aus dem aktuellen Seitenhost und Port `8787` ab;
+Server und Lobby-ID können in der Oberfläche geändert werden. Nach
+dem Matchstart zeigt sie bereits den gemeinsamen Rundenstand. Die
+eigentliche Spielansicht wird im nächsten Schritt an
+Server-Snapshots und Netzwerkkommandos angeschlossen.
+
+Für öffentliches Hosting werden ein dauerhaft laufender Dienst, TLS
+(`wss://`) und eine konkrete Origin-Policy benötigt.

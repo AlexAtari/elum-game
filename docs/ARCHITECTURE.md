@@ -267,9 +267,24 @@ Origin-Policy sowie betriebliche Überwachung.
 Die lokale React-Partie koordiniert ihre Runde weiterhin in
 `App.tsx`; ein späterer Mehrspieler-Client verwendet stattdessen
 `submit-round-plan` und übernimmt ausschließlich Server-Snapshots.
-Als nächster Baustein kann die React-Lobby den vorhandenen Transport
-verwenden und ihre Partie ausschließlich aus Server-Snapshots
-speisen.
+Der Browserclient kann damit den vorhandenen Transport verwenden und
+seine Lobby ausschließlich aus Server-Snapshots speisen.
+
+`MultiplayerLobbyScreen.tsx` bildet inzwischen den ersten
+Browserclient dieses Protokolls. Die Startseite trennt Einzel- und
+Mehrspielerpfad. Der Mehrspielerpfad leitet im lokalen Netz den
+WebSocket-Host aus dem aktuellen Seitenhost ab, lässt Server und
+Lobby-ID editieren und sendet Beitritt, Bereitschaft und Hoststart
+über die typisierten Protokollnachrichten. Lobby-Snapshots erzeugen
+die Vier-Sitz-Ansicht; Reconnect-Token werden nur lokal für die
+automatische Wiederaufnahme desselben Sitzes gespeichert.
+
+Nach dem Matchstart bleibt der Client vorerst in einer bestätigten
+Lobbyansicht und zeigt die autoritative Runde. Die bestehende
+Spieloberfläche darf erst umgeschaltet werden, wenn sämtliche ihrer
+Aktionen Netzwerkkommandos senden und ihr Zustand ausschließlich aus
+Match-Snapshots stammt; andernfalls würde ein entfernter Sitz
+versehentlich wieder Agimas lokale Singleplayerlogik ausführen.
 
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und

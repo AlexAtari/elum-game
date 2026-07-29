@@ -346,10 +346,20 @@ werden.
   als Integrationstest abgedeckt
 - Startskript bindet sicher standardmäßig nur an Loopback und kann
   für Smartphone-Tests explizit im lokalen WLAN freigegeben werden
+- React-Startseite bietet getrennte Einzel- und Mehrspielerpfade;
+  die responsive Lobby verbindet sich mit einem editierbaren
+  WebSocket-Ziel und zeigt alle vier Koloniesitze
+- Name, Sitzvergabe, Bereitschaft, Hoststart, KI-Füllung,
+  Verbindungsstatus und Wiederaufnahme per lokal gespeichertem
+  Reconnect-Token sind über die sichtbare Oberfläche bedienbar
+- nach dem Matchstart zeigt die Lobby bereits den autoritativen
+  Rundenstand; die eigentliche Spielansicht bleibt bewusst getrennt,
+  bis Aktionen und Zustand vollständig über das Netzwerk laufen
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Lobby in React darstellen und Clients
-  aus Server-Snapshots speisen; danach Backend-Hosting, TLS und
+- nächster Strukturschritt: bestehende Spielansicht
+  teilnehmerbezogen aus Server-Snapshots speisen und alle Aktionen
+  als Netzwerkkommandos senden; danach Backend-Hosting, TLS und
   Origin-Policy für öffentlichen Betrieb festlegen
 
 ### Nächster Regelstand

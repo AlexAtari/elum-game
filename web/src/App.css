@@ -84,6 +84,15 @@ button {
   font-size: 0.82rem;
 }
 
+.multiplayer-start-button {
+  display: block;
+  margin: 14px auto 0;
+  padding: 14px 28px;
+  border: 1px solid rgba(121, 221, 185, 0.36);
+  color: #9cf0d1;
+  background: rgba(121, 221, 185, 0.08);
+}
+
 .game-screen {
   max-width: 1100px;
   margin: 0 auto;
