@@ -361,10 +361,15 @@ werden.
   Versorgung, Bevölkerung, Grundstücksausgang, neuen Harvestern und
   abgeschlossenen Explorationen; das Briefing kann direkt zum
   erkundeten Feld auf der Karte springen
+- globale Ereignisse werden beim serverseitigen Übergang in die neue
+  Runde reproduzierbar aus Match-Seed und Rundennummer gewählt,
+  einmalig für alle Kolonien aktiviert und im gemeinsamen Briefing
+  angekündigt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Ereignisaktivierung und Rangliste in der
-  Mehrspieleransicht aus dem gemeinsamen Zustand darstellen;
+- nächster Strukturschritt: Rangliste in der Mehrspieleransicht aus
+  dem gemeinsamen Zustand darstellen und danach lokale Ereignisse
+  teilnehmerbezogen serverseitig auslösen;
   danach Backend-Hosting, TLS und Origin-Policy für öffentlichen
   Betrieb festlegen
 

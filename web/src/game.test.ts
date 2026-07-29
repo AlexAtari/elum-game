@@ -39,6 +39,7 @@ import {
   resolveLandTieBreak,
   runRound,
   selectGlobalEvent,
+  selectSeededGlobalEvent,
   selectLocalEvent,
   selectOpponentTileIds,
   selectRivalColonies,
@@ -249,6 +250,30 @@ describe('Ereignisse', () => {
     expect(selectGlobalEvent(2, 0.4, 0)).toBeNull()
     expect(selectLocalEvent(2, 0.49, 0)).toBe('food-cache')
     expect(selectLocalEvent(2, 0.5, 0)).toBeNull()
+  })
+
+  it('wählt globale Ereignisse reproduzierbar aus Match-Seed und Runde', () => {
+    const firstSequence = Array.from(
+      { length: 19 },
+      (_, index) =>
+        selectSeededGlobalEvent(index + 2, 23),
+    )
+    const repeatedSequence = Array.from(
+      { length: 19 },
+      (_, index) =>
+        selectSeededGlobalEvent(index + 2, 23),
+    )
+    const otherSequence = Array.from(
+      { length: 19 },
+      (_, index) =>
+        selectSeededGlobalEvent(index + 2, 24),
+    )
+
+    expect(firstSequence).toEqual(repeatedSequence)
+    expect(firstSequence).not.toEqual(otherSequence)
+    expect(firstSequence.some((event) => event !== null)).toBe(
+      true,
+    )
   })
 
   it('erlaubt dasselbe lokale Ereignis in zwei aufeinanderfolgenden Runden', () => {

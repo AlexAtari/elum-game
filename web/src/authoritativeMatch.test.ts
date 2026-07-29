@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   createPlayableInitialGameState,
+  selectSeededGlobalEvent,
   type GameState,
 } from './game'
 import {
@@ -171,6 +172,12 @@ describe('Autoritativer Match-Serverkern', () => {
     expect(
       completed.snapshot.state.colonies.orion.population,
     ).toBe(orionPopulation - 1)
+    expect(completed.snapshot.state.activeGlobalEvent).toBe(
+      selectSeededGlobalEvent(
+        2,
+        initialState.match.seed,
+      ),
+    )
     expect(match.getSnapshot().lastRoundReport).toBeNull()
     expect(
       match.getSnapshot('agima').lastRoundReport,
@@ -211,6 +218,31 @@ describe('Autoritativer Match-Serverkern', () => {
       ok: false,
       error: 'invalid-round-plan',
     })
+  })
+
+  it('aktiviert nach der letzten Abrechnung keine neue globale Lage', () => {
+    const state: GameState = {
+      ...createPlayableInitialGameState(),
+      round: 20,
+      activeGlobalEvent: null,
+    }
+    const match = createAuthoritativeMatch(state)
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+
+    const completed = match.submitRoundPlan(
+      'agima-session',
+      {
+        supplyPlan: { foodLevel: 2, energyLevel: 2 },
+      },
+    )
+
+    expect(completed.snapshot.state.round).toBe(20)
+    expect(
+      completed.snapshot.state.activeGlobalEvent,
+    ).toBeNull()
   })
 
   it('bewahrt Bereitschaft über einen Reconnect hinweg', () => {

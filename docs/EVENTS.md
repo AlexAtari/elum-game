@@ -176,6 +176,9 @@ vorher geschlossen werden. Sie darf Auktionen nicht überlagern.
   Sprachkatalogen.
 - Das aktive globale Ereignis wird im Spielzustand gespeichert und
   nach der Rundenabrechnung zurückgesetzt.
+- Im autoritativen Multiplayer wählt der Server das globale Ereignis
+  der neuen Runde reproduzierbar aus Match-Seed und Rundennummer und
+  aktiviert es vor der Veröffentlichung des neuen Snapshots.
 - Das aktive lokale Ereignis wird ebenfalls im Spielzustand
   gespeichert, damit seine Sperre oder sein Harvesterdefekt bis zur
   Abrechnung wirksam bleibt.

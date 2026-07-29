@@ -302,6 +302,17 @@ Bevölkerungsänderung, Grundstücksausgang, Harvester und
 Explorationen, ohne fremde Rundendaten über den Transport
 offenzulegen.
 
+Bevor der Snapshot der neuen Runde veröffentlicht wird, wählt der
+Server das globale Ereignis deterministisch aus Match-Seed und
+Rundennummer aus und aktiviert es über dieselbe
+`activateGlobalEvent`-Kernoperation wie der Einzelspieler. Sofortige
+Credit- und Kristalländerungen werden dadurch einmalig auf alle vier
+Kolonien angewendet; Produktionsmodifikatoren, Kostenänderungen und
+Aktionssperren bleiben als `activeGlobalEvent` für die bevorstehende
+Runde im kanonischen Zustand. Das Briefing zeigt dieses neue
+Ereignis, während der private `RoundReport` weiterhin die
+Wirtschaftsdaten der gerade abgeschlossenen Runde beschreibt.
+
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
 Entfernen laufen über reine Funktionen in `game.ts`; React hält davon

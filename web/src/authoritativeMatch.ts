@@ -1,8 +1,10 @@
 import {
+  activateGlobalEvent,
   beginLandTieBreak,
   getMarketTiming,
   LAND_AUCTION_TIMING,
   resolveLandTieBreak,
+  selectSeededGlobalEvent,
   type GameState,
   type LandAuctionPhase,
   type MarketResource,
@@ -702,9 +704,21 @@ export class AuthoritativeMatch {
       this.state,
       Object.fromEntries(this.roundPlans),
     )
+    const nextRoundStarted =
+      result.nextState.round > this.state.round
+    const nextState = nextRoundStarted
+      ? activateGlobalEvent(
+          result.nextState,
+          selectSeededGlobalEvent(
+            result.nextState.round,
+            result.nextState.match.seed,
+          ),
+        )
+      : result.nextState
+
     this.lastRoundReports = result.reports
     this.roundPlans.clear()
-    this.acceptState(result.nextState)
+    this.acceptState(nextState)
     return true
   }
 

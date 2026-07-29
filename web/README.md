@@ -45,7 +45,9 @@ teilnehmerbezogene Spielansicht. Karte, HQ, Harvester,
 Grundstücksgebote, Ressourcenmärkte und Rundenplanung verwenden dort
 ausschließlich Server-Snapshots und Netzwerkkommandos. Nach der
 gemeinsamen Abrechnung erhält jeder Sitz ein privates Rundenbriefing
-einschließlich antippbarer Explorationsergebnisse.
+einschließlich antippbarer Explorationsergebnisse. Das globale
+Ereignis der neuen Runde wird serverseitig für alle Kolonien
+ausgewählt, aktiviert und im Briefing angekündigt.
 
 Für öffentliches Hosting werden ein dauerhaft laufender Dienst, TLS
 (`wss://`) und eine konkrete Origin-Policy benötigt.

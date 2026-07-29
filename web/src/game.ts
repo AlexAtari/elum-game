@@ -516,6 +516,35 @@ export function selectGlobalEvent(
   )
 }
 
+function createSeededEventRoll(
+  seed: number,
+  round: number,
+  channel: number,
+) {
+  let value =
+    (Math.trunc(seed) ^
+      Math.imul(round, 0x9e3779b1) ^
+      channel) >>>
+    0
+
+  value = Math.imul(value ^ (value >>> 16), 0x21f0aaad)
+  value = Math.imul(value ^ (value >>> 15), 0x735a2d97)
+  value ^= value >>> 15
+
+  return (value >>> 0) / 0x1_0000_0000
+}
+
+export function selectSeededGlobalEvent(
+  round: number,
+  seed: number,
+): GlobalEventId | null {
+  return selectGlobalEvent(
+    round,
+    createSeededEventRoll(seed, round, 0x47_4c_4f_42),
+    createSeededEventRoll(seed, round, 0x45_56_4e_54),
+  )
+}
+
 export function selectLocalEvent(
   round: number,
   chanceRoll: number = Math.random(),

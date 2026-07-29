@@ -148,6 +148,14 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - der Server hält Berichte getrennt je menschlichem Sitz und fügt
   nur den eigenen Bericht in dessen personalisierten Snapshot ein;
   unpersonalisierte Snapshots enthalten keine Rundendaten
+- beim Übergang in eine neue Multiplayer-Runde wählt der Server das
+  globale Ereignis reproduzierbar aus Match-Seed und Rundennummer,
+  aktiviert seine sofortigen Wirkungen genau einmal für alle vier
+  Kolonien und hält Sperren, Kosten- und Produktionswirkungen im
+  kanonischen Zustand
+- das Multiplayer-Briefing kündigt das für die neu beginnende Runde
+  aktive globale Ereignis an; der private Wirtschaftsbericht bleibt
+  davon getrennt der gerade abgeschlossenen Runde zugeordnet
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -258,13 +266,14 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Die regelkritischen Browseraktionen, die Rundenbarriere und das
-teilnehmerbezogene Rundenbriefing laufen im Mehrspielerpfad jetzt
-über den autoritativen Server. Als Nächstes werden Ereignisaktivierung
-und Rangliste in dieser Ansicht ergänzt. Für einen öffentlichen
-Mehrspielerbetrieb bleiben anschließend Backend-Hosting, TLS mit
-`wss://`, Origin-Policy und betriebliche Überwachung zu entscheiden;
-GitHub Pages hostet weiterhin nur das statische Frontend.
+Die regelkritischen Browseraktionen, die Rundenbarriere, globale
+Ereignisse und das teilnehmerbezogene Rundenbriefing laufen im
+Mehrspielerpfad jetzt über den autoritativen Server. Als Nächstes
+werden Rangliste und danach lokale Ereignisse in dieser Ansicht
+ergänzt. Für einen öffentlichen Mehrspielerbetrieb bleiben
+anschließend Backend-Hosting, TLS mit `wss://`, Origin-Policy und
+betriebliche Überwachung zu entscheiden; GitHub Pages hostet
+weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

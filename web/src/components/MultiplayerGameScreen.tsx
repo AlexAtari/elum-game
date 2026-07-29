@@ -408,7 +408,7 @@ function MultiplayerGameScreen({
           round={state.round}
           population={colony.population}
           report={lastRoundReport}
-          globalEvent={lastRoundReport.globalEvent}
+          globalEvent={state.activeGlobalEvent}
           onContinue={() =>
             setDismissedReportRound(
               lastRoundReport.roundPlayed,

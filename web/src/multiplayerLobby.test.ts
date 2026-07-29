@@ -116,7 +116,16 @@ describe('Multiplayer-Lobby', () => {
     )
 
     expect(lobby.getMatchSnapshot()).toMatchObject({
-      state: { round: 2 },
+      state: {
+        round: 2,
+        activeGlobalEvent: 'colonial-grant',
+        colonies: {
+          agima: { credits: 165 },
+          orion: { credits: 165 },
+          nova: { credits: 165 },
+          vega: { credits: 165 },
+        },
+      },
       roundReadiness: {
         readyParticipantIds: [],
       },
