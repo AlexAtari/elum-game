@@ -368,7 +368,16 @@ Rundenvorschau, Harvesterbau und Rundenabschluss enthält. Die
 gemeinsamen Spieldaten bleiben davon unberührt. `RoundReport`
 transportiert abgeschlossene Explorationen mit Feld-ID und
 effektivem Kristallwert; `RoundBriefingPanel` löst erst bei der
-Anzeige den Stationsnamen auf.
+Anzeige den Stationsnamen auf. Ein Ergebnis-Button übergibt die
+Feld-ID zurück an `App.tsx`; beim erneuten Mounten erhält `HexMap`
+diese als `focusTileId`. `createRotationForTile` berechnet aus den
+Kugelkoordinaten die Rotation, die das Feld in die Ansichtsmitte
+dreht.
+
+`hq-four-colonies.webp` ist das gemeinsame HQ-Motiv für Marker und
+Verwaltungsansicht. Die SVG-Karte schneidet dieselbe Bilddatei auf
+einen runden, kontrastumrandeten Marker zu; die HQ-Ansicht zeigt das
+vollständige quadratische Luftbild mit erklärender Bildunterschrift.
 
 `createNaturalCrystalVeins` wählt vier voneinander entfernte
 Hexagonkerne in der Fernzone und erweitert sie schrittweise zu

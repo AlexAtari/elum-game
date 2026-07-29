@@ -96,6 +96,9 @@ der Darstellung.
 
 Das HQ gehört keinem einzelnen Spieler und zugleich allen Kolonien
 als gemeinsame Hilfskonstruktion, Markt- und Verwaltungsstation.
+Seine Darstellung zeigt eine zentrale Kuppel und vier über Korridore
+angeschlossene Außenlager. Jedes Außenlager repräsentiert das HQ
+einer der vier Kolonien Agima, Orion, Nova und Vega.
 Auf der Kugel wird seine erste Ausbaustufe als deutlich erkennbare
 Scheunen- und Lagerstation dargestellt. Spätere Ausbaustufen können
 diese Silhouette mit wachsender Bevölkerung sichtbar erweitern.

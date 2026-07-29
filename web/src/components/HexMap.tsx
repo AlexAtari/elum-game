@@ -4,6 +4,7 @@ import {
   type PointerEvent,
   type WheelEvent,
 } from 'react'
+import headquartersImage from '../assets/hq-four-colonies.webp'
 import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
@@ -28,6 +29,7 @@ import {
 } from '../planetMap'
 import {
   createPlanetSurfaceCells,
+  createRotationForTile,
   projectPlanetMap,
   projectPlanetSurfaceCells,
   type PlanetRotation,
@@ -56,6 +58,7 @@ type HexMapProps = {
   isRelocationBlocked: boolean
   onBuildHarvester: () => void
   onOpenHeadquarters: () => void
+  focusTileId?: string | null
   onPlaceLandBid: (tileId: string, amount: number) => void
   onCancelLandOrder: () => void
   onAssignHarvester: (
@@ -183,6 +186,7 @@ function HexMap({
   isRelocationBlocked,
   onBuildHarvester,
   onOpenHeadquarters,
+  focusTileId,
   onPlaceLandBid,
   onCancelLandOrder,
   onAssignHarvester,
@@ -190,13 +194,21 @@ function HexMap({
   onRemoveHarvester,
 }: HexMapProps) {
   const [selectedId, setSelectedId] = useState(
-    PLAYER_START_TILE_IDS[0],
+    focusTileId ?? PLAYER_START_TILE_IDS[0],
   )
   const [isChoosingProduction, setIsChoosingProduction] =
     useState(false)
   const [bidAmount, setBidAmount] = useState(LAND_MINIMUM_BID)
-  const [cameraState, setCameraState] =
-    useState<MapCamera>(INITIAL_MAP_CAMERA)
+  const [cameraState, setCameraState] = useState<MapCamera>(() => {
+    if (!focusTileId) {
+      return INITIAL_MAP_CAMERA
+    }
+
+    return {
+      ...createRotationForTile(targetPlanetMap, focusTileId),
+      zoom: INITIAL_MAP_CAMERA.zoom,
+    }
+  })
   const [hoveredId, setHoveredId] = useState<string | null>(
     null,
   )
@@ -753,22 +765,23 @@ function HexMap({
                         transform={`translate(${position.x} ${position.y}) scale(${cameraState.zoom})`}
                         aria-label="Zentrales Hauptquartier"
                       >
-                        <circle r="25" />
-                        <path
-                          className="hex-hq-roof"
-                          d="M -19 -5 L 0 -22 L 19 -5 Z"
+                        <defs>
+                          <clipPath id="hq-marker-clip">
+                            <circle r="27" />
+                          </clipPath>
+                        </defs>
+                        <circle
+                          className="hex-hq-marker-frame"
+                          r="29"
                         />
-                        <path
-                          className="hex-hq-building"
-                          d="M -16 -5 H 16 V 17 H -16 Z"
-                        />
-                        <path
-                          className="hex-hq-door"
-                          d="M -6 3 H 6 V 17 H -6 Z"
-                        />
-                        <path
-                          className="hex-hq-door-detail"
-                          d="M -6 9 H 6 M 0 3 V 17"
+                        <image
+                          href={headquartersImage}
+                          x="-27"
+                          y="-27"
+                          width="54"
+                          height="54"
+                          preserveAspectRatio="xMidYMid slice"
+                          clipPath="url(#hq-marker-clip)"
                         />
                         <text
                           className="hex-hq-label"

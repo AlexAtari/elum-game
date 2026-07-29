@@ -3,7 +3,8 @@ import {
   useEffect,
   useMemo,
   useState,
-  } from 'react'
+} from 'react'
+import headquartersImage from './assets/hq-four-colonies.webp'
 import HexMap from './components/HexMap'
 import LandTieAuctionPanel from './components/LandTieAuctionPanel'
 import LeaderboardPanel from './components/LeaderboardPanel'
@@ -100,6 +101,8 @@ function App() {
     useState<LocalEventId | null>(null)
   const [planningView, setPlanningView] =
     useState<PlanningView>('colony')
+  const [focusedTileId, setFocusedTileId] =
+    useState<string | null>(null)
 
   const colonies = useMemo(
     () => selectColonies(gameState),
@@ -182,6 +185,7 @@ function App() {
     setPendingLocalEvent(null)
     setActiveLocalEvent(null)
     setPlanningView('colony')
+    setFocusedTileId(null)
     setGameStarted(true)
   }
 
@@ -402,7 +406,17 @@ function App() {
   const continueAfterBriefing = useCallback(() => {
     setShowRoundBriefing(false)
     setPlanningView('colony')
+    setFocusedTileId(null)
   }, [])
+
+  const viewExplorationResult = useCallback(
+    (tileId: string) => {
+      setFocusedTileId(tileId)
+      setShowRoundBriefing(false)
+      setPlanningView('colony')
+    },
+    [],
+  )
 
   const dismissLocalEvent = useCallback(() => {
     setActiveLocalEvent(null)
@@ -544,6 +558,7 @@ function App() {
             report={lastReport}
             globalEvent={gameState.activeGlobalEvent}
             onContinue={continueAfterBriefing}
+            onViewExploration={viewExplorationResult}
           />
         ) : (
           <>
@@ -571,6 +586,7 @@ function App() {
               isRetoolingBlocked={harvesterRetoolingBlocked}
               isRelocationBlocked={harvesterRelocationBlocked}
               onBuildHarvester={buildHarvester}
+              focusTileId={focusedTileId}
               onOpenHeadquarters={() =>
                 setPlanningView('headquarters')
               }
@@ -610,12 +626,16 @@ function App() {
                 </button>
 
                 <div className="headquarters-intro">
-                  <span
-                    className="headquarters-icon"
-                    aria-hidden="true"
-                  >
-                    🏚️
-                  </span>
+                  <figure className="headquarters-image-frame">
+                    <img
+                      src={headquartersImage}
+                      alt="Gemeinsame Zentralkuppel mit den vier angeschlossenen Hauptquartieren von Agima, Orion, Nova und Vega"
+                    />
+                    <figcaption>
+                      Vier Kolonie-HQs an der gemeinsamen
+                      Zentralkuppel
+                    </figcaption>
+                  </figure>
                   <div>
                     <p className="eyebrow">Kolonie Agima</p>
                     <h2>Hauptquartier</h2>

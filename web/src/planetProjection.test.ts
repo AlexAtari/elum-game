@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { targetPlanetMap } from './planetMap'
 import {
+  createRotationForTile,
   createPlanetSurfaceCells,
   projectPlanetMap,
   projectPlanetSurfaceCells,
@@ -58,6 +59,22 @@ describe('Kugelprojektion der Planetenkarte', () => {
 
     expect(projection.HQ.depth).toBeCloseTo(-1)
     expect(projection.HQ.visible).toBe(false)
+  })
+
+  it('zentriert ein gezielt ausgewähltes Grundstück', () => {
+    const rotation = createRotationForTile(
+      targetPlanetMap,
+      'P071',
+    )
+    const projection = projectPlanetMap(
+      targetPlanetMap,
+      rotation,
+      280,
+    )
+
+    expect(projection.P071.x).toBeCloseTo(0)
+    expect(projection.P071.y).toBeCloseTo(0)
+    expect(projection.P071.depth).toBeCloseTo(1)
   })
 
   it('führt Projektion und Rückprojektion verlustfrei zusammen', () => {

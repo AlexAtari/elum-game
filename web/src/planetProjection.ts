@@ -141,6 +141,38 @@ function createViewTransform(
   }
 }
 
+export function createRotationForTile(
+  map: PlanetMap,
+  tileId: string,
+): PlanetRotation {
+  const positions = map.spherePositions
+  const forward = positions?.[map.hqTileId]
+  const target = positions?.[tileId]
+
+  if (!positions || !forward || !target) {
+    throw new Error(
+      'planet rotation requires sphere positions and a valid tile',
+    )
+  }
+
+  const reference =
+    Math.abs(forward.z) < 0.9
+      ? { x: 0, y: 0, z: 1 }
+      : { x: 1, y: 0, z: 0 }
+  const right = normalize(cross(reference, forward))
+  const up = normalize(cross(forward, right))
+  const localX = dot(target, right)
+  const localY = dot(target, up)
+  const localZ = dot(target, forward)
+  const yaw = Math.atan2(-localX, localZ)
+  const yawDepth = Math.hypot(localX, localZ)
+
+  return {
+    yaw,
+    pitch: Math.atan2(localY, yawDepth),
+  }
+}
+
 export function unprojectPlanetViewPosition(
   map: PlanetMap,
   rotation: PlanetRotation,

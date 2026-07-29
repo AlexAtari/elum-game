@@ -266,18 +266,30 @@ button {
   color: #aeb8cb;
 }
 
-.headquarters-icon {
-  display: grid;
-  width: 104px;
-  height: 104px;
+.headquarters-image-frame {
+  width: min(260px, 34%);
   flex: 0 0 auto;
-  place-items: center;
+  margin: 0;
+  overflow: hidden;
   border: 1px solid rgba(240, 201, 109, 0.24);
   border-radius: 24px;
-  background:
-    radial-gradient(circle at 35% 25%, rgba(240, 201, 109, 0.2), transparent 60%),
-    rgba(255, 255, 255, 0.045);
-  font-size: 3.8rem;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+.headquarters-image-frame img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.headquarters-image-frame figcaption {
+  padding: 9px 12px;
+  color: #aeb8cb;
+  background: rgba(8, 15, 29, 0.94);
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .headquarters-stats {
@@ -367,14 +379,13 @@ button {
 
   .headquarters-intro {
     align-items: flex-start;
+    flex-direction: column;
     gap: 14px;
   }
 
-  .headquarters-icon {
-    width: 70px;
-    height: 70px;
+  .headquarters-image-frame {
+    width: 100%;
     border-radius: 17px;
-    font-size: 2.6rem;
   }
 
   .headquarters-stats {

@@ -251,6 +251,11 @@ einen klaren Aktionsknopf betreten und besitzt einen eigenen Knopf
 zurück zur Kolonieübersicht. Laufende Auktionen, Rangliste und
 Infosheet bleiben eigenständige Spielphasen.
 
+Das zentrale HQ wird als gemeinsame Kuppel mit vier über Korridore
+angeschlossenen Kolonie-HQs dargestellt. Die vier Außenlager stehen
+für Agima, Orion, Nova und Vega. Dasselbe Motiv kennzeichnet das HQ
+auf der Kugel und dient als Leitbild der Verwaltungsansicht.
+
 ---
 
 # 6. Grundstücke
@@ -291,7 +296,10 @@ eingerichtet werden. Dieselbe Informations- und Produktionsgrenze
 gilt für menschliche Spieler und Agenten. Zu Beginn von Runde N+2
 meldet das Infosheet den Grundstücksnamen und den gefundenen
 Kristallwert beziehungsweise „Kein Vorkommen“. Anschließend ist das
-Ergebnis dauerhaft in der Grundstücksdetailansicht sichtbar.
+Ergebnis dauerhaft in der Grundstücksdetailansicht sichtbar. Das
+Ergebnis ist antippbar; dadurch öffnet die Kolonieübersicht das
+betroffene Grundstück und dreht die Kugel so, dass es zentriert
+sichtbar wird.
 
 Neue Grundstücke können ausschließlich ersteigert werden, wenn sie an mindestens ein bereits eigenes Grundstück angrenzen.
 

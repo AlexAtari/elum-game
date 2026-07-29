@@ -97,8 +97,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - alle 91 Grundstücke tragen feste, eindeutige Londoner
   U-Bahn-Stationsnamen; Detailansicht, Auktionen, Rundenbericht und
   barrierefreie Bezeichnungen verwenden diese Namen
-- deutlich markiertes zentrales HQ in Form einer frühen
-  Scheunen-/Lagerstation als Basis für spätere Ausbaustufen
+- deutlich markiertes zentrales HQ mit eigenem Luftbild: vier
+  Kolonie-HQs von Agima, Orion, Nova und Vega sind über Korridore an
+  eine gemeinsame Zentralkuppel angeschlossen; dasselbe Motiv
+  erscheint als Kartenmarker und in der HQ-Ansicht
 - größere kontrastunterlegte Harvesterzeichen; Kolonienamen bleiben
   auf belegten Feldern weiterhin sichtbar
 - getrennte Besitzanzeige für Orion, Nova und Vega statt einer
@@ -118,7 +120,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sichtbar und förderbar; dies gilt auch für KI-Kolonien
 - abgeschlossene Kristallexplorationen werden zu Beginn der
   Freigaberunde mit Grundstücksname und Ergebnis im Infosheet
-  gemeldet
+  gemeldet; ein Antippen öffnet das Grundstück und dreht die Kugel
+  automatisch darauf
 - aufgeräumte Planungsoberfläche mit kompakter Statuszeile samt
   aktuellem Rang: Karte und Grundstücksdetails liegen in der
   Kolonieübersicht, Markt, Versorgungsvorschau, Rundenabschluss und

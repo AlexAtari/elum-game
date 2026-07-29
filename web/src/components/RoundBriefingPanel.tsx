@@ -84,6 +84,7 @@ type RoundBriefingPanelProps = {
   report: RoundReport
   globalEvent: GlobalEventId | null
   onContinue: () => void
+  onViewExploration: (tileId: string) => void
 }
 
 function RoundBriefingPanel({
@@ -92,6 +93,7 @@ function RoundBriefingPanel({
   report,
   globalEvent,
   onContinue,
+  onViewExploration,
 }: RoundBriefingPanelProps) {
   const { t } = useI18n()
   const previousPopulation = population - report.populationChange
@@ -223,11 +225,21 @@ function RoundBriefingPanel({
             <div className="exploration-results">
               {report.completedExplorations.map(
                 ({ tileId, crystalRating }) => (
-                  <div
+                  <button
                     className="exploration-result"
                     key={tileId}
+                    type="button"
+                    onClick={() => onViewExploration(tileId)}
+                    aria-label={`${getPlanetTileName(
+                      tileId,
+                    )} auf der Karte anzeigen`}
                   >
-                    <span>💎 {getPlanetTileName(tileId)}</span>
+                    <span>
+                      <span>
+                        💎 {getPlanetTileName(tileId)}
+                      </span>
+                      <small>Auf der Karte anzeigen</small>
+                    </span>
                     <strong>
                       {crystalRating > 0
                         ? `${'★'.repeat(crystalRating)}${'☆'.repeat(
@@ -235,7 +247,7 @@ function RoundBriefingPanel({
                           )}`
                         : 'Kein Vorkommen'}
                     </strong>
-                  </div>
+                  </button>
                 ),
               )}
             </div>

@@ -78,8 +78,35 @@
   justify-content: space-between;
   gap: 14px;
   padding: 14px;
+  cursor: pointer;
+  border: 1px solid rgba(121, 221, 185, 0.14);
   border-radius: 12px;
+  color: #f6f7fb;
   background: rgba(121, 221, 185, 0.08);
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.exploration-result:hover,
+.exploration-result:focus-visible {
+  border-color: rgba(121, 221, 185, 0.65);
+  background: rgba(121, 221, 185, 0.14);
+  transform: translateY(-1px);
+}
+
+.exploration-result > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exploration-result small {
+  color: #8fa399;
+  font-size: 0.72rem;
 }
 
 .exploration-result strong {

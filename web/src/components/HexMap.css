@@ -210,35 +210,10 @@
   filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.72));
 }
 
-.hex-hq-marker circle {
+.hex-hq-marker-frame {
   fill: rgba(6, 17, 31, 0.78);
   stroke: rgba(148, 222, 255, 0.72);
   stroke-width: 2;
-}
-
-.hex-hq-roof {
-  fill: #9f3f2f;
-  stroke: #ffe0a6;
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-
-.hex-hq-building {
-  fill: #c47b45;
-  stroke: #ffe0a6;
-  stroke-width: 2;
-}
-
-.hex-hq-door {
-  fill: #563326;
-  stroke: #f0c786;
-  stroke-width: 1.5;
-}
-
-.hex-hq-door-detail {
-  fill: none;
-  stroke: #c9945d;
-  stroke-width: 1;
 }
 
 .hex-hq-label {

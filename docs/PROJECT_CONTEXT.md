@@ -270,13 +270,16 @@ werden.
 - teilnehmerbezogene Kristall-Exploration: Kauf in Runde N,
   verborgene Exploration in N+1, Offenlegung und Förderung ab N+2
 - Infosheet meldet abgeschlossene Explorationen beim Eintritt in
-  Runde N+2 mit Stationsname und Kristallwert
+  Runde N+2 mit Stationsname und Kristallwert; Ergebnisse öffnen
+  antippbar das Grundstück und zentrieren es auf der Kugel
 - Planungs-UI in Kolonieübersicht und HQ getrennt: Karte,
   Grundstücksdetails und kompakter Rangstatus außen; Märkte,
   Versorgung, Vorschau, Harvesterbau und Rundenabschluss im HQ
 - 91 feste Londoner U-Bahn-Stationsnamen als sichtbare
   Grundstücksnamen; stabile Feld-IDs bleiben die interne
   Regelgrundlage
+- gemeinsames HQ-Luftbild mit Zentralkuppel und vier angeschlossenen
+  Kolonie-Lagern als Marker und Verwaltungsbild
 - gemeinsame Nachbarschaftsprüfung für Spieler- und KI-Landaktionen
 - teilnehmerbezogene Schreibgrenze für die dynamischen Grunddaten;
   Ereignisse, Spieler-Harvesterbau, direkter Koloniehandel und
