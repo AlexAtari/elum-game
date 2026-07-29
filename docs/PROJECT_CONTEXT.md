@@ -330,13 +330,21 @@ werden.
   Lobbyteilnehmer verteilt
 - Lobby-Konfiguration, Seed und Startkorridore werden gemeinsam in
   den initialen kanonischen Spielzustand übernommen
+- serverseitige Rundenbarriere sammelt validierte Versorgungspläne
+  aller menschlichen Sitze; Snapshots zeigen nur deren
+  Bereitschaft, nicht die verdeckten Planwerte
+- bereite Teilnehmer sind gegen nachträgliche Spielkommandos
+  gesperrt; Reconnects behalten ihre teilnehmerbezogene
+  Rundenbereitschaft
+- nach Bereitschaft aller Menschen führt der Server KI-Sitze und
+  menschliche Koloniepläne in genau einer autoritativen
+  Rundenabrechnung zusammen; offene Grundstücksauktionen werden
+  vorher serverseitig beendet
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Versorgungsvorgaben,
-  Rundenbereitschaft, KI-Sitze und `runRound` serverautoritativ
-  koordinieren; danach Hosting und echten Verbindungstransport
-  festlegen, Lobby in React darstellen und Clients aus
-  Server-Snapshots speisen
+- nächster Strukturschritt: Hosting und echten
+  Verbindungstransport festlegen; danach Lobby in React darstellen
+  und Clients aus Server-Snapshots speisen
 
 ### Nächster Regelstand
 

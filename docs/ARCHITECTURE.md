@@ -192,6 +192,26 @@ Snapshot enthält dafür ein absolutes `deadlineAt`; ein Client kann
 daraus seinen Countdown darstellen, ohne selbst Autorität über den
 Phasenwechsel zu besitzen.
 
+Die Rundenbarriere liegt ebenfalls im Serverkern. Jeder menschliche
+Sitz übermittelt einen validierten Versorgungsplan; seine kanonischen
+Harvesterzuweisungen werden direkt aus dem `GameState` gelesen. Ein
+bereiter Sitz kann bis zur Abrechnung keine weiteren Spielkommandos
+mehr ausführen. Snapshots veröffentlichen nur die IDs der bereiten
+Teilnehmer, nicht deren verdeckte Versorgungswerte. Sobald alle
+Menschen bereit sind, werden KI-Sitze serverseitig berücksichtigt und
+genau eine gemeinsame Rundenabrechnung ausgeführt. Eine noch offene
+grafische Grundstücksauktion bleibt dabei eine echte Barriere: Der
+Server startet und beendet zunächst ihre kanonischen Phasen und
+rechnet die Runde erst nach der Auflösung ab.
+
+`multiplayerRound.ts` adaptiert die vorhandene Rundenökonomie für
+beliebige menschliche Koloniesitze. Damit dieselben Produktions-,
+Versorgungs-, Umrüstungs- und Ereignisregeln gelten, wird die
+bestehende Abrechnung wiederverwendet; nur die lokalen Agima-Ereignisse
+bleiben wie im Regelmodell auf Agima beschränkt. Die gemeinsame
+Rundenmetadaten-, KI-, Grundstücks- und Meteorabrechnung läuft genau
+einmal.
+
 Der Kern enthält bewusst noch keinen WebSocket- oder HTTP-Server.
 Die nachfolgende Lobby übernimmt Sitzvergabe und Wiederverbindung;
 Authentifizierung der Netzverbindung und Serialisierung über eine
@@ -204,8 +224,9 @@ Kommandoschicht.
 `multiplayerProtocol.ts` definiert die JSON-serialisierbaren
 Nachrichten beider Richtungen und normalisiert Clientdaten aus
 `unknown`. Das Protokoll Version 1 umfasst Lobbybeitritt,
-Sitzungswiederaufnahme, Bereitschaft, Matchstart und eingebettete
-`GameCommand`s. Sichtbare Lobby-Snapshots enthalten ausschließlich
+Sitzungswiederaufnahme, Bereitschaft, Matchstart, eingebettete
+`GameCommand`s und Versorgungspläne für die Rundenbarriere. Sichtbare
+Lobby-Snapshots enthalten ausschließlich
 öffentliche Sitzdaten; Reconnect-Tokens erscheinen nur in der
 gezielten Bestätigung an genau eine Verbindung.
 
@@ -233,14 +254,12 @@ versenden. Token-Erzeugung und Authentifizierung verbleiben auf der
 Serverseite. GitHub Pages kann weiterhin das Frontend hosten, aber
 nicht diesen dauerhaft laufenden Dienst.
 
-Vor dieser Leitung fehlt noch eine regelkritische Serveroperation:
-Versorgungsplan, Rundenbereitschaft und der Aufruf von `runRound`
-werden in `App.tsx` weiterhin lokal koordiniert. Ein echter
-Mehrspieler-Client darf die nächste Runde nicht selbst berechnen.
-Der nächste Kernbaustein muss deshalb Planungen pro menschlichem Sitz
-sammeln, KI-Sitze serverseitig ausführen und genau eine autoritative
-Rundenabrechnung auslösen. Erst danach wird der konkrete
-Verbindungstransport an einen vollständigen Spielablauf angeschlossen.
+Die lokale React-Partie koordiniert ihre Runde weiterhin in
+`App.tsx`; ein späterer Mehrspieler-Client verwendet stattdessen
+`submit-round-plan` und übernimmt ausschließlich Server-Snapshots.
+Als nächster Infrastrukturbaustein kann deshalb ein konkreter
+Verbindungstransport an den nun vollständigen autoritativen
+Rundenablauf angeschlossen werden.
 
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und

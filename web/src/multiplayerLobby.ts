@@ -140,6 +140,9 @@ export class MultiplayerLobby {
         return
       case 'game-command':
         this.submitGameCommand(connectionId, message)
+        return
+      case 'submit-round-plan':
+        this.submitRoundPlan(connectionId, message)
     }
   }
 
@@ -477,6 +480,44 @@ export class MultiplayerLobby {
     const result = this.match.submitCommand(
       connectionId,
       message.payload.command,
+    )
+
+    this.send(connectionId, {
+      version: 1,
+      type: 'command-result',
+      requestId: message.requestId,
+      payload: result.ok
+        ? {
+            ok: true,
+            revision: result.snapshot.revision,
+          }
+        : {
+            ok: false,
+            error: result.error,
+            revision: result.snapshot.revision,
+          },
+    })
+  }
+
+  private submitRoundPlan(
+    connectionId: string,
+    message: Extract<
+      MultiplayerClientMessage,
+      { type: 'submit-round-plan' }
+    >,
+  ) {
+    if (!this.match) {
+      this.emitError(
+        connectionId,
+        message.requestId,
+        'match-not-started',
+      )
+      return
+    }
+
+    const result = this.match.submitRoundPlan(
+      connectionId,
+      message.payload,
     )
 
     this.send(connectionId, {

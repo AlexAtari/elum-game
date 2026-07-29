@@ -61,6 +61,21 @@ function startMessage(requestId: string) {
   }
 }
 
+function roundPlanMessage(
+  requestId: string,
+  foodLevel = 2,
+  energyLevel = 2,
+) {
+  return {
+    version: 1,
+    requestId,
+    type: 'submit-round-plan',
+    payload: {
+      supplyPlan: { foodLevel, energyLevel },
+    },
+  }
+}
+
 function findMessages(
   emitted: EmittedMessage[],
   type: MultiplayerServerMessage['type'],
@@ -75,6 +90,46 @@ function findMessages(
 }
 
 describe('Multiplayer-Lobby', () => {
+  it('leitet Rundenpläne weiter und veröffentlicht die gemeinsame Abrechnung', () => {
+    const { lobby, emitted } = createLobbyHarness()
+
+    lobby.handleMessage('host', joinMessage('Alex', 'join-host'))
+    lobby.handleMessage('guest', joinMessage('Bea', 'join-guest'))
+    lobby.handleMessage('host', readyMessage(true, 'ready-host'))
+    lobby.handleMessage('guest', readyMessage(true, 'ready-guest'))
+    lobby.handleMessage('host', startMessage('start-match'))
+
+    lobby.handleMessage(
+      'host',
+      roundPlanMessage('plan-host'),
+    )
+    expect(lobby.getMatchSnapshot()).toMatchObject({
+      state: { round: 1 },
+      roundReadiness: {
+        readyParticipantIds: ['agima'],
+      },
+    })
+
+    lobby.handleMessage(
+      'guest',
+      roundPlanMessage('plan-guest', 0, 0),
+    )
+
+    expect(lobby.getMatchSnapshot()).toMatchObject({
+      state: { round: 2 },
+      roundReadiness: {
+        readyParticipantIds: [],
+      },
+    })
+    expect(
+      findMessages(emitted, 'command-result', 'guest').at(-1)
+        ?.message,
+    ).toMatchObject({
+      requestId: 'plan-guest',
+      payload: { ok: true, revision: 2 },
+    })
+  })
+
   it('bleibt bei einem abgebrochenen Transport funktionsfähig', () => {
     const transportErrors: unknown[] = []
     let tokenSequence = 0

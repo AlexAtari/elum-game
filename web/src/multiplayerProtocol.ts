@@ -2,6 +2,7 @@ import type {
   AuthoritativeCommandError,
   AuthoritativeMatchSnapshot,
 } from './authoritativeMatch'
+import type { SupplyPlan } from './game'
 import {
   parseGameCommand,
   type GameCommand,
@@ -68,6 +69,12 @@ export type MultiplayerClientMessage =
       type: 'game-command'
       payload: {
         command: GameCommand
+      }
+    })
+  | (ClientMessageBase & {
+      type: 'submit-round-plan'
+      payload: {
+        supplyPlan: SupplyPlan
       }
     })
 
@@ -228,6 +235,33 @@ export function parseMultiplayerClientMessage(
           ...base,
           type: 'game-command',
           payload: { command },
+        }
+      : null
+  }
+
+  if (input.type === 'submit-round-plan') {
+    if (!isRecord(input.payload.supplyPlan)) {
+      return null
+    }
+
+    const { foodLevel, energyLevel } =
+      input.payload.supplyPlan
+    const isLevel = (value: unknown): value is number =>
+      typeof value === 'number' &&
+      Number.isInteger(value) &&
+      value >= 0 &&
+      value <= 3
+
+    return isLevel(foodLevel) && isLevel(energyLevel)
+      ? {
+          ...base,
+          type: 'submit-round-plan',
+          payload: {
+            supplyPlan: {
+              foodLevel,
+              energyLevel,
+            },
+          },
         }
       : null
   }

@@ -1,0 +1,188 @@
+import {
+  runRound,
+  type GameState,
+  type HarvesterAssignment,
+  type HarvesterAssignments,
+  type RivalId,
+  type RoundReport,
+  type SupplyPlan,
+} from './game'
+import {
+  getHumanParticipantIds,
+  type ParticipantId,
+} from './match'
+import { applyAutonomousRivalLandPurchase } from './rivalAutonomousLand'
+
+export type ParticipantRoundPlan = {
+  supplyPlan: SupplyPlan
+}
+
+export type MultiplayerRoundResult = {
+  nextState: GameState
+  reports: Partial<Record<ParticipantId, RoundReport>>
+}
+
+export function applyAutonomousAiLandPurchases(
+  state: GameState,
+) {
+  return (['orion', 'nova', 'vega'] as RivalId[]).reduce(
+    (nextState, participantId) =>
+      state.match.participants[participantId].controller.kind ===
+      'ai'
+        ? applyAutonomousRivalLandPurchase(
+            nextState,
+            participantId,
+          )
+        : nextState,
+    state,
+  )
+}
+
+function normalizeAssignments(
+  state: GameState,
+  participantId: ParticipantId,
+): HarvesterAssignments {
+  const assignments =
+    state.colonies[participantId].harvesterAssignments
+
+  return Object.fromEntries(
+    Object.entries(assignments).map(([tileId, assignment]) => [
+      tileId,
+      typeof assignment === 'string'
+        ? {
+            production: assignment,
+            isNew: false,
+          }
+        : ({ ...assignment } satisfies HarvesterAssignment),
+    ]),
+  )
+}
+
+function runParticipantEconomy(
+  state: GameState,
+  participantId: ParticipantId,
+  plan: ParticipantRoundPlan,
+) {
+  if (participantId === 'agima') {
+    return runRound(
+      state,
+      normalizeAssignments(state, participantId),
+      plan.supplyPlan,
+    )
+  }
+
+  const participantColony = state.colonies[participantId]
+  const syntheticState: GameState = {
+    ...state,
+    activeLocalEvent: null,
+    colonies: {
+      ...state.colonies,
+      agima: {
+        ...participantColony,
+        id: 'agima',
+        harvesterAssignments: normalizeAssignments(
+          state,
+          participantId,
+        ),
+      },
+    },
+  }
+
+  return runRound(
+    syntheticState,
+    normalizeAssignments(state, participantId),
+    plan.supplyPlan,
+  )
+}
+
+export function runMultiplayerRound(
+  state: GameState,
+  plans: Partial<Record<ParticipantId, ParticipantRoundPlan>>,
+): MultiplayerRoundResult {
+  const humanParticipantIds = getHumanParticipantIds(state.match)
+
+  if (
+    humanParticipantIds.some(
+      (participantId) => plans[participantId] === undefined,
+    )
+  ) {
+    throw new Error('Missing human round plan.')
+  }
+
+  const agimaPlan = plans.agima
+
+  if (!agimaPlan) {
+    throw new Error('Agima must be human in the current match model.')
+  }
+
+  const participantResults = Object.fromEntries(
+    humanParticipantIds.map((participantId) => [
+      participantId,
+      runParticipantEconomy(
+        state,
+        participantId,
+        plans[participantId]!,
+      ),
+    ]),
+  ) as Partial<
+    Record<ParticipantId, ReturnType<typeof runRound>>
+  >
+  const agimaResult = participantResults.agima!
+  let nextState = agimaResult.nextState
+  const landBidEntries = Object.entries(
+    state.pendingLandBid?.bids ?? {},
+  ) as Array<[ParticipantId, number]>
+  const landWinnerId =
+    state.pendingLandBid?.winnerId ??
+    (landBidEntries.length === 1
+      ? landBidEntries[0][0]
+      : undefined)
+
+  for (const participantId of humanParticipantIds) {
+    if (participantId === 'agima') {
+      continue
+    }
+
+    const participantResult = participantResults[participantId]!
+    const economy =
+      participantResult.nextState.colonies.agima
+    const sharedColony = nextState.colonies[participantId]
+    const refundedCredits =
+      participantId !== landWinnerId
+        ? state.pendingLandBid?.reservedCredits[
+            participantId
+          ] ?? 0
+        : 0
+
+    nextState = {
+      ...nextState,
+      colonies: {
+        ...nextState.colonies,
+        [participantId]: {
+          ...economy,
+          id: participantId,
+          name: sharedColony.name,
+          icon: sharedColony.icon,
+          credits:
+            state.colonies[participantId].credits +
+            refundedCredits,
+          ownedTileIds: sharedColony.ownedTileIds,
+          crystalDiscoveryRoundByTileId:
+            sharedColony.crystalDiscoveryRoundByTileId,
+          lastLandPurchaseRound:
+            sharedColony.lastLandPurchaseRound,
+        },
+      },
+    }
+  }
+
+  return {
+    nextState,
+    reports: Object.fromEntries(
+      humanParticipantIds.map((participantId) => [
+        participantId,
+        participantResults[participantId]!.report,
+      ]),
+    ),
+  }
+}

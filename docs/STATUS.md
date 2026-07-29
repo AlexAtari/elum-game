@@ -104,6 +104,18 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   mit einer neuen Verbindung übernommen werden
 - Lobby-Seed, Controller und zugewiesene Startkorridore werden beim
   Start gemeinsam in den kanonischen Spielzustand übernommen
+- serverseitige Rundenbarriere mit validierten Versorgungsplänen pro
+  menschlichem Sitz; öffentliche Match-Snapshots enthalten nur die
+  teilnehmerbezogene Bereitschaft und keine fremden Planwerte
+- nach der Bereitschaft sind weitere Spielkommandos dieses Sitzes
+  gesperrt; die Bereitschaft bleibt bei einem Reconnect erhalten
+- nach allen menschlichen Plänen führt der Server genau eine
+  gemeinsame Rundenabrechnung aus; entfernte menschliche Kolonien
+  verwenden ihre eigene Versorgung und werden nicht als KI
+  fortgeschrieben
+- freie KI-Sitze werden in derselben Abrechnung serverseitig
+  fortgeführt; eine offene grafische Grundstücksauktion wird zuvor
+  vollständig über die autoritativen Phasen aufgelöst
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,

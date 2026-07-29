@@ -99,6 +99,187 @@ function withRemoteOrion(state: GameState): GameState {
 }
 
 describe('Autoritativer Match-Serverkern', () => {
+  it('rechnet erst nach allen menschlichen Rundenplänen genau einmal ab', () => {
+    const initialState = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const match = createAuthoritativeMatch(initialState)
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+    match.connectSeat({
+      sessionId: 'orion-session',
+      participantId: 'orion',
+    })
+
+    const agimaReady = match.submitRoundPlan(
+      'agima-session',
+      {
+        supplyPlan: { foodLevel: 2, energyLevel: 2 },
+      },
+    )
+
+    expect(agimaReady).toMatchObject({
+      ok: true,
+      snapshot: {
+        revision: 1,
+        state: { round: 1 },
+        roundReadiness: {
+          round: 1,
+          readyParticipantIds: ['agima'],
+        },
+      },
+    })
+    expect(
+      match.submitCommand(
+        'agima-session',
+        createCommand(
+          {
+            participantId: 'agima',
+            type: 'order-harvester-build',
+            payload: {},
+          },
+          'too-late-after-ready',
+        ),
+      ),
+    ).toMatchObject({
+      ok: false,
+      error: 'participant-ready',
+    })
+
+    const orionPopulation =
+      initialState.colonies.orion.population
+    const completed = match.submitRoundPlan(
+      'orion-session',
+      {
+        supplyPlan: { foodLevel: 0, energyLevel: 0 },
+      },
+    )
+
+    expect(completed).toMatchObject({
+      ok: true,
+      snapshot: {
+        revision: 2,
+        state: { round: 2 },
+        roundReadiness: {
+          round: 2,
+          readyParticipantIds: [],
+        },
+      },
+    })
+    expect(
+      completed.snapshot.state.colonies.orion.population,
+    ).toBe(orionPopulation - 1)
+  })
+
+  it('validiert Rundenpläne an der authentifizierten Grenze', () => {
+    const match = createAuthoritativeMatch(
+      createPlayableInitialGameState(),
+    )
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+
+    expect(
+      match.submitRoundPlan('unknown-session', {
+        supplyPlan: { foodLevel: 2, energyLevel: 2 },
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: 'unauthenticated-session',
+    })
+    expect(
+      match.submitRoundPlan('agima-session', {
+        supplyPlan: { foodLevel: 4, energyLevel: 2 },
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: 'invalid-round-plan',
+    })
+  })
+
+  it('bewahrt Bereitschaft über einen Reconnect hinweg', () => {
+    const match = createAuthoritativeMatch(
+      withRemoteOrion(createPlayableInitialGameState()),
+    )
+    match.connectSeat({
+      sessionId: 'agima-old',
+      participantId: 'agima',
+    })
+    match.submitRoundPlan('agima-old', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+
+    expect(match.disconnectSeat('agima-old')).toBe(true)
+    expect(
+      match.connectSeat({
+        sessionId: 'agima-new',
+        participantId: 'agima',
+      }),
+    ).toMatchObject({ ok: true })
+    expect(match.getSnapshot().roundReadiness).toEqual({
+      round: 1,
+      readyParticipantIds: ['agima'],
+    })
+  })
+
+  it('wartet bei mehreren Grundstücksgeboten auf die Serverauktion', () => {
+    const clock = new FakeClock()
+    const baseState = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const tileId = baseState.colonies.agima.ownedTileIds[0]
+    const state: GameState = {
+      ...baseState,
+      pendingLandBid: {
+        tileId,
+        bids: { agima: 30, orion: 30 },
+        reservedCredits: { agima: 30, orion: 30 },
+      },
+    }
+    const match = createAuthoritativeMatch(state, { clock })
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+    match.connectSeat({
+      sessionId: 'orion-session',
+      participantId: 'orion',
+    })
+    match.submitRoundPlan('agima-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+    match.submitRoundPlan('orion-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+
+    expect(match.getSnapshot()).toMatchObject({
+      state: {
+        round: 1,
+        pendingLandBid: null,
+        landAuctionTie: { phase: 'announcement' },
+      },
+      roundReadiness: {
+        readyParticipantIds: ['agima', 'orion'],
+      },
+    })
+
+    clock.advance(15_000)
+
+    expect(match.getSnapshot()).toMatchObject({
+      state: {
+        round: 2,
+        landAuctionTie: null,
+      },
+      roundReadiness: {
+        round: 2,
+        readyParticipantIds: [],
+      },
+    })
+  })
+
   it('bindet authentifizierte Sitzungen und verhindert Identitätswechsel', () => {
     const state = withRemoteOrion(
       createPlayableInitialGameState(),

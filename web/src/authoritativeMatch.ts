@@ -1,11 +1,18 @@
 import {
+  beginLandTieBreak,
   getMarketTiming,
   LAND_AUCTION_TIMING,
+  resolveLandTieBreak,
   type GameState,
   type LandAuctionPhase,
   type MarketResource,
   type ResourceMarketPhase,
 } from './game'
+import {
+  applyAutonomousAiLandPurchases,
+  runMultiplayerRound,
+  type ParticipantRoundPlan,
+} from './multiplayerRound'
 import {
   executeGameCommand,
   parseGameCommand,
@@ -13,6 +20,7 @@ import {
   type GameCommandErrorCode,
 } from './gameCommands'
 import {
+  getHumanParticipantIds,
   participantIds,
   type ParticipantId,
 } from './match'
@@ -43,6 +51,9 @@ export type AuthoritativeCommandError =
   | GameCommandErrorCode
   | 'unauthenticated-session'
   | 'participant-mismatch'
+  | 'participant-ready'
+  | 'invalid-round-plan'
+  | 'round-action-active'
   | 'server-controlled-action'
 
 export type AuthoritativePhaseTiming =
@@ -79,6 +90,10 @@ export type AuthoritativeMatchSnapshot = {
   revision: number
   state: GameState
   phaseTiming: AuthoritativePhaseTiming | null
+  roundReadiness: {
+    round: number
+    readyParticipantIds: ParticipantId[]
+  }
 }
 
 export type AuthoritativeCommandResult =
@@ -148,11 +163,16 @@ function copySnapshot(
   revision: number,
   state: GameState,
   phaseTiming: AuthoritativePhaseTiming | null,
+  readyParticipantIds: ParticipantId[],
 ): AuthoritativeMatchSnapshot {
   return structuredClone({
     revision,
     state,
     phaseTiming,
+    roundReadiness: {
+      round: state.round,
+      readyParticipantIds,
+    },
   })
 }
 
@@ -276,6 +296,10 @@ export class AuthoritativeMatch {
   private scheduledPhaseKey: string | null = null
   private phaseTimer: unknown = null
   private serverCommandSequence = 0
+  private readonly roundPlans = new Map<
+    ParticipantId,
+    ParticipantRoundPlan
+  >()
   private readonly clock: MatchClock
   private readonly onSubscriberError: (error: unknown) => void
   private readonly sessionSeats = new Map<string, ParticipantId>()
@@ -420,6 +444,15 @@ export class AuthoritativeMatch {
       }
     }
 
+    if (this.roundPlans.has(participantId)) {
+      return {
+        ok: false,
+        command,
+        error: 'participant-ready',
+        snapshot: this.getSnapshot(),
+      }
+    }
+
     const result = executeGameCommand(this.state, command)
 
     if (!result.ok) {
@@ -438,11 +471,73 @@ export class AuthoritativeMatch {
     }
   }
 
+  submitRoundPlan(
+    sessionId: string,
+    input: unknown,
+  ):
+    | {
+        ok: true
+        snapshot: AuthoritativeMatchSnapshot
+      }
+    | {
+        ok: false
+        error: AuthoritativeCommandError
+        snapshot: AuthoritativeMatchSnapshot
+      } {
+    const participantId = this.sessionSeats.get(sessionId)
+
+    if (participantId === undefined) {
+      return {
+        ok: false,
+        error: 'unauthenticated-session',
+        snapshot: this.getSnapshot(),
+      }
+    }
+
+    const plan = parseParticipantRoundPlan(input)
+
+    if (!plan) {
+      return {
+        ok: false,
+        error: 'invalid-round-plan',
+        snapshot: this.getSnapshot(),
+      }
+    }
+
+    if (
+      (this.state.activeResourceMarket !== null &&
+        this.state.activeResourceMarket.phase !== 'finished') ||
+      (this.state.landAuctionTie !== null &&
+        this.state.landAuctionTie.phase !== 'finished')
+    ) {
+      return {
+        ok: false,
+        error: 'round-action-active',
+        snapshot: this.getSnapshot(),
+      }
+    }
+
+    this.roundPlans.set(participantId, plan)
+
+    if (!this.tryCompleteRound()) {
+      this.revision += 1
+      this.publishSnapshot()
+    }
+
+    return {
+      ok: true,
+      snapshot: this.getSnapshot(),
+    }
+  }
+
   getSnapshot() {
     return copySnapshot(
       this.revision,
       this.state,
       this.phaseTiming,
+      participantIds.filter((participantId) =>
+        this.roundPlans.has(participantId),
+      ),
     )
   }
 
@@ -470,6 +565,7 @@ export class AuthoritativeMatch {
     this.sessionSeats.clear()
     this.seatSessions.clear()
     this.subscribers.clear()
+    this.roundPlans.clear()
   }
 
   private acceptState(nextState: GameState) {
@@ -541,6 +637,63 @@ export class AuthoritativeMatch {
 
     this.phaseTimer = null
     this.acceptState(result.state)
+
+    if (result.state.landAuctionTie?.phase === 'finished') {
+      this.tryCompleteRound()
+    }
+  }
+
+  private tryCompleteRound() {
+    const humanParticipantIds = getHumanParticipantIds(
+      this.state.match,
+    )
+
+    if (
+      humanParticipantIds.some(
+        (participantId) => !this.roundPlans.has(participantId),
+      )
+    ) {
+      return false
+    }
+
+    if (
+      (this.state.activeResourceMarket !== null &&
+        this.state.activeResourceMarket.phase !== 'finished') ||
+      (this.state.landAuctionTie !== null &&
+        this.state.landAuctionTie.phase !== 'finished')
+    ) {
+      return false
+    }
+
+    if (this.state.landAuctionTie?.phase === 'finished') {
+      const tie = this.state.landAuctionTie
+      this.state = resolveLandTieBreak(
+        this.state,
+        tie.liveBids,
+      )
+    }
+
+    this.state = applyAutonomousAiLandPurchases(this.state)
+
+    const pendingBidCount = Object.keys(
+      this.state.pendingLandBid?.bids ?? {},
+    ).length
+
+    if (
+      pendingBidCount >= 2 &&
+      !this.state.pendingLandBid?.winnerId
+    ) {
+      this.acceptState(beginLandTieBreak(this.state))
+      return true
+    }
+
+    const result = runMultiplayerRound(
+      this.state,
+      Object.fromEntries(this.roundPlans),
+    )
+    this.roundPlans.clear()
+    this.acceptState(result.nextState)
+    return true
   }
 
   private publishSnapshot() {
@@ -560,6 +713,38 @@ export class AuthoritativeMatch {
       this.onSubscriberError(error)
     }
   }
+}
+
+function parseParticipantRoundPlan(
+  input: unknown,
+): ParticipantRoundPlan | null {
+  if (
+    typeof input !== 'object' ||
+    input === null ||
+    !('supplyPlan' in input) ||
+    typeof input.supplyPlan !== 'object' ||
+    input.supplyPlan === null ||
+    !('foodLevel' in input.supplyPlan) ||
+    !('energyLevel' in input.supplyPlan)
+  ) {
+    return null
+  }
+
+  const { foodLevel, energyLevel } = input.supplyPlan
+  const isLevel = (value: unknown): value is number =>
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 3
+
+  return isLevel(foodLevel) && isLevel(energyLevel)
+    ? {
+        supplyPlan: {
+          foodLevel,
+          energyLevel,
+        },
+      }
+    : null
 }
 
 export function createAuthoritativeMatch(

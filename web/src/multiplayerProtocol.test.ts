@@ -73,6 +73,41 @@ describe('Multiplayer-Nachrichtenprotokoll', () => {
     ).toBeNull()
   })
 
+  it('validiert Versorgungspläne für die Rundenbarriere', () => {
+    const message = {
+      version: 1,
+      requestId: 'round-plan-1',
+      type: 'submit-round-plan',
+      payload: {
+        supplyPlan: {
+          foodLevel: 2,
+          energyLevel: 3,
+        },
+      },
+    }
+
+    expect(parseMultiplayerClientMessage(message)).toEqual(message)
+    expect(
+      parseMultiplayerClientMessage({
+        ...message,
+        payload: {
+          supplyPlan: {
+            foodLevel: 2,
+            energyLevel: 3.5,
+          },
+        },
+      }),
+    ).toBeNull()
+    expect(
+      parseMultiplayerClientMessage({
+        ...message,
+        payload: {
+          supplyPlan: null,
+        },
+      }),
+    ).toBeNull()
+  })
+
   it('weist unbekannte Versionen und unbrauchbare Namen zurück', () => {
     expect(normalizeDisplayName('')).toBeNull()
     expect(normalizeDisplayName('x'.repeat(25))).toBeNull()
