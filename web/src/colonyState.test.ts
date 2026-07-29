@@ -3,21 +3,40 @@ import {
   STARTING_HARVESTERS,
   PLAYER_START_TILE_IDS,
   addColonyOwnedTile,
+  advanceRivalColonies,
+  advanceRivalColoniesInGame,
   assignPlayerHarvester,
   changePlayerHarvesterProduction,
   createPlayableInitialGameState,
   executeColonyTrade,
+  placeLandBid,
   removePlayerHarvester,
   runRound,
   selectColonies,
   selectOpponentTileIds,
   updateColony,
+  tiles,
 } from './game'
 import { participantIds } from './match'
 
 const normalSupply = {
   foodLevel: 2,
   energyLevel: 2,
+}
+
+function getFreeAdjacentTileId(
+  state: ReturnType<typeof createPlayableInitialGameState>,
+) {
+  const startTile = tiles.find(
+    (tile) => tile.id === state.ownedTileIds[1],
+  )!
+
+  return startTile.neighborIds.find(
+    (tileId) =>
+      !state.ownedTileIds.includes(tileId) &&
+      !state.opponentTileIds.includes(tileId) &&
+      tiles.find((tile) => tile.id === tileId)?.owner === 'free',
+  )!
 }
 
 describe('Gemeinsame Kolonieansicht', () => {
@@ -128,6 +147,69 @@ describe('Gemeinsame Kolonieansicht', () => {
     )
     expect(after.agima).toEqual(before.agima)
     expect(after.vega).toEqual(before.vega)
+  })
+
+  it('überführt die Rivalen-Rundenabrechnung verlustfrei in den Spielzustand', () => {
+    const state = createPlayableInitialGameState()
+    const expectedRivals = advanceRivalColonies(
+      state.rivals,
+      state.round,
+      state.activeGlobalEvent,
+      state.meteorImpacts,
+    )
+    const next = advanceRivalColoniesInGame(state)
+
+    expect(next.rivals).toEqual(expectedRivals)
+    expect(selectColonies(next).agima).toEqual(
+      selectColonies(state).agima,
+    )
+    expect(selectOpponentTileIds(next)).toEqual(
+      Object.values(expectedRivals).flatMap(
+        (rival) => rival.ownedTileIds ?? [],
+      ),
+    )
+  })
+
+  it('schließt Landgewinne beider Auktionsseiten über die Koloniegrenze ab', () => {
+    const initialState = createPlayableInitialGameState()
+    const tileId = getFreeAdjacentTileId(initialState)
+    const reservedState = placeLandBid(
+      initialState,
+      tileId,
+      25,
+      30,
+    )
+    const playerWin = runRound(
+      {
+        ...reservedState,
+        pendingLandBid: {
+          ...reservedState.pendingLandBid!,
+          tieWinner: 'player',
+        },
+      },
+      {},
+      normalSupply,
+    ).nextState
+    const orionWin = runRound(
+      {
+        ...reservedState,
+        pendingLandBid: {
+          ...reservedState.pendingLandBid!,
+          tieWinner: 'orion',
+        },
+      },
+      {},
+      normalSupply,
+    ).nextState
+
+    expect(selectColonies(playerWin).agima.ownedTileIds).toContain(
+      tileId,
+    )
+    expect(selectOpponentTileIds(playerWin)).not.toContain(tileId)
+    expect(
+      selectColonies(orionWin).orion.ownedTileIds,
+    ).toContain(tileId)
+    expect(selectOpponentTileIds(orionWin)).toContain(tileId)
   })
 
   it('führt fertiggestellte Harvester in der Gesamtzahl fort', () => {

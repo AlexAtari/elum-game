@@ -42,6 +42,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   gemeinsame Schreibgrenze
 - direkte Geschäfte mit Orion werden wie Geschäfte mit Nova und Vega
   vollständig in beiden beteiligten Kolonien verbucht
+- Browser-Rundenabrechnung schreibt Agimas Versorgung, Produktion,
+  Bevölkerung und fertiggestellte Harvester über die gemeinsame
+  Koloniegrenze
+- Rivalen-Rundenabrechnung bleibt als Headless-Funktion separat und
+  wird im Browser über einen teilnehmerbezogenen Adapter übernommen
+- Landgewinne von Agima und Orion aus der grafischen Auktion werden
+  über denselben Besitzpfad abgeschlossen
 - drehbare Browserkugel mit zentralem HQ und 91 Grundstücken
 - UI-unabhängiges Kartenmodell mit Feld-IDs, symmetrischen
   Nachbarlisten und berechneten Graphdistanzen
@@ -197,9 +204,8 @@ Patchdateien sind nicht automatisch Teil des Projektstands.
 
 Nach UI- und Dokumentationsarbeiten:
 
-1. Rundenabrechnung, grafische Grundstücksauktion und verbleibende
-   Rivalenoperationen auf die gemeinsame Kolonieschreibgrenze
-   überführen,
+1. die alte physische Trennung von Agima-Feldern und `rivals` durch
+   eine kanonische `colonies`-Map ersetzen,
 2. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
 3. Produktions- und Marktentscheidungen stärker differenzieren,

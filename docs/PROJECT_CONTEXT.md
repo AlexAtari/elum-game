@@ -275,6 +275,13 @@ werden.
   autonome Rivalen-Landkäufe verwenden sie bereits
 - direkte Orion-Geschäfte werden wie Nova- und Vega-Geschäfte
   beidseitig in Credits und Ressourcen verbucht
+- Browser-Rundenabrechnung und beide möglichen Landgewinne der
+  grafischen Agima-Orion-Auktion schreiben über die gemeinsame
+  Koloniegrenze
+- Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
+  Record-Funktion; der Browser übernimmt sie über einen Adapter
+- nächster Strukturschritt: physisch getrennte Agima-Felder und
+  `rivals` durch eine kanonische `colonies`-Map ersetzen
 
 ### Nächster Regelstand
 

@@ -1322,6 +1322,46 @@ export function advanceRivalColonies(
   ) as RivalColonies
 }
 
+export function advanceRivalColoniesInGame(
+  currentState: GameState,
+): GameState {
+  const advancedRivals = advanceRivalColonies(
+    currentState.rivals,
+    currentState.round,
+    currentState.activeGlobalEvent,
+    currentState.meteorImpacts,
+  )
+
+  return (['orion', 'nova', 'vega'] as const).reduce(
+    (state, participantId) => {
+      const advancedRival = advancedRivals[participantId]
+      const stateWithEconomy = updateColony(
+        state,
+        participantId,
+        (colony) => ({
+          ...colony,
+          population: advancedRival.population,
+          credits: advancedRival.credits,
+          resources: advancedRival.resources,
+          harvesters: advancedRival.harvesters,
+          harvestersInConstruction:
+            advancedRival.harvestersInConstruction ?? 0,
+          ownedTileIds: advancedRival.ownedTileIds ?? [],
+        }),
+      )
+
+      return {
+        ...stateWithEconomy,
+        rivals: {
+          ...stateWithEconomy.rivals,
+          [participantId]: advancedRival,
+        },
+      }
+    },
+    currentState,
+  )
+}
+
 export function moveMarketOffer(
   role: Exclude<MarketRole, 'neutral'>,
   offer: MarketOffer,
@@ -2626,35 +2666,53 @@ export function runRound(
   const playerWonLand = landAuction?.outcome === 'won'
   const rivalWonLand = landAuction?.outcome === 'lost'
   const tiedLandAuction = landAuction?.outcome === 'tie'
-  const advancedRivals = advanceRivalColonies(
-    currentState.rivals,
-    currentState.round,
-    currentState.activeGlobalEvent,
-    currentState.meteorImpacts,
-  )
-  const rivalsAfterLandAuction = rivalWonLand
-    ? {
-        ...advancedRivals,
+  const stateAfterRivalRound =
+    advanceRivalColoniesInGame(currentState)
+  let stateAfterLandAuction = stateAfterRivalRound
+
+  if (rivalWonLand) {
+    stateAfterLandAuction = updateColony(
+      stateAfterLandAuction,
+      'orion',
+      (colony) => ({
+        ...colony,
+        credits: Math.max(
+          0,
+          colony.credits - landBid!.rivalBid,
+        ),
+        ownedTileIds: [
+          ...colony.ownedTileIds,
+          landBid!.tileId,
+        ],
+      }),
+    )
+    stateAfterLandAuction = {
+      ...stateAfterLandAuction,
+      rivals: {
+        ...stateAfterLandAuction.rivals,
         orion: {
-          ...advancedRivals.orion,
-          credits: Math.max(
-            0,
-            advancedRivals.orion.credits - landBid!.rivalBid,
-          ),
-          ownedTileIds: [
-            ...(advancedRivals.orion.ownedTileIds ?? []),
-            landBid!.tileId,
-          ],
+          ...stateAfterLandAuction.rivals.orion,
           lastLandPurchaseRound: currentState.round,
         },
-      }
-    : advancedRivals
-  const nextOwnedTileIds = playerWonLand
-    ? [...currentState.ownedTileIds, landBid!.tileId]
-    : currentState.ownedTileIds
-  const nextOpponentTileIds = rivalWonLand
-    ? [...currentState.opponentTileIds, landBid!.tileId]
-    : currentState.opponentTileIds
+      },
+    }
+  }
+
+  if (playerWonLand) {
+    stateAfterLandAuction = addColonyOwnedTile(
+      stateAfterLandAuction,
+      'agima',
+      landBid!.tileId,
+    )
+  }
+
+  const coloniesAfterLand = selectColonies(
+    stateAfterLandAuction,
+  )
+  const nextOwnedTileIds = coloniesAfterLand.agima.ownedTileIds
+  const nextOpponentTileIds = selectOpponentTileIds(
+    stateAfterLandAuction,
+  )
   const previousMeteorImpacts =
     currentState.meteorImpacts ?? []
   const meteorImpact = (
@@ -2671,24 +2729,12 @@ export function runRound(
       )
     : null
 
-  const nextState: GameState = {
-    match: currentState.match,
+  const stateWithNextRoundMetadata: GameState = {
+    ...stateAfterLandAuction,
     round: Math.min(
       GAME_ROUND_LIMIT,
       currentState.round + 1,
     ),
-    population: Math.max(
-      1,
-      currentState.population + populationChange,
-    ),
-    credits:
-      currentState.credits +
-      (landBid && !playerWonLand
-        ? (landBid.reservedCredits ?? landBid.amount)
-        : 0),
-    harvesters:
-      currentState.harvesters +
-      currentState.harvestersInConstruction,
     harvesterAssignments: nextHarvesters,
     freeHarvesterPool: [
       ...currentState.freeHarvesterPool,
@@ -2697,23 +2743,6 @@ export function runRound(
         () => ({}),
       ),
     ],
-    resources: {
-      food:
-        currentState.resources.food -
-        consumedFood +
-        produced.food,
-      energy:
-        currentState.resources.energy -
-        consumedEnergyByHq -
-        consumedEnergyByHarvesters +
-        produced.energy,
-      ore: currentState.resources.ore + produced.ore,
-      crystals:
-        currentState.resources.crystals +
-        produced.crystals,
-    },
-    ownedTileIds: nextOwnedTileIds,
-    opponentTileIds: nextOpponentTileIds,
     pendingLandBid: null,
     landAuctionTie: tiedLandAuction
       ? {
@@ -2737,7 +2766,6 @@ export function runRound(
                 : null,
         }
       : null,
-    harvestersInConstruction: 0,
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,
@@ -2748,8 +2776,43 @@ export function runRound(
       : previousMeteorImpacts,
     interstellarCrystalPurchases: 0,
     market: currentState.market,
-    rivals: rivalsAfterLandAuction,
   }
+  const nextState = updateColony(
+    stateWithNextRoundMetadata,
+    'agima',
+    (colony) => ({
+      ...colony,
+      population: Math.max(
+        1,
+        colony.population + populationChange,
+      ),
+      credits:
+        colony.credits +
+        (landBid && !playerWonLand
+          ? (landBid.reservedCredits ?? landBid.amount)
+          : 0),
+      harvesters:
+        colony.harvesters +
+        colony.harvestersInConstruction,
+      harvestersInConstruction: 0,
+      resources: {
+        food:
+          colony.resources.food -
+          consumedFood +
+          produced.food,
+        energy:
+          colony.resources.energy -
+          consumedEnergyByHq -
+          consumedEnergyByHarvesters +
+          produced.energy,
+        ore: colony.resources.ore + produced.ore,
+        crystals:
+          colony.resources.crystals +
+          produced.crystals,
+      },
+      ownedTileIds: nextOwnedTileIds,
+    }),
+  )
 
   return {
     nextState,

@@ -141,10 +141,24 @@ Browsermarkt nun diesen beidseitigen Transaktionspfad. Globale und
 lokale Ereignisse, der Spieler-Harvesterbau sowie autonome
 Rivalen-Landkäufe schreiben ebenfalls über `updateColony`.
 
-Noch nicht migriert sind insbesondere die Rundenabrechnung, die
-grafische Grundstücksauktion und Teile der autonomen
-Rivalenoperationen. Sie bleiben bis zum jeweiligen Folgeschritt durch
-die bestehende Testsuite abgesichert.
+`runRound` schreibt inzwischen auch Agimas Versorgung, Produktion,
+Bevölkerung, Harvesterfertigstellung und Grundstücksgewinn über
+`updateColony`. Orion erhält einen in der grafischen Auktion
+gewonnenen Besitz über denselben Pfad.
+
+`advanceRivalColonies` bleibt als reine Record-Operation für die
+Headless-Simulation bestehen. `advanceRivalColoniesInGame` übernimmt
+ihr Ergebnis im Browser teilnehmerbezogen und bewahrt anschließend
+die zusätzlichen Diagnosefelder der KI. Browserpartie und Simulation
+verwenden damit weiterhin dieselben Rivalenregeln, ohne ihre
+Zustandscontainer zu vermischen.
+
+Die wirtschaftlichen Browser-Schreibpfade sind damit hinter der
+gemeinsamen Grenze gekapselt. Als nächster Strukturwechsel kann die
+alte physische Trennung der Agima-Grundfelder und des `rivals`-Records
+durch eine einzige kanonische `colonies`-Map ersetzt werden. Das
+aktuelle Modell der grafischen Auktion bleibt bis zu seiner späteren
+Mehrbieter-Erweiterung noch auf Agima und Orion zugeschnitten.
 
 Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.
 Nicht menschlich belegte Sitze können mit den vorhandenen KI-Profilen
