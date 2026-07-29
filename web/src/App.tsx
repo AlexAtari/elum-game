@@ -693,6 +693,7 @@ function App() {
             {planningView === 'colony' ? (
               <>
             <HexMap
+              participantId="agima"
               round={gameState.round}
               population={localColony.population}
               credits={localColony.credits}

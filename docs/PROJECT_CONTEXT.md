@@ -352,15 +352,16 @@ werden.
 - Name, Sitzvergabe, Bereitschaft, Hoststart, KI-Füllung,
   Verbindungsstatus und Wiederaufnahme per lokal gespeichertem
   Reconnect-Token sind über die sichtbare Oberfläche bedienbar
-- nach dem Matchstart zeigt die Lobby bereits den autoritativen
-  Rundenstand; die eigentliche Spielansicht bleibt bewusst getrennt,
-  bis Aktionen und Zustand vollständig über das Netzwerk laufen
+- nach dem Matchstart wechselt jeder menschliche Sitz in eine
+  teilnehmerbezogene Spielansicht; Karte, HQ, Harvester,
+  Grundstücksgebote, Ressourcenmärkte und Rundenplanung werden aus
+  autoritativen Snapshots gespeist und als Netzwerkkommandos gesendet
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: bestehende Spielansicht
-  teilnehmerbezogen aus Server-Snapshots speisen und alle Aktionen
-  als Netzwerkkommandos senden; danach Backend-Hosting, TLS und
-  Origin-Policy für öffentlichen Betrieb festlegen
+- nächster Strukturschritt: Rundenbriefing, Ereignisse und Rangliste
+  in der Mehrspieleransicht aus dem gemeinsamen Zustand darstellen;
+  danach Backend-Hosting, TLS und Origin-Policy für öffentlichen
+  Betrieb festlegen
 
 ### Nächster Regelstand
 

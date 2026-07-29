@@ -265,10 +265,11 @@ Betrieb fehlen deshalb noch Backend-Hosting, TLS mit `wss://`,
 Origin-Policy sowie betriebliche Überwachung.
 
 Die lokale React-Partie koordiniert ihre Runde weiterhin in
-`App.tsx`; ein späterer Mehrspieler-Client verwendet stattdessen
+`App.tsx`; der Mehrspieler-Client verwendet stattdessen
 `submit-round-plan` und übernimmt ausschließlich Server-Snapshots.
-Der Browserclient kann damit den vorhandenen Transport verwenden und
-seine Lobby ausschließlich aus Server-Snapshots speisen.
+Lobby und Spielansicht verwenden damit denselben vorhandenen
+Transport, ohne lokale Kopien des kanonischen Spielzustands
+fortzuschreiben.
 
 `MultiplayerLobbyScreen.tsx` bildet inzwischen den ersten
 Browserclient dieses Protokolls. Die Startseite trennt Einzel- und
@@ -279,12 +280,15 @@ Lobby-ID editieren und sendet Beitritt, Bereitschaft und Hoststart
 die Vier-Sitz-Ansicht; Reconnect-Token werden nur lokal für die
 automatische Wiederaufnahme desselben Sitzes gespeichert.
 
-Nach dem Matchstart bleibt der Client vorerst in einer bestätigten
-Lobbyansicht und zeigt die autoritative Runde. Die bestehende
-Spieloberfläche darf erst umgeschaltet werden, wenn sämtliche ihrer
-Aktionen Netzwerkkommandos senden und ihr Zustand ausschließlich aus
-Match-Snapshots stammt; andernfalls würde ein entfernter Sitz
-versehentlich wieder Agimas lokale Singleplayerlogik ausführen.
+Nach dem Matchstart wechselt der Client in
+`MultiplayerGameScreen.tsx`. Die Komponente leitet Kolonie,
+Besitzfelder, Harvester und Versorgung aus der zugewiesenen
+`ParticipantId` und dem aktuellen Match-Snapshot ab. Bauen,
+Umrüsten, Versetzen, Grundstücksgebote und Marktaktionen werden als
+`game-command`, der Rundenabschluss als `submit-round-plan` gesendet.
+Die vereinfachten Mehrspielerpanels zeigen die kanonischen
+servergesteuerten Markt- und Auktionsphasen; die aufwendigen
+Singleplayeranimationen bleiben davon getrennte Darstellungsadapter.
 
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und

@@ -134,9 +134,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   geheime Reconnect-Token nur lokal und nimmt denselben Sitz nach
   einem Verbindungsabbruch automatisch wieder auf
 - nach dem Start werden freie Sitze sichtbar als KI übernommen und
-  die autoritative Runde angezeigt; die eigentliche Spielansicht
-  sendet noch keine Netzwerkkommandos und bleibt deshalb vorerst
-  bewusst vom Mehrspielerpfad getrennt
+  jeder menschliche Sitz wechselt in seine teilnehmerbezogene
+  Spielansicht
+- Karte, HQ, Harvesteraktionen, Grundstücksgebote,
+  Ressourcenmärkte und Rundenplanung lesen ausschließlich
+  autoritative Match-Snapshots und senden validierte
+  Netzwerkkommandos; fremde Sitze führen dadurch keine lokale
+  Agima-Logik aus
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -247,15 +251,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Vor der echten Netzwerkanbindung wird noch der letzte regelkritische
-Browserzustand serverfähig gemacht: Versorgungsvorgaben,
-Rundenbereitschaft und `runRound` liegen derzeit noch im lokalen
-React-Ablauf. Der nächste Kernbaustein speichert die Planung je Sitz
-und rechnet erst nach Freigabe aller Menschen serverseitig ab; dort
-werden auch freie KI-Sitze angestoßen. Danach werden Lobby und
-Serverkern an einen echten Verbindungstransport und die React-UI
-angebunden. Dafür ist eine Hostingentscheidung nötig; GitHub Pages
-bleibt das statische Frontend.
+Die regelkritischen Browseraktionen und die Rundenbarriere laufen im
+Mehrspielerpfad jetzt über den autoritativen Server. Als Nächstes
+werden Rundenbriefing, Ereignisse und Rangliste teilnehmerbezogen in
+dieser Ansicht ergänzt. Für einen öffentlichen Mehrspielerbetrieb
+bleiben anschließend Backend-Hosting, TLS mit `wss://`,
+Origin-Policy und betriebliche Überwachung zu entscheiden; GitHub
+Pages hostet weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

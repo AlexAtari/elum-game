@@ -296,4 +296,48 @@ export const en = {
     'The stored session is no longer valid.',
   'multiplayer.errorRequest':
     'The server rejected this action.',
+
+  'multiplayerGame.connectedAs':
+    'Connected as {{colony}}',
+  'multiplayerGame.readyWaiting':
+    'Ready · Waiting for other colonies',
+  'multiplayerGame.serverStateHint':
+    'Every change is confirmed by the shared server.',
+  'multiplayerGame.toHeadquarters': 'Go to headquarters',
+  'multiplayerGame.toColony': 'Back to colony overview',
+  'multiplayerGame.networkPlanning': 'Network planning',
+  'multiplayerGame.headquarters': 'Headquarters',
+  'multiplayerGame.headquartersHint':
+    'Plan supplies, markets and construction orders for your own colony.',
+  'multiplayerGame.headquartersImageAlt':
+    'Shared central dome with four colony headquarters',
+  'multiplayerGame.resourceMarkets': 'Resource markets',
+  'multiplayerGame.finishPlanning': 'Finish planning',
+  'multiplayerGame.leave': 'Leave connection',
+  'multiplayerGame.landAuction': 'Land auction',
+  'multiplayerGame.resourceMarket': 'Resource market',
+  'multiplayerGame.serverControlled': 'Server controlled',
+  'multiplayerGame.auctionPhase': 'Phase: {{phase}}',
+  'multiplayerGame.phase.announcement': 'Announcement',
+  'multiplayerGame.phase.declaration': 'Declaration',
+  'multiplayerGame.phase.auction': 'Auction',
+  'multiplayerGame.phase.finished': 'Finished',
+  'multiplayerGame.yourBid': 'Your current bid',
+  'multiplayerGame.waitForServer':
+    'The server advances the phase automatically.',
+  'multiplayerGame.waitForInitiator':
+    'The initiator closes the market.',
+  'multiplayerGame.marketReference':
+    'Reference price: {{price}} credits',
+  'multiplayerGame.role.neutral': 'Pass',
+  'multiplayerGame.role.buyer': 'Buy',
+  'multiplayerGame.role.seller': 'Sell',
+  'multiplayerGame.limitPrice': 'Personal limit',
+  'multiplayerGame.activateOffer': 'Activate offer',
+  'multiplayerGame.updateOffer': 'Update offer',
+  'multiplayerGame.buyWarehouse':
+    'Buy 1 unit from warehouse · {{price}} credits',
+  'multiplayerGame.sellWarehouse':
+    'Sell 1 unit to warehouse · {{price}} credits',
+  'multiplayerGame.closeMarket': 'Close market',
 } satisfies Record<TranslationKey, string>

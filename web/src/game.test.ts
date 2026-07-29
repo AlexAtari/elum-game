@@ -4,6 +4,7 @@ import {
   advanceRivalColonies,
   applyLocalEvent,
   beginLandTieBreak,
+  calculateColonySupplyPreview,
   cancelLandBid,
   completeRoundAfterMarket,
   completeResourceMarket,
@@ -1704,6 +1705,33 @@ describe('Grundstücksauktion', () => {
 })
 
 describe('Versorgung und Bevölkerung', () => {
+  it('berechnet die Versorgung für eine entfernte Kolonie', () => {
+    const state = createInitialGameState()
+    const preview = calculateColonySupplyPreview(
+      {
+        ...state,
+        colonies: {
+          ...state.colonies,
+          orion: {
+            ...state.colonies.orion,
+            population: 11,
+            resources: {
+              ...state.colonies.orion.resources,
+              food: 3,
+              energy: 10,
+            },
+          },
+        },
+      },
+      'orion',
+      normalSupply,
+    )
+
+    expect(preview.consumedFood).toBe(3)
+    expect(preview.consumedEnergyByHq).toBe(4)
+    expect(preview.populationChange).toBe(0)
+  })
+
   it('verbraucht die geplante Versorgung und erhöht die Bevölkerung', () => {
     const result = runRound(
       createInitialGameState(),

@@ -790,6 +790,15 @@ function normalizeColonyHarvesterAssignments(
   )
 }
 
+export function selectColonyHarvesterAssignments(
+  currentState: GameState,
+  participantId: ParticipantId,
+) {
+  return normalizeColonyHarvesterAssignments(
+    currentState.colonies[participantId].harvesterAssignments,
+  )
+}
+
 function canColonyUseProduction(
   currentState: GameState,
   participantId: ParticipantId,
@@ -3177,7 +3186,19 @@ export function calculateSupplyPreview(
   currentState: GameState,
   supplyPlan: SupplyPlan,
 ): SupplyPreview {
-  const localColony = selectLocalColony(currentState)
+  return calculateColonySupplyPreview(
+    currentState,
+    'agima',
+    supplyPlan,
+  )
+}
+
+export function calculateColonySupplyPreview(
+  currentState: GameState,
+  participantId: ParticipantId,
+  supplyPlan: SupplyPlan,
+): SupplyPreview {
+  const localColony = currentState.colonies[participantId]
   const populationGroups = Math.ceil(
     localColony.population / 10,
   )

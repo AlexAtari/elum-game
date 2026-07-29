@@ -17,6 +17,8 @@ import type {
   MultiplayerServerMessage,
 } from '../multiplayerProtocol'
 import type { ParticipantId } from '../match'
+import type { AuthoritativeMatchSnapshot } from '../authoritativeMatch'
+import MultiplayerGameScreen from './MultiplayerGameScreen'
 import './MultiplayerLobbyScreen.css'
 
 type MultiplayerLobbyScreenProps = {
@@ -136,9 +138,8 @@ export default function MultiplayerLobbyScreen({
     useState<ParticipantId | null>(null)
   const [snapshot, setSnapshot] =
     useState<LobbySnapshot | null>(null)
-  const [matchRound, setMatchRound] = useState<number | null>(
-    null,
-  )
+  const [matchSnapshot, setMatchSnapshot] =
+    useState<AuthoritativeMatchSnapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const ownSeat = participantId
@@ -203,7 +204,7 @@ export default function MultiplayerLobbyScreen({
     setError(null)
     setStatus('connecting')
     setSnapshot(null)
-    setMatchRound(null)
+    setMatchSnapshot(null)
     displayNameRef.current = displayName.trim()
     endpointRef.current = endpoint
     const socket = new WebSocket(endpoint)
@@ -236,19 +237,22 @@ export default function MultiplayerLobbyScreen({
       }
     })
 
-    socket.addEventListener('message', (event) => {
-      if (
-        socketRef.current !== socket ||
-        typeof event.data !== 'string'
-      ) {
+    socket.addEventListener('message', async (event) => {
+      if (socketRef.current !== socket) {
         return
       }
 
       let message: MultiplayerServerMessage
 
       try {
+        const messageText =
+          typeof event.data === 'string'
+            ? event.data
+            : event.data instanceof Blob
+              ? await event.data.text()
+              : new TextDecoder().decode(event.data)
         message = JSON.parse(
-          event.data,
+          messageText,
         ) as MultiplayerServerMessage
       } catch {
         setError(t('multiplayer.errorInvalidResponse'))
@@ -274,7 +278,7 @@ export default function MultiplayerLobbyScreen({
       }
 
       if (message.type === 'match-snapshot') {
-        setMatchRound(message.payload.state.round)
+        setMatchSnapshot(message.payload)
         return
       }
 
@@ -340,6 +344,18 @@ export default function MultiplayerLobbyScreen({
     socketRef.current?.close()
     socketRef.current = null
     onBack()
+  }
+
+  if (matchSnapshot && participantId) {
+    return (
+      <MultiplayerGameScreen
+        participantId={participantId}
+        snapshot={matchSnapshot}
+        error={error}
+        sendMessage={send}
+        onLeave={leave}
+      />
+    )
   }
 
   return (
@@ -470,7 +486,7 @@ export default function MultiplayerLobbyScreen({
                   <h2>{t('multiplayer.matchStarted')}</h2>
                   <p>
                     {t('multiplayer.matchStartedHint', {
-                      round: matchRound ?? 1,
+                      round: matchSnapshot?.state.round ?? 1,
                     })}
                   </p>
                 </div>

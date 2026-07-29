@@ -295,6 +295,49 @@ export const de = {
     'Die gespeicherte Sitzung ist nicht mehr gültig.',
   'multiplayer.errorRequest':
     'Der Server hat diese Aktion abgelehnt.',
+
+  'multiplayerGame.connectedAs': 'Verbunden als {{colony}}',
+  'multiplayerGame.readyWaiting':
+    'Bereit · Warten auf andere Kolonien',
+  'multiplayerGame.serverStateHint':
+    'Alle Änderungen werden vom gemeinsamen Server bestätigt.',
+  'multiplayerGame.toHeadquarters': 'Zum Hauptquartier',
+  'multiplayerGame.toColony': 'Zur Kolonieübersicht',
+  'multiplayerGame.networkPlanning': 'Netzwerkplanung',
+  'multiplayerGame.headquarters': 'Hauptquartier',
+  'multiplayerGame.headquartersHint':
+    'Plane Versorgung, Märkte und Bauaufträge für deine eigene Kolonie.',
+  'multiplayerGame.headquartersImageAlt':
+    'Gemeinsame Zentralkuppel mit vier Kolonie-Hauptquartieren',
+  'multiplayerGame.resourceMarkets': 'Ressourcenmärkte',
+  'multiplayerGame.finishPlanning': 'Planung abschließen',
+  'multiplayerGame.leave': 'Verbindung verlassen',
+  'multiplayerGame.landAuction': 'Grundstücksauktion',
+  'multiplayerGame.resourceMarket': 'Ressourcenmarkt',
+  'multiplayerGame.serverControlled': 'Servergesteuert',
+  'multiplayerGame.auctionPhase': 'Phase: {{phase}}',
+  'multiplayerGame.phase.announcement': 'Ankündigung',
+  'multiplayerGame.phase.declaration': 'Erklärung',
+  'multiplayerGame.phase.auction': 'Auktion',
+  'multiplayerGame.phase.finished': 'Abgeschlossen',
+  'multiplayerGame.yourBid': 'Dein aktuelles Gebot',
+  'multiplayerGame.waitForServer':
+    'Der Server führt die Phase automatisch weiter.',
+  'multiplayerGame.waitForInitiator':
+    'Der Initiator schließt den Markt ab.',
+  'multiplayerGame.marketReference':
+    'Referenzkurs: {{price}} Credits',
+  'multiplayerGame.role.neutral': 'Aussetzen',
+  'multiplayerGame.role.buyer': 'Kaufen',
+  'multiplayerGame.role.seller': 'Verkaufen',
+  'multiplayerGame.limitPrice': 'Persönliches Limit',
+  'multiplayerGame.activateOffer': 'Angebot aktivieren',
+  'multiplayerGame.updateOffer': 'Angebot aktualisieren',
+  'multiplayerGame.buyWarehouse':
+    '1 Einheit vom Lager kaufen · {{price}} Credits',
+  'multiplayerGame.sellWarehouse':
+    '1 Einheit ans Lager verkaufen · {{price}} Credits',
+  'multiplayerGame.closeMarket': 'Markt abschließen',
 } as const
 
 export type TranslationKey = keyof typeof de

@@ -1,0 +1,236 @@
+.network-game-screen {
+  min-height: 100vh;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  color: #f6f7fb;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(190, 100, 54, 0.18), transparent 32%),
+    radial-gradient(circle at 85% 70%, rgba(121, 221, 185, 0.12), transparent 30%),
+    linear-gradient(145deg, #090d18, #121a2c);
+}
+
+.network-game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.network-game-header h1 {
+  margin: 5px 0 0;
+}
+
+.network-round-status {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+}
+
+.network-round-status small {
+  color: #8995aa;
+}
+
+.network-headquarters,
+.network-auction-panel,
+.network-market-panel {
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(14, 21, 38, 0.85);
+}
+
+.network-hq-intro {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) 1fr;
+  align-items: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.network-hq-intro img {
+  width: 100%;
+  border-radius: 18px;
+}
+
+.network-hq-intro h2,
+.network-auction-panel h2,
+.network-market-panel h2 {
+  margin: 8px 0;
+}
+
+.network-hq-intro p:last-child,
+.network-auction-panel p,
+.network-market-panel p {
+  color: #aeb8cb;
+}
+
+.network-market-launcher,
+.network-supply-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.network-market-launcher h3,
+.network-supply-panel h3 {
+  margin-top: 0;
+}
+
+.network-market-launcher > div,
+.network-role-actions,
+.network-auction-actions,
+.network-bid-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.network-market-launcher button,
+.network-role-actions button,
+.network-auction-actions button,
+.network-trade-button {
+  cursor: pointer;
+  padding: 11px 14px;
+  border: 1px solid rgba(121, 221, 185, 0.28);
+  border-radius: 11px;
+  color: #dff8ef;
+  background: rgba(121, 221, 185, 0.07);
+  font-weight: 750;
+}
+
+.network-market-launcher button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.network-role-actions .is-selected {
+  color: #07110d;
+  background: #79ddb9;
+}
+
+.network-supply-panel label,
+.network-offer-control {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #aeb8cb;
+}
+
+.network-supply-panel input[type='range'] {
+  width: 100%;
+  margin: 10px 0 20px;
+  accent-color: #79ddb9;
+}
+
+.network-supply-preview {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 16px;
+  padding: 13px;
+  border-radius: 12px;
+  color: #aeb8cb;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.network-primary-button {
+  cursor: pointer;
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 12px;
+  color: #07110d;
+  background: #79ddb9;
+  font-weight: 850;
+}
+
+.network-primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.network-auction-panel,
+.network-market-panel {
+  max-width: 760px;
+  margin: 40px auto;
+}
+
+.network-auction-bid {
+  display: grid;
+  gap: 4px;
+  margin: 20px 0;
+}
+
+.network-auction-bid span {
+  color: #8995aa;
+}
+
+.network-auction-bid strong {
+  font-size: 3rem;
+}
+
+.network-auction-actions button {
+  min-width: 74px;
+  font-size: 1.7rem;
+}
+
+.network-bid-list {
+  margin-top: 18px;
+}
+
+.network-bid-list span {
+  padding: 8px 10px;
+  border-radius: 9px;
+  color: #aeb8cb;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.network-offer-control {
+  align-items: center;
+  margin: 18px 0 10px;
+}
+
+.network-offer-control input {
+  width: 110px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  color: #fff;
+  background: rgba(5, 9, 17, 0.7);
+}
+
+.network-trade-button {
+  display: block;
+  margin-top: 12px;
+}
+
+.network-leave-button {
+  margin-top: 20px;
+}
+
+@media (max-width: 700px) {
+  .network-game-screen {
+    padding: 10px;
+  }
+
+  .network-game-header {
+    align-items: flex-start;
+  }
+
+  .network-hq-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .network-headquarters,
+  .network-auction-panel,
+  .network-market-panel {
+    padding: 16px;
+  }
+
+  .network-supply-panel label {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}

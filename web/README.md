@@ -40,9 +40,10 @@ Der Health-Endpunkt liegt unter
 Die React-Startseite enthält eine Mehrspieler-Lobby. Sie leitet den
 Server standardmäßig aus dem aktuellen Seitenhost und Port `8787` ab;
 Server und Lobby-ID können in der Oberfläche geändert werden. Nach
-dem Matchstart zeigt sie bereits den gemeinsamen Rundenstand. Die
-eigentliche Spielansicht wird im nächsten Schritt an
-Server-Snapshots und Netzwerkkommandos angeschlossen.
+dem Matchstart wechselt jeder menschliche Sitz in seine eigene
+teilnehmerbezogene Spielansicht. Karte, HQ, Harvester,
+Grundstücksgebote, Ressourcenmärkte und Rundenplanung verwenden dort
+ausschließlich Server-Snapshots und Netzwerkkommandos.
 
 Für öffentliches Hosting werden ein dauerhaft laufender Dienst, TLS
 (`wss://`) und eine konkrete Origin-Policy benötigt.

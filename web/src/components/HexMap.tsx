@@ -8,7 +8,6 @@ import headquartersImage from '../assets/hq-four-colonies.webp'
 import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
-  PLAYER_START_TILE_IDS,
   getLandBidAmount,
   isColonyCrystalDiscovered,
   productionTypes,
@@ -18,8 +17,12 @@ import {
   type LandBid,
   type ProductionType,
   type ColoniesState,
-  type CanonicalRivalColonyState,
+  type ColonyState,
 } from '../game'
+import {
+  participantIds,
+  type ParticipantId,
+} from '../match'
 import {
   combineMeteorBonuses,
   type MeteorImpact,
@@ -39,6 +42,7 @@ import { PlanetSurface } from './PlanetSurface'
 import './HexMap.css'
 
 type HexMapProps = {
+  participantId: ParticipantId
   round: number
   population: number
   credits: number
@@ -106,10 +110,12 @@ const planetSurfaceCells =
 function getRivalOwner(
   tileId: string,
   colonies: ColoniesState,
-): CanonicalRivalColonyState | null {
+  participantId: ParticipantId,
+): ColonyState | null {
   return (
-    (['orion', 'nova', 'vega'] as const)
-      .map((participantId) => colonies[participantId])
+    participantIds
+      .filter((candidateId) => candidateId !== participantId)
+      .map((candidateId) => colonies[candidateId])
       .find((colony) =>
         colony.ownedTileIds.includes(tileId),
       ) ?? null
@@ -117,7 +123,7 @@ function getRivalOwner(
 }
 
 function getRivalMapLabel(
-  rival: CanonicalRivalColonyState | null,
+  rival: ColonyState | null,
 ) {
   if (!rival) {
     return 'RIVALE'
@@ -167,6 +173,7 @@ function formatStars(value = 0) {
 }
 
 function HexMap({
+  participantId,
   round,
   population,
   credits,
@@ -195,7 +202,7 @@ function HexMap({
   onRemoveHarvester,
 }: HexMapProps) {
   const [selectedId, setSelectedId] = useState(
-    focusTileId ?? PLAYER_START_TILE_IDS[0],
+    focusTileId ?? ownedTileIds[0],
   )
   const [isChoosingProduction, setIsChoosingProduction] =
     useState(false)
@@ -261,7 +268,7 @@ function HexMap({
   const selectedCrystalDiscovered =
     isColonyCrystalDiscovered(
       { round, colonies },
-      'agima',
+      participantId,
       selectedTile.id,
     )
 
@@ -270,6 +277,7 @@ function HexMap({
   const selectedRivalOwner = getRivalOwner(
     selectedTile.id,
     colonies,
+    participantId,
   )
   const selectedIsPlayerOwned = ownedTileIds.includes(
     selectedTile.id,
@@ -680,9 +688,14 @@ function HexMap({
                 const rivalOwner = getRivalOwner(
                   tile.id,
                   colonies,
+                  participantId,
                 )
-                const rivalProduction =
+                const rivalAssignment =
                   rivalOwner?.harvesterAssignments[tile.id]
+                const rivalProduction =
+                  typeof rivalAssignment === 'string'
+                    ? rivalAssignment
+                    : rivalAssignment?.production
                 const visibleProduction =
                   production ?? rivalProduction
                 const hasVisibleHarvester =
@@ -840,7 +853,7 @@ function HexMap({
                         y={position.y + 21 * cameraState.zoom}
                         textAnchor="middle"
                       >
-                        AGIMA
+                        {participantId.toUpperCase()}
                       </text>
                     )}
 
@@ -1259,12 +1272,12 @@ function HexMap({
                     <strong>
                       {getLandBidAmount(
                         selectedPendingBid,
-                        'agima',
+                        participantId,
                       )}{' '}
                       Credits reserviert
                     </strong>
                     <p>
-                      Orions Gebot wird beim Ausführen der Runde
+                      Weitere Gebote werden beim Ausführen der Runde
                       aufgedeckt.
                     </p>
 
@@ -1363,8 +1376,8 @@ function HexMap({
                     </button>
 
                     <p className="bid-hint">
-                      Mindestgebot: {minimumBid} Credits. Orions
-                      Gebot bleibt bis zur Auswertung geheim.
+                      Mindestgebot: {minimumBid} Credits. Weitere
+                      Gebote bleiben bis zur Auswertung geheim.
                     </p>
                   </div>
                 ))}
