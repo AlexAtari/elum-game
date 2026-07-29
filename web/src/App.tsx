@@ -15,11 +15,13 @@ import { applyAutonomousRivalLandPurchases } from './rivalAutonomousLand'
 import { placeStrategicOrionLandBid } from './orionLandBid'
 import {
   activateGlobalEvent,
+  assignPlayerHarvester,
   applyLocalEvent,
   beginLandTieBreak,
   cancelLandBid,
   calculateSupplyPreview,
   completeResourceMarket,
+  changePlayerHarvesterProduction,
   createLeaderboardEntries,
   executeMarketTrade,
   getRoundsUntilSupplyShip,
@@ -33,10 +35,12 @@ import {
   isMarketInitiationBlocked,
   orderHarvesterBuild,
   resolveLandTieBreak,
+  removePlayerHarvester,
   runRound,
+  selectColonies,
+  selectOpponentTileIds,
   selectGlobalEvent,
   selectLocalEvent,
-  type FreeHarvester,
   type LocalEventId,
   type HarvesterAssignments,
   type LandTieBidState,
@@ -46,7 +50,6 @@ import {
   type ProductionType,
   type RoundReport,
   type SupplyPlan,
-  STARTING_HARVESTERS,
   createPlayableInitialGameState,
 } from './game'
 import { useI18n } from './i18n/I18nContext'
@@ -70,23 +73,11 @@ type PendingRound = {
 }
 
 
-function createStartingHarvesterPool(): FreeHarvester[] {
-  return Array.from(
-    { length: STARTING_HARVESTERS },
-    () => ({}),
-  )
-}
-
 function App() {
   const { number, t } = useI18n()
   const [gameStarted, setGameStarted] = useState(false)
   const [gameState, setGameState] = useState(
     () => createPlayableInitialGameState(Date.now()),
-  )
-  const [harvesters, setHarvesters] =
-    useState<HarvesterAssignments>({})
-  const [freeHarvesterPool, setFreeHarvesterPool] = useState<FreeHarvester[]>(
-    createStartingHarvesterPool,
   )
   const [lastReport, setLastReport] =
     useState<RoundReport | null>(null)
@@ -104,9 +95,18 @@ function App() {
   const [activeLocalEvent, setActiveLocalEvent] =
     useState<LocalEventId | null>(null)
 
+  const harvesters = gameState.harvesterAssignments
+  const freeHarvesterPool = gameState.freeHarvesterPool
   const freeHarvesters = freeHarvesterPool.length
-  const totalHarvesters =
-    freeHarvesters + Object.keys(harvesters).length
+  const colonies = useMemo(
+    () => selectColonies(gameState),
+    [gameState],
+  )
+  const localColony = colonies.agima
+  const opponentTileIds = useMemo(
+    () => selectOpponentTileIds(gameState),
+    [gameState],
+  )
   const harvesterCreditCost = getHarvesterCreditCost(gameState)
   const marketInitiationBlocked =
     isMarketInitiationBlocked(gameState)
@@ -145,20 +145,18 @@ function App() {
       energySupplyLevel,
     ],
   )
+  const plannedLocalColony = useMemo(
+    () => selectColonies(plannedRound.nextState).agima,
+    [plannedRound.nextState],
+  )
 
   const leaderboardEntries = useMemo(
-    () =>
-      createLeaderboardEntries(
-        gameState,
-        totalHarvesters,
-      ),
-    [gameState, totalHarvesters],
+    () => createLeaderboardEntries(gameState),
+    [gameState],
   )
 
   const startNewGame = () => {
     setGameState(createPlayableInitialGameState(Date.now()))
-    setHarvesters({})
-    setFreeHarvesterPool(createStartingHarvesterPool())
     setLastReport(null)
     setFoodSupplyLevel(2)
     setEnergySupplyLevel(2)
@@ -207,143 +205,28 @@ function App() {
     tileId: string,
     production: ProductionType,
   ) => {
-    if (freeHarvesters <= 0 || harvesters[tileId]) {
-      return
-    }
-
-    const unusedHarvesterIndex = freeHarvesterPool.findIndex(
-      (harvester) => harvester.previousProduction === undefined,
+    setGameState((currentState) =>
+      assignPlayerHarvester(currentState, tileId, production),
     )
-
-    const selectedHarvesterIndex =
-      unusedHarvesterIndex >= 0 ? unusedHarvesterIndex : 0
-
-    const selectedHarvester =
-      freeHarvesterPool[selectedHarvesterIndex]
-
-    if (!selectedHarvester) {
-      return
-    }
-
-    if (
-      selectedHarvester.previousProduction !== undefined &&
-      harvesterRelocationBlocked
-    ) {
-      return
-    }
-
-    setFreeHarvesterPool((currentPool) =>
-      currentPool.filter(
-        (_, index) => index !== selectedHarvesterIndex,
-      ),
-    )
-
-    setHarvesters((currentHarvesters) => ({
-      ...currentHarvesters,
-      [tileId]:
-        selectedHarvester.previousProduction === undefined
-          ? {
-              production,
-              isNew: true,
-            }
-          : {
-              production: selectedHarvester.previousProduction,
-              pendingProduction: production,
-              retoolingReason: 'relocation',
-              isNew: false,
-            },
-    }))
   }
 
   const changeHarvesterProduction = (
     tileId: string,
     production: ProductionType,
   ) => {
-    if (harvesterRetoolingBlocked) {
-      return
-    }
-
-    setHarvesters((currentHarvesters) => {
-      const currentAssignment = currentHarvesters[tileId]
-
-      if (!currentAssignment) {
-        return currentHarvesters
-      }
-
-      if (currentAssignment.isNew) {
-        return {
-          ...currentHarvesters,
-          [tileId]: {
-            production,
-            isNew: true,
-          },
-        }
-      }
-
-      if (currentAssignment.retoolingReason === 'relocation') {
-        return {
-          ...currentHarvesters,
-          [tileId]: {
-            ...currentAssignment,
-            pendingProduction: production,
-          },
-        }
-      }
-
-      if (production === currentAssignment.production) {
-        return {
-          ...currentHarvesters,
-          [tileId]: {
-            production: currentAssignment.production,
-            isNew: false,
-          },
-        }
-      }
-
-      return {
-        ...currentHarvesters,
-        [tileId]: {
-          ...currentAssignment,
-          pendingProduction: production,
-          retoolingReason: 'production-change',
-        },
-      }
-    })
+    setGameState((currentState) =>
+      changePlayerHarvesterProduction(
+        currentState,
+        tileId,
+        production,
+      ),
+    )
   }
 
   const removeHarvester = (tileId: string) => {
-    const currentAssignment = harvesters[tileId]
-
-    if (!currentAssignment) {
-      return
-    }
-
-    if (!currentAssignment.isNew && harvesterRelocationBlocked) {
-      return
-    }
-
-    setHarvesters((currentHarvesters) => {
-      if (!currentHarvesters[tileId]) {
-        return currentHarvesters
-      }
-
-      const updatedHarvesters = { ...currentHarvesters }
-      delete updatedHarvesters[tileId]
-
-      return updatedHarvesters
-    })
-
-    if (!currentAssignment.isNew) {
-      setFreeHarvesterPool((currentPool) => [
-        ...currentPool,
-        { previousProduction: currentAssignment.production },
-      ])
-    } else {
-      setFreeHarvesterPool((currentPool) => [
-        ...currentPool,
-        {},
-      ])
-    }
+    setGameState((currentState) =>
+      removePlayerHarvester(currentState, tileId),
+    )
   }
 
   const submitLandBid = (tileId: string, amount: number) => {
@@ -383,16 +266,6 @@ function App() {
   const applyCompletedRound = useCallback(
     (completedRound: ReturnType<typeof runRound>) => {
       setGameState(completedRound.nextState)
-      setHarvesters(completedRound.nextHarvesters)
-      if (completedRound.report.completedHarvesters > 0) {
-        setFreeHarvesterPool((currentPool) => [
-          ...currentPool,
-          ...Array.from(
-            { length: completedRound.report.completedHarvesters },
-            () => ({}),
-          ),
-        ])
-      }
       setLastReport(completedRound.report)
       setPendingRound(null)
       setActiveMarket(null)
@@ -582,35 +455,35 @@ function App() {
             <div className="status-grid">
               <div className="status-item">
                 <span>👥 {t('resource.population')}</span>
-                <strong>{number(gameState.population)}</strong>
+                <strong>{number(localColony.population)}</strong>
               </div>
 
               <div className="status-item">
                 <span>💰 {t('resource.credits')}</span>
-                <strong>{number(gameState.credits)}</strong>
+                <strong>{number(localColony.credits)}</strong>
               </div>
 
               <div className="status-item">
                 <span>🌾 {t('resource.food')}</span>
-                <strong>{number(gameState.resources.food)}</strong>
+                <strong>{number(localColony.resources.food)}</strong>
               </div>
 
               <div className="status-item">
                 <span>⚡ {t('resource.energy')}</span>
                 <strong>
-                  {number(gameState.resources.energy)}
+                  {number(localColony.resources.energy)}
                 </strong>
               </div>
 
               <div className="status-item">
                 <span>⛏ {t('resource.ore')}</span>
-                <strong>{number(gameState.resources.ore)}</strong>
+                <strong>{number(localColony.resources.ore)}</strong>
               </div>
 
               <div className="status-item">
                 <span>💎 {t('resource.crystals')}</span>
                 <strong>
-                  {number(gameState.resources.crystals)}
+                  {number(localColony.resources.crystals)}
                 </strong>
               </div>
             </div>
@@ -621,7 +494,7 @@ function App() {
           <LandTieAuctionPanel
             key={`${gameState.round}-${gameState.landAuctionTie.tileId}`}
             tie={gameState.landAuctionTie}
-            credits={gameState.credits}
+            credits={localColony.credits}
             orion={gameState.rivals.orion}
             roundPlayed={gameState.round}
             onComplete={completeLandTieAuction}
@@ -632,9 +505,9 @@ function App() {
             roundPlayed={activeMarket.roundPlayed}
             resource={activeMarket.resource}
             resourceAmount={
-              gameState.resources[activeMarket.resource]
+              localColony.resources[activeMarket.resource]
             }
-            credits={gameState.credits}
+            credits={localColony.credits}
             referencePrice={activeResourceMarket.referencePrice}
             warehouseStock={activeResourceMarket.warehouseStock}
             interstellarCrystalPurchases={
@@ -643,15 +516,15 @@ function App() {
             rivals={gameState.rivals}
             rivalResourceAmounts={{
               orion:
-                gameState.rivals.orion.resources[
+                colonies.orion.resources[
                   activeMarket.resource
                 ],
               nova:
-                gameState.rivals.nova.resources[
+                colonies.nova.resources[
                   activeMarket.resource
                 ],
               vega:
-                gameState.rivals.vega.resources[
+                colonies.vega.resources[
                   activeMarket.resource
                 ],
             }}
@@ -674,7 +547,7 @@ function App() {
         ) : showRoundBriefing && lastReport ? (
           <RoundBriefingPanel
             round={gameState.round}
-            population={gameState.population}
+            population={localColony.population}
             report={lastReport}
             globalEvent={gameState.activeGlobalEvent}
             onContinue={continueAfterBriefing}
@@ -683,18 +556,18 @@ function App() {
           <>
             <HexMap
               round={gameState.round}
-              population={gameState.population}
-              credits={gameState.credits}
-              ore={gameState.resources.ore}
-              ownedTileIds={gameState.ownedTileIds}
-              opponentTileIds={gameState.opponentTileIds}
-              rivals={gameState.rivals}
+              population={localColony.population}
+              credits={localColony.credits}
+              ore={localColony.resources.ore}
+              ownedTileIds={localColony.ownedTileIds}
+              opponentTileIds={opponentTileIds}
+              colonies={colonies}
               meteorImpacts={gameState.meteorImpacts ?? []}
               pendingLandBid={gameState.pendingLandBid}
               landAuctionTie={gameState.landAuctionTie}
               freeHarvesters={freeHarvesters}
               harvestersInConstruction={
-                gameState.harvestersInConstruction
+                localColony.harvestersInConstruction
               }
               harvesters={harvesters}
               harvesterCreditCost={harvesterCreditCost}
@@ -801,17 +674,17 @@ function App() {
               <div className="supply-preview-item">
                 <span>{t('supply.stockAfterRound')}</span>
                 <strong>
-                  🌾 {plannedRound.nextState.resources.food} · ⚡{' '}
-                  {plannedRound.nextState.resources.energy} · ⛏{' '}
-                  {plannedRound.nextState.resources.ore}
+                  🌾 {plannedLocalColony.resources.food} · ⚡{' '}
+                  {plannedLocalColony.resources.energy} · ⛏{' '}
+                  {plannedLocalColony.resources.ore}
                 </strong>
               </div>
 
               <div className="supply-preview-item">
                 <span>{t('supply.expectedPopulation')}</span>
                 <strong>
-                  {gameState.population} →{' '}
-                  {plannedRound.nextState.population}
+                  {localColony.population} →{' '}
+                  {plannedLocalColony.population}
                 </strong>
               </div>
             </div>

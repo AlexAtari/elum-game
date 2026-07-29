@@ -11,6 +11,7 @@ describe('Gleiche Startwerte aller Spieler', () => {
     const state = createPlayableInitialGameState()
 
     expect(state.credits).toBe(STARTING_CREDITS)
+    expect(state.harvesters).toBe(STARTING_HARVESTERS)
 
     for (const rival of Object.values(state.rivals)) {
       expect(rival.credits).toBe(state.credits)

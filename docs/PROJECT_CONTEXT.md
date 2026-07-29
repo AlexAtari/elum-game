@@ -264,6 +264,12 @@ werden.
   KI-Controllern und seedbasierten Startkorridoren; der dynamische
   Koloniezustand bleibt bis zum nächsten Migrationsschritt noch
   asymmetrisch
+- gemeinsamer Kolonie-Grundtyp und symmetrische Leseansicht für alle
+  vier Teilnehmer; Status, Karte und Rangliste verwenden diese
+  Struktur bereits
+- vollständiger Spieler-Harvesterstand einschließlich freier
+  Harvester und Zuweisungen im serialisierbaren `GameState`; die
+  übrigen dynamischen Schreibpfade werden noch schrittweise migriert
 
 ### Nächster Regelstand
 

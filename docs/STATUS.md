@@ -28,6 +28,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   später ohne Sondermodell mit KI belegt werden
 - seedbasierte und reproduzierbare Startkorridor-Zuordnung als Teil
   der versionierten Match-Konfiguration
+- gemeinsamer `ColonyState`-Grundtyp und symmetrische,
+  UI-unabhängige Leseansicht auf Agima, Orion, Nova und Vega
+- Harvester-Gesamtzahl, freie Harvester und sämtliche
+  Spielerzuweisungen liegen im serialisierbaren Spielzustand statt
+  in getrennten React-Zuständen
+- UI-unabhängige Zustandsoperationen für Einsetzen, Umrüsten und
+  Entfernen der Spieler-Harvester
 - drehbare Browserkugel mit zentralem HQ und 91 Grundstücken
 - UI-unabhängiges Kartenmodell mit Feld-IDs, symmetrischen
   Nachbarlisten und berechneten Graphdistanzen
@@ -183,8 +190,8 @@ Patchdateien sind nicht automatisch Teil des Projektstands.
 
 Nach UI- und Dokumentationsarbeiten:
 
-1. die noch asymmetrisch gespeicherten dynamischen Koloniezustände
-   in ein gemeinsames Teilnehmermodell überführen,
+1. die noch asymmetrischen Schreibpfade für Wirtschaft, Besitz und
+   Rivalen schrittweise auf die gemeinsame Kolonieansicht überführen,
 2. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
 3. Produktions- und Marktentscheidungen stärker differenzieren,

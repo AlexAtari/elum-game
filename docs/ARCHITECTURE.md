@@ -109,6 +109,24 @@ asymmetrische dynamische Zustand von Agima und den drei Rivalen wird
 in einem eigenen Folgeschritt migriert, damit während der Umstellung
 keine zwei veränderbaren Zustandsquellen entstehen.
 
+`ColonyEconomyState` definiert inzwischen die gemeinsamen
+Wirtschaftsfelder aller Kolonien. `selectColonies` normalisiert den
+bestehenden Browserzustand zu einer einheitlichen
+`Record<ParticipantId, ColonyState>`-Leseansicht. Statusanzeige,
+Karte und Rangliste lesen Agima und die Rivalen dadurch über dieselbe
+Struktur. Die Leseansicht wird bei Bedarf erzeugt und ist keine zweite
+gespeicherte Zustandsquelle.
+
+Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
+Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
+Entfernen laufen über reine Funktionen in `game.ts`; React hält davon
+keine eigene Kopie mehr. Dadurch enthält ein serialisierter
+Browserzustand erstmals den vollständigen Harvesterstand von Agima.
+
+Noch offen sind die gemeinsamen Schreibpfade für Ressourcen,
+Bevölkerung, Grundstücke und Rivalen sowie ein einheitliches
+Harvester-Zuweisungsmodell für alle vier Kolonien.
+
 Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.
 Nicht menschlich belegte Sitze können mit den vorhandenen KI-Profilen
 gefüllt werden. Netzwerkverbindungen und geheime Informationen

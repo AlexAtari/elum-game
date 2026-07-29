@@ -14,8 +14,8 @@ import {
   type LandAuctionTie,
   type LandBid,
   type ProductionType,
-  type RivalColonies,
-  type RivalColonyState,
+  type ColoniesState,
+  type ColonyState,
 } from '../game'
 import {
   combineMeteorBonuses,
@@ -38,7 +38,7 @@ type HexMapProps = {
   ore: number
   ownedTileIds: string[]
   opponentTileIds: string[]
-  rivals: RivalColonies
+  colonies: ColoniesState
   meteorImpacts: MeteorImpact[]
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
@@ -96,16 +96,18 @@ const planetSurfaceCells =
 
 function getRivalOwner(
   tileId: string,
-  rivals: RivalColonies,
-): RivalColonyState | null {
+  colonies: ColoniesState,
+): ColonyState | null {
   return (
-    Object.values(rivals).find((rival) =>
-      rival.ownedTileIds?.includes(tileId),
-    ) ?? null
+    (['orion', 'nova', 'vega'] as const)
+      .map((participantId) => colonies[participantId])
+      .find((colony) =>
+        colony.ownedTileIds.includes(tileId),
+      ) ?? null
   )
 }
 
-function getRivalMapLabel(rival: RivalColonyState | null) {
+function getRivalMapLabel(rival: ColonyState | null) {
   if (!rival) {
     return 'RIVALE'
   }
@@ -160,7 +162,7 @@ function HexMap({
   ore,
   ownedTileIds,
   opponentTileIds,
-  rivals,
+  colonies,
   meteorImpacts,
   pendingLandBid,
   landAuctionTie,
@@ -240,7 +242,7 @@ function HexMap({
   const selectedProduction = selectedHarvester?.production
   const selectedRivalOwner = getRivalOwner(
     selectedTile.id,
-    rivals,
+    colonies,
   )
   const selectedIsPlayerOwned = ownedTileIds.includes(
     selectedTile.id,
@@ -647,7 +649,7 @@ function HexMap({
                 )
                 const rivalOwner = getRivalOwner(
                   tile.id,
-                  rivals,
+                  colonies,
                 )
                 const hasPendingBid =
                   pendingLandBid?.tileId === tile.id

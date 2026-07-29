@@ -102,14 +102,27 @@ export type MarketState = Record<
 
 export type RivalId = 'orion' | 'nova' | 'vega'
 
-export type RivalColonyState = {
-  id: RivalId
-  name: string
-  icon: string
+export type ColonyEconomyState = {
   population: number
   credits: number
   resources: Resources
   harvesters: number
+}
+
+export type ColonyState = ColonyEconomyState & {
+  id: ParticipantId
+  name: string
+  icon: string
+  harvestersInConstruction: number
+  ownedTileIds: string[]
+}
+
+export type ColoniesState = Record<ParticipantId, ColonyState>
+
+export type RivalColonyState = ColonyEconomyState & {
+  id: RivalId
+  name: string
+  icon: string
   harvestersInConstruction?: number
   ownedTileIds?: string[]
   lastLandPurchaseRound?: number
@@ -127,17 +140,16 @@ export type RivalColonyState = {
 
 export type RivalColonies = Record<RivalId, RivalColonyState>
 
-export type GameState = {
+export type GameState = ColonyEconomyState & {
   match: MatchConfiguration
   round: number
-  population: number
-  credits: number
-  resources: Resources
   ownedTileIds: string[]
   opponentTileIds: string[]
   pendingLandBid: LandBid | null
   landAuctionTie: LandAuctionTie | null
   harvestersInConstruction: number
+  harvesterAssignments: HarvesterAssignments
+  freeHarvesterPool: FreeHarvester[]
   initiatedMarketResources: MarketResource[]
   activeGlobalEvent: GlobalEventId | null
   activeLocalEvent: LocalEventId | null
@@ -642,6 +654,161 @@ export function isHarvesterRelocationBlocked(
   return currentState.activeGlobalEvent === 'ion-fog'
 }
 
+export function assignPlayerHarvester(
+  currentState: GameState,
+  tileId: string,
+  production: ProductionType,
+): GameState {
+  const currentHarvesters =
+    currentState.harvesterAssignments
+  const currentPool = currentState.freeHarvesterPool
+
+  if (currentPool.length <= 0 || currentHarvesters[tileId]) {
+    return currentState
+  }
+
+  const unusedHarvesterIndex = currentPool.findIndex(
+    (harvester) => harvester.previousProduction === undefined,
+  )
+  const selectedHarvesterIndex =
+    unusedHarvesterIndex >= 0 ? unusedHarvesterIndex : 0
+  const selectedHarvester = currentPool[selectedHarvesterIndex]
+
+  if (
+    !selectedHarvester ||
+    (selectedHarvester.previousProduction !== undefined &&
+      isHarvesterRelocationBlocked(currentState))
+  ) {
+    return currentState
+  }
+
+  return {
+    ...currentState,
+    freeHarvesterPool: currentPool.filter(
+      (_, index) => index !== selectedHarvesterIndex,
+    ),
+    harvesterAssignments: {
+      ...currentHarvesters,
+      [tileId]:
+        selectedHarvester.previousProduction === undefined
+          ? {
+              production,
+              isNew: true,
+            }
+          : {
+              production:
+                selectedHarvester.previousProduction,
+              pendingProduction: production,
+              retoolingReason: 'relocation',
+              isNew: false,
+            },
+    },
+  }
+}
+
+export function changePlayerHarvesterProduction(
+  currentState: GameState,
+  tileId: string,
+  production: ProductionType,
+): GameState {
+  if (isHarvesterRetoolingBlocked(currentState)) {
+    return currentState
+  }
+
+  const currentHarvesters =
+    currentState.harvesterAssignments
+  const currentAssignment = currentHarvesters[tileId]
+
+  if (!currentAssignment) {
+    return currentState
+  }
+
+  if (currentAssignment.isNew) {
+    return {
+      ...currentState,
+      harvesterAssignments: {
+        ...currentHarvesters,
+        [tileId]: {
+          production,
+          isNew: true,
+        },
+      },
+    }
+  }
+
+  if (currentAssignment.retoolingReason === 'relocation') {
+    return {
+      ...currentState,
+      harvesterAssignments: {
+        ...currentHarvesters,
+        [tileId]: {
+          ...currentAssignment,
+          pendingProduction: production,
+        },
+      },
+    }
+  }
+
+  if (production === currentAssignment.production) {
+    return {
+      ...currentState,
+      harvesterAssignments: {
+        ...currentHarvesters,
+        [tileId]: {
+          production: currentAssignment.production,
+          isNew: false,
+        },
+      },
+    }
+  }
+
+  return {
+    ...currentState,
+    harvesterAssignments: {
+      ...currentHarvesters,
+      [tileId]: {
+        ...currentAssignment,
+        pendingProduction: production,
+        retoolingReason: 'production-change',
+      },
+    },
+  }
+}
+
+export function removePlayerHarvester(
+  currentState: GameState,
+  tileId: string,
+): GameState {
+  const currentAssignment =
+    currentState.harvesterAssignments[tileId]
+
+  if (
+    !currentAssignment ||
+    (!currentAssignment.isNew &&
+      isHarvesterRelocationBlocked(currentState))
+  ) {
+    return currentState
+  }
+
+  const updatedHarvesters = {
+    ...currentState.harvesterAssignments,
+  }
+  delete updatedHarvesters[tileId]
+
+  return {
+    ...currentState,
+    harvesterAssignments: updatedHarvesters,
+    freeHarvesterPool: [
+      ...currentState.freeHarvesterPool,
+      currentAssignment.isNew
+        ? {}
+        : {
+            previousProduction: currentAssignment.production,
+          },
+    ],
+  }
+}
+
 export const MARKET_PRICES: Record<MarketResource, number> = {
   food: 8,
   energy: 8,
@@ -712,44 +879,101 @@ function getResourceTotal(resources: Resources) {
   return resources.food + resources.energy + resources.ore
 }
 
-export function createLeaderboardEntries(
+export function selectColonies(
   currentState: GameState,
-  playerHarvesterCount: number,
-): LeaderboardEntry[] {
-  const crystalReferencePrice =
-    currentState.market.crystals.referencePrice
-  const playerResources = getResourceTotal(
-    currentState.resources,
-  )
-
-  const entries: LeaderboardEntry[] = [
-    {
-      id: 'player',
+): ColoniesState {
+  return {
+    agima: {
+      id: 'agima',
       name: 'Kolonie Agima',
       icon: '🧑‍🚀',
       population: currentState.population,
       credits: currentState.credits,
+      resources: currentState.resources,
+      harvesters: currentState.harvesters,
+      harvestersInConstruction:
+        currentState.harvestersInConstruction,
+      ownedTileIds: currentState.ownedTileIds,
+    },
+    orion: {
+      ...currentState.rivals.orion,
+      harvestersInConstruction:
+        currentState.rivals.orion.harvestersInConstruction ?? 0,
+      ownedTileIds:
+        currentState.rivals.orion.ownedTileIds ?? [],
+    },
+    nova: {
+      ...currentState.rivals.nova,
+      harvestersInConstruction:
+        currentState.rivals.nova.harvestersInConstruction ?? 0,
+      ownedTileIds:
+        currentState.rivals.nova.ownedTileIds ?? [],
+    },
+    vega: {
+      ...currentState.rivals.vega,
+      harvestersInConstruction:
+        currentState.rivals.vega.harvestersInConstruction ?? 0,
+      ownedTileIds:
+        currentState.rivals.vega.ownedTileIds ?? [],
+    },
+  }
+}
+
+export function selectOpponentTileIds(
+  currentState: GameState,
+) {
+  const colonies = selectColonies(currentState)
+
+  return (['orion', 'nova', 'vega'] as const).flatMap(
+    (participantId) => colonies[participantId].ownedTileIds,
+  )
+}
+
+export function createLeaderboardEntries(
+  currentState: GameState,
+  playerHarvesterCount: number = currentState.harvesters,
+): LeaderboardEntry[] {
+  const crystalReferencePrice =
+    currentState.market.crystals.referencePrice
+  const colonies = selectColonies(currentState)
+  const playerColony = {
+    ...colonies.agima,
+    harvesters: playerHarvesterCount,
+  }
+
+  const entries: LeaderboardEntry[] = [
+    {
+      id: 'player',
+      name: playerColony.name,
+      icon: playerColony.icon,
+      population: playerColony.population,
+      credits: playerColony.credits,
       wealth:
-        currentState.credits +
-        currentState.resources.crystals *
+        playerColony.credits +
+        playerColony.resources.crystals *
           crystalReferencePrice,
-      resources: playerResources,
-      harvesters: playerHarvesterCount,
+      resources: getResourceTotal(playerColony.resources),
+      harvesters: playerColony.harvesters,
       isPlayer: true,
     },
-    ...Object.values(currentState.rivals).map((rival) => ({
-      id: rival.id,
-      name: rival.name,
-      icon: rival.icon,
-      population: rival.population,
-      credits: rival.credits,
-      wealth:
-        rival.credits +
-        rival.resources.crystals * crystalReferencePrice,
-      resources: getResourceTotal(rival.resources),
-      harvesters: rival.harvesters,
-      isPlayer: false,
-    })),
+    ...(['orion', 'nova', 'vega'] as const).map(
+      (participantId) => ({
+        id: participantId,
+        name: colonies[participantId].name,
+        icon: colonies[participantId].icon,
+        population: colonies[participantId].population,
+        credits: colonies[participantId].credits,
+        wealth:
+          colonies[participantId].credits +
+          colonies[participantId].resources.crystals *
+            crystalReferencePrice,
+        resources: getResourceTotal(
+          colonies[participantId].resources,
+        ),
+        harvesters: colonies[participantId].harvesters,
+        isPlayer: false,
+      }),
+    ),
   ]
 
   return entries.sort(
@@ -1258,6 +1482,7 @@ export function createInitialGameState(): GameState {
     round: 1,
     population: 10,
     credits: 100,
+    harvesters: 0,
     resources: {
       food: 10,
       energy: 10,
@@ -1269,6 +1494,8 @@ export function createInitialGameState(): GameState {
     pendingLandBid: null,
     landAuctionTie: null,
     harvestersInConstruction: 0,
+    harvesterAssignments: {},
+    freeHarvesterPool: [],
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,
@@ -1365,6 +1592,12 @@ export function createPlayableInitialGameState(
     meteorImpacts: [],
     interstellarCrystalPurchases: 0,
     credits: STARTING_CREDITS,
+    harvesters: STARTING_HARVESTERS,
+    harvesterAssignments: {},
+    freeHarvesterPool: Array.from(
+      { length: STARTING_HARVESTERS },
+      () => ({}),
+    ),
     resources: { ...sharedResources },
     opponentTileIds: Object.values(rivalStartTileIds).flat(),
     rivals: Object.fromEntries(
@@ -2339,6 +2572,17 @@ export function runRound(
       (landBid && !playerWonLand
         ? (landBid.reservedCredits ?? landBid.amount)
         : 0),
+    harvesters:
+      currentState.harvesters +
+      currentState.harvestersInConstruction,
+    harvesterAssignments: nextHarvesters,
+    freeHarvesterPool: [
+      ...currentState.freeHarvesterPool,
+      ...Array.from(
+        { length: currentState.harvestersInConstruction },
+        () => ({}),
+      ),
+    ],
     resources: {
       food:
         currentState.resources.food -
