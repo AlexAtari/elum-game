@@ -322,6 +322,25 @@ Platzierung kompakt in der Statuszeile; im HQ steht die vollständige
 Rangliste ohne zusätzlichen Serverzustand bereit, da alle Werte aus
 dem autoritativen `GameState` abgeleitet werden.
 
+Lokale Multiplayer-Ereignisse werden ebenfalls reproduzierbar aus
+Match-Seed, Runde und `ParticipantId` gewählt. Der Server plant für
+jeden menschlichen Sitz eine getrennte Verzögerung zwischen zwei und
+sechs Sekunden; während einer Ressourcen- oder Grundstücksauktion
+wird die Aktivierung in kurzen Abständen aufgeschoben. Die
+Kernoperation `applyColonyLocalEvent` verändert ausschließlich die
+betroffene Kolonie und speichert Sperren in der
+teilnehmerbezogenen `activeLocalEvents`-Map. Der bisherige
+`activeLocalEvent`-Wert bleibt als Agima-Kompatibilitätsansicht für
+den Einzelspieler erhalten.
+
+Beim Erzeugen eines personalisierten Snapshots entfernt der Server
+alle fremden lokalen Ereignis-IDs aus dem `GameState`. Ein Sitz
+erhält nur seinen eigenen Map-Eintrag; ein unpersonalisierter
+Snapshot enthält keinen lokalen Ereigniseintrag. Die sichtbare
+`LocalEventNotice` darf nach sechs Sekunden geschlossen werden,
+während die kanonische Wirkung beziehungsweise Sperre bis zur
+Rundenabrechnung erhalten bleibt.
+
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
 Entfernen laufen über reine Funktionen in `game.ts`; React hält davon

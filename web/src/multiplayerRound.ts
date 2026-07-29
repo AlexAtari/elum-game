@@ -1,4 +1,5 @@
 import {
+  getColonyLocalEvent,
   runRound,
   type GameState,
   type HarvesterAssignment,
@@ -73,9 +74,16 @@ function runParticipantEconomy(
   }
 
   const participantColony = state.colonies[participantId]
+  const localEvent = getColonyLocalEvent(
+    state,
+    participantId,
+  )
   const syntheticState: GameState = {
     ...state,
-    activeLocalEvent: null,
+    activeLocalEvent: localEvent,
+    activeLocalEvents: localEvent
+      ? { agima: localEvent }
+      : {},
     colonies: {
       ...state.colonies,
       agima: {

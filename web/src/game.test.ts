@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   activateGlobalEvent,
   advanceRivalColonies,
+  applyColonyLocalEvent,
   applyLocalEvent,
   beginLandTieBreak,
   calculateColonySupplyPreview,
@@ -18,6 +19,7 @@ import {
   getHarvesterCreditCost,
   getHexDistanceFromHq,
   getLocalEventAmount,
+  getSeededLocalEventDelay,
   getMarketTiming,
   getNextMarketResource,
   getOrionMarketRole,
@@ -42,6 +44,7 @@ import {
   selectGlobalEvent,
   selectSeededGlobalEvent,
   selectLocalEvent,
+  selectSeededLocalEvent,
   selectOpponentTileIds,
   selectRivalColonies,
   tiles,
@@ -282,6 +285,24 @@ describe('Ereignisse', () => {
     expect(selectLocalEvent(3, 0.2, 0.15)).toBe('ore-cache')
   })
 
+  it('wählt lokale Ereignisse und Verzögerungen reproduzierbar je Sitz', () => {
+    const agimaEvent = selectSeededLocalEvent(2, 23, 'agima')
+    const orionEvent = selectSeededLocalEvent(2, 23, 'orion')
+
+    expect(selectSeededLocalEvent(2, 23, 'agima')).toBe(
+      agimaEvent,
+    )
+    expect(selectSeededLocalEvent(2, 23, 'orion')).toBe(
+      orionEvent,
+    )
+    expect(
+      getSeededLocalEventDelay(2, 23, 'agima'),
+    ).toBeGreaterThanOrEqual(2_000)
+    expect(
+      getSeededLocalEventDelay(2, 23, 'agima'),
+    ).toBeLessThan(6_000)
+  })
+
   it('enthält je 15 globale und lokale Ereignisse', () => {
     expect(globalEventIds).toHaveLength(15)
     expect(localEventIds).toHaveLength(15)
@@ -325,6 +346,26 @@ describe('Ereignisse', () => {
     expect(withCredits.colonies.agima.credits).toBe(115)
     expect(afterFoodLoss.colonies.agima.resources.food).toBe(0)
     expect(afterEnergyLoss.colonies.agima.resources.energy).toBe(0)
+  })
+
+  it('wendet ein lokales Ereignis ausschließlich auf den gewählten Sitz an', () => {
+    const state = createInitialGameState()
+    const next = applyColonyLocalEvent(
+      state,
+      'orion',
+      'food-cache',
+    )
+
+    expect(next.colonies.orion.resources.food).toBe(
+      state.colonies.orion.resources.food + 3,
+    )
+    expect(next.colonies.agima.resources.food).toBe(
+      state.colonies.agima.resources.food,
+    )
+    expect(next.activeLocalEvents).toEqual({
+      orion: 'food-cache',
+    })
+    expect(next.activeLocalEvent).toBeNull()
   })
 
   it('skaliert lokale Mengenereignisse mit der aktuellen Runde', () => {

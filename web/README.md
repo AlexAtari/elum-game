@@ -49,7 +49,9 @@ einschließlich antippbarer Explorationsergebnisse. Das globale
 Ereignis der neuen Runde wird serverseitig für alle Kolonien
 ausgewählt, aktiviert und im Briefing angekündigt. Die gemeinsame
 Rangliste erscheint nach jeder Abrechnung, dauerhaft im HQ und als
-kompakte aktuelle Platzierung in der Kolonieansicht.
+kompakte aktuelle Platzierung in der Kolonieansicht. Private lokale
+Ereignisse werden je menschlichem Sitz verzögert vom Server
+angewendet und nur dem betroffenen Client als Meldung gezeigt.
 
 Für öffentliches Hosting werden ein dauerhaft laufender Dienst, TLS
 (`wss://`) und eine konkrete Origin-Policy benötigt.

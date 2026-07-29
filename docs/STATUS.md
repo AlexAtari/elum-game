@@ -165,6 +165,20 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   private Ereignis- und Koloniebriefing
 - nach der Abrechnung der 20. Runde bleibt die Abschlussrangliste
   stehen und verhindert weitere Planungsaktionen im Client
+- private lokale Multiplayer-Ereignisse werden pro menschlichem Sitz
+  reproduzierbar aus Match-Seed, Runde und Teilnehmer gewählt und
+  mit einer getrennten Verzögerung von zwei bis sechs Sekunden
+  serverseitig aktiviert
+- die Aktivierung wartet während Ressourcen- und
+  Grundstücksauktionen; unmittelbare Ressourcen-, Credit- und
+  Bevölkerungswirkungen sowie einrundige Sperren betreffen nur die
+  ausgewählte Kolonie
+- personalisierte Match-Snapshots enthalten ausschließlich die
+  lokale Ereignis-ID des eigenen Sitzes; unpersonalisierte
+  Snapshots und fremde Sitz-Snapshots entfernen diese IDs
+- die Multiplayer-Meldung verwendet die bestehende lokalisierte,
+  responsive Ereigniskarte und kann nach sechs Sekunden verschwinden,
+  ohne die kanonische Wirkung oder Sperre vorzeitig zu löschen
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -275,14 +289,15 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Die regelkritischen Browseraktionen, die Rundenbarriere, globale
-Ereignisse, Rangliste und das teilnehmerbezogene Rundenbriefing
-laufen im Mehrspielerpfad jetzt über den autoritativen Serverzustand.
-Als Nächstes werden lokale Ereignisse pro menschlichem Sitz ergänzt.
-Für einen öffentlichen Mehrspielerbetrieb bleiben anschließend
-Backend-Hosting, TLS mit `wss://`, Origin-Policy und betriebliche
-Überwachung zu entscheiden; GitHub Pages hostet weiterhin nur das
-statische Frontend.
+Die regelkritischen Browseraktionen, die Rundenbarriere, globale und
+lokale Ereignisse, Rangliste und das teilnehmerbezogene
+Rundenbriefing laufen im Mehrspielerpfad jetzt über den
+autoritativen Serverzustand. Als Nächstes wird das Partieende auch
+serverseitig gesperrt und ein sauberer Neustart derselben Lobby
+definiert. Für einen öffentlichen Mehrspielerbetrieb bleiben
+anschließend Backend-Hosting, TLS mit `wss://`, Origin-Policy und
+betriebliche Überwachung zu entscheiden; GitHub Pages hostet
+weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

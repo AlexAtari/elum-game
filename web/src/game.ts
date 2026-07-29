@@ -205,6 +205,9 @@ export type GameState = {
   initiatedMarketResources: MarketResource[]
   activeGlobalEvent: GlobalEventId | null
   activeLocalEvent: LocalEventId | null
+  activeLocalEvents?: Partial<
+    Record<ParticipantId, LocalEventId>
+  >
   meteorSeed?: number
   meteorSchedule?: number[]
   meteorImpacts?: MeteorImpact[]
@@ -559,6 +562,45 @@ export function selectLocalEvent(
   )
 }
 
+export function selectSeededLocalEvent(
+  round: number,
+  seed: number,
+  participantId: ParticipantId,
+): LocalEventId | null {
+  const participantChannel =
+    (participantIds.indexOf(participantId) + 1) * 0x00_10_01_01
+
+  return selectLocalEvent(
+    round,
+    createSeededEventRoll(
+      seed,
+      round,
+      0x4c_4f_43_41 ^ participantChannel,
+    ),
+    createSeededEventRoll(
+      seed,
+      round,
+      0x4c_45_56_54 ^ participantChannel,
+    ),
+  )
+}
+
+export function getSeededLocalEventDelay(
+  round: number,
+  seed: number,
+  participantId: ParticipantId,
+) {
+  const participantChannel =
+    (participantIds.indexOf(participantId) + 1) * 0x00_10_01_01
+  const delayRoll = createSeededEventRoll(
+    seed,
+    round,
+    0x44_45_4c_41 ^ participantChannel,
+  )
+
+  return 2_000 + Math.floor(delayRoll * 4_000)
+}
+
 export function activateGlobalEvent(
   currentState: GameState,
   event: GlobalEventId | null,
@@ -602,14 +644,41 @@ export function applyLocalEvent(
   currentState: GameState,
   event: LocalEventId,
 ): GameState {
+  return applyColonyLocalEvent(currentState, 'agima', event)
+}
+
+export function getColonyLocalEvent(
+  currentState: GameState,
+  participantId: ParticipantId,
+) {
+  return (
+    currentState.activeLocalEvents?.[participantId] ??
+    (participantId === 'agima'
+      ? currentState.activeLocalEvent
+      : null)
+  )
+}
+
+export function applyColonyLocalEvent(
+  currentState: GameState,
+  participantId: ParticipantId,
+  event: LocalEventId,
+): GameState {
   const amount =
     getLocalEventAmount(event, currentState.round) ?? 0
   const stateWithEvent: GameState = {
     ...currentState,
-    activeLocalEvent: event,
+    activeLocalEvent:
+      participantId === 'agima'
+        ? event
+        : currentState.activeLocalEvent,
+    activeLocalEvents: {
+      ...currentState.activeLocalEvents,
+      [participantId]: event,
+    },
   }
 
-  return updateColony(stateWithEvent, 'agima', (colony) => {
+  return updateColony(stateWithEvent, participantId, (colony) => {
     const nextColony: ColonyState = {
       ...colony,
       resources: { ...colony.resources },
@@ -720,9 +789,8 @@ export function isColonyMarketInitiationBlocked(
 ): boolean {
   return (
     currentState.activeGlobalEvent === 'trade-blockade' ||
-    (participantId === 'agima' &&
-      currentState.activeLocalEvent ===
-        'communications-outage')
+    getColonyLocalEvent(currentState, participantId) ===
+      'communications-outage'
   )
 }
 
@@ -738,8 +806,8 @@ export function isColonyLandBidBlocked(
 ): boolean {
   return (
     currentState.activeGlobalEvent === 'surveying-stop' ||
-    (participantId === 'agima' &&
-      currentState.activeLocalEvent === 'land-registry-error')
+    getColonyLocalEvent(currentState, participantId) ===
+      'land-registry-error'
   )
 }
 
@@ -759,8 +827,8 @@ export function isColonyHarvesterBuildBlocked(
   return (
     currentState.activeGlobalEvent ===
       'supply-chain-disruption' ||
-    (participantId === 'agima' &&
-      currentState.activeLocalEvent === 'labor-strike')
+    getColonyLocalEvent(currentState, participantId) ===
+      'labor-strike'
   )
 }
 
@@ -779,8 +847,8 @@ export function isColonyHarvesterRetoolingBlocked(
 ): boolean {
   return (
     currentState.activeGlobalEvent === 'ion-fog' ||
-    (participantId === 'agima' &&
-      currentState.activeLocalEvent === 'wrong-spare-parts')
+    getColonyLocalEvent(currentState, participantId) ===
+      'wrong-spare-parts'
   )
 }
 
@@ -1969,6 +2037,7 @@ export function createInitialGameState(): GameState {
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,
+    activeLocalEvents: {},
     meteorSeed: 1,
     meteorSchedule: createMeteorSchedule(1),
     meteorImpacts: [],
@@ -3672,6 +3741,7 @@ export function runRound(
     initiatedMarketResources: [],
     activeGlobalEvent: null,
     activeLocalEvent: null,
+    activeLocalEvents: {},
     meteorSeed: currentState.meteorSeed,
     meteorSchedule: currentState.meteorSchedule,
     meteorImpacts: nextMeteorImpacts,

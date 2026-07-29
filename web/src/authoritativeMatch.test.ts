@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   createPlayableInitialGameState,
+  getSeededLocalEventDelay,
   selectSeededGlobalEvent,
+  selectSeededLocalEvent,
   type GameState,
 } from './game'
 import {
@@ -268,6 +270,121 @@ describe('Autoritativer Match-Serverkern', () => {
       round: 1,
       readyParticipantIds: ['agima'],
     })
+  })
+
+  it('wendet lokale Ereignisse verzögert und nur im privaten Sitz-Snapshot an', () => {
+    const clock = new FakeClock()
+    const initialState = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const match = createAuthoritativeMatch(initialState, {
+      clock,
+    })
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+    match.connectSeat({
+      sessionId: 'orion-session',
+      participantId: 'orion',
+    })
+    match.submitRoundPlan('agima-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+    match.submitRoundPlan('orion-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+
+    const agimaEvent = selectSeededLocalEvent(
+      2,
+      initialState.match.seed,
+      'agima',
+    )
+    const orionEvent = selectSeededLocalEvent(
+      2,
+      initialState.match.seed,
+      'orion',
+    )
+    const latestDelay = Math.max(
+      getSeededLocalEventDelay(
+        2,
+        initialState.match.seed,
+        'agima',
+      ),
+      getSeededLocalEventDelay(
+        2,
+        initialState.match.seed,
+        'orion',
+      ),
+    )
+
+    expect(agimaEvent).not.toBeNull()
+    expect(orionEvent).not.toBeNull()
+    expect(
+      match.getSnapshot('agima').state.activeLocalEvents,
+    ).toEqual({})
+
+    clock.advance(latestDelay)
+
+    expect(
+      match.getSnapshot('agima').state.activeLocalEvents,
+    ).toEqual({ agima: agimaEvent })
+    expect(
+      match.getSnapshot('orion').state.activeLocalEvents,
+    ).toEqual({ orion: orionEvent })
+    expect(
+      match.getSnapshot('orion').state.activeLocalEvent,
+    ).toBeNull()
+    expect(match.getSnapshot().state.activeLocalEvents).toEqual({})
+    expect(match.getSnapshot().state.activeLocalEvent).toBeNull()
+  })
+
+  it('verschiebt ein lokales Ereignis während einer Ressourcenauktion', () => {
+    const clock = new FakeClock()
+    const initialState = createPlayableInitialGameState()
+    const match = createAuthoritativeMatch(initialState, {
+      clock,
+    })
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+    match.submitRoundPlan('agima-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+
+    const marketCommand = createCommand(
+      {
+        participantId: 'agima',
+        type: 'initiate-resource-market',
+        payload: { resource: 'food' },
+      },
+      'round-two-market',
+    )
+    const marketResult = match.submitCommand(
+      'agima-session',
+      {
+        ...marketCommand,
+        expectedRound: 2,
+      },
+    )
+
+    expect(marketResult.ok).toBe(true)
+
+    clock.advance(
+      getSeededLocalEventDelay(
+        2,
+        initialState.match.seed,
+        'agima',
+      ),
+    )
+
+    expect(
+      match.getSnapshot('agima').state.activeLocalEvents,
+    ).toEqual({})
+    expect(
+      match.getSnapshot('agima').state.activeResourceMarket,
+    ).not.toBeNull()
   })
 
   it('wartet bei mehreren Grundstücksgeboten auf die Serverauktion', () => {

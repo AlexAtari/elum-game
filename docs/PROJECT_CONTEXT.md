@@ -369,12 +369,16 @@ werden.
   menschlichen Sitz aus dem autoritativen Zustand ab: Platzierung in
   der kompakten Statuszeile, vollständige Übersicht im HQ und
   gemeinsamer Zwischenstand vor dem privaten Rundenbriefing
+- lokale Ereignisse werden pro menschlichem Sitz reproduzierbar aus
+  Match-Seed, Runde und Teilnehmer gewählt, nach zwei bis sechs
+  Sekunden außerhalb laufender Auktionen serverseitig angewendet und
+  nur dem betroffenen Client als Ereignis-ID zugestellt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: lokale Ereignisse teilnehmerbezogen
-  serverseitig auswählen, anwenden und darstellen;
-  danach Backend-Hosting, TLS und Origin-Policy für öffentlichen
-  Betrieb festlegen
+- nächster Strukturschritt: Abschluss und Wiederholung einer
+  Multiplayerpartie serverseitig sperren beziehungsweise neu
+  initialisieren; danach Backend-Hosting, TLS und Origin-Policy für
+  öffentlichen Betrieb festlegen
 
 ### Nächster Regelstand
 

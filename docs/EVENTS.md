@@ -182,6 +182,13 @@ vorher geschlossen werden. Sie darf Auktionen nicht überlagern.
 - Das aktive lokale Ereignis wird ebenfalls im Spielzustand
   gespeichert, damit seine Sperre oder sein Harvesterdefekt bis zur
   Abrechnung wirksam bleibt.
+- Im autoritativen Multiplayer werden Auswahl und Verzögerung
+  getrennt je menschlichem Sitz aus Match-Seed, Runde und
+  Teilnehmer-ID abgeleitet. Fremde lokale Ereignis-IDs werden aus
+  personalisierten Snapshots entfernt.
+- Läuft beim vorgesehenen Aktivierungszeitpunkt eine Ressourcen- oder
+  Grundstücksauktion, verschiebt der Server das lokale Ereignis bis
+  zur Rückkehr in die Planung.
 - Die Rundenabrechnung speichert das angewendete globale Ereignis im
   Rundenbericht.
 - Die Auswahlfunktionen akzeptieren im Test kontrollierte Zufallswerte.

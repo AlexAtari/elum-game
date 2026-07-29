@@ -678,6 +678,43 @@ describe('UI-unabhängige Spielkommandos', () => {
     ).toBe(1)
   })
 
+  it('wendet eine private lokale Sperre auch auf einen entfernten Sitz an', () => {
+    const state = {
+      ...createPlayableInitialGameState(),
+      activeLocalEvents: {
+        orion: 'labor-strike' as const,
+      },
+    }
+    const agimaResult = executeGameCommand(
+      state,
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'order-harvester-build',
+          payload: {},
+        },
+        'agima-allowed-by-orion-event',
+      ),
+    )
+    const orionResult = executeGameCommand(
+      state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'order-harvester-build',
+          payload: {},
+        },
+        'orion-blocked-by-own-event',
+      ),
+    )
+
+    expect(agimaResult.ok).toBe(true)
+    expect(orionResult).toMatchObject({
+      ok: false,
+      error: 'illegal-action',
+    })
+  })
+
   it('wendet die lokale Kommunikationssperre nur auf Agimas Marktstart an', () => {
     const state = {
       ...createPlayableInitialGameState(),

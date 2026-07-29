@@ -1,12 +1,17 @@
 import {
+  applyColonyLocalEvent,
   activateGlobalEvent,
   beginLandTieBreak,
+  getColonyLocalEvent,
   getMarketTiming,
+  getSeededLocalEventDelay,
   LAND_AUCTION_TIMING,
   resolveLandTieBreak,
   selectSeededGlobalEvent,
+  selectSeededLocalEvent,
   type GameState,
   type LandAuctionPhase,
+  type LocalEventId,
   type MarketResource,
   type ResourceMarketPhase,
   type RoundReport,
@@ -169,10 +174,24 @@ function copySnapshot(
   phaseTiming: AuthoritativePhaseTiming | null,
   readyParticipantIds: ParticipantId[],
   lastRoundReport: RoundReport | null,
+  participantId?: ParticipantId,
 ): AuthoritativeMatchSnapshot {
+  const localEvent = participantId
+    ? getColonyLocalEvent(state, participantId)
+    : null
+  const personalizedState: GameState = {
+    ...state,
+    activeLocalEvent:
+      participantId === 'agima' ? localEvent : null,
+    activeLocalEvents:
+      participantId && localEvent
+        ? { [participantId]: localEvent }
+        : {},
+  }
+
   return structuredClone({
     revision,
-    state,
+    state: personalizedState,
     phaseTiming,
     lastRoundReport,
     roundReadiness: {
@@ -309,6 +328,10 @@ export class AuthoritativeMatch {
   private lastRoundReports: Partial<
     Record<ParticipantId, RoundReport>
   > = {}
+  private readonly localEventTimers = new Map<
+    ParticipantId,
+    unknown
+  >()
   private readonly clock: MatchClock
   private readonly onSubscriberError: (error: unknown) => void
   private readonly sessionSeats = new Map<string, ParticipantId>()
@@ -550,6 +573,7 @@ export class AuthoritativeMatch {
       participantId
         ? this.lastRoundReports[participantId] ?? null
         : null,
+      participantId,
     )
   }
 
@@ -570,6 +594,7 @@ export class AuthoritativeMatch {
     if (this.phaseTimer !== null) {
       this.clock.clearTimeout(this.phaseTimer)
     }
+    this.clearLocalEventTimers()
 
     this.phaseTimer = null
     this.scheduledPhaseKey = null
@@ -586,6 +611,79 @@ export class AuthoritativeMatch {
     this.revision += 1
     this.synchronizePhaseSchedule()
     this.publishSnapshot()
+  }
+
+  private clearLocalEventTimers() {
+    for (const timer of this.localEventTimers.values()) {
+      this.clock.clearTimeout(timer)
+    }
+
+    this.localEventTimers.clear()
+  }
+
+  private scheduleLocalEvents(state: GameState) {
+    for (const participantId of getHumanParticipantIds(
+      state.match,
+    )) {
+      const event = selectSeededLocalEvent(
+        state.round,
+        state.match.seed,
+        participantId,
+      )
+
+      if (!event) {
+        continue
+      }
+
+      this.scheduleLocalEventActivation(
+        participantId,
+        event,
+        state.round,
+        getSeededLocalEventDelay(
+          state.round,
+          state.match.seed,
+          participantId,
+        ),
+      )
+    }
+  }
+
+  private scheduleLocalEventActivation(
+    participantId: ParticipantId,
+    event: LocalEventId,
+    round: number,
+    delayMilliseconds: number,
+  ) {
+    const timer = this.clock.setTimeout(() => {
+      this.localEventTimers.delete(participantId)
+
+      if (this.state.round !== round) {
+        return
+      }
+
+      if (
+        this.state.activeResourceMarket !== null ||
+        this.state.landAuctionTie !== null
+      ) {
+        this.scheduleLocalEventActivation(
+          participantId,
+          event,
+          round,
+          250,
+        )
+        return
+      }
+
+      this.acceptState(
+        applyColonyLocalEvent(
+          this.state,
+          participantId,
+          event,
+        ),
+      )
+    }, delayMilliseconds)
+
+    this.localEventTimers.set(participantId, timer)
   }
 
   private synchronizePhaseSchedule() {
@@ -718,7 +816,13 @@ export class AuthoritativeMatch {
 
     this.lastRoundReports = result.reports
     this.roundPlans.clear()
+    this.clearLocalEventTimers()
     this.acceptState(nextState)
+
+    if (nextRoundStarted) {
+      this.scheduleLocalEvents(nextState)
+    }
+
     return true
   }
 

@@ -3,6 +3,7 @@ import headquartersImage from '../assets/hq-four-colonies.webp'
 import {
   calculateColonySupplyPreview,
   createParticipantLeaderboardEntries,
+  getColonyLocalEvent,
   getHarvesterCreditCost,
   getWarehousePrices,
   isColonyHarvesterBuildBlocked,
@@ -27,6 +28,7 @@ import type {
 } from '../multiplayerProtocol'
 import type { AuthoritativeMatchSnapshot } from '../authoritativeMatch'
 import HexMap from './HexMap'
+import LocalEventNotice from './LocalEventNotice'
 import MultiplayerLeaderboard from './MultiplayerLeaderboard'
 import RoundBriefingPanel from './RoundBriefingPanel'
 import './MultiplayerGameScreen.css'
@@ -78,6 +80,10 @@ function MultiplayerGameScreen({
   const [focusedTileId, setFocusedTileId] = useState<
     string | null
   >(null)
+  const [
+    dismissedLocalEventKey,
+    setDismissedLocalEventKey,
+  ] = useState<string | null>(null)
   const [marketOfferDraft, setMarketOfferDraft] = useState<{
     resource: MarketResource
     price: number
@@ -106,6 +112,10 @@ function MultiplayerGameScreen({
       participantId,
     )
   const activeMarket = state.activeResourceMarket
+  const localEvent = getColonyLocalEvent(state, participantId)
+  const localEventKey = localEvent
+    ? `${state.round}:${localEvent}`
+    : null
   const lastRoundReport = snapshot.lastRoundReport
   const marketState = activeMarket
     ? state.market[activeMarket.resource]
@@ -747,6 +757,15 @@ function MultiplayerGameScreen({
         <p className="multiplayer-error" role="alert">
           {error}
         </p>
+      ) : null}
+      {localEvent && localEventKey !== dismissedLocalEventKey ? (
+        <LocalEventNotice
+          event={localEvent}
+          round={state.round}
+          onDismiss={() =>
+            setDismissedLocalEventKey(localEventKey)
+          }
+        />
       ) : null}
       <button
         className="secondary-button network-leave-button"
