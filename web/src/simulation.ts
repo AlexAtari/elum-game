@@ -270,6 +270,8 @@ function toCanonicalRival(
     harvestersInConstruction:
       colony.harvestersInConstruction ?? 0,
     ownedTileIds: colony.ownedTileIds ?? [],
+    crystalDiscoveryRoundByTileId:
+      colony.crystalDiscoveryRoundByTileId ?? {},
     harvesterAssignments:
       colony.harvesterAssignments ?? {},
     freeHarvesterPool: colony.freeHarvesterPool ?? [],
@@ -1200,6 +1202,9 @@ function applyStartingLand(
   return {
     ...colony,
     ownedTileIds: [...startingLand.tileIds],
+    crystalDiscoveryRoundByTileId: Object.fromEntries(
+      startingLand.tileIds.map((tileId) => [tileId, 1]),
+    ),
     lastLandPurchaseRound: 0,
     harvesterAssignments: {
       ...startingLand.assignments,
@@ -1360,6 +1365,11 @@ function applyAgimaLandPurchase(
             ...state.game.colonies.agima.ownedTileIds,
             decision.tileId,
           ],
+          crystalDiscoveryRoundByTileId: {
+            ...state.game.colonies.agima
+              .crystalDiscoveryRoundByTileId,
+            [decision.tileId]: state.game.round + 2,
+          },
         },
       },
     },
@@ -1371,6 +1381,10 @@ function applyAgimaLandPurchase(
         ...(state.agima.ownedTileIds ?? []),
         decision.tileId,
       ],
+      crystalDiscoveryRoundByTileId: {
+        ...(state.agima.crystalDiscoveryRoundByTileId ?? {}),
+        [decision.tileId]: state.game.round + 2,
+      },
       lastLandPurchaseRound: state.game.round,
     },
   }

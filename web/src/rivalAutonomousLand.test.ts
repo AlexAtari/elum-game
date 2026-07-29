@@ -49,6 +49,27 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
     ).not.toBeNull()
   })
 
+  it('wählt für jede KI ausschließlich ein angrenzendes Feld', () => {
+    const state = createRoundTwoState()
+
+    for (const rivalId of rivalIds) {
+      const decision = getAutonomousRivalLandDecision(
+        state,
+        rivalId,
+      )
+
+      expect(decision).not.toBeNull()
+      expect(
+        state.colonies[rivalId].ownedTileIds.some(
+          (ownedTileId) =>
+            tiles
+              .find((tile) => tile.id === ownedTileId)
+              ?.neighborIds.includes(decision!.tileId),
+        ),
+      ).toBe(true)
+    }
+  })
+
   it('lässt alle drei Rivalen ein unterschiedliches Grundstück kaufen', () => {
     const state = createRoundTwoState()
     const initialTileIds = new Set(
@@ -76,6 +97,13 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
       expect(next.colonies[rivalId].credits).toBeLessThan(
         state.colonies[rivalId].credits,
       )
+      const purchasedTileId = purchasedTileIds.find((tileId) =>
+        next.colonies[rivalId].ownedTileIds.includes(tileId),
+      )!
+      expect(
+        next.colonies[rivalId]
+          .crystalDiscoveryRoundByTileId[purchasedTileId],
+      ).toBe(4)
     }
 
     for (const tileId of purchasedTileIds) {

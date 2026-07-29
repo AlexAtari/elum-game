@@ -116,6 +116,7 @@ export type ColonyState = ColonyEconomyState & {
   icon: string
   harvestersInConstruction: number
   ownedTileIds: string[]
+  crystalDiscoveryRoundByTileId: Record<string, number>
   harvesterAssignments:
     | HarvesterAssignments
     | Partial<Record<string, ProductionType>>
@@ -136,6 +137,7 @@ export type RivalColonyState = ColonyEconomyState & {
   icon: string
   harvestersInConstruction?: number
   ownedTileIds?: string[]
+  crystalDiscoveryRoundByTileId?: Record<string, number>
   harvesterAssignments?: Partial<
     Record<string, ProductionType>
   >
@@ -939,6 +941,36 @@ export function selectOpponentTileIds(
   )
 }
 
+export function isColonyLandTargetAdjacent(
+  currentState: GameState,
+  participantId: ParticipantId,
+  tileId: string,
+) {
+  return currentState.colonies[participantId].ownedTileIds.some(
+    (ownedTileId) =>
+      areTilesAdjacent(
+        targetPlanetMap,
+        ownedTileId,
+        tileId,
+      ),
+  )
+}
+
+export function isColonyCrystalDiscovered(
+  currentState: Pick<GameState, 'round' | 'colonies'>,
+  participantId: ParticipantId,
+  tileId: string,
+) {
+  const discoveryRound =
+    currentState.colonies[participantId]
+      .crystalDiscoveryRoundByTileId[tileId]
+
+  return (
+    discoveryRound !== undefined &&
+    currentState.round >= discoveryRound
+  )
+}
+
 export function updateColony(
   currentState: GameState,
   participantId: ParticipantId,
@@ -973,6 +1005,10 @@ export function addColonyOwnedTile(
     (currentColony) => ({
       ...currentColony,
       ownedTileIds: [...currentColony.ownedTileIds, tileId],
+      crystalDiscoveryRoundByTileId: {
+        ...currentColony.crystalDiscoveryRoundByTileId,
+        [tileId]: currentState.round + 2,
+      },
     }),
   )
 }
@@ -1045,8 +1081,19 @@ function getRivalProduction(
     rival.harvesterAssignments &&
     Object.keys(rival.harvesterAssignments).length > 0
   ) {
+    const discoveredAssignments = Object.fromEntries(
+      Object.entries(rival.harvesterAssignments).filter(
+        ([tileId, production]) =>
+          production !== 'crystals' ||
+          (rival.crystalDiscoveryRoundByTileId?.[tileId] !==
+            undefined &&
+            roundPlayed >=
+              rival.crystalDiscoveryRoundByTileId[tileId]),
+      ),
+    )
+
     return calculateRivalAssignedProduction(
-      rival.harvesterAssignments,
+      discoveredAssignments,
       tiles,
       (production) =>
         getGlobalProductionModifier(
@@ -1595,6 +1642,9 @@ export function createInitialGameState(): GameState {
         resources: { ...emptyResources },
         harvestersInConstruction: 0,
         ownedTileIds: [...PLAYER_START_TILE_IDS],
+        crystalDiscoveryRoundByTileId: Object.fromEntries(
+          PLAYER_START_TILE_IDS.map((tileId) => [tileId, 1]),
+        ),
         harvesterAssignments: {},
         freeHarvesterPool: [],
       },
@@ -1613,6 +1663,7 @@ export function createInitialGameState(): GameState {
         harvesters: 2,
         harvestersInConstruction: 0,
         ownedTileIds: [],
+        crystalDiscoveryRoundByTileId: {},
         harvesterAssignments: {},
         freeHarvesterPool: [],
       },
@@ -1631,6 +1682,7 @@ export function createInitialGameState(): GameState {
         harvesters: 2,
         harvestersInConstruction: 0,
         ownedTileIds: [],
+        crystalDiscoveryRoundByTileId: {},
         harvesterAssignments: {},
         freeHarvesterPool: [],
       },
@@ -1649,6 +1701,7 @@ export function createInitialGameState(): GameState {
         harvesters: 3,
         harvestersInConstruction: 0,
         ownedTileIds: [],
+        crystalDiscoveryRoundByTileId: {},
         harvesterAssignments: {},
         freeHarvesterPool: [],
       },
@@ -1727,6 +1780,15 @@ export function createPlayableInitialGameState(
                       participantId as RivalId
                     ],
                   ],
+            crystalDiscoveryRoundByTileId:
+              Object.fromEntries(
+                (participantId === 'agima'
+                  ? PLAYER_START_TILE_IDS
+                  : rivalStartTileIds[
+                      participantId as RivalId
+                    ]
+                ).map((tileId) => [tileId, 1]),
+              ),
             harvesterAssignments: {},
             freeHarvesterPool: Array.from(
               { length: STARTING_HARVESTERS },
@@ -2096,12 +2158,10 @@ export function placeLandBid(
     tile.owner !== 'free' ||
     colony.ownedTileIds.includes(tileId) ||
     selectOpponentTileIds(currentState).includes(tileId) ||
-    !colony.ownedTileIds.some((ownedTileId) =>
-      areTilesAdjacent(
-        targetPlanetMap,
-        ownedTileId,
-        tileId,
-      ),
+    !isColonyLandTargetAdjacent(
+      currentState,
+      'agima',
+      tileId,
     ) ||
     currentState.pendingLandBid !== null ||
     (tie !== null && tie.tileId !== tileId) ||
@@ -2503,15 +2563,25 @@ export function runRound(
     if (tile) {
       const isRetooling =
         assignment.pendingProduction !== undefined
+      const targetProduction =
+        assignment.pendingProduction ?? assignment.production
+      const canProduceTarget =
+        targetProduction !== 'crystals' ||
+        isColonyCrystalDiscovered(
+          currentState,
+          'agima',
+          tile.id,
+        )
 
       harvesterTasks.push({
         id: tile.id,
         kind: isRetooling ? 'retooling' : 'production',
         tile,
-        production:
-          assignment.pendingProduction ?? assignment.production,
+        production: targetProduction,
         retoolingReason: assignment.retoolingReason,
-        rating: isRetooling
+        rating: !canProduceTarget
+          ? 0
+          : isRetooling
           ? assignment.retoolingReason === 'production-change'
             ? Math.ceil(
                 getRating(
@@ -2700,11 +2770,12 @@ export function runRound(
           0,
           colony.credits - landBid!.rivalBid,
         ),
-        ownedTileIds: [
-          ...colony.ownedTileIds,
-          landBid!.tileId,
-        ],
       }),
+    )
+    stateAfterLandAuction = addColonyOwnedTile(
+      stateAfterLandAuction,
+      'orion',
+      landBid!.tileId,
     )
     stateAfterLandAuction = updateColony(
       stateAfterLandAuction,

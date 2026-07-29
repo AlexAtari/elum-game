@@ -267,6 +267,9 @@ werden.
   Agima-Wurzelfelder und der separate `rivals`-Record sind entfernt
 - vollständiger Harvesterstand einschließlich freier Harvester und
   Zuweisungen teilnehmerbezogen im serialisierbaren `GameState`
+- teilnehmerbezogene Kristall-Exploration: Kauf in Runde N,
+  verborgene Exploration in N+1, Offenlegung und Förderung ab N+2
+- gemeinsame Nachbarschaftsprüfung für Spieler- und KI-Landaktionen
 - teilnehmerbezogene Schreibgrenze für die dynamischen Grunddaten;
   Ereignisse, Spieler-Harvesterbau, direkter Koloniehandel und
   autonome Rivalen-Landkäufe verwenden sie bereits

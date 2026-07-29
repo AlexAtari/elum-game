@@ -8,6 +8,7 @@ import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
   PLAYER_START_TILE_IDS,
+  isColonyCrystalDiscovered,
   productionTypes,
   tiles,
   type HarvesterAssignments,
@@ -15,7 +16,7 @@ import {
   type LandBid,
   type ProductionType,
   type ColoniesState,
-  type ColonyState,
+  type CanonicalRivalColonyState,
 } from '../game'
 import {
   combineMeteorBonuses,
@@ -97,7 +98,7 @@ const planetSurfaceCells =
 function getRivalOwner(
   tileId: string,
   colonies: ColoniesState,
-): ColonyState | null {
+): CanonicalRivalColonyState | null {
   return (
     (['orion', 'nova', 'vega'] as const)
       .map((participantId) => colonies[participantId])
@@ -107,7 +108,9 @@ function getRivalOwner(
   )
 }
 
-function getRivalMapLabel(rival: ColonyState | null) {
+function getRivalMapLabel(
+  rival: CanonicalRivalColonyState | null,
+) {
   if (!rival) {
     return 'RIVALE'
   }
@@ -237,6 +240,12 @@ function HexMap({
     (selectedTile.crystals ?? 0) +
       (meteorBonuses[selectedTile.id] ?? 0),
   )
+  const selectedCrystalDiscovered =
+    isColonyCrystalDiscovered(
+      { round, colonies },
+      'agima',
+      selectedTile.id,
+    )
 
   const selectedHarvester = harvesters[selectedTile.id]
   const selectedProduction = selectedHarvester?.production
@@ -651,6 +660,13 @@ function HexMap({
                   tile.id,
                   colonies,
                 )
+                const rivalProduction =
+                  rivalOwner?.harvesterAssignments[tile.id]
+                const visibleProduction =
+                  production ?? rivalProduction
+                const hasVisibleHarvester =
+                  harvester !== undefined ||
+                  rivalProduction !== undefined
                 const hasPendingBid =
                   pendingLandBid?.tileId === tile.id
                 const hasAuctionTie =
@@ -677,6 +693,7 @@ function HexMap({
                       rivalOwner
                         ? `opponent-${rivalOwner.id}`
                         : '',
+                      hasVisibleHarvester ? 'has-harvester' : '',
                       isMeteorCenter ? 'meteor-center' : '',
                       isSelected ? 'selected' : '',
                     ].join(' ')}
@@ -722,6 +739,39 @@ function HexMap({
                       points={polygonPoints}
                     />
 
+                    {tile.owner === 'hq' && (
+                      <g
+                        className="hex-hq-marker"
+                        transform={`translate(${position.x} ${position.y}) scale(${cameraState.zoom})`}
+                        aria-label="Zentrales Hauptquartier"
+                      >
+                        <circle r="25" />
+                        <path
+                          className="hex-hq-roof"
+                          d="M -19 -5 L 0 -22 L 19 -5 Z"
+                        />
+                        <path
+                          className="hex-hq-building"
+                          d="M -16 -5 H 16 V 17 H -16 Z"
+                        />
+                        <path
+                          className="hex-hq-door"
+                          d="M -6 3 H 6 V 17 H -6 Z"
+                        />
+                        <path
+                          className="hex-hq-door-detail"
+                          d="M -6 9 H 6 M 0 3 V 17"
+                        />
+                        <text
+                          className="hex-hq-label"
+                          y="34"
+                          textAnchor="middle"
+                        >
+                          HQ
+                        </text>
+                      </g>
+                    )}
+
                     {isMeteorCenter && (
                       <text
                         className="hex-meteor-label"
@@ -734,11 +784,38 @@ function HexMap({
                       </text>
                     )}
 
-                    {isPlayerOwned && !production && (
+                    {isPlayerOwned && hasVisibleHarvester && (
+                      <rect
+                        className="hex-owner-badge player-badge"
+                        x={position.x - 24 * cameraState.zoom}
+                        y={position.y + 10 * cameraState.zoom}
+                        width={48 * cameraState.zoom}
+                        height={17 * cameraState.zoom}
+                        rx={5 * cameraState.zoom}
+                      />
+                    )}
+
+                    {isOpponentOwned && hasVisibleHarvester && (
+                      <rect
+                        className={[
+                          'hex-owner-badge',
+                          rivalOwner
+                            ? `rival-${rivalOwner.id}`
+                            : '',
+                        ].join(' ')}
+                        x={position.x - 24 * cameraState.zoom}
+                        y={position.y + 10 * cameraState.zoom}
+                        width={48 * cameraState.zoom}
+                        height={17 * cameraState.zoom}
+                        rx={5 * cameraState.zoom}
+                      />
+                    )}
+
+                    {isPlayerOwned && (
                       <text
                         className="hex-owner-label"
                         x={position.x}
-                        y={position.y + 14 * cameraState.zoom}
+                        y={position.y + 21 * cameraState.zoom}
                         textAnchor="middle"
                       >
                         AGIMA
@@ -754,7 +831,7 @@ function HexMap({
                             : '',
                         ].join(' ')}
                         x={position.x}
-                        y={position.y + 14 * cameraState.zoom}
+                        y={position.y + 21 * cameraState.zoom}
                         textAnchor="middle"
                       >
                         {getRivalMapLabel(rivalOwner)}
@@ -774,23 +851,38 @@ function HexMap({
                       </text>
                     )}
 
-                    {harvester && (
-                      <text
-                        className="hex-production-label"
-                        x={position.x}
-                        y={position.y + 18 * cameraState.zoom}
-                        textAnchor="middle"
-                      >
-                        {harvester.pendingProduction
-                          ? '🔧'
-                          : '🚜'}{' '}
-                        {
-                          productionTypes[
-                            harvester.pendingProduction ??
-                              production!
-                          ].icon
-                        }
-                      </text>
+                    {hasVisibleHarvester &&
+                      visibleProduction && (
+                      <g className="hex-harvester-marker">
+                        <circle
+                          cx={position.x}
+                          cy={position.y - 5 * cameraState.zoom}
+                          r={15 * cameraState.zoom}
+                        />
+                        <text
+                          className="hex-production-label"
+                          x={position.x}
+                          y={position.y + 1 * cameraState.zoom}
+                          textAnchor="middle"
+                        >
+                          {harvester?.pendingProduction
+                            ? '🔧'
+                            : '🚜'}
+                        </text>
+                        <text
+                          className="hex-production-resource"
+                          x={position.x + 13 * cameraState.zoom}
+                          y={position.y - 12 * cameraState.zoom}
+                          textAnchor="middle"
+                        >
+                          {
+                            productionTypes[
+                              harvester?.pendingProduction ??
+                                visibleProduction
+                            ].icon
+                          }
+                        </text>
+                      </g>
                     )}
                   </g>
                 )
@@ -907,7 +999,9 @@ function HexMap({
                 <span>💎 Kristalle</span>
                 <strong>
                   {selectedIsPlayerOwned
-                    ? selectedCrystalRating
+                    ? !selectedCrystalDiscovered
+                      ? 'Exploration läuft'
+                      : selectedCrystalRating
                       ? formatStars(selectedCrystalRating)
                       : 'Kein Vorkommen'
                     : 'Unbekannt'}
@@ -1020,7 +1114,8 @@ function HexMap({
                         .filter(
                           (production) =>
                             production !== 'crystals' ||
-                            selectedCrystalRating > 0,
+                            (selectedCrystalDiscovered &&
+                              selectedCrystalRating > 0),
                         )
                         .map((production) => (
                         <button
@@ -1089,7 +1184,8 @@ function HexMap({
                         .filter(
                           (production) =>
                             production !== 'crystals' ||
-                            selectedCrystalRating > 0,
+                            (selectedCrystalDiscovered &&
+                              selectedCrystalRating > 0),
                         )
                         .map((production) => (
                         <button

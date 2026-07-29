@@ -257,11 +257,23 @@ Vor dem Kauf sichtbar:
 - Energie
 - Erz
 
-Nach dem Kauf sichtbar:
+Nach dem Kauf:
+
+- Nahrung, Energie und Erz bleiben sichtbar,
+- Kristallvorkommen und besondere Eigenschaften bleiben während
+  einer vollständigen Explorationsrunde verborgen.
+
+Nach einer vollständig abgerechneten Explorationsrunde sichtbar:
 
 - Kristallvorkommen
 - besondere Eigenschaften
 - positive oder negative Effekte
+
+Wird ein Grundstück in Runde N erworben, dient Runde N+1 seiner
+Exploration. Das Ergebnis ist ab Runde N+2 sichtbar. Vorher kann dort
+kein Harvester Kristalle fördern oder für Kristallproduktion
+eingerichtet werden. Dieselbe Informations- und Produktionsgrenze
+gilt für menschliche Spieler und Agenten.
 
 Neue Grundstücke können ausschließlich ersteigert werden, wenn sie an mindestens ein bereits eigenes Grundstück angrenzen.
 
@@ -415,7 +427,8 @@ Erz begrenzt gemeinsam mit Credits die Geschwindigkeit der Expansion.
 - höchste Verkaufspreise,
 - wichtige Einnahmequelle im späteren Spiel,
 - natürliche Vorkommen bilden unregelmäßige, lesbare Adern,
-- Kristallwerte bleiben bis zur Untersuchung verborgen.
+- Kristallwerte bleiben bis zum Abschluss der ersten
+  Explorationsrunde nach dem Kauf verborgen.
 
 Kristalle werden im normalen Ressourcenmarkt gehandelt. Zusätzlich
 tritt ein interstellarer Käufer mit begrenzter und im Spielverlauf

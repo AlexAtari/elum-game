@@ -165,11 +165,14 @@ Standardwahrscheinlichkeit:
 
 Der Ertrag kann niemals negativ sein.
 
-Kristalle können nur produziert werden, wenn nach dem Kauf ein
-Kristallvorkommen entdeckt wurde. Der Harvester verwendet den
-effektiven Sternwert aus natürlicher Ader plus gedeckelten
-Meteorboni. Umrüstung, Versetzung und Energieverbrauch entsprechen
-den anderen Produktionsarten.
+Kristalle können nur produziert werden, wenn nach dem Kauf eine
+vollständige Explorationsrunde abgerechnet wurde. Ein Kauf in Runde N
+bleibt während Runde N+1 unerforscht; ab Runde N+2 ist der
+Kristallwert bekannt und förderbar. Vorher steht Kristallproduktion
+für dieses Feld weder Spielern noch Agenten zur Auswahl. Der
+Harvester verwendet anschließend den effektiven Sternwert aus
+natürlicher Ader plus gedeckelten Meteorboni. Umrüstung, Versetzung
+und Energieverbrauch entsprechen den anderen Produktionsarten.
 
 ## Umrüstung und Versetzung
 

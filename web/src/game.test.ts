@@ -124,6 +124,12 @@ describe('Planetengraph-Karte', () => {
         food: 20,
         energy: 20,
       },
+      crystalDiscoveryRoundByTileId: {
+        ...initialState.colonies.agima
+          .crystalDiscoveryRoundByTileId,
+        [naturalCrystalTile.id]: 1,
+        [meteorCrystalTile.id]: 1,
+      },
     })
 
     const naturalResult = runRound(

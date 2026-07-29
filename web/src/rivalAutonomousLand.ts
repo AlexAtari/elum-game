@@ -11,7 +11,9 @@ import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
   MARKET_PRICES,
+  addColonyOwnedTile,
   isLandBidBlocked,
+  isColonyLandTargetAdjacent,
   selectLocalColony,
   selectOpponentTileIds,
   selectRivalColonies,
@@ -99,12 +101,10 @@ export function getAutonomousRivalLandDecision(
       (tile) =>
         tile.owner === 'free' &&
         !occupiedTileIds.has(tile.id) &&
-        rivalTiles.some((ownedTile) =>
-          areTilesAdjacent(
-            targetPlanetMap,
-            tile.id,
-            ownedTile.id,
-          ),
+        isColonyLandTargetAdjacent(
+          currentState,
+          rivalId,
+          tile.id,
         ),
     )
     .map((tile) => ({
@@ -171,6 +171,11 @@ export function applyAutonomousRivalLandPurchase(
   if (
     decision.bid <= 0 ||
     decision.bid > rival.credits ||
+    !isColonyLandTargetAdjacent(
+      currentState,
+      rivalId,
+      decision.tileId,
+    ) ||
     selectOpponentTileIds(currentState).includes(
       decision.tileId,
     )
@@ -184,15 +189,16 @@ export function applyAutonomousRivalLandPurchase(
     (colony) => ({
       ...colony,
       credits: colony.credits - decision.bid,
-      ownedTileIds: [
-        ...colony.ownedTileIds,
-        decision.tileId,
-      ],
     }),
+  )
+  const stateWithLand = addColonyOwnedTile(
+    stateAfterPurchase,
+    rivalId,
+    decision.tileId,
   )
 
   return updateColony(
-    stateAfterPurchase,
+    stateWithLand,
     rivalId,
     (colony) => ({
       ...colony,

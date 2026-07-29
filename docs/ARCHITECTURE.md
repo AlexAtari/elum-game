@@ -128,6 +128,14 @@ dynamischen Grunddaten eines beliebigen Teilnehmers. Der Aufrufer
 arbeitet immer mit demselben `ColonyState`; die Funktion ersetzt
 atomar genau den betreffenden Eintrag in `GameState.colonies`.
 
+Jeder Kolonieeintrag speichert außerdem je Grundstück die Runde, ab
+der dessen Kristallwert als entdeckt gilt.
+`isColonyCrystalDiscovered` bildet daraus die gemeinsame
+Informations- und Produktionsgrenze für UI, Kernabrechnung und
+Agenten. Gegnerischer Besitz bleibt abgeleitet;
+`isColonyLandTargetAdjacent` zentralisiert die Graphprüfung für
+menschliche und autonome Grundstücksaktionen.
+
 Darauf bauen `addColonyOwnedTile` und `executeColonyTrade` auf.
 Letztere überträgt Credits und genau eine Ressourceneinheit atomar
 zwischen zwei beliebigen Teilnehmersitzen. Auch Orion verwendet im

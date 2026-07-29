@@ -9,6 +9,7 @@ import {
   changePlayerHarvesterProduction,
   createPlayableInitialGameState,
   executeColonyTrade,
+  isColonyCrystalDiscovered,
   placeLandBid,
   removePlayerHarvester,
   runRound,
@@ -228,6 +229,70 @@ describe('Gemeinsame Kolonieansicht', () => {
       selectColonies(orionWin).orion.ownedTileIds,
     ).toContain(tileId)
     expect(selectOpponentTileIds(orionWin)).toContain(tileId)
+  })
+
+  it('legt Kristallwerte erst nach einer vollständigen Explorationsrunde offen', () => {
+    const crystalTile = tiles.find(
+      (tile) => (tile.crystals ?? 0) > 0,
+    )!
+    const purchasedState = addColonyOwnedTile(
+      {
+        ...createPlayableInitialGameState(),
+        round: 4,
+      },
+      'agima',
+      crystalTile.id,
+    )
+    const explorationState = {
+      ...purchasedState,
+      round: 5,
+    }
+    const discoveredState = {
+      ...purchasedState,
+      round: 6,
+    }
+    const crystalHarvester = {
+      [crystalTile.id]: {
+        production: 'crystals' as const,
+        isNew: false,
+      },
+    }
+
+    expect(
+      isColonyCrystalDiscovered(
+        purchasedState,
+        'agima',
+        crystalTile.id,
+      ),
+    ).toBe(false)
+    expect(
+      isColonyCrystalDiscovered(
+        explorationState,
+        'agima',
+        crystalTile.id,
+      ),
+    ).toBe(false)
+    expect(
+      runRound(
+        explorationState,
+        crystalHarvester,
+        normalSupply,
+      ).report.produced.crystals,
+    ).toBe(0)
+    expect(
+      isColonyCrystalDiscovered(
+        discoveredState,
+        'agima',
+        crystalTile.id,
+      ),
+    ).toBe(true)
+    expect(
+      runRound(
+        discoveredState,
+        crystalHarvester,
+        normalSupply,
+      ).report.produced.crystals,
+    ).toBe(crystalTile.crystals)
   })
 
   it('führt fertiggestellte Harvester in der Gesamtzahl fort', () => {

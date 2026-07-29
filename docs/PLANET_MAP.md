@@ -92,6 +92,9 @@ der Darstellung.
 
 Das HQ gehört keinem einzelnen Spieler und zugleich allen Kolonien
 als gemeinsame Hilfskonstruktion, Markt- und Verwaltungsstation.
+Auf der Kugel wird seine erste Ausbaustufe als deutlich erkennbare
+Scheunen- und Lagerstation dargestellt. Spätere Ausbaustufen können
+diese Silhouette mit wachsender Bevölkerung sichtbar erweitern.
 
 Jeder der vier Spieler erhält zwei zusammenhängende Startgrundstücke:
 
@@ -149,6 +152,11 @@ Runde an mindestens ein eigenes Grundstück angrenzen. Ein in derselben
 Runde gewonnenes Grundstück eröffnet erst in der folgenden Runde neue
 Expansionsmöglichkeiten.
 
+Diese Graphregel gilt identisch für lokale Spieler, entfernte Spieler
+und KI-Kolonien. Agenten erhalten ausschließlich tatsächlich
+angrenzende Kandidaten und der Kaufpfad prüft die Nachbarschaft vor
+der Besitzübertragung erneut.
+
 Mehrere unabhängige Konflikte können mehrere nacheinander ausgeführte
 Grundstücksauktionen erzeugen.
 
@@ -201,12 +209,21 @@ Regeln:
 
 Die Adern sind im 92-Felder-Graphen implementiert. Überlappende
 Ausläufer behalten jeweils den höheren Wert. Im Browser bleibt der
-Kristallwert bis zum Erwerb eines Grundstücks verdeckt.
+Kristallwert auch nach dem Erwerb während einer vollständigen
+Explorationsrunde verdeckt. Wird ein Grundstück in Runde N gekauft,
+läuft die Exploration in Runde N+1; ab Runde N+2 werden Vorkommen und
+Wert offengelegt und können für Kristallproduktion verwendet werden.
+Diese Grenze gilt auch für Agenten und Headless-Läufe.
 
 Auf einem eigenen Vorkommen kann ein Harvester Kristalle als vierte
 Produktionsart fördern. Der wirksame Ertrag kombiniert den natürlichen
 Wert mit bisherigen Meteorboni und bleibt bei fünf Sternen gedeckelt.
 Dieselbe Regel gilt für Rivalen und Headless-Simulation.
+
+Harvester werden auf der Kugel als deutlich vergrößerte,
+kontrastunterlegte Maschinenmarkierung gezeigt. Der Koloniename bleibt
+zusätzlich sichtbar, damit ein Harvester die Besitzinformation nicht
+verdeckt.
 
 ## 7. Kristallmarkt und Transporte
 

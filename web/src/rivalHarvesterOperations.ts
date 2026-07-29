@@ -49,6 +49,20 @@ function getTileYield(
   return tile[production] ?? 0
 }
 
+function canRivalExtractCrystals(
+  rival: RivalColonyState,
+  tileId: string,
+  roundPlayed: number,
+) {
+  const discoveryRound =
+    rival.crystalDiscoveryRoundByTileId?.[tileId]
+
+  return (
+    discoveryRound !== undefined &&
+    roundPlayed >= discoveryRound
+  )
+}
+
 function getProductiveTileIds(
   rival: RivalColonyState,
   roundPlayed: number,
@@ -149,7 +163,15 @@ export function planRivalHarvesterOperations(
     const existingProduction =
       rival.harvesterAssignments?.[tile.id]
 
-    if (!existingProduction) {
+    if (
+      !existingProduction ||
+      (existingProduction === 'crystals' &&
+        !canRivalExtractCrystals(
+          rival,
+          tile.id,
+          roundPlayed,
+        ))
+    ) {
       continue
     }
 
@@ -185,14 +207,32 @@ export function planRivalHarvesterOperations(
 
     const production = [...productionOrder].sort(
       (first, second) => {
+        const firstIsAvailable =
+          first !== 'crystals' ||
+          canRivalExtractCrystals(
+            rival,
+            tile.id,
+            roundPlayed,
+          )
+        const secondIsAvailable =
+          second !== 'crystals' ||
+          canRivalExtractCrystals(
+            rival,
+            tile.id,
+            roundPlayed,
+          )
         const firstScore =
-          priorityScores[first] +
-          getTileYield(tile, first, meteorImpacts) * 12 -
-          assignmentCounts[first] * 4
+          firstIsAvailable
+            ? priorityScores[first] +
+              getTileYield(tile, first, meteorImpacts) * 12 -
+              assignmentCounts[first] * 4
+            : Number.NEGATIVE_INFINITY
         const secondScore =
-          priorityScores[second] +
-          getTileYield(tile, second, meteorImpacts) * 12 -
-          assignmentCounts[second] * 4
+          secondIsAvailable
+            ? priorityScores[second] +
+              getTileYield(tile, second, meteorImpacts) * 12 -
+              assignmentCounts[second] * 4
+            : Number.NEGATIVE_INFINITY
 
         return (
           secondScore - firstScore ||

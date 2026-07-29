@@ -94,6 +94,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   abgedunkelter Gegenseite und atmosphärischem Kugelrand
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in
   Detailansicht und barrierefreien Bezeichnungen erhalten
+- deutlich markiertes zentrales HQ in Form einer frühen
+  Scheunen-/Lagerstation als Basis für spätere Ausbaustufen
+- größere kontrastunterlegte Harvesterzeichen; Kolonienamen bleiben
+  auf belegten Feldern weiterhin sichtbar
 - getrennte Besitzanzeige für Orion, Nova und Vega statt einer
   gemeinsamen Orion-Beschriftung aller Rivalenfelder; kontrastreiche,
   mobil vergrößerte Kolonienamen bleiben auch auf der
@@ -106,6 +110,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - Nahrung, Energie, Erz, Kristalle und Credits
 - Kristallförderung durch Harvester auf natürlichen und durch
   Meteore aufgewerteten Vorkommen
+- Kristallwerte neu gekaufter Felder bleiben eine vollständige
+  Folgerunde verborgen und sind erst ab der darauffolgenden Runde
+  sichtbar und förderbar; dies gilt auch für KI-Kolonien
 - Harvesterbau und mehrere parallele Bauaufträge
 - Harvesterplatzierung, Produktion, Umrüstung und Versetzung
 - Energiebedarf der Harvester
@@ -116,6 +123,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - direkte Einzeltransaktionen zwischen Marktteilnehmern
 - dauerhaft gespeicherte Rivalenkolonien
 - autonome Land-, Harvester-, Investitions- und Marktlogik
+- zentrale Graphprüfung stellt sicher, dass auch autonome
+  Grundstückskäufe ausschließlich auf angrenzende Felder zielen
 - Zwischen- und Abschlussrangliste
 - sichtbarer Countdown bis zum Versorgungsschiff
 - Versorgungsschiff und Ablösung nach der 20. Abrechnung
@@ -243,9 +252,10 @@ Der Browserprototyp verwendet 20 vollständig abgerechnete Runden mit
 sichtbarem Versorgungsschiff-Countdown, Abschlussankunft und
 lexikografischer Zielwertung. Er verwendet außerdem den
 92-Felder-Graphen und vier natürliche, abgestufte Kristalladern.
-Kristallwerte werden erst auf eigenen Grundstücken offengelegt. Die
-Werte können dort jetzt als vierte Harvesterproduktion gefördert
-werden; Meteorboni fließen in denselben Ertrag ein. Die
+Kristallwerte werden erst nach einer vollständigen Explorationsrunde
+auf eigenen Grundstücken offengelegt. Die Werte können dort danach
+als vierte Harvesterproduktion gefördert werden; Meteorboni fließen
+in denselben Ertrag ein. Die
 konservative Meteorvariante mit zwei garantierten und einem optionalen
 dritten Einschlag ist ebenfalls aktiv; Kraterzentren werden öffentlich
 markiert und Aufwertungen bei fünf Sternen gedeckelt. Der

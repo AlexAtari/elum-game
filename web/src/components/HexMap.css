@@ -199,7 +199,56 @@
 }
 
 .hex-tile.hq .hex-border {
-  fill: rgba(48, 82, 148, 0.18);
+  fill: rgba(48, 82, 148, 0.26);
+  stroke: rgba(139, 205, 255, 0.76);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 9px rgba(91, 174, 255, 0.5));
+}
+
+.hex-hq-marker {
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.72));
+}
+
+.hex-hq-marker circle {
+  fill: rgba(6, 17, 31, 0.78);
+  stroke: rgba(148, 222, 255, 0.72);
+  stroke-width: 2;
+}
+
+.hex-hq-roof {
+  fill: #9f3f2f;
+  stroke: #ffe0a6;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.hex-hq-building {
+  fill: #c47b45;
+  stroke: #ffe0a6;
+  stroke-width: 2;
+}
+
+.hex-hq-door {
+  fill: #563326;
+  stroke: #f0c786;
+  stroke-width: 1.5;
+}
+
+.hex-hq-door-detail {
+  fill: none;
+  stroke: #c9945d;
+  stroke-width: 1;
+}
+
+.hex-hq-label {
+  fill: #dff8ff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  paint-order: stroke fill;
+  stroke: rgba(2, 7, 15, 0.96);
+  stroke-width: 3px;
 }
 
 .hex-tile.meteor-center .hex-border {
@@ -244,6 +293,41 @@
   stroke: rgba(4, 10, 21, 0.92);
   stroke-width: 3px;
   stroke-linejoin: round;
+}
+
+.hex-owner-badge {
+  pointer-events: none;
+  fill: rgba(4, 10, 21, 0.9);
+  stroke: rgba(228, 182, 247, 0.82);
+  stroke-width: 1.5;
+}
+
+.hex-owner-badge.player-badge {
+  stroke: rgba(121, 221, 185, 0.9);
+}
+
+.hex-owner-badge.rival-nova {
+  stroke: rgba(126, 196, 255, 0.88);
+}
+
+.hex-owner-badge.rival-vega {
+  stroke: rgba(255, 202, 107, 0.9);
+}
+
+.hex-tile.has-harvester .hex-owner-label,
+.hex-tile.has-harvester .hex-opponent-label {
+  font-size: 10px;
+}
+
+.hex-harvester-marker {
+  pointer-events: none;
+}
+
+.hex-harvester-marker circle {
+  fill: rgba(4, 10, 21, 0.82);
+  stroke: rgba(231, 251, 255, 0.76);
+  stroke-width: 2;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.85));
 }
 
 .hex-pending-label {
@@ -541,8 +625,35 @@
 .hex-production-label {
   pointer-events: none;
   fill: #ffffff;
+  font-size: 22px;
+  font-weight: 900;
+  paint-order: stroke fill;
+  stroke: rgba(2, 7, 15, 0.95);
+  stroke-width: 2px;
+}
+
+.hex-production-resource {
+  pointer-events: none;
+  fill: #ffffff;
   font-size: 12px;
-  font-weight: 800;
+  paint-order: stroke fill;
+  stroke: rgba(2, 7, 15, 0.95);
+  stroke-width: 2px;
+}
+
+@media (max-width: 820px) {
+  .hex-production-label {
+    font-size: 28px;
+  }
+
+  .hex-production-resource {
+    font-size: 16px;
+  }
+
+  .hex-tile.has-harvester .hex-owner-label,
+  .hex-tile.has-harvester .hex-opponent-label {
+    font-size: 13px;
+  }
 }
 
 .harvester-status {
