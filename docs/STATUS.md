@@ -91,6 +91,19 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - Zustandsabonnements erhalten nach jedem erfolgreichen Kommando
   sowie jedem serverseitigen Phasenwechsel den vollständigen
   Snapshot einschließlich autoritativem `deadlineAt`
+- versioniertes JSON-Nachrichtenprotokoll für Lobbybeitritt,
+  Wiederaufnahme, Bereitschaft, Matchstart und Spielkommandos mit
+  vollständiger Laufzeitvalidierung unbekannter Eingaben
+- transportneutrale Vier-Sitz-Lobby: erster menschlicher Sitz wird
+  Host, weitere Spieler erhalten freie Koloniesitze, der Host
+  startet nach Bereitschaft aller verbundenen Menschen und freie
+  Sitze werden mit den vorhandenen KI-Profilen gefüllt
+- geheime Reconnect-Tokens werden nur an die zugehörige Verbindung
+  gesendet und nie in Lobby-Snapshots veröffentlicht; nach einem
+  Verbindungsabbruch kann derselbe Sitz während Lobby oder Partie
+  mit einer neuen Verbindung übernommen werden
+- Lobby-Seed, Controller und zugewiesene Startkorridore werden beim
+  Start gemeinsam in den kanonischen Spielzustand übernommen
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -201,12 +214,15 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Als nächstes wird der transportneutrale Serverkern an einen echten
-Verbindungstransport und eine Lobby angebunden. Der Transport
-authentifiziert Sitzungen, übergibt nur bestätigte Sitzidentitäten an
-den Serverkern und serialisiert dessen Snapshots an die Clients.
-Danach muss die React-Oberfläche im Mehrspielermodus ihre lokalen
-Phasentimer durch das autoritative `deadlineAt` ersetzen.
+Vor der echten Netzwerkanbindung wird noch der letzte regelkritische
+Browserzustand serverfähig gemacht: Versorgungsvorgaben,
+Rundenbereitschaft und `runRound` liegen derzeit noch im lokalen
+React-Ablauf. Der nächste Kernbaustein speichert die Planung je Sitz
+und rechnet erst nach Freigabe aller Menschen serverseitig ab; dort
+werden auch freie KI-Sitze angestoßen. Danach werden Lobby und
+Serverkern an einen echten Verbindungstransport und die React-UI
+angebunden. Dafür ist eine Hostingentscheidung nötig; GitHub Pages
+bleibt das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

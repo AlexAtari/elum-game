@@ -1,0 +1,298 @@
+import { describe, expect, it } from 'vitest'
+import {
+  createMultiplayerLobby,
+  type MultiplayerLobbyOptions,
+} from './multiplayerLobby'
+import type { MultiplayerServerMessage } from './multiplayerProtocol'
+
+type EmittedMessage = {
+  connectionId: string
+  message: MultiplayerServerMessage
+}
+
+function createLobbyHarness(
+  overrides: Partial<MultiplayerLobbyOptions> = {},
+) {
+  const emitted: EmittedMessage[] = []
+  let tokenSequence = 0
+  const lobby = createMultiplayerLobby({
+    lobbyId: 'mars-alpha',
+    seed: 23,
+    emit: (connectionId, message) => {
+      emitted.push({
+        connectionId,
+        message: structuredClone(message),
+      })
+    },
+    createReconnectToken: () => {
+      tokenSequence += 1
+      return `reconnect-${tokenSequence}`
+    },
+    ...overrides,
+  })
+
+  return { lobby, emitted }
+}
+
+function joinMessage(displayName: string, requestId: string) {
+  return {
+    version: 1,
+    requestId,
+    type: 'join-lobby',
+    payload: { displayName },
+  }
+}
+
+function readyMessage(ready: boolean, requestId: string) {
+  return {
+    version: 1,
+    requestId,
+    type: 'set-ready',
+    payload: { ready },
+  }
+}
+
+function startMessage(requestId: string) {
+  return {
+    version: 1,
+    requestId,
+    type: 'start-match',
+    payload: {},
+  }
+}
+
+function findMessages(
+  emitted: EmittedMessage[],
+  type: MultiplayerServerMessage['type'],
+  connectionId?: string,
+) {
+  return emitted.filter(
+    (entry) =>
+      entry.message.type === type &&
+      (connectionId === undefined ||
+        entry.connectionId === connectionId),
+  )
+}
+
+describe('Multiplayer-Lobby', () => {
+  it('bleibt bei einem abgebrochenen Transport funktionsfähig', () => {
+    const transportErrors: unknown[] = []
+    let tokenSequence = 0
+    const lobby = createMultiplayerLobby({
+      lobbyId: 'transport-failure',
+      emit: () => {
+        throw new Error('socket closed')
+      },
+      onEmitError: (error) => {
+        transportErrors.push(error)
+      },
+      createReconnectToken: () => {
+        tokenSequence += 1
+        return `safe-token-${tokenSequence}`
+      },
+    })
+
+    lobby.handleMessage(
+      'connection-1',
+      joinMessage('Alex', 'join-1'),
+    )
+
+    expect(lobby.getSnapshot().seats.agima).toMatchObject({
+      kind: 'human',
+      displayName: 'Alex',
+      connected: true,
+    })
+    expect(transportErrors.length).toBeGreaterThan(0)
+  })
+
+  it('vergibt vier Sitze und hält Reconnect-Tokens privat', () => {
+    const { lobby, emitted } = createLobbyHarness()
+
+    lobby.handleMessage('connection-1', joinMessage('Alex', 'join-1'))
+    lobby.handleMessage('connection-2', joinMessage('Bea', 'join-2'))
+    lobby.handleMessage('connection-3', joinMessage('Cem', 'join-3'))
+    lobby.handleMessage('connection-4', joinMessage('Dana', 'join-4'))
+    lobby.handleMessage('connection-5', joinMessage('Eli', 'join-5'))
+
+    const snapshot = lobby.getSnapshot()
+    expect(snapshot.hostParticipantId).toBe('agima')
+    expect(snapshot.seats).toMatchObject({
+      agima: {
+        kind: 'human',
+        displayName: 'Alex',
+        isHost: true,
+      },
+      orion: {
+        kind: 'human',
+        displayName: 'Bea',
+      },
+      nova: {
+        kind: 'human',
+        displayName: 'Cem',
+      },
+      vega: {
+        kind: 'human',
+        displayName: 'Dana',
+      },
+    })
+    expect(
+      findMessages(emitted, 'request-error', 'connection-5').at(
+        -1,
+      )?.message,
+    ).toMatchObject({
+      payload: {
+        error: 'lobby-full',
+      },
+    })
+
+    const serializedSnapshots = JSON.stringify(
+      findMessages(emitted, 'lobby-snapshot'),
+    )
+    expect(serializedSnapshots).not.toContain('reconnect-')
+    expect(
+      findMessages(
+        emitted,
+        'session-established',
+        'connection-1',
+      )[0]?.message,
+    ).toMatchObject({
+      payload: {
+        participantId: 'agima',
+        reconnectToken: 'reconnect-1',
+      },
+    })
+  })
+
+  it('startet nur durch den bereiten Host und füllt freie Sitze mit KI', () => {
+    const { lobby, emitted } = createLobbyHarness()
+
+    lobby.handleMessage('host', joinMessage('Alex', 'join-host'))
+    lobby.handleMessage('guest', joinMessage('Bea', 'join-guest'))
+    lobby.handleMessage(
+      'guest',
+      readyMessage(true, 'ready-guest'),
+    )
+    lobby.handleMessage(
+      'guest',
+      startMessage('start-by-guest'),
+    )
+    lobby.handleMessage('host', startMessage('start-too-early'))
+
+    expect(
+      findMessages(emitted, 'request-error', 'guest').at(-1)
+        ?.message,
+    ).toMatchObject({
+      payload: { error: 'not-host' },
+    })
+    expect(
+      findMessages(emitted, 'request-error', 'host').at(-1)
+        ?.message,
+    ).toMatchObject({
+      payload: { error: 'players-not-ready' },
+    })
+
+    lobby.handleMessage('host', readyMessage(true, 'ready-host'))
+    lobby.handleMessage('host', startMessage('start-match'))
+
+    expect(lobby.getSnapshot()).toMatchObject({
+      phase: 'playing',
+      seats: {
+        agima: { kind: 'human', displayName: 'Alex' },
+        orion: { kind: 'human', displayName: 'Bea' },
+        nova: { kind: 'ai' },
+        vega: { kind: 'ai' },
+      },
+    })
+    expect(lobby.getMatchSnapshot()?.state.match).toMatchObject({
+      seed: 23,
+      participants: {
+        agima: {
+          controller: { kind: 'human', input: 'remote' },
+        },
+        orion: {
+          controller: { kind: 'human', input: 'remote' },
+        },
+        nova: {
+          controller: { kind: 'ai', profile: 'expansion' },
+        },
+        vega: {
+          controller: { kind: 'ai', profile: 'industry' },
+        },
+      },
+    })
+    expect(
+      findMessages(emitted, 'match-snapshot', 'host'),
+    ).toHaveLength(1)
+    expect(
+      findMessages(emitted, 'match-snapshot', 'guest'),
+    ).toHaveLength(1)
+  })
+
+  it('nimmt eine laufende Sitzung wieder auf und akzeptiert danach Kommandos', () => {
+    const { lobby, emitted } = createLobbyHarness()
+
+    lobby.handleMessage('old-phone', joinMessage('Alex', 'join'))
+    lobby.handleMessage(
+      'old-phone',
+      readyMessage(true, 'ready'),
+    )
+    lobby.handleMessage('old-phone', startMessage('start'))
+    expect(lobby.disconnect('old-phone')).toBe(true)
+    expect(lobby.getSnapshot().seats.agima).toMatchObject({
+      connected: false,
+    })
+
+    lobby.handleMessage('new-phone', {
+      version: 1,
+      requestId: 'resume',
+      type: 'resume-session',
+      payload: {
+        reconnectToken: 'reconnect-1',
+      },
+    })
+    expect(lobby.getSnapshot().seats.agima).toMatchObject({
+      connected: true,
+    })
+    expect(
+      findMessages(
+        emitted,
+        'match-snapshot',
+        'new-phone',
+      ),
+    ).toHaveLength(1)
+
+    lobby.handleMessage('new-phone', {
+      version: 1,
+      requestId: 'build',
+      type: 'game-command',
+      payload: {
+        command: {
+          version: 1,
+          commandId: 'build-after-reconnect',
+          participantId: 'agima',
+          expectedRound: 1,
+          type: 'order-harvester-build',
+          payload: {},
+        },
+      },
+    })
+
+    expect(
+      findMessages(
+        emitted,
+        'command-result',
+        'new-phone',
+      ).at(-1)?.message,
+    ).toMatchObject({
+      requestId: 'build',
+      payload: {
+        ok: true,
+        revision: 1,
+      },
+    })
+    expect(
+      lobby.getMatchSnapshot()?.state.colonies.agima
+        .harvestersInConstruction,
+    ).toBe(1)
+  })
+})

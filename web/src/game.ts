@@ -1770,12 +1770,6 @@ function getStartTileIds(participantId: ParticipantId) {
 
 export const PLAYER_START_TILE_IDS = getStartTileIds('agima')
 
-const rivalStartTileIds = {
-  orion: getStartTileIds('orion'),
-  nova: getStartTileIds('nova'),
-  vega: getStartTileIds('vega'),
-}
-
 const startRatingsByTileId = new Map(
   Object.values(browserMatchConfiguration.participants).flatMap(
     ({ startTileIds }) => [
@@ -1968,6 +1962,18 @@ export const STARTING_CRYSTALS = 1
 export function createPlayableInitialGameState(
   meteorSeed: number = 1,
 ): GameState {
+  return createPlayableInitialGameStateForMatch(
+    createMatchConfiguration({
+      seed: browserMatchConfiguration.seed,
+    }),
+    meteorSeed,
+  )
+}
+
+export function createPlayableInitialGameStateForMatch(
+  match: MatchConfiguration,
+  meteorSeed: number = match.seed,
+): GameState {
   const state = createInitialGameState()
   const localColony = selectLocalColony(state)
   const sharedResources = {
@@ -1977,6 +1983,7 @@ export function createPlayableInitialGameState(
 
   return {
     ...state,
+    match: structuredClone(match),
     meteorSeed,
     meteorSchedule: createMeteorSchedule(meteorSeed),
     meteorImpacts: [],
@@ -1993,22 +2000,14 @@ export function createPlayableInitialGameState(
             credits: STARTING_CREDITS,
             resources: { ...sharedResources },
             harvesters: STARTING_HARVESTERS,
-            ownedTileIds:
-              participantId === 'agima'
-                ? [...PLAYER_START_TILE_IDS]
-                : [
-                    ...rivalStartTileIds[
-                      participantId as RivalId
-                    ],
-                  ],
+            ownedTileIds: [
+              ...match.participants[participantId].startTileIds,
+            ],
             crystalDiscoveryRoundByTileId:
               Object.fromEntries(
-                (participantId === 'agima'
-                  ? PLAYER_START_TILE_IDS
-                  : rivalStartTileIds[
-                      participantId as RivalId
-                    ]
-                ).map((tileId) => [tileId, 1]),
+                match.participants[
+                  participantId
+                ].startTileIds.map((tileId) => [tileId, 1]),
               ),
             harvesterAssignments: {},
             freeHarvesterPool: Array.from(

@@ -193,10 +193,54 @@ daraus seinen Countdown darstellen, ohne selbst Autorität über den
 Phasenwechsel zu besitzen.
 
 Der Kern enthält bewusst noch keinen WebSocket- oder HTTP-Server.
-Authentifizierung, Lobby, Wiederverbindungsprotokoll und
-Serialisierung über eine konkrete Verbindung bleiben Aufgaben des
-nächsten dünnen Transportadapters. Die bestehende lokale
-React-Partie verwendet weiterhin direkt die Kommandoschicht.
+Die nachfolgende Lobby übernimmt Sitzvergabe und Wiederverbindung;
+Authentifizierung der Netzverbindung und Serialisierung über eine
+konkrete Leitung bleiben Aufgaben des dünnen Transportadapters. Die
+bestehende lokale React-Partie verwendet weiterhin direkt die
+Kommandoschicht.
+
+### Multiplayer-Protokoll und Lobby
+
+`multiplayerProtocol.ts` definiert die JSON-serialisierbaren
+Nachrichten beider Richtungen und normalisiert Clientdaten aus
+`unknown`. Das Protokoll Version 1 umfasst Lobbybeitritt,
+Sitzungswiederaufnahme, Bereitschaft, Matchstart und eingebettete
+`GameCommand`s. Sichtbare Lobby-Snapshots enthalten ausschließlich
+öffentliche Sitzdaten; Reconnect-Tokens erscheinen nur in der
+gezielten Bestätigung an genau eine Verbindung.
+
+`multiplayerLobby.ts` verwaltet vier feste Koloniesitze oberhalb des
+autoritativen Matchkerns. Der erste Beitritt erhält Agima und die
+Hostrolle, weitere Menschen werden deterministisch auf die noch
+freien Sitze verteilt. Starten darf nur der verbundene Host, nachdem
+alle menschlichen Sitze bereit und verbunden sind. Nicht belegte
+Sitze werden beim Start mit den bestehenden Profilen `balanced`,
+`expansion` und `industry` als KI konfiguriert.
+
+Die Lobby erzeugt aus Seed, Controllern und den zugehörigen
+Startkorridoren einen gemeinsamen initialen `GameState` und bindet
+alle menschlichen Verbindungen an den `AuthoritativeMatch`. Nach
+einem Transportabbruch bleibt der Sitz reserviert. Ein geheimes,
+undurchsichtiges Reconnect-Token kann ihn an eine neue
+Verbindungs-ID binden und liefert sofort den aktuellen Lobby- und
+Match-Snapshot. Transportfehler werden isoliert, damit ein
+geschlossener Socket keine Zustandsoperation unterbricht.
+
+Für die spätere konkrete Leitung muss ein WebSocket- oder
+vergleichbarer Adapter Verbindungs-IDs erzeugen, Nachrichten an
+`handleMessage` übergeben und die typisierten Servernachrichten
+versenden. Token-Erzeugung und Authentifizierung verbleiben auf der
+Serverseite. GitHub Pages kann weiterhin das Frontend hosten, aber
+nicht diesen dauerhaft laufenden Dienst.
+
+Vor dieser Leitung fehlt noch eine regelkritische Serveroperation:
+Versorgungsplan, Rundenbereitschaft und der Aufruf von `runRound`
+werden in `App.tsx` weiterhin lokal koordiniert. Ein echter
+Mehrspieler-Client darf die nächste Runde nicht selbst berechnen.
+Der nächste Kernbaustein muss deshalb Planungen pro menschlichem Sitz
+sammeln, KI-Sitze serverseitig ausführen und genau eine autoritative
+Rundenabrechnung auslösen. Erst danach wird der konkrete
+Verbindungstransport an einen vollständigen Spielablauf angeschlossen.
 
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und

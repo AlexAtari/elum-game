@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   createPlayableInitialGameState,
+  createPlayableInitialGameStateForMatch,
   runRound,
 } from './game'
 import {
@@ -101,5 +102,27 @@ describe('Match-Konfiguration', () => {
 
     expect(state.match).toEqual(createMatchConfiguration())
     expect(completedRound.nextState.match).toEqual(state.match)
+  })
+
+  it('übernimmt Lobby-Konfiguration und Startkorridore in den Spielzustand', () => {
+    const configuration = createMatchConfiguration({
+      seed: 47,
+      controllers: {
+        agima: { kind: 'human', input: 'remote' },
+        orion: { kind: 'human', input: 'remote' },
+      },
+    })
+    const state =
+      createPlayableInitialGameStateForMatch(configuration)
+
+    expect(state.match).toEqual(configuration)
+
+    for (const participantId of participantIds) {
+      expect(
+        state.colonies[participantId].ownedTileIds,
+      ).toEqual(
+        configuration.participants[participantId].startTileIds,
+      )
+    }
   })
 })

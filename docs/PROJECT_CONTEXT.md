@@ -321,12 +321,22 @@ werden.
 - der Serverkern sperrt Phasenwechsel von Clients, plant
   Ressourcen- und Grundstücksauktionsfristen aus den gemeinsamen
   Zeitwerten und veröffentlicht das autoritative `deadlineAt`
+- versioniertes, laufzeitvalidiertes Multiplayerprotokoll und
+  transportneutrale Lobby für vier Koloniesitze implementiert:
+  Hoststart nach Bereitschaft, KI-Füllung freier Sitze und
+  revisionsnummerierte Lobby-Snapshots
+- geheime Reconnect-Tokens erlauben die Wiederaufnahme desselben
+  Sitzes mit einer neuen Verbindung; sie werden nicht an andere
+  Lobbyteilnehmer verteilt
+- Lobby-Konfiguration, Seed und Startkorridore werden gemeinsam in
+  den initialen kanonischen Spielzustand übernommen
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: echten Verbindungstransport, Lobby und
-  Wiederverbindung an den Serverkern anbinden und die React-Clients
-  im Mehrspielermodus aus Server-Snapshots speisen; danach den
-  verbleibenden Kernzufall vollständig seedbasiert ausführen
+- nächster Strukturschritt: Versorgungsvorgaben,
+  Rundenbereitschaft, KI-Sitze und `runRound` serverautoritativ
+  koordinieren; danach Hosting und echten Verbindungstransport
+  festlegen, Lobby in React darstellen und Clients aus
+  Server-Snapshots speisen
 
 ### Nächster Regelstand
 
