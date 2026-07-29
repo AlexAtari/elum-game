@@ -17,6 +17,7 @@ import {
   MARKET_PRICES,
   type RivalColonyState,
 } from '../game'
+import { getPlanetTileName } from '../planetMap'
 import AuctionPriceScale from './AuctionPriceScale'
 import AuctionTimer from './AuctionTimer'
 import './LandTieAuctionPanel.css'
@@ -271,7 +272,7 @@ function LandTieAuctionPanel({
       <div className="land-tie-heading">
         <div>
           <p className="eyebrow">Grundstücksauktion</p>
-          <h2>Feld {tie.tileId}</h2>
+          <h2>{getPlanetTileName(tie.tileId)}</h2>
         </div>
 
         <AuctionTimer
@@ -331,7 +332,7 @@ function LandTieAuctionPanel({
               aria-live="polite"
             >
               <p className="eyebrow">Grundstücksauktion angekündigt</p>
-              <h3>Feld {tie.tileId}</h3>
+              <h3>{getPlanetTileName(tie.tileId)}</h3>
               <p>Agima und Orion treten gegeneinander an.</p>
               <strong>
                 Startpreis: {tie.tiedBid} Credits

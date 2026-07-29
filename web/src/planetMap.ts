@@ -2,6 +2,7 @@ export type TileShape = 'hexagon' | 'pentagon'
 
 export type PlanetTile = {
   id: string
+  displayName?: string
   neighborIds: string[]
   distanceFromHq: number
   shape: TileShape
@@ -943,7 +944,130 @@ export function createGeodesicPlanetMap(
 export const prototypePlanetMap =
   createPrototypePlanetMap(4)
 
-export const targetPlanetMap = createGeodesicPlanetMap(3)
+export const londonStationNames = [
+  'Acton Town',
+  'Aldgate',
+  'Aldgate East',
+  'Alperton',
+  'Amersham',
+  'Angel',
+  'Archway',
+  'Arsenal',
+  'Baker Street',
+  'Balham',
+  'Bank',
+  'Barbican',
+  'Barking',
+  'Barons Court',
+  'Bayswater',
+  'Becontree',
+  'Bermondsey',
+  'Bethnal Green',
+  'Blackfriars',
+  'Blackhorse Road',
+  'Bond Street',
+  'Borough',
+  'Boston Manor',
+  'Bounds Green',
+  'Bow Road',
+  'Brent Cross',
+  'Brixton',
+  'Bromley-by-Bow',
+  'Buckhurst Hill',
+  'Burnt Oak',
+  'Caledonian Road',
+  'Camden Town',
+  'Canada Water',
+  'Canary Wharf',
+  'Cannon Street',
+  'Chancery Lane',
+  'Charing Cross',
+  'Chesham',
+  'Chigwell',
+  'Chiswick Park',
+  'Clapham Common',
+  'Clapham North',
+  'Clapham South',
+  'Cockfosters',
+  'Colindale',
+  'Colliers Wood',
+  'Covent Garden',
+  'Croxley',
+  'Dagenham East',
+  'Dagenham Heathway',
+  'Debden',
+  'Dollis Hill',
+  'Ealing Broadway',
+  'Ealing Common',
+  "Earl's Court",
+  'East Acton',
+  'East Finchley',
+  'East Ham',
+  'East Putney',
+  'Edgware',
+  'Elephant & Castle',
+  'Elm Park',
+  'Embankment',
+  'Epping',
+  'Euston',
+  'Euston Square',
+  'Fairlop',
+  'Farringdon',
+  'Finchley Central',
+  'Finsbury Park',
+  'Fulham Broadway',
+  'Gants Hill',
+  'Gloucester Road',
+  'Golders Green',
+  'Goldhawk Road',
+  'Goodge Street',
+  'Grange Hill',
+  'Green Park',
+  'Greenford',
+  'Gunnersbury',
+  'Hainault',
+  'Hammersmith',
+  'Hampstead',
+  'Harlesden',
+  'Harrow-on-the-Hill',
+  'Hatton Cross',
+  'Heathrow Terminals 2 & 3',
+  'Hendon Central',
+  'High Barnet',
+  'Highbury & Islington',
+  'Highgate',
+] as const
+
+export function assignLondonStationNames(map: PlanetMap) {
+  map.tiles = map.tiles.map((tile) => {
+    if (tile.id === map.hqTileId) {
+      return { ...tile, displayName: 'Hauptquartier' }
+    }
+
+    const propertyNumber = Number(tile.id.slice(1))
+
+    return {
+      ...tile,
+      displayName:
+        londonStationNames[propertyNumber - 1] ??
+        `Sektor ${tile.id}`,
+    }
+  })
+
+  return map
+}
+
+export const targetPlanetMap = assignLondonStationNames(
+  createGeodesicPlanetMap(3),
+)
+
+export function getPlanetTileName(tileId: string) {
+  return (
+    targetPlanetMap.tiles.find((tile) => tile.id === tileId)
+      ?.displayName ?? tileId
+  )
+}
+
 targetPlanetMap.displayPositions =
   createRadialGraphLayout(targetPlanetMap)
 

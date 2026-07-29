@@ -45,6 +45,7 @@ import {
   type HarvesterAssignments,
 } from './game'
 import {
+  targetCrystalRatings,
   targetPlanetMap,
   targetStartConfiguration,
 } from './planetMap'
@@ -1240,6 +1241,41 @@ describe('Grundstücksauktion', () => {
     expect(result.report.landAuction?.outcome).toBe('won')
     expect(result.nextState.colonies.agima.ownedTileIds).toContain(freeAuctionTileId)
     expect(result.nextState.colonies.agima.credits).toBe(64)
+  })
+
+  it('meldet das Explorationsergebnis zu Beginn der Folgerunde', () => {
+    const auctionState = beginLandTieBreak(
+      placeLandBid(
+        createInitialGameState(),
+        freeAuctionTileId,
+        36,
+        35,
+      ),
+    )
+    const resolvedState = resolveLandTieBreak(auctionState, {
+      playerBid: 36,
+      orionBid: 35,
+      leader: 'player',
+    })
+    const purchaseRound = runRound(
+      resolvedState,
+      {},
+      normalSupply,
+    )
+    const explorationRound = runRound(
+      purchaseRound.nextState,
+      {},
+      normalSupply,
+    )
+
+    expect(purchaseRound.report.completedExplorations).toEqual([])
+    expect(explorationRound.report.completedExplorations).toEqual([
+      {
+        tileId: freeAuctionTileId,
+        crystalRating:
+          targetCrystalRatings[freeAuctionTileId] ?? 0,
+      },
+    ])
   })
 
   it('startet auch bei höherem Orion-Gebot eine Grundstücksauktion', () => {

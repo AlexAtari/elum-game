@@ -283,6 +283,10 @@ export type RoundReport = {
   completedHarvesters: number
   globalEvent: GlobalEventId | null
   meteorImpact: MeteorImpact | null
+  completedExplorations: Array<{
+    tileId: string
+    crystalRating: number
+  }>
 }
 
 export type LeaderboardEntry = {
@@ -2817,13 +2821,29 @@ export function runRound(
         currentState.meteorSeed ?? 1,
       )
     : null
+  const nextRound = Math.min(
+    GAME_ROUND_LIMIT,
+    currentState.round + 1,
+  )
+  const nextMeteorImpacts = meteorImpact
+    ? [...previousMeteorImpacts, meteorImpact]
+    : previousMeteorImpacts
+  const completedExplorations = Object.entries(
+    coloniesAfterLand.agima.crystalDiscoveryRoundByTileId,
+  )
+    .filter(([, discoveryRound]) => discoveryRound === nextRound)
+    .map(([tileId]) => ({
+      tileId,
+      crystalRating: getEffectiveCrystalRating(
+        tileId,
+        targetCrystalRatings,
+        nextMeteorImpacts,
+      ),
+    }))
 
   const stateWithNextRoundMetadata: GameState = {
     ...stateAfterLandAuction,
-    round: Math.min(
-      GAME_ROUND_LIMIT,
-      currentState.round + 1,
-    ),
+    round: nextRound,
     pendingLandBid: null,
     landAuctionTie: tiedLandAuction
       ? {
@@ -2852,9 +2872,7 @@ export function runRound(
     activeLocalEvent: null,
     meteorSeed: currentState.meteorSeed,
     meteorSchedule: currentState.meteorSchedule,
-    meteorImpacts: meteorImpact
-      ? [...previousMeteorImpacts, meteorImpact]
-      : previousMeteorImpacts,
+    meteorImpacts: nextMeteorImpacts,
     interstellarCrystalPurchases: 0,
     market: currentState.market,
   }
@@ -2921,6 +2939,7 @@ export function runRound(
         localColony.harvestersInConstruction,
       globalEvent: currentState.activeGlobalEvent,
       meteorImpact,
+      completedExplorations,
     },
   }
 }

@@ -93,7 +93,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - feste gerichtete Beleuchtung mit heller Einfallsseite, weich
   abgedunkelter Gegenseite und atmosphärischem Kugelrand
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in
-  Detailansicht und barrierefreien Bezeichnungen erhalten
+  Spielstand und Diagnose erhalten
+- alle 91 Grundstücke tragen feste, eindeutige Londoner
+  U-Bahn-Stationsnamen; Detailansicht, Auktionen, Rundenbericht und
+  barrierefreie Bezeichnungen verwenden diese Namen
 - deutlich markiertes zentrales HQ in Form einer frühen
   Scheunen-/Lagerstation als Basis für spätere Ausbaustufen
 - größere kontrastunterlegte Harvesterzeichen; Kolonienamen bleiben
@@ -113,6 +116,15 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - Kristallwerte neu gekaufter Felder bleiben eine vollständige
   Folgerunde verborgen und sind erst ab der darauffolgenden Runde
   sichtbar und förderbar; dies gilt auch für KI-Kolonien
+- abgeschlossene Kristallexplorationen werden zu Beginn der
+  Freigaberunde mit Grundstücksname und Ergebnis im Infosheet
+  gemeldet
+- aufgeräumte Planungsoberfläche mit kompakter Statuszeile samt
+  aktuellem Rang: Karte und Grundstücksdetails liegen in der
+  Kolonieübersicht, Markt, Versorgungsvorschau, Rundenabschluss und
+  Harvesterbau im separat betretbaren HQ
+- eigener Rückweg vom HQ zur Kolonieübersicht; Antippen des
+  HQ-Markers öffnet die Verwaltungsansicht ebenfalls
 - Harvesterbau und mehrere parallele Bauaufträge
 - Harvesterplatzierung, Produktion, Umrüstung und Versetzung
 - Energiebedarf der Harvester

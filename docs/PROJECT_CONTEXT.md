@@ -269,6 +269,14 @@ werden.
   Zuweisungen teilnehmerbezogen im serialisierbaren `GameState`
 - teilnehmerbezogene Kristall-Exploration: Kauf in Runde N,
   verborgene Exploration in N+1, Offenlegung und Förderung ab N+2
+- Infosheet meldet abgeschlossene Explorationen beim Eintritt in
+  Runde N+2 mit Stationsname und Kristallwert
+- Planungs-UI in Kolonieübersicht und HQ getrennt: Karte,
+  Grundstücksdetails und kompakter Rangstatus außen; Märkte,
+  Versorgung, Vorschau, Harvesterbau und Rundenabschluss im HQ
+- 91 feste Londoner U-Bahn-Stationsnamen als sichtbare
+  Grundstücksnamen; stabile Feld-IDs bleiben die interne
+  Regelgrundlage
 - gemeinsame Nachbarschaftsprüfung für Spieler- und KI-Landaktionen
 - teilnehmerbezogene Schreibgrenze für die dynamischen Grunddaten;
   Ereignisse, Spieler-Harvesterbau, direkter Koloniehandel und

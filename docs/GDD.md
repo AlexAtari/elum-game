@@ -228,13 +228,28 @@ dessen Namen angezeigt.
 
 Die Kugel besitzt eine feste, von links oben einfallende Beleuchtung
 mit weich abgedunkelter Gegenseite und sichtbarem atmosphärischem
-Rand. Feldnummern werden nicht direkt auf der Kugel gezeigt. Nach der
-Auswahl nennt die Detailansicht weiterhin die eindeutige Feld-ID;
-dieselbe Bezeichnung bleibt für assistive Bedienung verfügbar.
+Rand. Feldnummern werden nicht direkt auf der Kugel gezeigt. Jedes
+der 91 Grundstücke besitzt stattdessen einen festen, eindeutigen
+Namen aus dem Londoner U-Bahn-Netz. Detailansicht, Auktionen,
+Rundenberichte und assistive Bedienung verwenden diesen Namen.
+Stabile Feld-IDs bleiben ausschließlich die technische Grundlage
+für Spielstand, Regeln und Diagnose.
 
 Auf Smartphones nutzt das Kartenpanel den verfügbaren Bildschirm
 mit schmalen Seitenabständen. Pinch und die Zoomtasten erlauben eine
 Nahansicht bis zum 2,2-Fachen der Ausgangsgröße.
+
+## Planungsoberfläche
+
+Die normale Kolonieübersicht bleibt bewusst ruhig. Sie zeigt eine
+kompakte Statuszeile einschließlich aktueller Platzierung, die
+Planetenkugel und die Detailinformationen des ausgewählten eigenen
+oder freien Grundstücks. Ressourcenauktionen, Versorgungsplanung,
+Rundenvorschau, Harvesterbau und „Runde ausführen“ werden nur im
+Hauptquartier gezeigt. Das HQ wird über seinen Kartenmarker oder
+einen klaren Aktionsknopf betreten und besitzt einen eigenen Knopf
+zurück zur Kolonieübersicht. Laufende Auktionen, Rangliste und
+Infosheet bleiben eigenständige Spielphasen.
 
 ---
 
@@ -273,7 +288,10 @@ Wird ein Grundstück in Runde N erworben, dient Runde N+1 seiner
 Exploration. Das Ergebnis ist ab Runde N+2 sichtbar. Vorher kann dort
 kein Harvester Kristalle fördern oder für Kristallproduktion
 eingerichtet werden. Dieselbe Informations- und Produktionsgrenze
-gilt für menschliche Spieler und Agenten.
+gilt für menschliche Spieler und Agenten. Zu Beginn von Runde N+2
+meldet das Infosheet den Grundstücksnamen und den gefundenen
+Kristallwert beziehungsweise „Kein Vorkommen“. Anschließend ist das
+Ergebnis dauerhaft in der Grundstücksdetailansicht sichtbar.
 
 Neue Grundstücke können ausschließlich ersteigert werden, wenn sie an mindestens ein bereits eigenes Grundstück angrenzen.
 

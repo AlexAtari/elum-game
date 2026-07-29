@@ -4,6 +4,7 @@ import {
   type RoundReport,
 } from '../game'
 import { useI18n } from '../i18n/I18nContext'
+import { getPlanetTileName } from '../planetMap'
 import './RoundBriefingPanel.css'
 
 const globalEventTranslationKeys: Record<
@@ -167,11 +168,15 @@ function RoundBriefingPanel({
               <strong>
                 {report.landAuction?.outcome === 'won'
                   ? t('briefing.landWon', {
-                      tile: report.landAuction.tileId,
+                      tile: getPlanetTileName(
+                        report.landAuction.tileId,
+                      ),
                     })
                   : report.landAuction?.outcome === 'lost'
                     ? t('briefing.landLost', {
-                        tile: report.landAuction.tileId,
+                        tile: getPlanetTileName(
+                          report.landAuction.tileId,
+                        ),
                       })
                     : t('briefing.landUnchanged')}
               </strong>
@@ -210,6 +215,37 @@ function RoundBriefingPanel({
             </div>
           )}
         </article>
+
+        {report.completedExplorations.length > 0 && (
+          <article className="round-briefing-exploration">
+            <p className="eyebrow">Explorationsbericht</p>
+            <h3>Kristallsuche abgeschlossen</h3>
+            <div className="exploration-results">
+              {report.completedExplorations.map(
+                ({ tileId, crystalRating }) => (
+                  <div
+                    className="exploration-result"
+                    key={tileId}
+                  >
+                    <span>💎 {getPlanetTileName(tileId)}</span>
+                    <strong>
+                      {crystalRating > 0
+                        ? `${'★'.repeat(crystalRating)}${'☆'.repeat(
+                            5 - crystalRating,
+                          )}`
+                        : 'Kein Vorkommen'}
+                    </strong>
+                  </div>
+                ),
+              )}
+            </div>
+            <p>
+              Das Ergebnis ist ab jetzt auf dem Grundstück
+              sichtbar. Bei einem Vorkommen kann dort ein Harvester
+              auf Kristallproduktion umgerüstet werden.
+            </p>
+          </article>
+        )}
       </div>
 
       <button

@@ -59,8 +59,11 @@ bleiben davon ausgenommen.
 Eine globale, im Ansichtsraum feste Lichtverteilung überlagert alle
 Zelltexturen gemeinsam. Sie erzeugt eine helle Einfallsseite, eine
 weich abgedunkelte Gegenseite und ergänzt den atmosphärischen Rand.
-Feld-IDs erscheinen nicht als Text auf der Kugel, bleiben aber in der
-Felddetailansicht und als barrierefreie Interaktionsnamen erhalten.
+Feld-IDs erscheinen nicht als Text auf der Kugel. Die 91 Grundstücke
+tragen stattdessen feste, eindeutige Namen nach Stationen der London
+Underground. Diese Namen erscheinen in Felddetailansicht, Auktionen,
+Rundenberichten und barrierefreien Interaktionsnamen. Die IDs bleiben
+als interne Schlüssel erhalten.
 
 Die mobile Darstellung reduziert äußere und innere Seitenabstände,
 damit der Kugelviewport möglichst viel Bildschirmbreite erhält. Der
@@ -76,6 +79,7 @@ Sichtbare Größenunterschiede beeinflussen weder Produktion noch Preis.
 Jedes Feld besitzt langfristig mindestens:
 
 - eine stabile Feld-ID,
+- einen festen sichtbaren Stationsnamen,
 - eine Liste der Nachbarfeld-IDs,
 - eine geometrische Position für die Darstellung,
 - die kürzeste Entfernung zum HQ,
@@ -213,7 +217,9 @@ Kristallwert auch nach dem Erwerb während einer vollständigen
 Explorationsrunde verdeckt. Wird ein Grundstück in Runde N gekauft,
 läuft die Exploration in Runde N+1; ab Runde N+2 werden Vorkommen und
 Wert offengelegt und können für Kristallproduktion verwendet werden.
-Diese Grenze gilt auch für Agenten und Headless-Läufe.
+Beim Eintritt in Runde N+2 nennt das Infosheet Stationsname und
+Ergebnis; danach bleibt der Wert in der Grundstücksdetailansicht
+sichtbar. Diese Grenze gilt auch für Agenten und Headless-Läufe.
 
 Auf einem eigenen Vorkommen kann ein Harvester Kristalle als vierte
 Produktionsart fördern. Der wirksame Ertrag kombiniert den natürlichen

@@ -22,7 +22,10 @@ import {
   combineMeteorBonuses,
   type MeteorImpact,
 } from '../meteor'
-import { targetPlanetMap } from '../planetMap'
+import {
+  getPlanetTileName,
+  targetPlanetMap,
+} from '../planetMap'
 import {
   createPlanetSurfaceCells,
   projectPlanetMap,
@@ -52,6 +55,7 @@ type HexMapProps = {
   isRetoolingBlocked: boolean
   isRelocationBlocked: boolean
   onBuildHarvester: () => void
+  onOpenHeadquarters: () => void
   onPlaceLandBid: (tileId: string, amount: number) => void
   onCancelLandOrder: () => void
   onAssignHarvester: (
@@ -178,6 +182,7 @@ function HexMap({
   isRetoolingBlocked,
   isRelocationBlocked,
   onBuildHarvester,
+  onOpenHeadquarters,
   onPlaceLandBid,
   onCancelLandOrder,
   onAssignHarvester,
@@ -478,6 +483,9 @@ function HexMap({
 
     setSelectedId(tileId)
     setIsChoosingProduction(false)
+    if (tileId === targetPlanetMap.hqTileId) {
+      onOpenHeadquarters()
+    }
     setBidAmount(
       landAuctionTie?.tileId === tileId
         ? landAuctionTie.minimumBid
@@ -701,7 +709,7 @@ function HexMap({
                     aria-label={
                       tile.owner === 'hq'
                         ? 'Hauptquartier'
-                        : `Feld ${tile.id}`
+                        : `${getPlanetTileName(tile.id)}, Sektor ${tile.id}`
                     }
                     tabIndex={0}
                     onClick={() => selectTile(tile.id)}
@@ -978,7 +986,7 @@ function HexMap({
                   : 'Freies Grundstück'}
               </p>
 
-              <h3>Feld {selectedTile.id}</h3>
+              <h3>{getPlanetTileName(selectedTile.id)}</h3>
 
               <div className="resource-rating">
                 <span>🌾 Nahrung</span>
@@ -1265,7 +1273,13 @@ function HexMap({
                   >
                     {pendingLandBid
                       ? 'Bereits ein Gebot abgegeben'
-                      : `Stichauktion auf Feld ${landAuctionTie?.tileId}`}
+                      : `Stichauktion auf ${
+                          landAuctionTie
+                            ? getPlanetTileName(
+                                landAuctionTie.tileId,
+                              )
+                            : ''
+                        }`}
                   </button>
                 ) : (
                   <div className="land-bid-panel">

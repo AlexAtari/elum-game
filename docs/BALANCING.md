@@ -170,6 +170,9 @@ vollständige Explorationsrunde abgerechnet wurde. Ein Kauf in Runde N
 bleibt während Runde N+1 unerforscht; ab Runde N+2 ist der
 Kristallwert bekannt und förderbar. Vorher steht Kristallproduktion
 für dieses Feld weder Spielern noch Agenten zur Auswahl. Der
+Kristallwert wird beim Eintritt in Runde N+2 einmal im Infosheet
+gemeldet; diese Meldung verändert weder Dauer noch Ertrag der
+Exploration. Der
 Harvester verwendet anschließend den effektiven Sternwert aus
 natürlicher Ader plus gedeckelten Meteorboni. Umrüstung, Versetzung
 und Energieverbrauch entsprechen den anderen Produktionsarten.

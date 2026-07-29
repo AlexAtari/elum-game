@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   areTilesAdjacent,
+  assignLondonStationNames,
   assignStartCorridors,
   calculateGraphDistances,
   combineCrystalVeinRatings,
@@ -164,11 +165,20 @@ describe('92-Felder-Planetengraph', () => {
   })
 
   it('erzeugt dieselben IDs, Nachbarn und Positionen reproduzierbar', () => {
-    const recreatedMap = createGeodesicPlanetMap(3)
+    const recreatedMap = assignLondonStationNames(
+      createGeodesicPlanetMap(3),
+    )
     recreatedMap.displayPositions =
       createRadialGraphLayout(recreatedMap)
 
     expect(recreatedMap).toEqual(targetPlanetMap)
+    expect(
+      new Set(
+        targetPlanetMap.tiles
+          .filter((tile) => tile.id !== 'HQ')
+          .map((tile) => tile.displayName),
+      ),
+    ).toHaveLength(91)
     expect(
       Object.values(targetPlanetMap.spherePositions ?? {}).every(
         (position) =>

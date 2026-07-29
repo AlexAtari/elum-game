@@ -53,6 +53,7 @@ import {
   type RoundReport,
   type SupplyPlan,
   createPlayableInitialGameState,
+  HARVESTER_ORE_COST,
 } from './game'
 import { useI18n } from './i18n/I18nContext'
 import './App.css'
@@ -74,6 +75,7 @@ type PendingRound = {
   supplyPlan: SupplyPlan
 }
 
+type PlanningView = 'colony' | 'headquarters'
 
 function App() {
   const { number, t } = useI18n()
@@ -96,6 +98,8 @@ function App() {
     useState<LocalEventId | null>(null)
   const [activeLocalEvent, setActiveLocalEvent] =
     useState<LocalEventId | null>(null)
+  const [planningView, setPlanningView] =
+    useState<PlanningView>('colony')
 
   const colonies = useMemo(
     () => selectColonies(gameState),
@@ -163,6 +167,8 @@ function App() {
     () => createLeaderboardEntries(gameState),
     [gameState],
   )
+  const currentPlacement =
+    leaderboardEntries.findIndex((entry) => entry.isPlayer) + 1
 
   const startNewGame = () => {
     setGameState(createPlayableInitialGameState(Date.now()))
@@ -175,6 +181,7 @@ function App() {
     setShowRoundBriefing(false)
     setPendingLocalEvent(null)
     setActiveLocalEvent(null)
+    setPlanningView('colony')
     setGameStarted(true)
   }
 
@@ -394,6 +401,7 @@ function App() {
 
   const continueAfterBriefing = useCallback(() => {
     setShowRoundBriefing(false)
+    setPlanningView('colony')
   }, [])
 
   const dismissLocalEvent = useCallback(() => {
@@ -458,44 +466,20 @@ function App() {
           gameState.landAuctionTie === null &&
           !showLeaderboard &&
           !showRoundBriefing && (
-          <section className="status-panel">
-            <h2>{t('app.status')}</h2>
-
-            <div className="status-grid">
-              <div className="status-item">
-                <span>👥 {t('resource.population')}</span>
-                <strong>{number(localColony.population)}</strong>
-              </div>
-
-              <div className="status-item">
-                <span>💰 {t('resource.credits')}</span>
-                <strong>{number(localColony.credits)}</strong>
-              </div>
-
-              <div className="status-item">
-                <span>🌾 {t('resource.food')}</span>
-                <strong>{number(localColony.resources.food)}</strong>
-              </div>
-
-              <div className="status-item">
-                <span>⚡ {t('resource.energy')}</span>
-                <strong>
-                  {number(localColony.resources.energy)}
-                </strong>
-              </div>
-
-              <div className="status-item">
-                <span>⛏ {t('resource.ore')}</span>
-                <strong>{number(localColony.resources.ore)}</strong>
-              </div>
-
-              <div className="status-item">
-                <span>💎 {t('resource.crystals')}</span>
-                <strong>
-                  {number(localColony.resources.crystals)}
-                </strong>
-              </div>
-            </div>
+          <section
+            className="compact-status-panel"
+            aria-label={t('app.status')}
+          >
+            <span className="compact-rank">
+              <small>Platz</small>
+              <strong>{currentPlacement}.</strong>
+            </span>
+            <span>👥 <strong>{number(localColony.population)}</strong></span>
+            <span>💰 <strong>{number(localColony.credits)}</strong></span>
+            <span>🌾 <strong>{number(localColony.resources.food)}</strong></span>
+            <span>⚡ <strong>{number(localColony.resources.energy)}</strong></span>
+            <span>⛏ <strong>{number(localColony.resources.ore)}</strong></span>
+            <span>💎 <strong>{number(localColony.resources.crystals)}</strong></span>
           </section>
         )}
 
@@ -563,6 +547,8 @@ function App() {
           />
         ) : (
           <>
+            {planningView === 'colony' ? (
+              <>
             <HexMap
               round={gameState.round}
               population={localColony.population}
@@ -585,6 +571,9 @@ function App() {
               isRetoolingBlocked={harvesterRetoolingBlocked}
               isRelocationBlocked={harvesterRelocationBlocked}
               onBuildHarvester={buildHarvester}
+              onOpenHeadquarters={() =>
+                setPlanningView('headquarters')
+              }
               onPlaceLandBid={submitLandBid}
               onCancelLandOrder={cancelLandOrder}
               onAssignHarvester={assignHarvester}
@@ -594,6 +583,94 @@ function App() {
               onRemoveHarvester={removeHarvester}
             />
 
+                <section className="overview-actions">
+                  <button
+                    className="headquarters-button"
+                    type="button"
+                    onClick={() =>
+                      setPlanningView('headquarters')
+                    }
+                  >
+                    🏚️ Zum Hauptquartier
+                  </button>
+                  <p>
+                    Markt, Versorgung, Vorschau und Harvesterbau
+                    befinden sich im HQ.
+                  </p>
+                </section>
+              </>
+            ) : (
+              <section className="headquarters-panel">
+                <button
+                  className="headquarters-back-button"
+                  type="button"
+                  onClick={() => setPlanningView('colony')}
+                >
+                  ← Zur Kolonieübersicht
+                </button>
+
+                <div className="headquarters-intro">
+                  <span
+                    className="headquarters-icon"
+                    aria-hidden="true"
+                  >
+                    🏚️
+                  </span>
+                  <div>
+                    <p className="eyebrow">Kolonie Agima</p>
+                    <h2>Hauptquartier</h2>
+                    <p>
+                      Markt, Versorgung und Ausbau der Kolonie
+                      werden von hier aus gesteuert.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="headquarters-stats">
+                  <span>
+                    👥 Bevölkerung{' '}
+                    <strong>{number(localColony.population)}</strong>
+                  </span>
+                  <span>
+                    🚜 Freie Harvester{' '}
+                    <strong>{freeHarvesters}</strong>
+                  </span>
+                  <span>
+                    🏗️ Im Bau{' '}
+                    <strong>
+                      {localColony.harvestersInConstruction}
+                    </strong>
+                  </span>
+                </div>
+
+                <button
+                  className="build-harvester-button"
+                  type="button"
+                  disabled={
+                    harvesterBuildBlocked ||
+                    localColony.credits < harvesterCreditCost ||
+                    localColony.resources.ore <
+                      HARVESTER_ORE_COST
+                  }
+                  onClick={buildHarvester}
+                >
+                  {harvesterBuildBlocked
+                    ? 'Harvesterbau gesperrt'
+                    : localColony.credits >= harvesterCreditCost &&
+                        localColony.resources.ore >=
+                          HARVESTER_ORE_COST
+                      ? 'Harvester bauen'
+                      : 'Ressourcen reichen nicht'}
+                </button>
+                <p className="build-cost">
+                  Kosten: {harvesterCreditCost} Credits +{' '}
+                  {HARVESTER_ORE_COST} Erz. Fertig zu Beginn der
+                  nächsten Runde.
+                </p>
+              </section>
+            )}
+
+            {planningView === 'headquarters' && (
             <MarketLauncher
               initiatedResources={
                 gameState.initiatedMarketResources
@@ -601,7 +678,9 @@ function App() {
               isBlocked={marketInitiationBlocked}
               onInitiate={initiateMarket}
             />
+            )}
 
+            {planningView === 'headquarters' && (
             <section className="supply-panel">
           <h2>{t('supply.plan')}</h2>
 
@@ -730,7 +809,9 @@ function App() {
             )}
           </div>
             </section>
+            )}
 
+            {planningView === 'headquarters' && (
             <section className="round-actions">
               <button
                 className="round-button"
@@ -747,6 +828,7 @@ function App() {
                 })}
               </p>
             </section>
+            )}
           </>
         )}
 

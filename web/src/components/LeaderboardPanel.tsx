@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { LeaderboardEntry } from '../game'
 import type { MeteorImpact } from '../meteor'
+import { getPlanetTileName } from '../planetMap'
 import { useI18n } from '../i18n/I18nContext'
 import './LeaderboardPanel.css'
 
@@ -121,7 +122,9 @@ function LeaderboardPanel({
           <div>
             <strong>
               {t('meteor.impactTitle', {
-                tileId: meteorImpact.centerTileId,
+                tileId: getPlanetTileName(
+                  meteorImpact.centerTileId,
+                ),
               })}
             </strong>
             <p>{t('meteor.impactDescription')}</p>

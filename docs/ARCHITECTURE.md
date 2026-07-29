@@ -354,9 +354,21 @@ reproduzierbares flaches Hilfslayout verfügbar.
 
 Eine gemeinsame SVG-Lichtmaske über der Canvas-Oberfläche verwendet absolute
 Kugelansichtskoordinaten und bleibt deshalb beim Drehen im
-Ansichtsraum fest. Sichtbare Feldnummern werden nicht gerendert;
-`aria-label` und die Detailansicht bewahren die Feld-ID für Bedienung
-und Diagnose.
+Ansichtsraum fest. Sichtbare Feldnummern werden nicht gerendert.
+`planetMap.ts` ordnet den 91 stabilen Grundstücks-IDs ebenso viele
+eindeutige Londoner Stationsnamen zu. `getPlanetTileName` bildet die
+gemeinsame Anzeigegrenze für Karte, Auktionen, Infosheet und
+Meteorberichte; Regeln und serialisierte Zustände verwenden weiterhin
+die IDs.
+
+`App.tsx` hält die reine Planungsnavigation als lokalen Zustand
+`colony | headquarters`. Die Kolonieansicht rendert Kugel und
+Grundstücksdetails, während das HQ Marktstarter, Versorgungsplanung,
+Rundenvorschau, Harvesterbau und Rundenabschluss enthält. Die
+gemeinsamen Spieldaten bleiben davon unberührt. `RoundReport`
+transportiert abgeschlossene Explorationen mit Feld-ID und
+effektivem Kristallwert; `RoundBriefingPanel` löst erst bei der
+Anzeige den Stationsnamen auf.
 
 `createNaturalCrystalVeins` wählt vier voneinander entfernte
 Hexagonkerne in der Fernzone und erweitert sie schrittweise zu
