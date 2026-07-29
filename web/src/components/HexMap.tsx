@@ -9,6 +9,7 @@ import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
   PLAYER_START_TILE_IDS,
+  getLandBidAmount,
   isColonyCrystalDiscovered,
   productionTypes,
   tiles,
@@ -1256,7 +1257,11 @@ function HexMap({
                   <div className="land-purchase-status">
                     <span>🔒 Verdecktes Gebot abgegeben</span>
                     <strong>
-                      {selectedPendingBid.amount} Credits reserviert
+                      {getLandBidAmount(
+                        selectedPendingBid,
+                        'agima',
+                      )}{' '}
+                      Credits reserviert
                     </strong>
                     <p>
                       Orions Gebot wird beim Ausführen der Runde

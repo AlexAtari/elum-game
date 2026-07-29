@@ -1,7 +1,9 @@
 import {
   assignColonyHarvester,
   changeColonyHarvesterProduction,
+  cancelColonyLandBid,
   orderColonyHarvesterBuild,
+  placeColonyLandBid,
   removeColonyHarvester,
   type GameState,
   type ProductionType,
@@ -41,6 +43,17 @@ export type GameCommand =
     })
   | (GameCommandBase & {
       type: 'order-harvester-build'
+      payload: Record<string, never>
+    })
+  | (GameCommandBase & {
+      type: 'place-land-bid'
+      payload: {
+        tileId: string
+        amount: number
+      }
+    })
+  | (GameCommandBase & {
+      type: 'cancel-land-bid'
       payload: Record<string, never>
     })
 
@@ -181,10 +194,38 @@ export function parseGameCommand(
     }
   }
 
+  if (input.type === 'place-land-bid') {
+    if (
+      typeof payload.tileId !== 'string' ||
+      payload.tileId.length === 0 ||
+      !Number.isInteger(payload.amount) ||
+      Number(payload.amount) <= 0
+    ) {
+      return null
+    }
+
+    return {
+      ...base,
+      type: 'place-land-bid',
+      payload: {
+        tileId: payload.tileId,
+        amount: Number(payload.amount),
+      },
+    }
+  }
+
   if (input.type === 'order-harvester-build') {
     return {
       ...base,
       type: 'order-harvester-build',
+      payload: {},
+    }
+  }
+
+  if (input.type === 'cancel-land-bid') {
+    return {
+      ...base,
+      type: 'cancel-land-bid',
       payload: {},
     }
   }
@@ -219,6 +260,18 @@ function applyGameCommand(
       )
     case 'order-harvester-build':
       return orderColonyHarvesterBuild(
+        currentState,
+        command.participantId,
+      )
+    case 'place-land-bid':
+      return placeColonyLandBid(
+        currentState,
+        command.participantId,
+        command.payload.tileId,
+        command.payload.amount,
+      )
+    case 'cancel-land-bid':
+      return cancelColonyLandBid(
         currentState,
         command.participantId,
       )

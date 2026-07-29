@@ -166,8 +166,8 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
     const state = createRoundTwoState()
     state.pendingLandBid = {
       tileId: 'X',
-      amount: 20,
-      rivalBid: 20,
+      bids: { agima: 20 },
+      reservedCredits: { agima: 20 },
     }
 
     expect(

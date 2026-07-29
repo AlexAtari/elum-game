@@ -13,12 +13,12 @@ import MarketLauncher from './components/MarketLauncher'
 import MarketPanel from './components/MarketPanel'
 import RoundBriefingPanel from './components/RoundBriefingPanel'
 import { applyAutonomousRivalLandPurchases } from './rivalAutonomousLand'
-import { placeStrategicOrionLandBid } from './orionLandBid'
+import { applyStrategicOrionBid } from './orionLandBid'
 import {
   activateGlobalEvent,
   applyLocalEvent,
   beginLandTieBreak,
-  cancelLandBid,
+  cancelColonyLandBid,
   calculateSupplyPreview,
   completeResourceMarket,
   createLeaderboardEntries,
@@ -42,6 +42,7 @@ import {
   selectLocalEvent,
   type LocalEventId,
   type HarvesterAssignments,
+  type GameState,
   type LandTieBidState,
   type MarketCounterparty,
   type MarketDirection,
@@ -229,7 +230,10 @@ function App() {
   ])
 
   const dispatchPlayerCommand = useCallback(
-    (action: GameCommandAction) => {
+    (
+      action: GameCommandAction,
+      afterSuccess?: (state: GameState) => GameState,
+    ) => {
       const command = {
         ...action,
         version: 1,
@@ -238,10 +242,16 @@ function App() {
         expectedRound: gameState.round,
       } as const
 
-      setGameState(
-        (currentState) =>
-          executeGameCommand(currentState, command).state,
-      )
+      setGameState((currentState) => {
+        const result = executeGameCommand(
+          currentState,
+          command,
+        )
+
+        return result.ok && afterSuccess
+          ? afterSuccess(result.state)
+          : result.state
+      })
     },
     [gameState.round],
   )
@@ -274,13 +284,23 @@ function App() {
   }
 
   const submitLandBid = (tileId: string, amount: number) => {
-    setGameState((currentState) =>
-      placeStrategicOrionLandBid(currentState, tileId, amount),
+    dispatchPlayerCommand(
+      {
+        type: 'place-land-bid',
+        payload: { tileId, amount },
+      },
+      applyStrategicOrionBid,
     )
   }
 
   const cancelLandOrder = () => {
-    setGameState(cancelLandBid)
+    dispatchPlayerCommand(
+      {
+        type: 'cancel-land-bid',
+        payload: {},
+      },
+      (state) => cancelColonyLandBid(state, 'orion'),
+    )
   }
 
   const buildHarvester = () => {

@@ -3,6 +3,8 @@ import {
   createPlayableInitialGameState,
   HARVESTER_CREDIT_COST,
   HARVESTER_ORE_COST,
+  selectOtherColonyTileIds,
+  tiles,
 } from './game'
 import {
   executeGameCommand,
@@ -111,6 +113,97 @@ describe('UI-unabhängige Spielkommandos', () => {
     expect(result.state.colonies.agima).toEqual(
       state.colonies.agima,
     )
+  })
+
+  it('führt Grundstücksgebote für entfernte Sitze über dieselbe Grenze aus', () => {
+    const state = createPlayableInitialGameState()
+    const startTile = tiles.find(
+      (tile) =>
+        tile.id === state.colonies.orion.ownedTileIds[1],
+    )!
+    const tileId = startTile.neighborIds.find(
+      (candidateId) =>
+        !state.colonies.orion.ownedTileIds.includes(candidateId) &&
+        !selectOtherColonyTileIds(state, 'orion').includes(
+          candidateId,
+        ) &&
+        tiles.find((tile) => tile.id === candidateId)?.owner ===
+          'free',
+    )!
+    const result = executeGameCommand(
+      state,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'place-land-bid',
+          payload: {
+            tileId,
+            amount: 25,
+          },
+        },
+        'remote-orion-land-1',
+      ),
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.state.pendingLandBid).toEqual({
+      tileId,
+      bids: { orion: 25 },
+      reservedCredits: { orion: 25 },
+      tieMinimum: undefined,
+    })
+    expect(result.state.colonies.orion.credits).toBe(
+      state.colonies.orion.credits - 25,
+    )
+    expect(result.state.colonies.agima).toEqual(
+      state.colonies.agima,
+    )
+  })
+
+  it('erstattet beim Rücknahmekommando nur den handelnden Sitz', () => {
+    const state = createPlayableInitialGameState()
+    const tileId = state.colonies.agima.ownedTileIds[0]
+    const reservedState = {
+      ...state,
+      colonies: {
+        ...state.colonies,
+        agima: {
+          ...state.colonies.agima,
+          credits: state.colonies.agima.credits - 25,
+        },
+        orion: {
+          ...state.colonies.orion,
+          credits: state.colonies.orion.credits - 27,
+        },
+      },
+      pendingLandBid: {
+        tileId,
+        bids: { agima: 25, orion: 27 },
+        reservedCredits: { agima: 25, orion: 27 },
+      },
+    }
+    const result = executeGameCommand(
+      reservedState,
+      createCommand(
+        {
+          participantId: 'agima',
+          type: 'cancel-land-bid',
+          payload: {},
+        },
+        'cancel-agima-land-1',
+      ),
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.state.colonies.agima.credits).toBe(
+      state.colonies.agima.credits,
+    )
+    expect(result.state.colonies.orion.credits).toBe(
+      state.colonies.orion.credits - 27,
+    )
+    expect(result.state.pendingLandBid?.bids).toEqual({
+      orion: 27,
+    })
   })
 
   it('führt ein Baukommando atomar und nur einmal aus', () => {

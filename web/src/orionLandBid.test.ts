@@ -7,6 +7,7 @@ import {
 import { applyStrategicOrionBid } from './orionLandBid'
 import {
   createInitialGameState,
+  createPlayableInitialGameState,
   LAND_MINIMUM_BID,
   tiles,
 } from './game'
@@ -74,28 +75,39 @@ describe('Orions verdecktes Grundstücksgebot', () => {
     ).toBeNull()
   })
 
-  it('ersetzt das bisherige Rivalengebot im Spielzustand', () => {
-    const tile = tiles.find(
-      (candidate) => candidate.owner === 'free',
+  it('ergänzt Orions Gebot teilnehmerbezogen im Spielzustand', () => {
+    const state = createPlayableInitialGameState()
+    const orionStartTile = tiles.find(
+      (tile) =>
+        tile.id === state.colonies.orion.ownedTileIds[1],
+    )!
+    const occupiedTileIds = Object.values(state.colonies).flatMap(
+      (colony) => colony.ownedTileIds,
     )
-    expect(tile).toBeDefined()
-
-    const state = createInitialGameState()
+    const tileId = orionStartTile.neighborIds.find(
+      (candidateId) =>
+        !occupiedTileIds.includes(candidateId) &&
+        tiles.find((tile) => tile.id === candidateId)?.owner ===
+          'free',
+    )!
     state.pendingLandBid = {
-      tileId: tile!.id,
-      amount: LAND_MINIMUM_BID,
-      rivalBid: 999,
+      tileId,
+      bids: { agima: LAND_MINIMUM_BID },
+      reservedCredits: { agima: LAND_MINIMUM_BID },
     }
 
     const next = applyStrategicOrionBid(state)
+    const orionBid = next.pendingLandBid?.bids.orion
 
-    expect(next.pendingLandBid?.rivalBid).toBeGreaterThanOrEqual(
+    expect(orionBid).toBeGreaterThanOrEqual(
       LAND_MINIMUM_BID,
     )
-    expect(next.pendingLandBid?.rivalBid).toBeLessThanOrEqual(
-      28,
+    expect(orionBid).toBeLessThan(
+      state.colonies.orion.credits,
     )
-    expect(next.pendingLandBid?.rivalBid).not.toBe(999)
+    expect(next.colonies.orion.credits).toBe(
+      state.colonies.orion.credits - orionBid!,
+    )
   })
 
   it('verändert einen Zustand ohne Grundstücksgebot nicht', () => {

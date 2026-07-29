@@ -73,8 +73,8 @@ describe('Orions selbstständiger Grundstückskauf', () => {
     const state = createRoundTwoState()
     state.pendingLandBid = {
       tileId: 'X',
-      amount: LAND_MINIMUM_BID,
-      rivalBid: LAND_MINIMUM_BID,
+      bids: { agima: LAND_MINIMUM_BID },
+      reservedCredits: { agima: LAND_MINIMUM_BID },
     }
 
     expect(

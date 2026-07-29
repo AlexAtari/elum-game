@@ -101,12 +101,11 @@ function LandTieAuctionPanel({
   const [secondsLeft, setSecondsLeft] =
     useState(preparationSeconds)
   const [bids, setBids] = useState<LandTieBidState>({
-    playerBid: tie.playerOpeningBid,
-    orionBid: tie.orionOpeningBid,
-    leader: tie.initialLeader,
+    bids: { ...tie.openingBids },
+    leaderId: tie.initialLeaderId,
   })
   const [playerBehindStart, setPlayerBehindStart] =
-    useState(tie.initialLeader !== 'player')
+    useState(tie.initialLeaderId !== 'agima')
   const bidsRef = useRef(bids)
   const nextPlayerMovementAt = useRef(0)
 
@@ -125,14 +124,17 @@ function LandTieAuctionPanel({
     nextPlayerMovementAt.current =
       Date.now() + movementMilliseconds
 
-    if (playerBehindStart && bidsRef.current.playerBid >= tie.minimumBid) {
+    if (
+      playerBehindStart &&
+      (bidsRef.current.bids.agima ?? 0) >= tie.minimumBid
+    ) {
       setPlayerBehindStart(false)
       return
     }
 
     setPlayerBehindStart(false)
     setBids((currentBids) =>
-      raiseLandTieBid(currentBids, 'player', credits),
+      raiseLandTieBid(currentBids, 'agima', credits),
     )
   }, [credits, playerBehindStart, stage, tie.minimumBid])
 
@@ -147,12 +149,12 @@ function LandTieAuctionPanel({
 
     nextPlayerMovementAt.current =
       Date.now() + movementMilliseconds
-    const currentPlayerBid = bidsRef.current.playerBid
+    const currentPlayerBid = bidsRef.current.bids.agima ?? 0
 
     setBids((currentBids) =>
       lowerLandTieBid(
         currentBids,
-        'player',
+        'agima',
         tie.minimumBid,
       ),
     )
@@ -215,7 +217,7 @@ function LandTieAuctionPanel({
 
     const orionMovement = window.setInterval(() => {
       setBids((currentBids) =>
-        currentBids.leader === 'orion'
+        currentBids.leaderId === 'orion'
           ? currentBids
           : raiseLandTieBid(
               currentBids,
@@ -243,8 +245,8 @@ function LandTieAuctionPanel({
 
   const highestBid = Math.max(
     tie.tiedBid,
-    bids.playerBid,
-    bids.orionBid,
+    bids.bids.agima ?? 0,
+    bids.bids.orion ?? 0,
   )
   const positionForPrice = useCallback(
     (price: number) =>
@@ -253,11 +255,11 @@ function LandTieAuctionPanel({
   )
   const playerPosition = playerBehindStart
     ? '7%'
-    : positionForPrice(bids.playerBid)
+    : positionForPrice(bids.bids.agima ?? 0)
   const orionPosition =
-    bids.orionBid < tie.tiedBid
+    (bids.bids.orion ?? 0) < tie.tiedBid
       ? '7%'
-      : positionForPrice(bids.orionBid)
+      : positionForPrice(bids.bids.orion ?? 0)
   const fieldRatings = useMemo(
     () => [
       `🌾 ${tile?.food ?? 0}`,
@@ -307,10 +309,10 @@ function LandTieAuctionPanel({
         <div>
           <span>Aktuelle Führung</span>
           <strong>
-            {bids.leader === 'player'
-              ? `Du · ${bids.playerBid} Credits`
-              : bids.leader === 'orion'
-                ? `Orion · ${bids.orionBid} Credits`
+            {bids.leaderId === 'agima'
+              ? `Du · ${bids.bids.agima ?? 0} Credits`
+              : bids.leaderId === 'orion'
+                ? `Orion · ${bids.bids.orion ?? 0} Credits`
                 : 'Noch niemand'}
           </strong>
         </div>
@@ -344,14 +346,14 @@ function LandTieAuctionPanel({
 
           <div
             className={`land-tie-price-line ${
-              bids.leader ? 'land-tie-line-active' : ''
+              bids.leaderId ? 'land-tie-line-active' : ''
             }`}
             style={{ bottom: positionForPrice(highestBid) }}
           />
 
           <div
             className={`land-tie-avatar land-tie-player ${
-              bids.leader === 'player'
+              bids.leaderId === 'agima'
                 ? 'land-tie-leading-avatar'
                 : ''
             }`}
@@ -360,15 +362,15 @@ function LandTieAuctionPanel({
             <span>🧑‍🚀</span>
             <strong>Du</strong>
             <b>
-              {bids.playerBid >= tie.minimumBid
-                ? `${bids.playerBid} Credits`
+              {(bids.bids.agima ?? 0) >= tie.minimumBid
+                ? `${bids.bids.agima ?? 0} Credits`
                 : 'bereit'}
             </b>
           </div>
 
           <div
             className={`land-tie-avatar land-tie-orion ${
-              bids.leader === 'orion'
+              bids.leaderId === 'orion'
                 ? 'land-tie-leading-avatar'
                 : ''
             }`}
@@ -377,8 +379,8 @@ function LandTieAuctionPanel({
             <span>🤖</span>
             <strong>Orion</strong>
             <b>
-              {bids.orionBid >= tie.minimumBid
-                ? `${bids.orionBid} Credits`
+              {(bids.bids.orion ?? 0) >= tie.minimumBid
+                ? `${bids.bids.orion ?? 0} Credits`
                 : 'bereit'}
             </b>
           </div>
@@ -393,9 +395,9 @@ function LandTieAuctionPanel({
             <div className="land-tie-result" aria-live="polite">
               <p className="eyebrow">Auktion beendet</p>
               <h3>
-                {bids.leader === 'player'
+                {bids.leaderId === 'agima'
                   ? 'Du erhältst das Feld'
-                  : bids.leader === 'orion'
+                  : bids.leaderId === 'orion'
                     ? 'Orion erhält das Feld'
                     : 'Das Feld bleibt frei'}
               </h3>
@@ -417,7 +419,7 @@ function LandTieAuctionPanel({
                 disabled={
                   playerBehindStart
                     ? tie.minimumBid > credits
-                    : bids.playerBid >= credits
+                    : (bids.bids.agima ?? 0) >= credits
                 }
                 onClick={raisePlayerBid}
               >

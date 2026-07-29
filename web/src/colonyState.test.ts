@@ -202,8 +202,10 @@ describe('Gemeinsame Kolonieansicht', () => {
       {
         ...reservedState,
         pendingLandBid: {
-          ...reservedState.pendingLandBid!,
-          tieWinner: 'player',
+          tileId,
+          bids: { agima: 25, orion: 30 },
+          reservedCredits: { agima: 25 },
+          winnerId: 'agima',
         },
       },
       {},
@@ -213,8 +215,10 @@ describe('Gemeinsame Kolonieansicht', () => {
       {
         ...reservedState,
         pendingLandBid: {
-          ...reservedState.pendingLandBid!,
-          tieWinner: 'orion',
+          tileId,
+          bids: { agima: 25, orion: 30 },
+          reservedCredits: { orion: 30 },
+          winnerId: 'orion',
         },
       },
       {},

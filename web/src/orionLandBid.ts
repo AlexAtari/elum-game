@@ -6,7 +6,7 @@ import {
   HARVESTER_ORE_COST,
   LAND_MINIMUM_BID,
   MARKET_PRICES,
-  placeLandBid,
+  placeColonyLandBid,
   selectRivalColonies,
   tiles,
   type GameState,
@@ -43,20 +43,22 @@ export function applyStrategicOrionBid(
     },
     {
       tileId: tile.id,
-      minimumBid: LAND_MINIMUM_BID,
+      minimumBid:
+        pendingBid.tieMinimum ?? LAND_MINIMUM_BID,
       food: tile.food ?? 0,
       energy: tile.energy ?? 0,
       ore: tile.ore ?? 0,
     },
   )
 
-  return {
-    ...currentState,
-    pendingLandBid: {
-      ...pendingBid,
-      rivalBid: decision?.bid ?? 0,
-    },
-  }
+  return decision
+    ? placeColonyLandBid(
+        currentState,
+        'orion',
+        pendingBid.tileId,
+        decision.bid,
+      )
+    : currentState
 }
 
 export function placeStrategicOrionLandBid(
@@ -65,6 +67,11 @@ export function placeStrategicOrionLandBid(
   amount: number,
 ): GameState {
   return applyStrategicOrionBid(
-    placeLandBid(currentState, tileId, amount),
+    placeColonyLandBid(
+      currentState,
+      'agima',
+      tileId,
+      amount,
+    ),
   )
 }

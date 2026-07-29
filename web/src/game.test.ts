@@ -32,6 +32,7 @@ import {
   moveMarketOffer,
   orderHarvesterBuild,
   PLAYER_START_TILE_IDS,
+  placeColonyLandBid,
   placeLandBid,
   raiseLandTieBid,
   resolveLandTieBreak,
@@ -82,6 +83,35 @@ const freeAuctionTileId = targetPlanetMap.tiles
         tileId,
       ),
   )!
+
+function createContestedLandState() {
+  const state = createInitialGameState()
+  const targetTile = tiles.find(
+    (tile) => tile.id === freeAuctionTileId,
+  )!
+  const occupiedTileIds = Object.values(state.colonies).flatMap(
+    (colony) => colony.ownedTileIds,
+  )
+  const orionBridgeTileId = targetTile.neighborIds.find(
+    (tileId) =>
+      tileId !== 'HQ' &&
+      !occupiedTileIds.includes(tileId),
+  )!
+
+  return {
+    ...state,
+    colonies: {
+      ...state.colonies,
+      orion: {
+        ...state.colonies.orion,
+        ownedTileIds: [
+          ...state.colonies.orion.ownedTileIds,
+          orionBridgeTileId,
+        ],
+      },
+    },
+  }
+}
 
 describe('Planetengraph-Karte', () => {
   it('verwendet das HQ und 91 eindeutige Spielfelder', () => {
@@ -1173,7 +1203,7 @@ describe('Grundstücksauktion', () => {
 
   it('reserviert das verdeckte Gebot', () => {
     const state = placeLandBid(
-      createInitialGameState(),
+      createContestedLandState(),
       freeAuctionTileId,
       30,
       35,
@@ -1182,8 +1212,14 @@ describe('Grundstücksauktion', () => {
     expect(state.colonies.agima.credits).toBe(70)
     expect(state.pendingLandBid).toEqual({
       tileId: freeAuctionTileId,
-      amount: 30,
-      rivalBid: 35,
+      bids: {
+        agima: 30,
+        orion: 35,
+      },
+      reservedCredits: {
+        agima: 30,
+        orion: 35,
+      },
       tieMinimum: undefined,
     })
     expect(state.colonies.agima.ownedTileIds).toEqual(PLAYER_START_TILE_IDS)
@@ -1191,7 +1227,7 @@ describe('Grundstücksauktion', () => {
 
   it('erstattet ein zurückgenommenes Gebot', () => {
     const reservedState = placeLandBid(
-      createInitialGameState(),
+      createContestedLandState(),
       freeAuctionTileId,
       30,
       35,
@@ -1204,7 +1240,7 @@ describe('Grundstücksauktion', () => {
 
   it('startet auch bei höherem Spielergebot eine Grundstücksauktion', () => {
     const state = placeLandBid(
-      createInitialGameState(),
+      createContestedLandState(),
       freeAuctionTileId,
       36,
       35,
@@ -1219,17 +1255,15 @@ describe('Grundstücksauktion', () => {
       tileId: freeAuctionTileId,
       tiedBid: 36,
       minimumBid: 37,
-      playerOpeningBid: 36,
-      orionOpeningBid: 35,
-      initialLeader: 'player',
+      openingBids: { agima: 36, orion: 35 },
+      initialLeaderId: 'agima',
     })
 
     const resolvedState = resolveLandTieBreak(
       auctionState,
       {
-        playerBid: 36,
-        orionBid: 35,
-        leader: 'player',
+        bids: { agima: 36, orion: 35 },
+        leaderId: 'agima',
       },
     )
     const result = runRound(
@@ -1246,16 +1280,15 @@ describe('Grundstücksauktion', () => {
   it('meldet das Explorationsergebnis zu Beginn der Folgerunde', () => {
     const auctionState = beginLandTieBreak(
       placeLandBid(
-        createInitialGameState(),
+        createContestedLandState(),
         freeAuctionTileId,
         36,
         35,
       ),
     )
     const resolvedState = resolveLandTieBreak(auctionState, {
-      playerBid: 36,
-      orionBid: 35,
-      leader: 'player',
+      bids: { agima: 36, orion: 35 },
+      leaderId: 'agima',
     })
     const purchaseRound = runRound(
       resolvedState,
@@ -1280,7 +1313,7 @@ describe('Grundstücksauktion', () => {
 
   it('startet auch bei höherem Orion-Gebot eine Grundstücksauktion', () => {
     const state = placeLandBid(
-      createInitialGameState(),
+      createContestedLandState(),
       freeAuctionTileId,
       30,
       35,
@@ -1294,17 +1327,15 @@ describe('Grundstücksauktion', () => {
       tileId: freeAuctionTileId,
       tiedBid: 35,
       minimumBid: 36,
-      playerOpeningBid: 30,
-      orionOpeningBid: 35,
-      initialLeader: 'orion',
+      openingBids: { agima: 30, orion: 35 },
+      initialLeaderId: 'orion',
     })
 
     const resolvedState = resolveLandTieBreak(
       auctionState,
       {
-        playerBid: 30,
-        orionBid: 35,
-        leader: 'orion',
+        bids: { agima: 30, orion: 35 },
+        leaderId: 'orion',
       },
     )
     const result = runRound(
@@ -1329,7 +1360,7 @@ describe('Grundstücksauktion', () => {
 
   it('startet bei Gleichstand eine grafische Stichauktion', () => {
     const state = placeLandBid(
-      createInitialGameState(),
+      createContestedLandState(),
       freeAuctionTileId,
       30,
       30,
@@ -1342,21 +1373,115 @@ describe('Grundstücksauktion', () => {
       tileId: freeAuctionTileId,
       tiedBid: 30,
       minimumBid: 31,
-      playerOpeningBid: 30,
-      orionOpeningBid: 30,
-      initialLeader: null,
+      openingBids: { agima: 30, orion: 30 },
+      initialLeaderId: null,
     })
+  })
+
+  it('führt eine Grundstücksauktion mit mehr als zwei Teilnehmern im Kern aus', () => {
+    const baseState = createInitialGameState()
+    const targetTile = tiles.find(
+      (tile) => tile.id === freeAuctionTileId,
+    )!
+    const occupiedTileIds = Object.values(
+      baseState.colonies,
+    ).flatMap((colony) => colony.ownedTileIds)
+    const bridgeTileIds = targetTile.neighborIds.filter(
+      (tileId) =>
+        tileId !== 'HQ' &&
+        !occupiedTileIds.includes(tileId),
+    )
+    const state = {
+      ...baseState,
+      colonies: {
+        ...baseState.colonies,
+        orion: {
+          ...baseState.colonies.orion,
+          ownedTileIds: [
+            ...baseState.colonies.orion.ownedTileIds,
+            bridgeTileIds[0],
+          ],
+        },
+        nova: {
+          ...baseState.colonies.nova,
+          ownedTileIds: [
+            ...baseState.colonies.nova.ownedTileIds,
+            bridgeTileIds[1],
+          ],
+        },
+      },
+    }
+    const withAgimaBid = placeColonyLandBid(
+      state,
+      'agima',
+      freeAuctionTileId,
+      30,
+    )
+    const withOrionBid = placeColonyLandBid(
+      withAgimaBid,
+      'orion',
+      freeAuctionTileId,
+      31,
+    )
+    const withNovaBid = placeColonyLandBid(
+      withOrionBid,
+      'nova',
+      freeAuctionTileId,
+      32,
+    )
+    const auctionState = beginLandTieBreak(withNovaBid)
+
+    expect(auctionState.landAuctionTie).toEqual({
+      tileId: freeAuctionTileId,
+      tiedBid: 32,
+      minimumBid: 33,
+      openingBids: {
+        agima: 30,
+        orion: 31,
+        nova: 32,
+      },
+      initialLeaderId: 'nova',
+    })
+    expect(auctionState.colonies.agima.credits).toBe(
+      state.colonies.agima.credits,
+    )
+    expect(auctionState.colonies.orion.credits).toBe(
+      state.colonies.orion.credits,
+    )
+    expect(auctionState.colonies.nova.credits).toBe(
+      state.colonies.nova.credits,
+    )
+
+    const resolvedState = resolveLandTieBreak(auctionState, {
+      bids: {
+        agima: 30,
+        orion: 31,
+        nova: 32,
+      },
+      leaderId: 'nova',
+    })
+    const result = runRound(
+      resolvedState,
+      {},
+      normalSupply,
+    )
+
+    expect(result.nextState.colonies.nova.ownedTileIds).toContain(
+      freeAuctionTileId,
+    )
+    expect(resolvedState.colonies.nova.credits).toBe(
+      state.colonies.nova.credits - 32,
+    )
   })
 
   it('übernimmt die Führung nur mit einem höheren Gebot', () => {
     const start = {
-      playerBid: 30,
-      orionBid: 30,
-      leader: null,
+      bids: { agima: 30, orion: 30 },
+      leaderId: null,
     } as const
     const playerLeads = raiseLandTieBid(
       start,
-      'player',
+      'agima',
       100,
     )
     const orionOvertakes = raiseLandTieBid(
@@ -1366,110 +1491,98 @@ describe('Grundstücksauktion', () => {
     )
 
     expect(playerLeads).toEqual({
-      playerBid: 31,
-      orionBid: 30,
-      leader: 'player',
+      bids: { agima: 31, orion: 30 },
+      leaderId: 'agima',
     })
     expect(orionOvertakes).toEqual({
-      playerBid: 31,
-      orionBid: 32,
-      leader: 'orion',
+      bids: { agima: 31, orion: 32 },
+      leaderId: 'orion',
     })
   })
 
   it('verhindert Gebote oberhalb der verfügbaren Credits', () => {
     const bids = {
-      playerBid: 30,
-      orionBid: 30,
-      leader: null,
+      bids: { agima: 30, orion: 30 },
+      leaderId: null,
     } as const
 
-    expect(raiseLandTieBid(bids, 'player', 30)).toBe(bids)
+    expect(raiseLandTieBid(bids, 'agima', 30)).toBe(bids)
   })
 
   it('nimmt den Bestgebotsbalken bis zum nächsten Spieler zurück', () => {
     const playerStillLeads = lowerLandTieBid(
       {
-        playerBid: 34,
-        orionBid: 32,
-        leader: 'player',
+        bids: { agima: 34, orion: 32 },
+        leaderId: 'agima',
       },
-      'player',
+      'agima',
       31,
     )
     const orionTakesLine = lowerLandTieBid(
       {
-        playerBid: 33,
-        orionBid: 32,
-        leader: 'player',
+        bids: { agima: 33, orion: 32 },
+        leaderId: 'agima',
       },
-      'player',
+      'agima',
       31,
     )
 
     expect(playerStillLeads).toEqual({
-      playerBid: 33,
-      orionBid: 32,
-      leader: 'player',
+      bids: { agima: 33, orion: 32 },
+      leaderId: 'agima',
     })
     expect(orionTakesLine).toEqual({
-      playerBid: 32,
-      orionBid: 32,
-      leader: 'orion',
+      bids: { agima: 32, orion: 32 },
+      leaderId: 'orion',
     })
   })
 
   it('senkt ein abgegebenes Gebot nicht unter den Startpreis', () => {
     const bids = {
-      playerBid: 31,
-      orionBid: 30,
-      leader: 'player',
+      bids: { agima: 31, orion: 30 },
+      leaderId: 'agima',
     } as const
 
-    expect(lowerLandTieBid(bids, 'player', 31)).toBe(bids)
+    expect(lowerLandTieBid(bids, 'agima', 31)).toBe(bids)
   })
 
   it('gibt den Balken beim Rückzug am Startpreis an einen wartenden Spieler ab', () => {
     const bids = lowerLandTieBid(
       {
-        playerBid: 31,
-        orionBid: 31,
-        leader: 'player',
+        bids: { agima: 31, orion: 31 },
+        leaderId: 'agima',
       },
-      'player',
+      'agima',
       31,
     )
 
     expect(bids).toEqual({
-      playerBid: 31,
-      orionBid: 31,
-      leader: 'orion',
+      bids: { agima: 31, orion: 31 },
+      leaderId: 'orion',
     })
   })
 
   it('reserviert das Siegergebot der grafischen Stichauktion', () => {
     const state = beginLandTieBreak(
       placeLandBid(
-        createInitialGameState(),
+        createContestedLandState(),
         freeAuctionTileId,
         30,
         30,
       ),
     )
     const resolvedState = resolveLandTieBreak(state, {
-      playerBid: 31,
-      orionBid: 30,
-      leader: 'player',
+      bids: { agima: 31, orion: 30 },
+      leaderId: 'agima',
     })
 
     expect(resolvedState.colonies.agima.credits).toBe(69)
     expect(resolvedState.landAuctionTie).toBeNull()
     expect(resolvedState.pendingLandBid).toEqual({
       tileId: freeAuctionTileId,
-      amount: 31,
-      rivalBid: 30,
-      reservedCredits: 31,
-      tieWinner: 'player',
+      bids: { agima: 31, orion: 30 },
+      reservedCredits: { agima: 31 },
+      winnerId: 'agima',
     })
 
     const result = runRound(resolvedState, {}, normalSupply)
@@ -1480,26 +1593,24 @@ describe('Grundstücksauktion', () => {
   })
 
   it('löst eine nicht bezahlbare Stichauktion ohne Sackgasse auf', () => {
-    const poorState = withAgima(createInitialGameState(), {
+    const poorState = withAgima(createContestedLandState(), {
       credits: 30,
     })
     const tieState = beginLandTieBreak(
       placeLandBid(poorState, freeAuctionTileId, 30, 30),
     )
     const resolvedState = resolveLandTieBreak(tieState, {
-      playerBid: 30,
-      orionBid: 31,
-      leader: 'orion',
+      bids: { agima: 30, orion: 31 },
+      leaderId: 'orion',
     })
 
     expect(resolvedState.colonies.agima.credits).toBe(30)
     expect(resolvedState.landAuctionTie).toBeNull()
     expect(resolvedState.pendingLandBid).toEqual({
       tileId: freeAuctionTileId,
-      amount: 30,
-      rivalBid: 31,
-      reservedCredits: 0,
-      tieWinner: 'orion',
+      bids: { agima: 30, orion: 31 },
+      reservedCredits: { orion: 31 },
+      winnerId: 'orion',
     })
 
     const result = runRound(resolvedState, {}, normalSupply)
@@ -1518,16 +1629,15 @@ describe('Grundstücksauktion', () => {
   it('vergibt das Feld bei gleichem Schlussgebot an den zuerst Führenden', () => {
     const state = beginLandTieBreak(
       placeLandBid(
-        createInitialGameState(),
+        createContestedLandState(),
         freeAuctionTileId,
         30,
         30,
       ),
     )
     const resolvedState = resolveLandTieBreak(state, {
-      playerBid: 31,
-      orionBid: 31,
-      leader: 'player',
+      bids: { agima: 31, orion: 31 },
+      leaderId: 'agima',
     })
     const result = runRound(resolvedState, {}, normalSupply)
 
@@ -1543,16 +1653,15 @@ describe('Grundstücksauktion', () => {
   it('lässt das Feld frei, wenn niemand das Gebot erhöht', () => {
     const state = beginLandTieBreak(
       placeLandBid(
-        createInitialGameState(),
+        createContestedLandState(),
         freeAuctionTileId,
         30,
         30,
       ),
     )
     const resolvedState = resolveLandTieBreak(state, {
-      playerBid: 30,
-      orionBid: 30,
-      leader: null,
+      bids: { agima: 30, orion: 30 },
+      leaderId: null,
     })
 
     expect(resolvedState.colonies.agima.credits).toBe(100)

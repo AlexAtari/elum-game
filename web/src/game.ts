@@ -198,28 +198,23 @@ export type GameState = {
 
 export type LandBid = {
   tileId: string
-  amount: number
-  rivalBid: number
+  bids: Partial<Record<ParticipantId, number>>
+  reservedCredits: Partial<Record<ParticipantId, number>>
   tieMinimum?: number
-  reservedCredits?: number
-  tieWinner?: LandTieBidder
+  winnerId?: ParticipantId
 }
 
 export type LandAuctionTie = {
   tileId: string
   tiedBid: number
   minimumBid: number
-  playerOpeningBid: number
-  orionOpeningBid: number
-  initialLeader: LandTieBidder | null
+  openingBids: Partial<Record<ParticipantId, number>>
+  initialLeaderId: ParticipantId | null
 }
 
-export type LandTieBidder = 'player' | 'orion'
-
 export type LandTieBidState = {
-  playerBid: number
-  orionBid: number
-  leader: LandTieBidder | null
+  bids: Partial<Record<ParticipantId, number>>
+  leaderId: ParticipantId | null
 }
 
 export type LandAuctionResult = {
@@ -661,9 +656,17 @@ export function isMarketInitiationBlocked(
 export function isLandBidBlocked(
   currentState: GameState,
 ): boolean {
+  return isColonyLandBidBlocked(currentState, 'agima')
+}
+
+export function isColonyLandBidBlocked(
+  currentState: GameState,
+  participantId: ParticipantId,
+): boolean {
   return (
     currentState.activeGlobalEvent === 'surveying-stop' ||
-    currentState.activeLocalEvent === 'land-registry-error'
+    (participantId === 'agima' &&
+      currentState.activeLocalEvent === 'land-registry-error')
   )
 }
 
@@ -1098,10 +1101,18 @@ export function selectRivalColonies(
 export function selectOpponentTileIds(
   currentState: GameState,
 ) {
-  const colonies = selectColonies(currentState)
+  return selectOtherColonyTileIds(currentState, 'agima')
+}
 
-  return (['orion', 'nova', 'vega'] as const).flatMap(
-    (participantId) => colonies[participantId].ownedTileIds,
+export function selectOtherColonyTileIds(
+  currentState: GameState,
+  participantId: ParticipantId,
+) {
+  return participantIds
+    .filter((candidateId) => candidateId !== participantId)
+    .flatMap(
+      (candidateId) =>
+        currentState.colonies[candidateId].ownedTileIds,
   )
 }
 
@@ -2313,14 +2324,22 @@ function createRivalBid(tile: Tile, minimumBid: number) {
   return lowerBound + Math.floor(Math.random() * 11)
 }
 
-export function placeLandBid(
+export function getLandBidAmount(
+  bid: LandBid,
+  participantId: ParticipantId,
+) {
+  return bid.bids[participantId] ?? 0
+}
+
+export function placeColonyLandBid(
   currentState: GameState,
+  participantId: ParticipantId,
   tileId: string,
   amount: number,
-  rivalBidOverride?: number,
 ): GameState {
   const tile = tiles.find((candidate) => candidate.id === tileId)
-  const colony = selectColonies(currentState).agima
+  const colony = selectColonies(currentState)[participantId]
+  const pendingBid = currentState.pendingLandBid
   const tie = currentState.landAuctionTie
   const minimumBid =
     tie?.tileId === tileId
@@ -2328,17 +2347,23 @@ export function placeLandBid(
       : LAND_MINIMUM_BID
 
   if (
-    isLandBidBlocked(currentState) ||
+    isColonyLandBidBlocked(currentState, participantId) ||
     !tile ||
     tile.owner !== 'free' ||
     colony.ownedTileIds.includes(tileId) ||
-    selectOpponentTileIds(currentState).includes(tileId) ||
+    selectOtherColonyTileIds(
+      currentState,
+      participantId,
+    ).includes(tileId) ||
     !isColonyLandTargetAdjacent(
       currentState,
-      'agima',
+      participantId,
       tileId,
     ) ||
-    currentState.pendingLandBid !== null ||
+    (pendingBid !== null &&
+      pendingBid.tileId !== tileId) ||
+    pendingBid?.winnerId !== undefined ||
+    pendingBid?.bids[participantId] !== undefined ||
     (tie !== null && tie.tileId !== tileId) ||
     !Number.isInteger(amount) ||
     amount < minimumBid ||
@@ -2349,7 +2374,7 @@ export function placeLandBid(
 
   const stateAfterReservation = updateColony(
     currentState,
-    'agima',
+    participantId,
     (currentColony) => ({
       ...currentColony,
       credits: currentColony.credits - amount,
@@ -2360,54 +2385,129 @@ export function placeLandBid(
     ...stateAfterReservation,
     pendingLandBid: {
       tileId,
-      amount,
-      rivalBid:
-        rivalBidOverride ?? createRivalBid(tile, minimumBid),
+      bids: {
+        ...(pendingBid?.bids ?? {}),
+        [participantId]: amount,
+      },
+      reservedCredits: {
+        ...(pendingBid?.reservedCredits ?? {}),
+        [participantId]: amount,
+      },
       tieMinimum: tie?.minimumBid,
     },
     landAuctionTie: null,
   }
 }
 
-export function cancelLandBid(
+export function placeLandBid(
   currentState: GameState,
+  tileId: string,
+  amount: number,
+  rivalBidOverride?: number,
+): GameState {
+  const stateAfterPlayerBid = placeColonyLandBid(
+    currentState,
+    'agima',
+    tileId,
+    amount,
+  )
+
+  if (stateAfterPlayerBid === currentState) {
+    return currentState
+  }
+
+  const tile = tiles.find((candidate) => candidate.id === tileId)
+  const minimumBid =
+    currentState.landAuctionTie?.tileId === tileId
+      ? currentState.landAuctionTie.minimumBid
+      : LAND_MINIMUM_BID
+  const rivalBid =
+    rivalBidOverride ??
+    (tile ? createRivalBid(tile, minimumBid) : 0)
+
+  return rivalBid >= minimumBid
+    ? placeColonyLandBid(
+        stateAfterPlayerBid,
+        'orion',
+        tileId,
+        rivalBid,
+      )
+    : stateAfterPlayerBid
+}
+
+export function cancelColonyLandBid(
+  currentState: GameState,
+  participantId: ParticipantId,
 ): GameState {
   const bid = currentState.pendingLandBid
+  const reservedCredits =
+    bid?.reservedCredits[participantId] ?? 0
 
-  if (bid === null) {
+  if (
+    bid === null ||
+    bid.bids[participantId] === undefined
+  ) {
     return currentState
   }
 
   const stateAfterRefund = updateColony(
     currentState,
-    'agima',
+    participantId,
     (colony) => ({
       ...colony,
-      credits:
-        colony.credits +
-        (bid.reservedCredits ?? bid.amount),
+      credits: colony.credits + reservedCredits,
     }),
+  )
+  const remainingBids = { ...bid.bids }
+  const remainingReservations = {
+    ...bid.reservedCredits,
+  }
+  delete remainingBids[participantId]
+  delete remainingReservations[participantId]
+  const remainingEntries = Object.entries(remainingBids) as Array<
+    [ParticipantId, number]
+  >
+  const highestRemainingBid = Math.max(
+    0,
+    ...remainingEntries.map(([, amount]) => amount),
+  )
+  const remainingLeaders = remainingEntries.filter(
+    ([, amount]) => amount === highestRemainingBid,
   )
 
   return {
     ...stateAfterRefund,
-    pendingLandBid: null,
-    landAuctionTie: bid.tieMinimum
+    pendingLandBid:
+      remainingEntries.length > 0
+        ? {
+            ...bid,
+            bids: remainingBids,
+            reservedCredits: remainingReservations,
+          }
+        : null,
+    landAuctionTie:
+      bid.tieMinimum && remainingEntries.length > 0
       ? {
           tileId: bid.tileId,
           tiedBid: bid.tieMinimum - 1,
           minimumBid: bid.tieMinimum,
-          playerOpeningBid: bid.amount,
-          orionOpeningBid: bid.rivalBid,
-          initialLeader:
-            bid.amount > bid.rivalBid
-              ? 'player'
-              : bid.amount < bid.rivalBid
-                ? 'orion'
-                : null,
+          openingBids: remainingBids,
+          initialLeaderId:
+            remainingLeaders.length === 1
+              ? remainingLeaders[0][0]
+              : null,
         }
       : null,
   }
+}
+
+export function cancelLandBid(
+  currentState: GameState,
+) {
+  return cancelColonyLandBid(
+    cancelColonyLandBid(currentState, 'agima'),
+    'orion',
+  )
 }
 
 export function beginLandTieBreak(
@@ -2415,30 +2515,33 @@ export function beginLandTieBreak(
 ): GameState {
   const bid = currentState.pendingLandBid
 
-  if (!bid || bid.tieWinner) {
+  if (!bid || bid.winnerId) {
+    return currentState
+  }
+
+  const bidEntries = Object.entries(bid.bids) as Array<
+    [ParticipantId, number]
+  >
+
+  if (bidEntries.length < 2) {
     return currentState
   }
 
   const startingBid = Math.max(
-    bid.amount,
-    bid.rivalBid,
+    ...bidEntries.map(([, amount]) => amount),
   )
-  const initialLeader: LandTieBidder | null =
-    bid.amount > bid.rivalBid
-      ? 'player'
-      : bid.amount < bid.rivalBid
-        ? 'orion'
-        : null
-
-  const stateAfterRefund = updateColony(
+  const startingLeaders = bidEntries.filter(
+    ([, amount]) => amount === startingBid,
+  )
+  const stateAfterRefund = bidEntries.reduce(
+    (state, [participantId]) =>
+      updateColony(state, participantId, (colony) => ({
+        ...colony,
+        credits:
+          colony.credits +
+          (bid.reservedCredits[participantId] ?? 0),
+      })),
     currentState,
-    'agima',
-    (colony) => ({
-      ...colony,
-      credits:
-        colony.credits +
-        (bid.reservedCredits ?? bid.amount),
-    }),
   )
 
   return {
@@ -2448,26 +2551,29 @@ export function beginLandTieBreak(
       tileId: bid.tileId,
       tiedBid: startingBid,
       minimumBid: startingBid + 1,
-      playerOpeningBid: bid.amount,
-      orionOpeningBid: bid.rivalBid,
-      initialLeader,
+      openingBids: { ...bid.bids },
+      initialLeaderId:
+        startingLeaders.length === 1
+          ? startingLeaders[0][0]
+          : null,
     },
   }
 }
 
 export function raiseLandTieBid(
   currentBids: LandTieBidState,
-  bidder: LandTieBidder,
+  bidderId: ParticipantId,
   creditLimit: number,
 ): LandTieBidState {
-  const ownBid =
-    bidder === 'player'
-      ? currentBids.playerBid
-      : currentBids.orionBid
-  const opposingBid =
-    bidder === 'player'
-      ? currentBids.orionBid
-      : currentBids.playerBid
+  const ownBid = currentBids.bids[bidderId] ?? 0
+  const opposingBid = Math.max(
+    0,
+    ...Object.entries(currentBids.bids)
+      .filter(
+        ([participantId]) => participantId !== bidderId,
+      )
+      .map(([, amount]) => amount ?? 0),
+  )
   const nextBid = Math.max(
     ownBid + 1,
     opposingBid + 1,
@@ -2479,45 +2585,50 @@ export function raiseLandTieBid(
 
   return {
     ...currentBids,
-    playerBid:
-      bidder === 'player' ? nextBid : currentBids.playerBid,
-    orionBid:
-      bidder === 'orion' ? nextBid : currentBids.orionBid,
-    leader:
+    bids: {
+      ...currentBids.bids,
+      [bidderId]: nextBid,
+    },
+    leaderId:
       nextBid > opposingBid
-        ? bidder
-        : currentBids.leader ?? bidder,
+        ? bidderId
+        : currentBids.leaderId ?? bidderId,
   }
 }
 
 export function lowerLandTieBid(
   currentBids: LandTieBidState,
-  bidder: LandTieBidder,
+  bidderId: ParticipantId,
   minimumBid: number,
 ): LandTieBidState {
-  const ownBid =
-    bidder === 'player'
-      ? currentBids.playerBid
-      : currentBids.orionBid
+  const ownBid = currentBids.bids[bidderId] ?? 0
 
   if (ownBid < minimumBid) {
     return currentBids
   }
-  const opposingBid =
-    bidder === 'player'
-      ? currentBids.orionBid
-      : currentBids.playerBid
-  const opposingBidder: LandTieBidder =
-    bidder === 'player' ? 'orion' : 'player'
+  const opposingEntries = (
+    Object.entries(currentBids.bids) as Array<
+      [ParticipantId, number]
+    >
+  )
+    .filter(([participantId]) => participantId !== bidderId)
+    .sort(
+      (first, second) =>
+        second[1] - first[1] ||
+        first[0].localeCompare(second[0]),
+    )
+  const [highestOpponentId, highestOpponentBid] =
+    opposingEntries[0] ?? [null, 0]
 
   if (ownBid === minimumBid) {
     if (
-      currentBids.leader === bidder &&
-      opposingBid >= minimumBid
+      currentBids.leaderId === bidderId &&
+      highestOpponentId !== null &&
+      highestOpponentBid >= minimumBid
     ) {
       return {
         ...currentBids,
-        leader: opposingBidder,
+        leaderId: highestOpponentId,
       }
     }
 
@@ -2526,17 +2637,19 @@ export function lowerLandTieBid(
 
   const nextBid = ownBid - 1
   const leader =
-    currentBids.leader === bidder && nextBid <= opposingBid
-      ? opposingBidder
-      : currentBids.leader
+    currentBids.leaderId === bidderId &&
+    highestOpponentId !== null &&
+    nextBid <= highestOpponentBid
+      ? highestOpponentId
+      : currentBids.leaderId
 
   return {
     ...currentBids,
-    playerBid:
-      bidder === 'player' ? nextBid : currentBids.playerBid,
-    orionBid:
-      bidder === 'orion' ? nextBid : currentBids.orionBid,
-    leader,
+    bids: {
+      ...currentBids.bids,
+      [bidderId]: nextBid,
+    },
+    leaderId: leader,
   }
 }
 
@@ -2545,61 +2658,81 @@ export function resolveLandTieBreak(
   bids: LandTieBidState,
 ): GameState {
   const tie = currentState.landAuctionTie
-  const localColony = selectLocalColony(currentState)
 
   if (!tie) {
     return currentState
   }
 
-  if (bids.leader === null) {
+  if (bids.leaderId === null) {
     return {
       ...currentState,
       landAuctionTie: null,
     }
   }
 
-  const playerMinimumWinningBid =
-    tie.initialLeader === 'player'
-      ? tie.tiedBid
-      : tie.minimumBid
-  const orionMinimumWinningBid =
-    tie.initialLeader === 'orion'
-      ? tie.tiedBid
-      : tie.minimumBid
+  const winnerId = bids.leaderId
+  const openingBidderIds = Object.keys(
+    tie.openingBids,
+  ) as ParticipantId[]
+  const finalBidderIds = Object.keys(
+    bids.bids,
+  ) as ParticipantId[]
 
   if (
-    bids.leader === 'player' &&
-    (bids.playerBid < bids.orionBid ||
-      bids.playerBid < playerMinimumWinningBid ||
-      localColony.credits < bids.playerBid)
+    openingBidderIds.length !== finalBidderIds.length ||
+    openingBidderIds.some(
+      (participantId) =>
+        bids.bids[participantId] === undefined,
+    ) ||
+    finalBidderIds.some(
+      (participantId) =>
+        tie.openingBids[participantId] === undefined,
+    )
   ) {
     return currentState
   }
 
+  const winningBid = bids.bids[winnerId] ?? 0
+  const highestOpposingBid = Math.max(
+    0,
+    ...Object.entries(bids.bids)
+      .filter(
+        ([participantId]) => participantId !== winnerId,
+      )
+      .map(([, amount]) => amount ?? 0),
+  )
+  const minimumWinningBid =
+    tie.initialLeaderId === winnerId
+      ? tie.tiedBid
+      : tie.minimumBid
+  const winner = selectColonies(currentState)[winnerId]
+
   if (
-    bids.leader === 'orion' &&
-    (bids.orionBid < bids.playerBid ||
-      bids.orionBid < orionMinimumWinningBid)
+    winningBid < highestOpposingBid ||
+    winningBid < minimumWinningBid ||
+    winner.credits < winningBid
   ) {
     return currentState
   }
 
-  const playerWon = bids.leader === 'player'
-  const stateAfterPayment = playerWon
-    ? updateColony(currentState, 'agima', (colony) => ({
-        ...colony,
-        credits: colony.credits - bids.playerBid,
-      }))
-    : currentState
+  const stateAfterPayment = updateColony(
+    currentState,
+    winnerId,
+    (colony) => ({
+      ...colony,
+      credits: colony.credits - winningBid,
+    }),
+  )
 
   return {
     ...stateAfterPayment,
     pendingLandBid: {
       tileId: tie.tileId,
-      amount: bids.playerBid,
-      rivalBid: bids.orionBid,
-      reservedCredits: playerWon ? bids.playerBid : 0,
-      tieWinner: bids.leader,
+      bids: { ...bids.bids },
+      reservedCredits: {
+        [winnerId]: winningBid,
+      },
+      winnerId,
     },
     landAuctionTie: null,
   }
@@ -2914,60 +3047,77 @@ export function runRound(
     .map((task) => task.id)
 
   const landBid = currentState.pendingLandBid
+  const landBidEntries = landBid
+    ? (Object.entries(landBid.bids) as Array<
+        [ParticipantId, number]
+      >)
+    : []
+  const automaticWinnerId =
+    landBidEntries.length === 1
+      ? landBidEntries[0][0]
+      : undefined
+  const landWinnerId =
+    landBid?.winnerId ?? automaticWinnerId
+  const playerLandBid = landBid?.bids.agima ?? 0
+  const highestRivalLandBid = Math.max(
+    0,
+    ...landBidEntries
+      .filter(([participantId]) => participantId !== 'agima')
+      .map(([, amount]) => amount),
+  )
   const landAuction: LandAuctionResult | null = landBid
     ? {
         tileId: landBid.tileId,
-        playerBid: landBid.amount,
-        rivalBid: landBid.rivalBid,
+        playerBid: playerLandBid,
+        rivalBid: highestRivalLandBid,
         outcome:
-          landBid.tieWinner === 'player'
+          landWinnerId === 'agima'
             ? 'won'
-            : landBid.tieWinner === 'orion'
+            : landWinnerId !== undefined
               ? 'lost'
               : 'tie',
       }
     : null
 
-  const playerWonLand = landAuction?.outcome === 'won'
-  const rivalWonLand = landAuction?.outcome === 'lost'
   const tiedLandAuction = landAuction?.outcome === 'tie'
+  const stateAfterLandRefunds = landBidEntries.reduce(
+    (state, [participantId]) => {
+      if (participantId === landWinnerId) {
+        return state
+      }
+
+      const reservedCredits =
+        landBid?.reservedCredits[participantId] ?? 0
+
+      return reservedCredits > 0
+        ? updateColony(state, participantId, (colony) => ({
+            ...colony,
+            credits: colony.credits + reservedCredits,
+          }))
+        : state
+    },
+    currentState,
+  )
   const stateAfterRivalRound =
-    advanceRivalColoniesInGame(currentState)
+    advanceRivalColoniesInGame(stateAfterLandRefunds)
   let stateAfterLandAuction = stateAfterRivalRound
 
-  if (rivalWonLand) {
-    stateAfterLandAuction = updateColony(
-      stateAfterLandAuction,
-      'orion',
-      (colony) => ({
-        ...colony,
-        credits: Math.max(
-          0,
-          colony.credits - landBid!.rivalBid,
-        ),
-      }),
-    )
+  if (landBid && landWinnerId) {
     stateAfterLandAuction = addColonyOwnedTile(
       stateAfterLandAuction,
-      'orion',
-      landBid!.tileId,
+      landWinnerId,
+      landBid.tileId,
     )
-    stateAfterLandAuction = updateColony(
-      stateAfterLandAuction,
-      'orion',
-      (colony) => ({
-        ...colony,
-        lastLandPurchaseRound: currentState.round,
-      }),
-    )
-  }
-
-  if (playerWonLand) {
-    stateAfterLandAuction = addColonyOwnedTile(
-      stateAfterLandAuction,
-      'agima',
-      landBid!.tileId,
-    )
+    if (landWinnerId !== 'agima') {
+      stateAfterLandAuction = updateColony(
+        stateAfterLandAuction,
+        landWinnerId,
+        (colony) => ({
+          ...colony,
+          lastLandPurchaseRound: currentState.round,
+        }),
+      )
+    }
   }
 
   const coloniesAfterLand = selectColonies(
@@ -3020,22 +3170,24 @@ export function runRound(
       ? {
           tileId: landBid!.tileId,
           tiedBid: Math.max(
-            landBid!.amount,
-            landBid!.rivalBid,
+            ...landBidEntries.map(([, amount]) => amount),
           ),
           minimumBid:
             Math.max(
-              landBid!.amount,
-              landBid!.rivalBid,
+              ...landBidEntries.map(([, amount]) => amount),
             ) + 1,
-          playerOpeningBid: landBid!.amount,
-          orionOpeningBid: landBid!.rivalBid,
-          initialLeader:
-            landBid!.amount > landBid!.rivalBid
-              ? 'player'
-              : landBid!.amount < landBid!.rivalBid
-                ? 'orion'
-                : null,
+          openingBids: { ...landBid!.bids },
+          initialLeaderId: (() => {
+            const highestBid = Math.max(
+              ...landBidEntries.map(([, amount]) => amount),
+            )
+            const leaders = landBidEntries.filter(
+              ([, amount]) => amount === highestBid,
+            )
+            return leaders.length === 1
+              ? leaders[0][0]
+              : null
+          })(),
         }
       : null,
     initiatedMarketResources: [],
@@ -3056,11 +3208,6 @@ export function runRound(
         1,
         colony.population + populationChange,
       ),
-      credits:
-        colony.credits +
-        (landBid && !playerWonLand
-          ? (landBid.reservedCredits ?? landBid.amount)
-          : 0),
       harvesters:
         colony.harvesters +
         colony.harvestersInConstruction,

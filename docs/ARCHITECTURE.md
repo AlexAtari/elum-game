@@ -143,12 +143,14 @@ Die erste geschlossene Kommandogruppe umfasst:
 - Harvester aus dem freien Pool einsetzen,
 - Harvesterproduktion ändern,
 - Harvester vom Grundstück entfernen,
-- Harvesterbau beauftragen.
+- Harvesterbau beauftragen,
+- verdecktes Grundstücksgebot abgeben,
+- eigenes Grundstücksgebot zurücknehmen.
 
 Die zugrunde liegenden Operationen in `game.ts` akzeptieren einen
 beliebigen `ParticipantId`. Agima-Wrapper bleiben für bestehende
 Headless-Aufrufer kompatibel. `App.tsx` erzeugt für sichtbare
-Spielereingaben nur noch die vier entsprechenden Kommandos. Ob ein
+Spielereingaben nur noch die entsprechenden Kommandos. Ob ein
 Kommando lokal oder über das Netzwerk eintrifft, verändert seine
 Validierung und Ausführung nicht.
 
@@ -199,16 +201,24 @@ Browser- und Simulationsadapter greifen auf gespeicherten
 Browserzustand nur noch über `colonies` oder die Selektoren zu. Die
 Headless-Simulation behält ihren eigenen internen Agima-Agentenstand,
 spiegelt ihn an ihrer Browserzustandsgrenze jedoch ebenfalls in die
-kanonische Map. Das aktuelle Modell der grafischen Auktion bleibt bis
-zu seiner späteren Mehrbieter-Erweiterung noch auf Agima und Orion
-zugeschnitten.
+kanonische Map.
 
-Grundstücks- und Ressourcenauktionen sind noch nicht Teil dieser
-Schicht: Ihr aktuelles Zustandsmodell ist weiterhin auf Agima und
-Orion zugeschnitten. Zuerst werden Gebote, Marktrollen und
-Auktionszustände teilnehmerneutral modelliert; anschließend können
-auch sie denselben Kommandopfad verwenden. Danach kann der
-verbleibende Kernzufall reproduzierbar über den Match-Seed laufen.
+Das Grundstücksauktionsmodell speichert verdeckte Gebote,
+Creditreservierungen, Eröffnungsgebote und Führung als
+`ParticipantId`-Maps beziehungsweise Teilnehmer-ID. Die
+Kernoperationen für Gebot, Rücknahme, Beginn und Auflösung sind damit
+mehrbieterfähig. `App.tsx` sendet das lokale Gebot und seine
+Rücknahme als Kommando; Orions KI-Entscheidung wird danach als
+Singleplayer-Adapter über dieselbe teilnehmerbezogene Kernoperation
+ergänzt. Die aktuelle grafische Komponente stellt weiterhin nur
+Agima und Orion dar. Eine Mehrspieleroberfläche muss zusätzliche
+Bieter sichtbar machen, ohne das Zustandsmodell erneut zu ändern.
+
+Der Ressourcenmarkt ist noch nicht Teil der Kommandoschicht. Seine
+Marktrollen, Angebote und Auktionszustände werden als nächstes
+teilnehmerneutral modelliert. Danach kann auch er denselben
+Kommandopfad verwenden und der verbleibende Kernzufall
+reproduzierbar über den Match-Seed laufen.
 
 Eine spätere Lobby konfiguriert nur die Controller der vier Sitze.
 Nicht menschlich belegte Sitze können mit den vorhandenen KI-Profilen
@@ -275,7 +285,11 @@ Bei mindestens zwei Geboten für dasselbe Grundstück startet eine
 grafische Auktion. Der höchste verdeckte Betrag ist der
 Startpreis. Ein alleiniger Höchstbietender beginnt als Führender.
 Bei gleichem Höchstgebot startet die Stichentscheidung ohne
-Führenden oberhalb des gemeinsamen Preises.
+Führenden oberhalb des gemeinsamen Preises. Gebote und reservierte
+Credits sind teilnehmerbezogen; beim Auktionsbeginn werden alle
+verdeckten Reservierungen erstattet und nur das abschließende
+Siegergebot erneut belastet. Ein einzelnes Gebot gewinnt bei der
+Rundenabrechnung automatisch.
 
 ## Ressourcenmarkt
 

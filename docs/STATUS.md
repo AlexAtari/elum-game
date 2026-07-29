@@ -41,15 +41,24 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - UI-unabhängige Zustandsoperationen für Einsetzen, Umrüsten und
   Entfernen der Spieler-Harvester
 - versionierte, vollständig serialisierbare Kommandoschicht für
-  Harvester einsetzen, Produktion ändern, Harvester entfernen und
-  Harvesterbau beauftragen
+  Harvester einsetzen, Produktion ändern, Harvester entfernen,
+  Harvesterbau beauftragen sowie Grundstücksgebote abgeben und
+  zurücknehmen
 - Laufzeitprüfung von Kommandoformat, Teilnehmer, erwarteter Runde
   und Aktionslegalität; erfolgreiche Kommando-IDs werden begrenzt im
   Spielzustand gespeichert und dadurch höchstens einmal ausgeführt
 - dieselben teilnehmerbezogenen Kommandooperationen funktionieren
   für lokale und entfernte menschliche Sitze; die React-Oberfläche
-  sendet ihre vier Harvester-/Bauaktionen bereits ausschließlich
-  über diese Grenze
+  sendet ihre Harvester-, Bau- und Grundstücksgebotsaktionen bereits
+  ausschließlich über diese Grenze
+- verdeckte Grundstücksgebote, reservierte Credits, Führender und
+  Eröffnungsgebote der grafischen Auktion sind nach
+  `ParticipantId` gespeichert; Reservierung, Erstattung, Siegerpreis
+  und Besitzübertragung verwenden keine fest verdrahtete
+  Spieler-/Orion-Seite mehr
+- die vorhandene grafische Oberfläche zeigt weiterhin den
+  Agima-Orion-Konflikt; das Kernmodell kann zusätzliche Bieter
+  aufnehmen, deren Darstellung folgt mit der Mehrspieler-UI
 - gemeinsame teilnehmerbezogene Schreibgrenze für Bevölkerung,
   Credits, Ressourcen, Harvesterzahlen und Grundstücksbesitz
 - globale Ereignisse, lokale Agima-Ereignisse, Spieler-Harvesterbau,
@@ -160,12 +169,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Grundstücks- und Ressourcenauktionen laufen noch über ihre bisherigen
-direkten Agima-/Orion-Pfade. Vor ihrer Aufnahme in die Kommandoschicht
-müssen Gebote, Marktrollen und Auktionszustände von den beiden fest
-verdrahteten Teilnehmern gelöst und auf beliebige Match-Sitze
-verallgemeinert werden. Die Autorisierung, welcher Netzwerkclient
-welchen `participantId` senden darf, gehört anschließend in den
+Der Ressourcenmarkt läuft noch über direkte, auf die lokale
+Oberfläche zugeschnittene Aktionen. Als nächstes werden Marktrollen,
+Angebote und Auktionszustände auf beliebige Match-Sitze
+verallgemeinert und anschließend in dieselbe Kommandoschicht
+aufgenommen. Die Autorisierung, welcher Netzwerkclient welchen
+`participantId` senden darf, gehört danach in den
 Transport-/Serveradapter und nicht in das Kommandoformat selbst.
 
 ## Grundstücksauktion – aktueller Sollstand

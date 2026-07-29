@@ -269,8 +269,9 @@ werden.
   Zuweisungen teilnehmerbezogen im serialisierbaren `GameState`
 - erste validierte, UI-unabhängige Kommandoschicht aktiv:
   teilnehmerbezogene Harvesterzuweisung, Produktionsänderung,
-  Entfernung und Bauauftrag; React verwendet bereits denselben
-  serialisierbaren Pfad wie spätere entfernte Eingaben
+  Entfernung, Bauauftrag sowie Grundstücksgebot und Rücknahme;
+  React verwendet bereits denselben serialisierbaren Pfad wie
+  spätere entfernte Eingaben
 - Kommandos tragen Version, eindeutige ID, Teilnehmer und erwartete
   Runde; erfolgreiche IDs werden für höchstens-einmal-Ausführung im
   Spielzustand gespeichert
@@ -293,15 +294,19 @@ werden.
   autonome Rivalen-Landkäufe verwenden sie bereits
 - direkte Orion-Geschäfte werden wie Nova- und Vega-Geschäfte
   beidseitig in Credits und Ressourcen verbucht
-- Browser-Rundenabrechnung und beide möglichen Landgewinne der
-  grafischen Agima-Orion-Auktion schreiben über die gemeinsame
-  Koloniegrenze
+- Grundstücksgebote, Reservierungen, Eröffnungsgebote und Führung
+  der grafischen Auktion sind teilnehmerneutral gespeichert;
+  Rundenabrechnung und Landgewinn beliebiger Bieter schreiben über
+  die gemeinsame Koloniegrenze
+- die bestehende grafische Auktionsansicht bleibt vorerst ein
+  Agima-Orion-Adapter; zusätzliche Bieter benötigen nur noch eine
+  erweiterte Darstellung, kein neues Kernzustandsmodell
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Grundstücks- und Marktauktionen auf
-  beliebige Teilnehmer verallgemeinern und anschließend ebenfalls
-  als Kommandos führen; danach den verbleibenden Kernzufall
-  vollständig seedbasiert ausführen
+- nächster Strukturschritt: Ressourcenmarkt auf beliebige
+  Teilnehmer verallgemeinern und anschließend ebenfalls als
+  Kommandos führen; danach den verbleibenden Kernzufall vollständig
+  seedbasiert ausführen
 
 ### Nächster Regelstand
 
