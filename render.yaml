@@ -7,7 +7,6 @@ services:
     buildCommand: npm ci && npm run build
     startCommand: npm run server
     healthCheckPath: /health
-    maxShutdownDelaySeconds: 30
     envVars:
       - key: ELUM_SERVER_HOST
         value: 0.0.0.0
