@@ -235,8 +235,13 @@ die Server-Kommandosequenz sowie absolute Phasen-, Runden- und lokale
 Ereignisfristen. Sitzungs-IDs, Abonnenten und Timer-Handles bleiben
 bewusst prozesslokal. Der Parser prüft die Version, die Speicherhülle,
 kanonische Teilnehmer-IDs und die persistenzspezifischen privaten
-Felder; Wiederherstellung und Anbindung an den Lobby-Speicher sind
-noch nicht implementiert.
+Felder. `restoreAuthoritativeMatch()` stellt daraus Zustand, Revision,
+private Bereitschaften und Berichte sowie die Server-Kommandosequenz
+wieder her. Phasen-, Runden- und lokale Ereignistimer laufen mit der
+gespeicherten Restfrist weiter; abgelaufene Fristen werden unmittelbar
+eingeplant. Alle Sitze beginnen ohne alte Prozess-Sitzung und müssen
+über die Lobby neu gebunden werden. Die Anbindung an den
+Lobby-Speicher ist noch nicht implementiert.
 
 `multiplayerRound.ts` adaptiert die vorhandene Rundenökonomie für
 beliebige menschliche Koloniesitze. Damit dieselben Produktions-,
@@ -357,8 +362,9 @@ Port-8787-Ableitung bei.
 
 Lobby-, Token- und Matchzustand liegen weiterhin nur im
 Prozessspeicher. Laufende Matches besitzen zwar inzwischen einen
-versionierten Export, werden aber noch nicht gespeichert oder
-wiederhergestellt. `server/lobbyPersistence.ts` definiert als ersten
+versionierten Export und eine Wiederherstellungsfunktion, werden aber
+noch nicht durch Lobby oder Registry gespeichert und geladen.
+`server/lobbyPersistence.ts` definiert als ersten
 Persistenzbaustein einen asynchronen Speichervertrag und einen
 versionierten, JSON-serialisierbaren Datensatz mit Ablaufzeit. Der
 In-Memory-Adapter kopiert Daten an beiden Grenzen, isoliert Lobbycodes
@@ -398,9 +404,9 @@ prozesslokale In-Memory-Adapter aktiv. Der Render-Blueprint
 provisioniert noch keinen Key-Value-Dienst und setzt diese Variable
 nicht. Der aktuelle Render-Dienst ist deshalb weiterhin nicht
 deployfest und darf nicht horizontal skaliert werden; laufende Partien
-werden trotz exportierbarem Match-Snapshot noch nicht gespeichert
-oder wiederaufgenommen. Provisionierung, Wiederherstellung und
-Speicheranbindung laufender Matches sowie betriebliche
+werden trotz wiederherstellbarem Match-Snapshot noch nicht
+gespeichert oder geladen. Provisionierung und Speicheranbindung
+laufender Matches sowie betriebliche
 Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat, aggregierte
 Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale

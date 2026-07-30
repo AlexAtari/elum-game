@@ -575,6 +575,71 @@ function getPhaseSchedule(state: GameState): PhaseSchedule | null {
   return null
 }
 
+function matchesPersistedPhaseSchedule(
+  persistedTiming: AuthoritativePhaseTiming | null,
+  schedule: PhaseSchedule | null,
+) {
+  if (!schedule || !persistedTiming) {
+    return schedule === null && persistedTiming === null
+  }
+
+  return persistedTiming.kind === 'resource-market' &&
+    schedule.timing.kind === 'resource-market'
+    ? persistedTiming.resource === schedule.timing.resource &&
+        persistedTiming.phase === schedule.timing.phase
+    : persistedTiming.kind === 'land-auction' &&
+        schedule.timing.kind === 'land-auction' &&
+        persistedTiming.tileId === schedule.timing.tileId &&
+        persistedTiming.phase === schedule.timing.phase
+}
+
+function isRestorableAuthoritativeMatchState(
+  persistedState: PersistedAuthoritativeMatchState,
+) {
+  const humanParticipantIds = getHumanParticipantIds(
+    persistedState.state.match,
+  )
+  const readyParticipantIds = Object.keys(
+    persistedState.roundPlans,
+  ) as ParticipantId[]
+  const allHumanParticipantsReady =
+    humanParticipantIds.every((participantId) =>
+      readyParticipantIds.includes(participantId),
+    )
+  const sharedRoundActionActive = isSharedRoundActionActive(
+    persistedState.state,
+  )
+  const expectedRoundTimingStatus =
+    persistedState.finished || allHumanParticipantsReady
+      ? null
+      : sharedRoundActionActive
+        ? 'paused'
+        : 'running'
+
+  return (
+    (!persistedState.finished ||
+      isGameFinished(persistedState.state.round)) &&
+    readyParticipantIds.every((participantId) =>
+      humanParticipantIds.includes(participantId),
+    ) &&
+    (persistedState.roundTiming?.status ?? null) ===
+      expectedRoundTimingStatus &&
+    (persistedState.roundTiming?.status !== 'paused' ||
+      persistedState.roundTiming.remainingMilliseconds <=
+        MULTIPLAYER_ROUND_DURATION_MILLISECONDS) &&
+    matchesPersistedPhaseSchedule(
+      persistedState.phaseTiming,
+      getPhaseSchedule(persistedState.state),
+    ) &&
+    persistedState.localEventSchedules.every(
+      ({ participantId, round }) =>
+        !persistedState.finished &&
+        round === persistedState.state.round &&
+        humanParticipantIds.includes(participantId),
+    )
+  )
+}
+
 export class AuthoritativeMatch {
   private state: GameState
   private revision = 0
@@ -618,12 +683,19 @@ export class AuthoritativeMatch {
   constructor(
     initialState: GameState,
     options: AuthoritativeMatchOptions = {},
+    persistedState: PersistedAuthoritativeMatchState | null = null,
   ) {
     this.state = structuredClone(initialState)
     this.roundTimerRound = this.state.round
     this.clock = options.clock ?? defaultClock
     this.onSubscriberError =
       options.onSubscriberError ?? (() => undefined)
+
+    if (persistedState) {
+      this.restorePersistenceState(persistedState)
+      return
+    }
+
     this.synchronizePhaseSchedule()
     this.synchronizeRoundSchedule()
   }
@@ -940,6 +1012,77 @@ export class AuthoritativeMatch {
 
     this.localEventTimers.clear()
     this.localEventSchedules.clear()
+  }
+
+  private restorePersistenceState(
+    persistedState: PersistedAuthoritativeMatchState,
+  ) {
+    this.revision = persistedState.revision
+    this.finished = persistedState.finished
+    this.phaseTiming = structuredClone(
+      persistedState.phaseTiming,
+    )
+    this.serverCommandSequence =
+      persistedState.serverCommandSequence
+    this.lastRoundReports = structuredClone(
+      persistedState.lastRoundReports,
+    )
+
+    for (const [participantId, plan] of Object.entries(
+      persistedState.roundPlans,
+    )) {
+      this.roundPlans.set(
+        participantId as ParticipantId,
+        structuredClone(plan),
+      )
+    }
+
+    const phaseSchedule = getPhaseSchedule(this.state)
+
+    if (phaseSchedule && this.phaseTiming) {
+      const phaseDeadlineAt = this.phaseTiming.deadlineAt
+      this.scheduledPhaseKey = phaseSchedule.key
+      this.phaseTimer = this.clock.setTimeout(
+        () => this.advanceScheduledPhase(phaseSchedule),
+        Math.max(
+          0,
+          phaseDeadlineAt - this.clock.now(),
+        ),
+      )
+    }
+
+    if (persistedState.roundTiming?.status === 'running') {
+      this.roundDeadlineAt =
+        persistedState.roundTiming.deadlineAt
+      this.roundRemainingMilliseconds = Math.max(
+        0,
+        this.roundDeadlineAt - this.clock.now(),
+      )
+      const scheduledRound = this.state.round
+      this.roundTimer = this.clock.setTimeout(
+        () => this.expireRoundSchedule(scheduledRound),
+        this.roundRemainingMilliseconds,
+      )
+    } else if (
+      persistedState.roundTiming?.status === 'paused'
+    ) {
+      this.roundRemainingMilliseconds =
+        persistedState.roundTiming.remainingMilliseconds
+    }
+
+    for (const {
+      participantId,
+      event,
+      round,
+      deadlineAt,
+    } of persistedState.localEventSchedules) {
+      this.scheduleLocalEventActivation(
+        participantId,
+        event,
+        round,
+        Math.max(0, deadlineAt - this.clock.now()),
+      )
+    }
   }
 
   private scheduleLocalEvents(state: GameState) {
@@ -1324,4 +1467,21 @@ export function createAuthoritativeMatch(
   options: AuthoritativeMatchOptions = {},
 ) {
   return new AuthoritativeMatch(initialState, options)
+}
+
+export function restoreAuthoritativeMatch(
+  input: unknown,
+  options: AuthoritativeMatchOptions = {},
+) {
+  const persistedState =
+    parsePersistedAuthoritativeMatchState(input)
+
+  return persistedState &&
+    isRestorableAuthoritativeMatchState(persistedState)
+    ? new AuthoritativeMatch(
+        persistedState.state,
+        options,
+        persistedState,
+      )
+    : null
 }

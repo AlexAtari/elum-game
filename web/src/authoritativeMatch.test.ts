@@ -11,6 +11,7 @@ import {
   createAuthoritativeMatch,
   MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
   parsePersistedAuthoritativeMatchState,
+  restoreAuthoritativeMatch,
   type MatchClock,
 } from './authoritativeMatch'
 import type { GameCommand } from './gameCommands'
@@ -250,6 +251,223 @@ describe('Autoritativer Match-Serverkern', () => {
             participantId: 'agima',
             event: 'unknown-event',
             round: 1,
+            deadlineAt: 2_000,
+          },
+        ],
+      }),
+    ).toBeNull()
+  })
+
+  it('stellt private Rundenbereitschaft ohne alte Sitzungen wieder her', () => {
+    const clock = new FakeClock()
+    const match = createAuthoritativeMatch(
+      withRemoteOrion(createPlayableInitialGameState()),
+      { clock },
+    )
+    match.connectSeat({
+      sessionId: 'old-agima-session',
+      participantId: 'agima',
+    })
+    match.submitRoundPlan('old-agima-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+    const persistedState = match.exportPersistenceState()
+    match.dispose()
+
+    const restored = restoreAuthoritativeMatch(
+      persistedState,
+      { clock },
+    )
+
+    expect(restored).not.toBeNull()
+    if (!restored) {
+      return
+    }
+
+    expect(restored.getSnapshot()).toMatchObject({
+      revision: 1,
+      state: { round: 1 },
+      roundReadiness: {
+        round: 1,
+        readyParticipantIds: ['agima'],
+      },
+      roundTiming: {
+        status: 'running',
+        deadlineAt:
+          1_000 + MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
+      },
+    })
+    expect(
+      restored.submitRoundPlan('old-agima-session', {
+        supplyPlan: { foodLevel: 2, energyLevel: 2 },
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: 'unauthenticated-session',
+    })
+
+    restored.connectSeat({
+      sessionId: 'new-orion-session',
+      participantId: 'orion',
+    })
+    const completed = restored.submitRoundPlan(
+      'new-orion-session',
+      {
+        supplyPlan: { foodLevel: 2, energyLevel: 2 },
+      },
+    )
+
+    expect(completed).toMatchObject({
+      ok: true,
+      snapshot: {
+        revision: 2,
+        state: { round: 2 },
+      },
+    })
+    expect(
+      restored.getSnapshot('agima').lastRoundReport,
+    ).toMatchObject({ roundPlayed: 1 })
+  })
+
+  it('setzt autoritative Phasen- und Ereignisfristen fort', () => {
+    const clock = new FakeClock()
+    const initialState = createPlayableInitialGameState()
+    const tileId = initialState.colonies.agima.ownedTileIds[0]
+    const match = createAuthoritativeMatch(
+      {
+        ...initialState,
+        landAuctionTie: {
+          tileId,
+          tiedBid: 30,
+          minimumBid: 31,
+          phase: 'announcement',
+          openingBids: { agima: 30, orion: 30 },
+          initialLeaderId: null,
+          liveBids: {
+            bids: { agima: 30, orion: 30 },
+            leaderId: null,
+          },
+        },
+      },
+      { clock },
+    )
+    const persistedState = match.exportPersistenceState()
+    match.dispose()
+
+    const restored = restoreAuthoritativeMatch(
+      persistedState,
+      { clock },
+    )
+
+    expect(restored?.getSnapshot()).toMatchObject({
+      revision: 0,
+      phaseTiming: {
+        kind: 'land-auction',
+        phase: 'announcement',
+        deadlineAt: 6_000,
+      },
+      roundTiming: {
+        status: 'paused',
+        remainingMilliseconds:
+          MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
+      },
+    })
+
+    clock.advance(5_000)
+
+    expect(restored?.getSnapshot()).toMatchObject({
+      revision: 1,
+      state: {
+        landAuctionTie: { phase: 'auction' },
+      },
+      phaseTiming: {
+        kind: 'land-auction',
+        phase: 'auction',
+        deadlineAt: 16_000,
+      },
+    })
+  })
+
+  it('stellt geplante lokale Ereignisse mit ihrer Restfrist wieder her', () => {
+    const clock = new FakeClock()
+    const initialState = createPlayableInitialGameState()
+    const match = createAuthoritativeMatch(initialState, {
+      clock,
+    })
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+    match.submitRoundPlan('agima-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+    const persistedState = match.exportPersistenceState()
+    const event = selectSeededLocalEvent(
+      2,
+      initialState.match.seed,
+      'agima',
+    )
+    const delay = getSeededLocalEventDelay(
+      2,
+      initialState.match.seed,
+      'agima',
+    )
+    match.dispose()
+
+    const restored = restoreAuthoritativeMatch(
+      persistedState,
+      { clock },
+    )
+
+    expect(
+      restored?.exportPersistenceState().localEventSchedules,
+    ).toEqual([
+      {
+        participantId: 'agima',
+        event,
+        round: 2,
+        deadlineAt: 1_000 + delay,
+      },
+    ])
+
+    clock.advance(delay)
+
+    expect(
+      restored?.getSnapshot('agima').state.activeLocalEvents,
+    ).toEqual({ agima: event })
+  })
+
+  it('weist semantisch widersprüchliche Match-Snapshots zurück', () => {
+    const match = createAuthoritativeMatch(
+      createPlayableInitialGameState(),
+    )
+    const persistedState = match.exportPersistenceState()
+    match.dispose()
+
+    expect(
+      restoreAuthoritativeMatch({
+        ...persistedState,
+        roundTiming: null,
+      }),
+    ).toBeNull()
+    expect(
+      restoreAuthoritativeMatch({
+        ...persistedState,
+        roundPlans: {
+          vega: {
+            supplyPlan: { foodLevel: 2, energyLevel: 2 },
+          },
+        },
+      }),
+    ).toBeNull()
+    expect(
+      restoreAuthoritativeMatch({
+        ...persistedState,
+        localEventSchedules: [
+          {
+            participantId: 'agima',
+            event: 'food-cache',
+            round: 2,
             deadlineAt: 2_000,
           },
         ],

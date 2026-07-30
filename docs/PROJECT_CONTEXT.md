@@ -418,7 +418,11 @@ werden.
   Version-1-Snapshot mit `GameState`, Revision, Abschlussstatus,
   privaten Rundenplänen und -berichten, Server-Kommandosequenz und
   absoluten Fristen; Sitzungen und Timer-Handles bleiben
-  prozesslokal, Wiederherstellung und Speicheranbindung fehlen noch
+  prozesslokal
+- laufende Match-Snapshots können mit Zustand, privaten
+  Bereitschaften, Berichten, Sequenz und Restfristen
+  wiederhergestellt werden; alte Prozess-Sitzungen werden nicht
+  übernommen, die Lobby-/Registry-Speicheranbindung fehlt noch
 - gespeicherte Lobby-Nutzlasten werden strikt validiert und können als
   wartende Lobby mit getrennten Sitzen, erhaltenen Tokens,
   Bereitschaften und ursprünglichem Seed wiederhergestellt werden
@@ -431,8 +435,8 @@ werden.
   wird über `REDIS_URL` gewählt; der Render-Blueprint provisioniert
   und aktiviert noch keinen externen Speicher
 - nächste Strukturschritte sind Render-Key-Value-Provisionierung,
-  Wiederherstellung und Speicheranbindung laufender Matches sowie
-  externe Langzeitspeicherung der Metriken
+  Speicheranbindung laufender Matches sowie externe
+  Langzeitspeicherung der Metriken
 
 ### Nächster Regelstand
 

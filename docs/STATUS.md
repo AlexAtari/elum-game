@@ -357,8 +357,10 @@ Rundenplänen und -berichten, Server-Kommandosequenz sowie absoluten
 Phasen-, Runden- und lokalen Ereignisfristen. Sitzungs-IDs,
 Abonnenten und Timer-Handles bleiben prozesslokal. Speicherhülle und
 Grundstruktur der persistenzspezifischen Felder werden validiert;
-Wiederherstellung und Speicheranbindung laufender Matches fehlen
-noch. Die WebSocket-Registry lädt beim ersten Zugriff einmalig aus
+eine Wiederherstellungsfunktion setzt Zustand, private
+Bereitschaften, Berichte, Sequenz und sämtliche autoritativen Fristen
+fort. Alte Prozess-Sitzungen werden nicht übernommen. Die
+Speicheranbindung laufender Matches fehlt noch. Die WebSocket-Registry lädt beim ersten Zugriff einmalig aus
 dem Speicher, speichert Änderungen
 wartender Lobbys in Reihenfolge und löscht den Snapshot bei
 Matchstart oder endgültiger Lobbybereinigung. Ein Integrationstest
@@ -372,8 +374,7 @@ eine gültige `REDIS_URL` ausgewählt. Ohne Variable bleibt der
 In-Memory-Adapter aktiv. Der Blueprint provisioniert noch keinen
 Render-Key-Value-Dienst; der öffentliche Server nutzt deshalb
 weiterhin nur Prozessspeicher. Noch offen sind die tatsächliche
-Provisionierung, Wiederherstellung und Speicheranbindung laufender
-Matches sowie externe
+Provisionierung und Speicheranbindung laufender Matches sowie externe
 Langzeitspeicherung der Metriken. Eine unabhängige GitHub Action
 prüft Health und erwartetes Metrikformat alle sechs Stunden sowie
 manuell; Fehler werden dadurch als fehlgeschlagene Workflow-Läufe

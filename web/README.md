@@ -143,8 +143,10 @@ inzwischen als eigene Version-1-Nutzlast exportieren. Sie umfasst
 -berichte, Server-Kommandosequenz sowie absolute Phasen-, Runden- und
 lokale Ereignisfristen, aber keine Sitzungs-IDs oder Timer-Handles.
 Speicherhülle und Grundstruktur der persistenzspezifischen Felder
-werden geprüft; eine Wiederherstellung und die Speicheranbindung
-fehlen noch.
+werden geprüft. Der Matchkern kann diese Nutzlast inzwischen mit
+privaten Bereitschaften und Berichten sowie den Restfristen aller
+autoritativen Timer wiederherstellen. Alte Prozess-Sitzungen werden
+nicht übernommen; die Lobby-/Registry-Speicheranbindung fehlt noch.
 `server/lobbyPersistence.ts` enthält bereits den
 versionierten JSON-Datensatz, den asynchronen Speichervertrag und
 einen ablaufzeitfähigen In-Memory-Adapter. Wartende Lobbys können
@@ -165,5 +167,5 @@ Der Redis-/Valkey-Adapter speichert Datensatz und Ablaufzeit atomar
 und validiert geladene JSON-Werte erneut. Der aktuell provisionierte
 Render-Dienst hat jedoch noch keine `REDIS_URL` und verwendet daher
 weiterhin den In-Memory-Adapter. Tatsächliche Provisionierung,
-Wiederherstellung und Speicheranbindung laufender Matches sowie
-instanzübergreifende Sitzungen sind der nächste Ausbau.
+Speicheranbindung laufender Matches sowie instanzübergreifende
+Sitzungen sind der nächste Ausbau.
