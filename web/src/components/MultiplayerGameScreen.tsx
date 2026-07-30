@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import headquartersImage from '../assets/hq-four-colonies.webp'
 import {
   calculateColonySupplyPreview,
@@ -59,6 +59,17 @@ function createCommandId() {
   return `network-${Date.now()}-${commandSequence}`
 }
 
+function formatRoundTime(milliseconds: number) {
+  const totalSeconds = Math.max(
+    0,
+    Math.ceil(milliseconds / 1000),
+  )
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+}
+
 function MultiplayerGameScreen({
   participantId,
   snapshot,
@@ -88,6 +99,9 @@ function MultiplayerGameScreen({
     dismissedLocalEventKey,
     setDismissedLocalEventKey,
   ] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState(() =>
+    Date.now(),
+  )
   const [marketOfferDraft, setMarketOfferDraft] = useState<{
     resource: MarketResource
     price: number
@@ -114,6 +128,60 @@ function MultiplayerGameScreen({
   const ready =
     snapshot.roundReadiness.readyParticipantIds.includes(
       participantId,
+    )
+  const runningRoundDeadline =
+    snapshot.roundTiming?.status === 'running'
+      ? snapshot.roundTiming.deadlineAt
+      : null
+
+  useEffect(() => {
+    if (runningRoundDeadline === null) {
+      return
+    }
+
+    const refresh = () => {
+      setCurrentTime(Date.now())
+    }
+    const initialRefresh = globalThis.setTimeout(refresh, 0)
+    const interval = globalThis.setInterval(refresh, 1000)
+
+    return () => {
+      globalThis.clearTimeout(initialRefresh)
+      globalThis.clearInterval(interval)
+    }
+  }, [runningRoundDeadline])
+
+  const roundTimeRemaining =
+    snapshot.roundTiming?.status === 'running'
+      ? Math.max(0, snapshot.roundTiming.deadlineAt - currentTime)
+      : snapshot.roundTiming?.remainingMilliseconds ?? null
+  const roundTimeSeconds =
+    roundTimeRemaining === null
+      ? null
+      : Math.ceil(roundTimeRemaining / 1000)
+  const roundTimerStatus =
+    roundTimeRemaining === null ? null : (
+      <small
+        className={`network-round-timer ${
+          snapshot.roundTiming?.status === 'paused'
+            ? 'is-paused'
+            : roundTimeSeconds !== null &&
+                roundTimeSeconds <= 15
+              ? 'is-urgent'
+              : roundTimeSeconds !== null &&
+                  roundTimeSeconds <= 60
+                ? 'is-warning'
+                : ''
+        }`}
+        role="status"
+      >
+        {t(
+          snapshot.roundTiming?.status === 'paused'
+            ? 'multiplayerGame.roundTimePaused'
+            : 'multiplayerGame.roundTime',
+          { time: formatRoundTime(roundTimeRemaining) },
+        )}
+      </small>
     )
   const activeMarket = state.activeResourceMarket
   const localEvent = getColonyLocalEvent(state, participantId)
@@ -197,8 +265,11 @@ function MultiplayerGameScreen({
             <span className="eyebrow">E.L.U.M.</span>
             <h1>{colony.name}</h1>
           </div>
-          <div className="round-badge">
-            {t('multiplayerGame.landAuction')}
+          <div className="network-round-status">
+            <div className="round-badge">
+              {t('multiplayerGame.landAuction')}
+            </div>
+            {roundTimerStatus}
           </div>
         </header>
         <section className="network-auction-panel">
@@ -278,8 +349,11 @@ function MultiplayerGameScreen({
             <span className="eyebrow">E.L.U.M.</span>
             <h1>{colony.name}</h1>
           </div>
-          <div className="round-badge">
-            {t('multiplayerGame.resourceMarket')}
+          <div className="network-round-status">
+            <div className="round-badge">
+              {t('multiplayerGame.resourceMarket')}
+            </div>
+            {roundTimerStatus}
           </div>
         </header>
         <section className="network-market-panel">
@@ -435,8 +509,11 @@ function MultiplayerGameScreen({
             <span className="eyebrow">E.L.U.M.</span>
             <h1>{colony.name}</h1>
           </div>
-          <div className="round-badge">
-            {t('app.round', { round: state.round })}
+          <div className="network-round-status">
+            <div className="round-badge">
+              {t('app.round', { round: state.round })}
+            </div>
+            {roundTimerStatus}
           </div>
         </header>
         <MultiplayerLeaderboard
@@ -471,8 +548,11 @@ function MultiplayerGameScreen({
             <span className="eyebrow">E.L.U.M.</span>
             <h1>{colony.name}</h1>
           </div>
-          <div className="round-badge">
-            {t('app.round', { round: state.round })}
+          <div className="network-round-status">
+            <div className="round-badge">
+              {t('app.round', { round: state.round })}
+            </div>
+            {roundTimerStatus}
           </div>
         </header>
         <RoundBriefingPanel
@@ -515,6 +595,7 @@ function MultiplayerGameScreen({
                   colony: participantId.toUpperCase(),
                 })}
           </small>
+          {roundTimerStatus}
         </div>
       </header>
 
@@ -696,6 +777,9 @@ function MultiplayerGameScreen({
 
           <div className="network-supply-panel">
             <h3>{t('supply.plan')}</h3>
+            <p className="network-round-time-hint">
+              {t('multiplayerGame.roundTimeHint')}
+            </p>
             <label>
               <span>{t('supply.foodForPopulation')}</span>
               <strong>{t(supplyLabelKeys[foodSupplyLevel])}</strong>

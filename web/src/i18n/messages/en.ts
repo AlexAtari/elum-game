@@ -312,6 +312,11 @@ export const en = {
     'Connected as {{colony}}',
   'multiplayerGame.readyWaiting':
     'Ready · Waiting for other colonies',
+  'multiplayerGame.roundTime': 'Round time · {{time}}',
+  'multiplayerGame.roundTimePaused':
+    'Round time paused · {{time}}',
+  'multiplayerGame.roundTimeHint':
+    'When time expires, the server automatically submits a conservative supply plan for missing players.',
   'multiplayerGame.serverStateHint':
     'Every change is confirmed by the shared server.',
   'multiplayerGame.toHeadquarters': 'Go to headquarters',

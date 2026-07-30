@@ -52,6 +52,9 @@ Rangliste erscheint nach jeder Abrechnung, dauerhaft im HQ und als
 kompakte aktuelle Platzierung in der Kolonieansicht. Private lokale
 Ereignisse werden je menschlichem Sitz verzögert vom Server
 angewendet und nur dem betroffenen Client als Meldung gezeigt. Nach
+vier Minuten ergänzt der Server fehlende Rundenpläne automatisch mit
+einer konservativen Versorgung; gemeinsame Auktionen pausieren diese
+Frist und die Oberfläche zeigt den verbindlichen Countdown. Nach
 der 20. Abrechnung sperrt der Server weitere Spielaktionen. Der Host
 kann anschließend alle verbundenen Spieler mit erhaltenen
 Sitzplätzen und Reconnect-Tokens in dieselbe Lobby zurückführen.

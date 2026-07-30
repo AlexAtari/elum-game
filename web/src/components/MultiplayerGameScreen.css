@@ -32,6 +32,23 @@
   color: #8995aa;
 }
 
+.network-round-status .network-round-timer {
+  color: #b8c4d8;
+  font-variant-numeric: tabular-nums;
+}
+
+.network-round-status .network-round-timer.is-paused {
+  color: #8fcfbd;
+}
+
+.network-round-status .network-round-timer.is-warning {
+  color: #f2c66d;
+}
+
+.network-round-status .network-round-timer.is-urgent {
+  color: #ff8278;
+}
+
 .network-headquarters,
 .network-auction-panel,
 .network-market-panel {
@@ -81,6 +98,12 @@
 .network-market-launcher h3,
 .network-supply-panel h3 {
   margin-top: 0;
+}
+
+.network-round-time-hint {
+  margin: -6px 0 18px;
+  color: #8995aa;
+  font-size: 0.9rem;
 }
 
 .network-market-launcher > div,

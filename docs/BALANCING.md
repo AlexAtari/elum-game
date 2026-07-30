@@ -477,6 +477,22 @@ einmal gezählt. Nach Runde 20 beginnt keine Runde 21.
 
 ---
 
+## Multiplayer-Rundenzeit
+
+| Parameter | Standard |
+|---|---:|
+| Planungszeit je Runde | 4 Minuten |
+| erste sichtbare Warnstufe | 60 Sekunden |
+| dringende Warnstufe | 15 Sekunden |
+| maximale automatische Versorgung | Normalversorgung |
+
+Die Frist wird serverseitig geführt und während gemeinsamer
+Ressourcen- und Grundstücksauktionen pausiert. Ein automatischer Plan
+wählt für Nahrung und Energie gemeinsam die höchste vollständig aus
+dem aktuellen Lager bezahlbare Stufe bis maximal Normalversorgung.
+
+---
+
 # 13. Zu beobachtende Fragen im Playtest
 
 - Ist Energie dauerhaft knapp genug?

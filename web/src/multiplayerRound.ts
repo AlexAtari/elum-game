@@ -19,6 +19,32 @@ export type ParticipantRoundPlan = {
   supplyPlan: SupplyPlan
 }
 
+export function createConservativeRoundPlan(
+  state: GameState,
+  participantId: ParticipantId,
+): ParticipantRoundPlan {
+  const colony = state.colonies[participantId]
+  const populationGroups = Math.max(
+    1,
+    Math.ceil(colony.population / 10),
+  )
+  const affordableSupplyLevel = Math.max(
+    0,
+    Math.min(
+      2,
+      Math.floor(colony.resources.food / populationGroups),
+      Math.floor(colony.resources.energy / populationGroups),
+    ),
+  )
+
+  return {
+    supplyPlan: {
+      foodLevel: affordableSupplyLevel,
+      energyLevel: affordableSupplyLevel,
+    },
+  }
+}
+
 export type MultiplayerRoundResult = {
   nextState: GameState
   reports: Partial<Record<ParticipantId, RoundReport>>

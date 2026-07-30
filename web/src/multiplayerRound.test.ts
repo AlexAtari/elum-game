@@ -4,7 +4,10 @@ import {
   tiles,
   type GameState,
 } from './game'
-import { runMultiplayerRound } from './multiplayerRound'
+import {
+  createConservativeRoundPlan,
+  runMultiplayerRound,
+} from './multiplayerRound'
 
 function withRemoteOrion(state: GameState): GameState {
   return {
@@ -26,6 +29,55 @@ function withRemoteOrion(state: GameState): GameState {
 }
 
 describe('Gemeinsame Multiplayer-Rundenabrechnung', () => {
+  it('wählt höchstens die gemeinsam bezahlbare Normalversorgung', () => {
+    const initialState = createPlayableInitialGameState()
+
+    expect(
+      createConservativeRoundPlan(initialState, 'agima'),
+    ).toEqual({
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+
+    const minimumState: GameState = {
+      ...initialState,
+      colonies: {
+        ...initialState.colonies,
+        agima: {
+          ...initialState.colonies.agima,
+          resources: {
+            ...initialState.colonies.agima.resources,
+            food: 1,
+            energy: 1,
+          },
+        },
+      },
+    }
+    expect(
+      createConservativeRoundPlan(minimumState, 'agima'),
+    ).toEqual({
+      supplyPlan: { foodLevel: 1, energyLevel: 1 },
+    })
+
+    const shortageState: GameState = {
+      ...minimumState,
+      colonies: {
+        ...minimumState.colonies,
+        agima: {
+          ...minimumState.colonies.agima,
+          resources: {
+            ...minimumState.colonies.agima.resources,
+            energy: 0,
+          },
+        },
+      },
+    }
+    expect(
+      createConservativeRoundPlan(shortageState, 'agima'),
+    ).toEqual({
+      supplyPlan: { foodLevel: 0, energyLevel: 0 },
+    })
+  })
+
   it('meldet den Grundstücksausgang aus Sicht jedes Sitzes', () => {
     const baseState = withRemoteOrion(
       createPlayableInitialGameState(),

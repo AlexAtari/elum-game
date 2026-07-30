@@ -19,6 +19,7 @@ import {
 } from './game'
 import {
   applyAutonomousAiLandPurchases,
+  createConservativeRoundPlan,
   runMultiplayerRound,
   type ParticipantRoundPlan,
 } from './multiplayerRound'
@@ -80,6 +81,16 @@ export type AuthoritativePhaseTiming =
       deadlineAt: number
     }
 
+export type AuthoritativeRoundTiming =
+  | {
+      status: 'running'
+      deadlineAt: number
+    }
+  | {
+      status: 'paused'
+      remainingMilliseconds: number
+    }
+
 type ScheduledPhaseTiming =
   | Omit<
       Extract<
@@ -101,6 +112,7 @@ export type AuthoritativeMatchSnapshot = {
   finished: boolean
   state: GameState
   phaseTiming: AuthoritativePhaseTiming | null
+  roundTiming: AuthoritativeRoundTiming | null
   lastRoundReport: RoundReport | null
   roundReadiness: {
     round: number
@@ -134,6 +146,9 @@ export type AuthoritativeMatchOptions = {
   clock?: MatchClock
   onSubscriberError?: (error: unknown) => void
 }
+
+export const MULTIPLAYER_ROUND_DURATION_MILLISECONDS =
+  4 * 60 * 1000
 
 type ServerPhaseCommand = Extract<
   GameCommand,
@@ -176,6 +191,7 @@ function copySnapshot(
   finished: boolean,
   state: GameState,
   phaseTiming: AuthoritativePhaseTiming | null,
+  roundTiming: AuthoritativeRoundTiming | null,
   readyParticipantIds: ParticipantId[],
   lastRoundReport: RoundReport | null,
   participantId?: ParticipantId,
@@ -198,6 +214,7 @@ function copySnapshot(
     finished,
     state: personalizedState,
     phaseTiming,
+    roundTiming,
     lastRoundReport,
     roundReadiness: {
       round: state.round,
@@ -229,6 +246,15 @@ function isServerControlledCommand(command: GameCommand) {
   return (
     command.type === 'advance-resource-market-phase' ||
     command.type === 'advance-land-auction-phase'
+  )
+}
+
+function isSharedRoundActionActive(state: GameState) {
+  return (
+    (state.activeResourceMarket !== null &&
+      state.activeResourceMarket.phase !== 'finished') ||
+    (state.landAuctionTie !== null &&
+      state.landAuctionTie.phase !== 'finished')
   )
 }
 
@@ -326,6 +352,11 @@ export class AuthoritativeMatch {
   private phaseTiming: AuthoritativePhaseTiming | null = null
   private scheduledPhaseKey: string | null = null
   private phaseTimer: unknown = null
+  private roundTimer: unknown = null
+  private roundTimerRound: number
+  private roundDeadlineAt: number | null = null
+  private roundRemainingMilliseconds =
+    MULTIPLAYER_ROUND_DURATION_MILLISECONDS
   private serverCommandSequence = 0
   private readonly roundPlans = new Map<
     ParticipantId,
@@ -351,10 +382,12 @@ export class AuthoritativeMatch {
     options: AuthoritativeMatchOptions = {},
   ) {
     this.state = structuredClone(initialState)
+    this.roundTimerRound = this.state.round
     this.clock = options.clock ?? defaultClock
     this.onSubscriberError =
       options.onSubscriberError ?? (() => undefined)
     this.synchronizePhaseSchedule()
+    this.synchronizeRoundSchedule()
   }
 
   connectSeat(input: unknown): SeatConnectionResult {
@@ -558,12 +591,7 @@ export class AuthoritativeMatch {
       }
     }
 
-    if (
-      (this.state.activeResourceMarket !== null &&
-        this.state.activeResourceMarket.phase !== 'finished') ||
-      (this.state.landAuctionTie !== null &&
-        this.state.landAuctionTie.phase !== 'finished')
-    ) {
+    if (isSharedRoundActionActive(this.state)) {
       return {
         ok: false,
         error: 'round-action-active',
@@ -590,6 +618,7 @@ export class AuthoritativeMatch {
       this.finished,
       this.state,
       this.phaseTiming,
+      this.getRoundTiming(),
       participantIds.filter((participantId) =>
         this.roundPlans.has(participantId),
       ),
@@ -617,9 +646,14 @@ export class AuthoritativeMatch {
     if (this.phaseTimer !== null) {
       this.clock.clearTimeout(this.phaseTimer)
     }
+    if (this.roundTimer !== null) {
+      this.clock.clearTimeout(this.roundTimer)
+    }
     this.clearLocalEventTimers()
 
     this.phaseTimer = null
+    this.roundTimer = null
+    this.roundDeadlineAt = null
     this.scheduledPhaseKey = null
     this.phaseTiming = null
     this.sessionSeats.clear()
@@ -633,6 +667,7 @@ export class AuthoritativeMatch {
     this.state = nextState
     this.revision += 1
     this.synchronizePhaseSchedule()
+    this.synchronizeRoundSchedule()
     this.publishSnapshot()
   }
 
@@ -739,6 +774,123 @@ export class AuthoritativeMatch {
     }, schedule.durationMilliseconds)
   }
 
+  private getRoundTiming(): AuthoritativeRoundTiming | null {
+    if (
+      this.finished ||
+      getHumanParticipantIds(this.state.match).every(
+        (participantId) => this.roundPlans.has(participantId),
+      )
+    ) {
+      return null
+    }
+
+    if (this.roundDeadlineAt !== null) {
+      return {
+        status: 'running',
+        deadlineAt: this.roundDeadlineAt,
+      }
+    }
+
+    return isSharedRoundActionActive(this.state)
+      ? {
+          status: 'paused',
+          remainingMilliseconds:
+            this.roundRemainingMilliseconds,
+        }
+      : null
+  }
+
+  private synchronizeRoundSchedule() {
+    if (this.state.round !== this.roundTimerRound) {
+      if (this.roundTimer !== null) {
+        this.clock.clearTimeout(this.roundTimer)
+      }
+
+      this.roundTimer = null
+      this.roundTimerRound = this.state.round
+      this.roundDeadlineAt = null
+      this.roundRemainingMilliseconds =
+        MULTIPLAYER_ROUND_DURATION_MILLISECONDS
+    }
+
+    const allHumanParticipantsReady =
+      getHumanParticipantIds(this.state.match).every(
+        (participantId) => this.roundPlans.has(participantId),
+      )
+
+    if (this.finished || allHumanParticipantsReady) {
+      if (this.roundTimer !== null) {
+        this.clock.clearTimeout(this.roundTimer)
+      }
+
+      this.roundTimer = null
+      this.roundDeadlineAt = null
+      return
+    }
+
+    if (isSharedRoundActionActive(this.state)) {
+      if (this.roundDeadlineAt !== null) {
+        this.roundRemainingMilliseconds = Math.max(
+          0,
+          this.roundDeadlineAt - this.clock.now(),
+        )
+      }
+
+      if (this.roundTimer !== null) {
+        this.clock.clearTimeout(this.roundTimer)
+      }
+
+      this.roundTimer = null
+      this.roundDeadlineAt = null
+      return
+    }
+
+    if (this.roundTimer !== null) {
+      return
+    }
+
+    this.roundDeadlineAt =
+      this.clock.now() + this.roundRemainingMilliseconds
+    const scheduledRound = this.state.round
+    this.roundTimer = this.clock.setTimeout(() => {
+      this.expireRoundSchedule(scheduledRound)
+    }, this.roundRemainingMilliseconds)
+  }
+
+  private expireRoundSchedule(scheduledRound: number) {
+    if (
+      this.finished ||
+      this.state.round !== scheduledRound ||
+      isSharedRoundActionActive(this.state)
+    ) {
+      return
+    }
+
+    this.roundTimer = null
+    this.roundDeadlineAt = null
+    this.roundRemainingMilliseconds = 0
+
+    for (const participantId of getHumanParticipantIds(
+      this.state.match,
+    )) {
+      if (!this.roundPlans.has(participantId)) {
+        this.roundPlans.set(
+          participantId,
+          createConservativeRoundPlan(
+            this.state,
+            participantId,
+          ),
+        )
+      }
+    }
+
+    if (!this.tryCompleteRound()) {
+      this.revision += 1
+      this.synchronizeRoundSchedule()
+      this.publishSnapshot()
+    }
+  }
+
   private advanceScheduledPhase(schedule: PhaseSchedule) {
     if (this.scheduledPhaseKey !== schedule.key) {
       return
@@ -790,12 +942,7 @@ export class AuthoritativeMatch {
       return false
     }
 
-    if (
-      (this.state.activeResourceMarket !== null &&
-        this.state.activeResourceMarket.phase !== 'finished') ||
-      (this.state.landAuctionTie !== null &&
-        this.state.landAuctionTie.phase !== 'finished')
-    ) {
+    if (isSharedRoundActionActive(this.state)) {
       return false
     }
 

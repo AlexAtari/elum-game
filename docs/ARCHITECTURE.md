@@ -205,6 +205,23 @@ grafische Grundstücksauktion bleibt dabei eine echte Barriere: Der
 Server startet und beendet zunächst ihre kanonischen Phasen und
 rechnet die Runde erst nach der Auflösung ab.
 
+Dieselbe `MatchClock` führt eine vierminütige Planungsfrist. Der
+Snapshot veröffentlicht dafür getrennt von der Auktionsfrist ein
+`roundTiming`: laufend mit absolutem `deadlineAt` oder pausiert mit
+dem verbleibenden Millisekundenwert. Beginnt eine gemeinsame
+Auktion, sichert der Kern den Restwert und entfernt den Rundentimer;
+nach der letzten Auktionsphase wird daraus eine neue absolute Frist.
+Andere Zustandsrevisionen verändern diese Frist nicht.
+
+Am Fristende ergänzt der Server ausschließlich fehlende menschliche
+Pläne über `createConservativeRoundPlan`. Die Funktion wählt für
+Nahrung und Energie dieselbe höchste vollständig bezahlbare Stufe,
+gedeckelt auf Normalversorgung, und verwendet weiterhin die bereits
+im `GameState` gespeicherten Harvesterzuweisungen. Anschließend läuft
+dieselbe gemeinsame Rundenabrechnung wie bei manuell vollständiger
+Bereitschaft. Die Sitzverbindung ist dafür unerheblich, sodass auch
+ein getrennter reservierter Sitz die Partie nicht blockiert.
+
 Nach der 20. Abrechnung setzt der Matchkern `finished` dauerhaft auf
 `true`. Weitere `GameCommand`s und Versorgungspläne werden danach an
 derselben autoritativen Grenze mit `match-finished` abgewiesen; die

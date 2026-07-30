@@ -333,6 +333,10 @@ werden.
 - serverseitige Rundenbarriere sammelt validierte Versorgungspläne
   aller menschlichen Sitze; Snapshots zeigen nur deren
   Bereitschaft, nicht die verdeckten Planwerte
+- eine vierminütige autoritative Rundenfrist läuft in Match-
+  Snapshots als gemeinsame Serverzeit, pausiert während Auktionen
+  und reicht am Ende für fehlende oder getrennte Sitze einen
+  konservativen, höchstens normalen Versorgungsplan ein
 - bereite Teilnehmer sind gegen nachträgliche Spielkommandos
   gesperrt; Reconnects behalten ihre teilnehmerbezogene
   Rundenbereitschaft
@@ -381,8 +385,10 @@ werden.
   bleiben erhalten, alle Bereitschaften werden zurückgesetzt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Backend-Hosting, TLS und Origin-Policy
-  für öffentlichen Mehrspielerbetrieb festlegen
+- nächster Strukturschritt: mehrere getrennte Lobbycodes auf einem
+  Server verwalten und verlassene Lobbys aufräumen; danach
+  Backend-Hosting, TLS und Origin-Policy für öffentlichen
+  Mehrspielerbetrieb festlegen
 
 ### Nächster Regelstand
 

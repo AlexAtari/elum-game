@@ -840,6 +840,24 @@ Nach Runde 20 bleibt die Abschlussrangliste stehen, zeichnet den
 Sieger aus und bietet eine neue Partie an. Es wird keine Runde 21
 eröffnet.
 
+## 13.1 Multiplayer-Rundenfrist
+
+Im synchronen Mehrspielermodus stehen für jede Runde vier Minuten
+Planungszeit zur Verfügung. Sobald alle menschlichen Kolonien ihre
+Planung abgeschlossen haben, wird die Runde sofort abgerechnet.
+Servergesteuerte Ressourcen- und Grundstücksauktionen pausieren die
+Planungszeit.
+
+Bei Ablauf reicht der Server für jeden noch fehlenden menschlichen
+Sitz automatisch einen konservativen Plan ein. Bereits ausgeführte
+Aktionen und Harvesterzuweisungen bleiben bestehen; es werden keine
+neuen Aktionen erzeugt. Nahrung und Energie erhalten gemeinsam die
+höchste vollständig bezahlbare Versorgungsstufe, höchstens
+Normalversorgung. Die Kolonie nimmt anschließend regulär an
+Produktion, Versorgung und Bevölkerungsauswertung teil. Dieselbe
+Regel gilt bei einem Verbindungsabbruch; der Sitz bleibt für einen
+Reconnect reserviert.
+
 ---
 
 # 14. Version-2-Ideen
@@ -873,7 +891,6 @@ Diese Ideen gehören bewusst nicht zu Version 1.
 - Grundstückshandel
 - Konzerne
 - Kampagne
-- Multiplayer
 
 ---
 

@@ -8,6 +8,7 @@ import {
 } from './game'
 import {
   createAuthoritativeMatch,
+  MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
   type MatchClock,
 } from './authoritativeMatch'
 import type { GameCommand } from './gameCommands'
@@ -102,6 +103,88 @@ function withRemoteOrion(state: GameState): GameState {
 }
 
 describe('Autoritativer Match-Serverkern', () => {
+  it('rechnet nach vier Minuten fehlende Spieler konservativ ab', () => {
+    const clock = new FakeClock()
+    const baseState = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const state: GameState = {
+      ...baseState,
+      colonies: {
+        ...baseState.colonies,
+        orion: {
+          ...baseState.colonies.orion,
+          resources: {
+            ...baseState.colonies.orion.resources,
+            food: 1,
+            energy: 1,
+          },
+        },
+      },
+    }
+    const match = createAuthoritativeMatch(state, { clock })
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+    match.connectSeat({
+      sessionId: 'orion-session',
+      participantId: 'orion',
+    })
+    match.submitRoundPlan('agima-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+    expect(match.disconnectSeat('orion-session')).toBe(true)
+
+    expect(match.getSnapshot()).toMatchObject({
+      state: { round: 1 },
+      roundTiming: {
+        status: 'running',
+        deadlineAt:
+          1_000 + MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
+      },
+      roundReadiness: {
+        readyParticipantIds: ['agima'],
+      },
+    })
+
+    clock.advance(
+      MULTIPLAYER_ROUND_DURATION_MILLISECONDS - 1,
+    )
+    expect(match.getSnapshot().state.round).toBe(1)
+
+    clock.advance(1)
+
+    expect(match.getSnapshot()).toMatchObject({
+      state: { round: 2 },
+      roundTiming: {
+        status: 'running',
+        deadlineAt:
+          1_000 +
+          MULTIPLAYER_ROUND_DURATION_MILLISECONDS * 2,
+      },
+      roundReadiness: {
+        readyParticipantIds: [],
+      },
+    })
+    expect(
+      match.getSnapshot('orion').lastRoundReport,
+    ).toMatchObject({
+      roundPlayed: 1,
+      consumedFood: 1,
+      consumedEnergyByHq: 1,
+      populationChange: 0,
+    })
+    expect(
+      match.connectSeat({
+        sessionId: 'orion-reconnected',
+        participantId: 'orion',
+      }),
+    ).toMatchObject({
+      ok: true,
+    })
+  })
+
   it('rechnet erst nach allen menschlichen Rundenplänen genau einmal ab', () => {
     const initialState = withRemoteOrion(
       createPlayableInitialGameState(),
@@ -626,6 +709,11 @@ describe('Autoritativer Match-Serverkern', () => {
           phase: 'announcement',
           deadlineAt: 6_000,
         },
+        roundTiming: {
+          status: 'paused',
+          remainingMilliseconds:
+            MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
+        },
       },
     })
 
@@ -702,6 +790,11 @@ describe('Autoritativer Match-Serverkern', () => {
         },
       },
       phaseTiming: null,
+      roundTiming: {
+        status: 'running',
+        deadlineAt:
+          41_000 + MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
+      },
     })
   })
 
@@ -735,6 +828,11 @@ describe('Autoritativer Match-Serverkern', () => {
       tileId,
       phase: 'announcement',
       deadlineAt: 6_000,
+    })
+    expect(match.getSnapshot().roundTiming).toEqual({
+      status: 'paused',
+      remainingMilliseconds:
+        MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
     })
 
     clock.advance(5_000)

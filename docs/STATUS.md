@@ -108,6 +108,16 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - serverseitige Rundenbarriere mit validierten Versorgungsplänen pro
   menschlichem Sitz; öffentliche Match-Snapshots enthalten nur die
   teilnehmerbezogene Bereitschaft und keine fremden Planwerte
+- autoritative Planungsfrist von vier Minuten je Multiplayer-Runde;
+  Match-Snapshots enthalten die laufende Serverfrist oder den
+  pausierten Restwert, und die Oberfläche warnt bei 60 sowie
+  15 verbleibenden Sekunden
+- Ressourcen- und Grundstücksauktionen pausieren die Planungsfrist;
+  nach ihrem Ende läuft exakt die zuvor verbleibende Zeit weiter
+- am Fristende erhalten fehlende oder getrennte menschliche Sitze
+  automatisch die höchste gemeinsam bezahlbare Versorgung bis
+  maximal Normalversorgung; bestehende Aktionen und
+  Harvesterzuweisungen bleiben unverändert
 - nach der Bereitschaft sind weitere Spielkommandos dieses Sitzes
   gesperrt; die Bereitschaft bleibt bei einem Reconnect erhalten
 - nach allen menschlichen Plänen führt der Server genau eine
@@ -298,10 +308,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 Der lokale Mehrspielerpfad deckt jetzt den vollständigen
 Partielebenszyklus von Lobby und Hoststart über autoritative Runden,
 Ereignisse und Rangliste bis zum serverseitig gesperrten Partieende
-und gemeinsamen Rückweg in dieselbe Lobby ab. Als Nächstes sind für
-einen öffentlichen Mehrspielerbetrieb Backend-Hosting, TLS mit
-`wss://`, Origin-Policy und betriebliche Überwachung zu entscheiden;
-GitHub Pages hostet weiterhin nur das statische Frontend.
+und gemeinsamen Rückweg in dieselbe Lobby ab. Eine autoritative
+Rundenfrist verhindert inzwischen auch Blockaden durch untätige oder
+getrennte Spieler. Als nächstes kleines Infrastrukturpaket soll ein
+Server mehrere getrennte Lobbycodes verwalten und ungenutzte Lobbys
+aufräumen. Danach sind Backend-Hosting, TLS mit `wss://`,
+Origin-Policy und betriebliche Überwachung zu entscheiden; GitHub
+Pages hostet weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 
