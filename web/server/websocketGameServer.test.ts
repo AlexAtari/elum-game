@@ -690,17 +690,20 @@ describe('Lokaler WebSocket-Spielserver', () => {
     }
   })
 
-  it('löscht den wartenden Speicherstand beim Matchstart', async () => {
+  it('stellt eine laufende Partie nach einem Serverneustart wieder her', async () => {
     const persistenceStore =
       new InMemoryLobbyPersistenceStore()
-    const server = createWebSocketGameServer({
+    const firstServer = createWebSocketGameServer({
       host: '127.0.0.1',
       port: 0,
       lobbyId: 'playing-room',
       lobbyPersistenceStore: persistenceStore,
     })
-    const address = await server.listen()
-    const host = await openClient(formatWebSocketUrl(address))
+    const firstAddress = await firstServer.listen()
+    const host = await openClient(
+      formatWebSocketUrl(firstAddress),
+    )
+    let reconnectToken: string | undefined
 
     try {
       send(host, {
@@ -709,9 +712,15 @@ describe('Lokaler WebSocket-Spielserver', () => {
         type: 'join-lobby',
         payload: { displayName: 'Alex' },
       })
-      await host.waitFor(
+      const session = await host.waitFor(
         (message) => message.type === 'session-established',
       )
+
+      if (session.type !== 'session-established') {
+        throw new Error('Expected an established host session.')
+      }
+
+      reconnectToken = session.payload.reconnectToken
       send(host, {
         version: 1,
         requestId: 'ready-playing-room',
@@ -733,14 +742,108 @@ describe('Lokaler WebSocket-Spielserver', () => {
       await host.waitFor(
         (message) => message.type === 'match-snapshot',
       )
+      send(host, {
+        version: 1,
+        requestId: 'build-before-restart',
+        type: 'game-command',
+        payload: {
+          command: {
+            version: 1,
+            commandId: 'persisted-harvester-build',
+            participantId: 'agima',
+            expectedRound: 1,
+            type: 'order-harvester-build',
+            payload: {},
+          },
+        },
+      })
+      await host.waitFor(
+        (message) =>
+          message.type === 'command-result' &&
+          message.requestId === 'build-before-restart' &&
+          message.payload.ok,
+      )
+      send(host, {
+        version: 1,
+        requestId: 'round-before-restart',
+        type: 'submit-round-plan',
+        payload: {
+          supplyPlan: { foodLevel: 2, energyLevel: 2 },
+        },
+      })
+      await host.waitFor(
+        (message) =>
+          message.type === 'command-result' &&
+          message.requestId === 'round-before-restart' &&
+          message.payload.ok,
+      )
     } finally {
       await closeClient(host)
-      await server.close()
+      await firstServer.close()
     }
 
-    expect(
-      await persistenceStore.load('playing-room'),
-    ).toBeNull()
+    const persistedRecord =
+      await persistenceStore.load('playing-room')
+
+    expect(persistedRecord?.payload).toMatchObject({
+      phase: 'playing',
+      match: {
+        revision: 2,
+        state: {
+          round: 2,
+        },
+        localEventSchedules: [
+          {
+            participantId: 'agima',
+            round: 2,
+          },
+        ],
+      },
+    })
+
+    if (!reconnectToken) {
+      throw new Error('Expected a reconnect token before restart.')
+    }
+
+    const secondServer = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'playing-room',
+      lobbyPersistenceStore: persistenceStore,
+    })
+    const secondAddress = await secondServer.listen()
+    const restoredHost = await openClient(
+      formatWebSocketUrl(secondAddress),
+    )
+
+    try {
+      send(restoredHost, {
+        version: 1,
+        requestId: 'resume-playing-room',
+        type: 'resume-session',
+        payload: { reconnectToken },
+      })
+      await restoredHost.waitFor(
+        (message) =>
+          message.type === 'session-established' &&
+          message.payload.participantId === 'agima',
+      )
+      const restoredMatch = await restoredHost.waitFor(
+        (message) => message.type === 'match-snapshot',
+      )
+
+      expect(restoredMatch).toMatchObject({
+        payload: {
+          revision: 2,
+          state: {
+            round: 2,
+          },
+        },
+      })
+    } finally {
+      await closeClient(restoredHost)
+      await secondServer.close()
+    }
   })
 
   it('weist Binärnachrichten und ungültige Lobby-Pfade zurück', async () => {

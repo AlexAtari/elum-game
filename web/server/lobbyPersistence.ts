@@ -19,7 +19,7 @@ export type CreatePersistedLobbyRecordOptions = {
   lobbyId: string
   savedAt: number
   ttlMilliseconds: number
-  payload: JsonValue
+  payload: unknown
 }
 
 export type LobbyPersistenceClock = {
@@ -93,7 +93,7 @@ function isJsonValue(
   return valid
 }
 
-function cloneJson(value: JsonValue): JsonValue {
+function cloneJson(value: unknown): JsonValue {
   if (!isJsonValue(value)) {
     throw new Error(
       'Lobby persistence payload must be JSON-serializable.',
@@ -145,7 +145,7 @@ function assertRecord(
     )
   }
 
-  cloneJson(candidate.payload as JsonValue)
+  cloneJson(candidate.payload)
 }
 
 export function parsePersistedLobbyRecord(

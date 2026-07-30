@@ -396,25 +396,29 @@ liefert den persönlichen Match-Snapshot.
 
 Die WebSocket-Registry verwendet den Speichervertrag inzwischen
 direkt. Vor dem ersten Upgrade eines Lobbycodes lädt sie genau einmal
-einen gültigen wartenden Zustand oder erzeugt einen neuen Raum.
-Änderungen werden pro Lobby geordnet gespeichert; nach Matchstart
-wird der wartende Snapshot gelöscht, damit ein Neustart keinen
-veralteten Vor-Spiel-Zustand reaktiviert. Die bestehende
+einen gültigen wartenden oder laufenden Zustand oder erzeugt einen
+neuen Raum. Änderungen werden pro Lobby geordnet gespeichert. Neben
+Lobbyrevisionen löst auch jeder autoritative Match-Snapshot eine
+Speicherung aus; dadurch werden clientgesteuerte Kommandos ebenso wie
+serverseitig ablaufende Phasen-, Runden- und Ereignistimer erfasst.
+Der Matchstart ersetzt den wartenden Datensatz durch die laufende
+Variante. Die bestehende
 Zehn-Minuten-Bereinigung löscht auch den Speichereintrag. Solange
 mindestens eine Verbindung besteht, schützt eine getrennte
-24-Stunden-TTL unveränderte wartende Räume vor vorzeitigem Ablauf;
+24-Stunden-TTL aktive wartende und laufende Räume vor vorzeitigem
+Ablauf;
 nach dem letzten Disconnect gilt wieder genau die Reconnect-
 Schonfrist. `server/start.ts` aktiviert den Redis-Adapter ausschließlich
 bei einer validierten geheimen `REDIS_URL`; ohne sie bleibt der
 prozesslokale In-Memory-Adapter aktiv. Der Render-Blueprint
 provisioniert noch keinen Key-Value-Dienst und setzt diese Variable
 nicht. Der aktuelle Render-Dienst ist deshalb weiterhin nicht
-deployfest und darf nicht horizontal skaliert werden; laufende Partien
-werden trotz wiederherstellbarem Lobby- und Match-Snapshot noch nicht
-durch die Registry gespeichert oder geladen. Provisionierung und
-Speicheranbindung laufender Matches sowie betriebliche
-Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat, aggregierte
-Live-Health-Daten und einen
+deployfest und darf nicht horizontal skaliert werden. Die Registry
+kann laufende Partien bereits über ihren Speichervertrag sichern und
+laden; dem öffentlichen Dienst fehlt dafür noch der externe
+Key-Value-Dienst. Dessen Provisionierung sowie betriebliche
+Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat,
+aggregierte Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
 bereit, die GitHub Actions regelmäßig unabhängig prüft.
 

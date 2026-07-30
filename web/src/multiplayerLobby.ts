@@ -260,6 +260,9 @@ export class MultiplayerLobby {
   private readonly matchOptions: AuthoritativeMatchOptions
   private match: AuthoritativeMatch | null = null
   private unsubscribeMatch: (() => void) | null = null
+  private readonly persistenceSubscribers = new Set<
+    () => void
+  >()
 
   static restoreWaitingState(
     input: unknown,
@@ -418,6 +421,14 @@ export class MultiplayerLobby {
     return this.match?.getSnapshot() ?? null
   }
 
+  subscribePersistenceChanges(subscriber: () => void) {
+    this.persistenceSubscribers.add(subscriber)
+
+    return () => {
+      this.persistenceSubscribers.delete(subscriber)
+    }
+  }
+
   exportWaitingState(): PersistedWaitingLobbyState {
     if (this.phase !== 'waiting' || this.match !== null) {
       throw new Error(
@@ -465,6 +476,7 @@ export class MultiplayerLobby {
     this.connectionSeats.clear()
     this.tokenSeats.clear()
     this.humanSeats.clear()
+    this.persistenceSubscribers.clear()
   }
 
   private joinLobby(
@@ -966,6 +978,12 @@ export class MultiplayerLobby {
 
   private subscribeToMatch(match: AuthoritativeMatch) {
     this.unsubscribeMatch = match.subscribe(() => {
+      queueMicrotask(() => {
+        if (this.match === match) {
+          this.publishPersistenceChange()
+        }
+      })
+
       for (const seat of this.humanSeats.values()) {
         if (seat.connectionId === null) {
           continue
@@ -978,6 +996,16 @@ export class MultiplayerLobby {
         })
       }
     })
+  }
+
+  private publishPersistenceChange() {
+    for (const subscriber of this.persistenceSubscribers) {
+      try {
+        subscriber()
+      } catch (error) {
+        this.onEmitError(error)
+      }
+    }
   }
 
   private broadcastLobbySnapshot() {

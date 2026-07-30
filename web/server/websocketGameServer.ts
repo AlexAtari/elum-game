@@ -34,7 +34,7 @@ export type WebSocketGameServerOptions = {
   lobbyCleanupClock?: LobbyCleanupClock
   lobbyPersistenceStore?: LobbyPersistenceStore
   lobbyPersistenceClock?: LobbyPersistenceClock
-  waitingLobbyPersistenceTtlMilliseconds?: number
+  activeLobbyPersistenceTtlMilliseconds?: number
   allowedOrigins?: string[]
   createConnectionId?: () => string
   onError?: (error: unknown) => void
@@ -70,7 +70,7 @@ const DEFAULT_MAX_PAYLOAD_BYTES = 64 * 1024
 export const DEFAULT_HEARTBEAT_INTERVAL_MILLISECONDS = 30_000
 export const EMPTY_LOBBY_GRACE_MILLISECONDS =
   10 * 60 * 1_000
-export const WAITING_LOBBY_PERSISTENCE_TTL_MILLISECONDS =
+export const ACTIVE_LOBBY_PERSISTENCE_TTL_MILLISECONDS =
   24 * 60 * 60 * 1_000
 
 const defaultLobbyCleanupClock: LobbyCleanupClock = {
@@ -139,7 +139,7 @@ export class WebSocketGameServer {
   private readonly lobbyCleanupClock: LobbyCleanupClock
   private readonly lobbyPersistenceStore: LobbyPersistenceStore
   private readonly lobbyPersistenceClock: LobbyPersistenceClock
-  private readonly waitingLobbyPersistenceTtlMilliseconds: number
+  private readonly activeLobbyPersistenceTtlMilliseconds: number
   private readonly heartbeatIntervalMilliseconds: number
   private readonly heartbeatClock: ServerHeartbeatClock
   private readonly sockets = new Map<
@@ -187,9 +187,9 @@ export class WebSocketGameServer {
       new InMemoryLobbyPersistenceStore(
         this.lobbyPersistenceClock,
       )
-    this.waitingLobbyPersistenceTtlMilliseconds =
-      options.waitingLobbyPersistenceTtlMilliseconds ??
-      WAITING_LOBBY_PERSISTENCE_TTL_MILLISECONDS
+    this.activeLobbyPersistenceTtlMilliseconds =
+      options.activeLobbyPersistenceTtlMilliseconds ??
+      ACTIVE_LOBBY_PERSISTENCE_TTL_MILLISECONDS
     this.heartbeatIntervalMilliseconds =
       options.heartbeatIntervalMilliseconds ??
       DEFAULT_HEARTBEAT_INTERVAL_MILLISECONDS
@@ -213,12 +213,12 @@ export class WebSocketGameServer {
     }
     if (
       !Number.isFinite(
-        this.waitingLobbyPersistenceTtlMilliseconds,
+        this.activeLobbyPersistenceTtlMilliseconds,
       ) ||
-      this.waitingLobbyPersistenceTtlMilliseconds <= 0
+      this.activeLobbyPersistenceTtlMilliseconds <= 0
     ) {
       throw new Error(
-        'Waiting lobby persistence TTL must be a positive finite number.',
+        'Active lobby persistence TTL must be a positive finite number.',
       )
     }
     this.allowedOrigins = options.allowedOrigins
@@ -582,6 +582,9 @@ export class WebSocketGameServer {
     }
 
     this.lobbies.set(lobbyId, lobby)
+    lobby.subscribePersistenceChanges(() => {
+      this.persistLobbyState(lobbyId, lobby)
+    })
     return lobby
   }
 
@@ -596,10 +599,17 @@ export class WebSocketGameServer {
       return
     }
 
-    if (snapshot.phase !== 'waiting') {
-      this.queueLobbyPersistence(lobbyId, () =>
-        this.lobbyPersistenceStore.delete(lobbyId),
-      )
+    this.persistLobbyState(lobbyId, lobby)
+  }
+
+  private persistLobbyState(
+    lobbyId: string,
+    lobby: MultiplayerLobby,
+  ) {
+    if (
+      this.closing ||
+      this.lobbies.get(lobbyId) !== lobby
+    ) {
       return
     }
 
@@ -620,9 +630,9 @@ export class WebSocketGameServer {
         lobbyId,
         savedAt: this.lobbyPersistenceClock.now(),
         ttlMilliseconds: hasConnections
-          ? this.waitingLobbyPersistenceTtlMilliseconds
+          ? this.activeLobbyPersistenceTtlMilliseconds
           : this.emptyLobbyGraceMilliseconds,
-        payload: lobby.exportWaitingState(),
+        payload: lobby.exportPersistenceState(),
       })
       this.queueLobbyPersistence(lobbyId, () =>
         this.lobbyPersistenceStore.save(record),

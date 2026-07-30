@@ -161,14 +161,16 @@ vollständig validiert und können als wartende Lobby wiederhergestellt
 werden. Die reservierten Sitze beginnen getrennt und verbinden sich
 über ihre erhaltenen Reconnect-Tokens erneut. Die Lobby-Registry lädt
 diesen Zustand vor dem ersten Verbindungsaufbau und speichert
-Änderungen wartender Räume geordnet. Beim Matchstart und nach der
-endgültigen Bereinigung wird der wartende Snapshot gelöscht. Aktive
-wartende Räume verwenden eine 24-Stunden-TTL; nach dem letzten
-Disconnect gilt die zehnminütige Reconnect-Schonfrist.
+Änderungen wartender wie laufender Räume geordnet. Autoritative
+Matchänderungen durch Kommandos und serverseitige Timer werden
+ebenfalls erfasst. Beim Matchstart ersetzt der laufende Snapshot den
+wartenden; nach der endgültigen Bereinigung wird er gelöscht. Aktive
+Räume verwenden eine 24-Stunden-TTL; nach dem letzten Disconnect gilt
+die zehnminütige Reconnect-Schonfrist.
 
 Der Redis-/Valkey-Adapter speichert Datensatz und Ablaufzeit atomar
 und validiert geladene JSON-Werte erneut. Der aktuell provisionierte
 Render-Dienst hat jedoch noch keine `REDIS_URL` und verwendet daher
 weiterhin den In-Memory-Adapter. Tatsächliche Provisionierung,
-Speicheranbindung laufender Matches sowie instanzübergreifende
-Sitzungen sind der nächste Ausbau.
+instanzübergreifende Sitzungen und externer Neustartschutz sind der
+nächste Ausbau.

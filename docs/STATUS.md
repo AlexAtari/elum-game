@@ -364,14 +364,14 @@ mit Seed, Revision, menschlichen Sitzen und Reconnect-Tokens als
 `playing`-Variante der Version-1-Nutzlast. Sie können mit getrennten
 Sitzen wiederhergestellt und anschließend über die erhaltenen Tokens
 fortgesetzt werden. Alte Prozess-Sitzungen werden nicht übernommen.
-Die Speicheranbindung laufender Matches fehlt noch. Die
-WebSocket-Registry lädt beim ersten Zugriff einmalig aus dem Speicher,
-speichert Änderungen
-wartender Lobbys in Reihenfolge und löscht den Snapshot bei
-Matchstart oder endgültiger Lobbybereinigung. Ein Integrationstest
-stellt einen bereiten Host mit seinem Token über zwei getrennte
+Die WebSocket-Registry lädt beim ersten Zugriff wartende oder laufende
+Lobbys, speichert Lobby- und Matchänderungen geordnet und ersetzt beim
+Matchstart den wartenden durch den laufenden Snapshot. Dazu gehören
+auch Änderungen durch serverseitige Timer ohne neue Clientnachricht.
+Integrationstests stellen sowohl eine wartende als auch eine bereits
+laufende Partie mit Reconnect-Token und Spielzustand über zwei
 Serverinstanzen und einen gemeinsam injizierten Speicher wieder her.
-Aktive wartende Räume erhalten eine getrennte 24-Stunden-TTL; nach
+Aktive Räume erhalten eine getrennte 24-Stunden-TTL; nach
 dem letzten Disconnect gilt die zehnminütige Reconnect-Schonfrist.
 Ein getesteter Redis-/Valkey-Adapter speichert Datensatz und TTL
 atomar, validiert externe JSON-Werte und wird beim Prozessstart über
@@ -379,7 +379,7 @@ eine gültige `REDIS_URL` ausgewählt. Ohne Variable bleibt der
 In-Memory-Adapter aktiv. Der Blueprint provisioniert noch keinen
 Render-Key-Value-Dienst; der öffentliche Server nutzt deshalb
 weiterhin nur Prozessspeicher. Noch offen sind die tatsächliche
-Provisionierung und Speicheranbindung laufender Matches sowie externe
+Provisionierung des externen Speichers sowie externe
 Langzeitspeicherung der Metriken. Eine unabhängige GitHub Action
 prüft Health und erwartetes Metrikformat alle sechs Stunden sowie
 manuell; Fehler werden dadurch als fehlgeschlagene Workflow-Läufe
