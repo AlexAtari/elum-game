@@ -252,10 +252,14 @@ Node-Prozesses voneinander getrennt.
 Binärnachrichten, fehlende oder überlange Lobbycodes, falsche Pfade
 und zu große Payloads werden abgewiesen. Disconnects werden nur der
 zugehörigen Lobby gemeldet, damit deren Reconnect-Modell unverändert
-greift. Beim Server-Shutdown werden alle Registry-Einträge
-vollständig verworfen; eine automatische Bereinigung verlassener
-Lobbys während des Betriebs gehört bewusst noch nicht zu diesem
-Baustein.
+greift. Hat eine Lobby keine einzige aktive WebSocket-Verbindung
+mehr, plant die Registry ihre vollständige Bereinigung nach zehn
+Minuten. Eine neue Verbindung mit demselben Lobbycode hebt diesen
+Timer auf. Bleibt der Raum leer, werden Lobbykern, Matchzustand,
+Timer und Reconnect-Tokens verworfen; ein späterer Zugriff erzeugt
+unter demselben Code einen frischen Raum. Beim Server-Shutdown werden
+ausstehende Bereinigungstimer abgebrochen und alle Registry-Einträge
+sofort vollständig verworfen.
 
 Der Adapter enthält keine Spielregeln und keinen eigenen Lobby- oder
 Matchzustand. Standardmäßig bindet das Startskript nur an
@@ -303,12 +307,14 @@ verbundenen Spieler gemeinsam in der Lobby landen.
 Der lokale WebSocket-Adapter ist durch echte Transporttests für
 Matchstart, Disconnect und Reconnect sowie zwei parallele Lobbycodes
 abgesichert. Der Isolationstest belegt getrennte Hostsitze und weist
-die Verwendung eines Reconnect-Tokens im falschen Raum zurück.
-Token-Erzeugung und Sitzbindung verbleiben auf der Serverseite.
-GitHub Pages kann weiterhin nur das Frontend hosten, aber nicht
-diesen dauerhaft laufenden Dienst. Für öffentlichen Betrieb fehlen
-deshalb noch Lobby-Aufräumlogik, Backend-Hosting, TLS mit `wss://`,
-Origin-Policy sowie betriebliche Überwachung.
+die Verwendung eines Reconnect-Tokens im falschen Raum zurück. Ein
+deterministischer Lifecycle-Test deckt außerdem Schonfrist,
+Abbruch bei Reconnect und endgültige Token-Ungültigkeit nach der
+Bereinigung ab. Token-Erzeugung und Sitzbindung verbleiben auf der
+Serverseite. GitHub Pages kann weiterhin nur das Frontend hosten,
+aber nicht diesen dauerhaft laufenden Dienst. Für öffentlichen
+Betrieb fehlen deshalb noch Einladungslinks, Backend-Hosting, TLS
+mit `wss://`, Origin-Policy sowie betriebliche Überwachung.
 
 Die lokale React-Partie koordiniert ihre Runde weiterhin in
 `App.tsx`; der Mehrspieler-Client verwendet stattdessen

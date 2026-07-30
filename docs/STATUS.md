@@ -133,6 +133,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   jeden gültigen Lobbycode unabhängig; Sitze, Reconnect-Tokens,
   Bereitschaft, Matchzustand und Timer bleiben vollständig zwischen
   den Codes isoliert
+- vollständig verlassene Lobbys bleiben zehn Minuten für Reconnects
+  erhalten und werden danach einschließlich Zustand, Timer und
+  Tokens bereinigt; eine neue Verbindung in der Schonfrist bricht
+  die Löschung ab
 - feste WebSocket-Route, maximale Payloadgröße, Ablehnung von
   Binärdaten, Health-Endpunkt mit aktueller Lobbyanzahl, zufällige
   Verbindungs-IDs und sauberes Disconnect-/Shutdown-Verhalten sind
@@ -316,12 +320,13 @@ Ereignisse und Rangliste bis zum serverseitig gesperrten Partieende
 und gemeinsamen Rückweg in dieselbe Lobby ab. Eine autoritative
 Rundenfrist verhindert inzwischen auch Blockaden durch untätige oder
 getrennte Spieler. Derselbe Server verwaltet inzwischen mehrere
-dynamische, voneinander isolierte Lobbycodes. Als nächstes kleines
-Infrastrukturpaket sollen vollständig verlassene Lobbys nach einer
-festgelegten Schonfrist aufgeräumt werden. Danach folgen
-Einladungslinks sowie die Entscheidungen zu Backend-Hosting, TLS mit
-`wss://`, Origin-Policy und betrieblicher Überwachung; GitHub Pages
-hostet weiterhin nur das statische Frontend.
+dynamische, voneinander isolierte Lobbycodes und bereinigt leere
+Räume nach einer zehnminütigen, durch Reconnect abbrechbaren
+Schonfrist. Als nächstes kleines Infrastrukturpaket folgen
+Einladungslinks mit automatischer Übernahme von Serveradresse und
+Lobbycode. Danach stehen die Entscheidungen zu Backend-Hosting, TLS
+mit `wss://`, Origin-Policy und betrieblicher Überwachung an; GitHub
+Pages hostet weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

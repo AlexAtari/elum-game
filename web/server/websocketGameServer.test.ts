@@ -3,6 +3,7 @@ import { WebSocket } from 'ws'
 import type { MultiplayerServerMessage } from '../src/multiplayerProtocol'
 import {
   createWebSocketGameServer,
+  type LobbyCleanupClock,
   formatWebSocketUrl,
 } from './websocketGameServer'
 
@@ -11,6 +12,87 @@ type TestClient = {
   waitFor: (
     predicate: (message: MultiplayerServerMessage) => boolean,
   ) => Promise<MultiplayerServerMessage>
+}
+
+class FakeLobbyCleanupClock implements LobbyCleanupClock {
+  private currentMilliseconds = 0
+  private nextTimerId = 1
+  private readonly timers = new Map<
+    number,
+    {
+      callback: () => void
+      dueMilliseconds: number
+    }
+  >()
+
+  setTimeout(
+    callback: () => void,
+    delayMilliseconds: number,
+  ) {
+    const timerId = this.nextTimerId
+    this.nextTimerId += 1
+    this.timers.set(timerId, {
+      callback,
+      dueMilliseconds:
+        this.currentMilliseconds + delayMilliseconds,
+    })
+    return timerId
+  }
+
+  clearTimeout(timer: unknown) {
+    if (typeof timer === 'number') {
+      this.timers.delete(timer)
+    }
+  }
+
+  get pendingTimerCount() {
+    return this.timers.size
+  }
+
+  advanceBy(milliseconds: number) {
+    const targetMilliseconds =
+      this.currentMilliseconds + milliseconds
+
+    while (true) {
+      const nextTimer = [...this.timers.entries()]
+        .filter(
+          ([, timer]) =>
+            timer.dueMilliseconds <= targetMilliseconds,
+        )
+        .sort(
+          ([firstId, first], [secondId, second]) =>
+            first.dueMilliseconds - second.dueMilliseconds ||
+            firstId - secondId,
+        )[0]
+
+      if (!nextTimer) {
+        break
+      }
+
+      const [timerId, timer] = nextTimer
+      this.timers.delete(timerId)
+      this.currentMilliseconds = timer.dueMilliseconds
+      timer.callback()
+    }
+
+    this.currentMilliseconds = targetMilliseconds
+  }
+}
+
+async function waitForPendingCleanupTimer(
+  clock: FakeLobbyCleanupClock,
+) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (clock.pendingTimerCount > 0) {
+      return
+    }
+
+    await new Promise<void>((resolve) =>
+      setImmediate(resolve),
+    )
+  }
+
+  throw new Error('Timed out waiting for lobby cleanup timer.')
 }
 
 async function openClient(url: string): Promise<TestClient> {
@@ -385,6 +467,109 @@ describe('Lokaler WebSocket-Spielserver', () => {
       await closeClient(betaHost)
       await closeClient(betaGuest)
       await closeClient(betaIntruder)
+      await server.close()
+    }
+  })
+
+  it('bereinigt verlassene Lobbys nach einer abbrechbaren Schonfrist', async () => {
+    const cleanupClock = new FakeLobbyCleanupClock()
+    const server = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'default-room',
+      emptyLobbyGraceMilliseconds: 600_000,
+      lobbyCleanupClock: cleanupClock,
+    })
+    const address = await server.listen()
+    const lobbyUrl = formatWebSocketUrl({
+      ...address,
+      lobbyId: 'returning-room',
+    })
+    const host = await openClient(lobbyUrl)
+
+    try {
+      send(host, {
+        version: 1,
+        requestId: 'join-before-cleanup',
+        type: 'join-lobby',
+        payload: { displayName: 'Alex' },
+      })
+      const hostSession = await host.waitFor(
+        (message) => message.type === 'session-established',
+      )
+      const reconnectToken =
+        hostSession.type === 'session-established'
+          ? hostSession.payload.reconnectToken
+          : ''
+
+      await closeClient(host)
+      await waitForPendingCleanupTimer(cleanupClock)
+      cleanupClock.advanceBy(599_999)
+      expect(
+        await (
+          await fetch(
+            `http://127.0.0.1:${address.port}/health`,
+          )
+        ).json(),
+      ).toMatchObject({ lobbyCount: 1 })
+
+      const resumedHost = await openClient(lobbyUrl)
+
+      send(resumedHost, {
+        version: 1,
+        requestId: 'resume-during-grace',
+        type: 'resume-session',
+        payload: { reconnectToken },
+      })
+      await expect(
+        resumedHost.waitFor(
+          (message) =>
+            message.type === 'session-established' &&
+            message.payload.participantId === 'agima',
+        ),
+      ).resolves.toBeDefined()
+
+      cleanupClock.advanceBy(1)
+      expect(
+        await (
+          await fetch(
+            `http://127.0.0.1:${address.port}/health`,
+          )
+        ).json(),
+      ).toMatchObject({ lobbyCount: 1 })
+
+      await closeClient(resumedHost)
+      await waitForPendingCleanupTimer(cleanupClock)
+      cleanupClock.advanceBy(600_000)
+      expect(
+        await (
+          await fetch(
+            `http://127.0.0.1:${address.port}/health`,
+          )
+        ).json(),
+      ).toMatchObject({ lobbyCount: 0 })
+
+      const replacementHost = await openClient(lobbyUrl)
+
+      try {
+        send(replacementHost, {
+          version: 1,
+          requestId: 'resume-after-cleanup',
+          type: 'resume-session',
+          payload: { reconnectToken },
+        })
+        await expect(
+          replacementHost.waitFor(
+            (message) =>
+              message.type === 'request-error' &&
+              message.payload.error === 'unknown-session',
+          ),
+        ).resolves.toBeDefined()
+      } finally {
+        await closeClient(replacementHost)
+      }
+    } finally {
+      await closeClient(host)
       await server.close()
     }
   })

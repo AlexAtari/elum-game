@@ -352,6 +352,10 @@ werden.
   Lobbycodes bei der ersten Verbindung und isoliert deren Sitze,
   Reconnect-Tokens, Matchzustände und Timer; der konfigurierte
   Standardcode ist nur noch die vorgeschlagene Startadresse
+- nach der letzten getrennten Verbindung hält die Registry eine
+  Lobby zehn Minuten für Reconnects vor; eine neue Verbindung bricht
+  die Bereinigung ab, andernfalls werden Lobbykern, Timer und
+  Reconnect-Tokens vollständig verworfen
 - Startskript bindet sicher standardmäßig nur an Loopback und kann
   für Smartphone-Tests explizit im lokalen WLAN freigegeben werden
 - React-Startseite bietet getrennte Einzel- und Mehrspielerpfade;
@@ -389,10 +393,10 @@ werden.
   bleiben erhalten, alle Bereitschaften werden zurückgesetzt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: vollständig verlassene dynamische
-  Lobbys nach einer Schonfrist aufräumen, danach Einladungslinks
-  ergänzen und Backend-Hosting, TLS sowie Origin-Policy für
-  öffentlichen Mehrspielerbetrieb festlegen
+- nächster Strukturschritt: Einladungslinks ergänzen, die
+  Serveradresse und Lobbycode automatisch übernehmen; danach
+  Backend-Hosting, TLS sowie Origin-Policy für öffentlichen
+  Mehrspielerbetrieb festlegen
 
 ### Nächster Regelstand
 

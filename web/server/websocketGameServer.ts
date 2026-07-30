@@ -20,9 +20,19 @@ export type WebSocketGameServerOptions = {
   lobbyId?: string
   seed?: number
   maxPayloadBytes?: number
+  emptyLobbyGraceMilliseconds?: number
+  lobbyCleanupClock?: LobbyCleanupClock
   allowedOrigins?: string[]
   createConnectionId?: () => string
   onError?: (error: unknown) => void
+}
+
+export type LobbyCleanupClock = {
+  setTimeout: (
+    callback: () => void,
+    delayMilliseconds: number,
+  ) => unknown
+  clearTimeout: (timer: unknown) => void
 }
 
 export type WebSocketGameServerAddress = {
@@ -35,6 +45,15 @@ export type WebSocketGameServerAddress = {
 const WEBSOCKET_PATH = '/multiplayer'
 const HEALTH_PATH = '/health'
 const DEFAULT_MAX_PAYLOAD_BYTES = 64 * 1024
+export const EMPTY_LOBBY_GRACE_MILLISECONDS =
+  10 * 60 * 1_000
+
+const defaultLobbyCleanupClock: LobbyCleanupClock = {
+  setTimeout: (callback, delayMilliseconds) =>
+    setTimeout(callback, delayMilliseconds),
+  clearTimeout: (timer) =>
+    clearTimeout(timer as ReturnType<typeof setTimeout>),
+}
 
 function rejectUpgrade(
   request: IncomingMessage,
@@ -80,6 +99,8 @@ export class WebSocketGameServer {
   private readonly allowedOrigins: Set<string> | null
   private readonly createConnectionId: () => string
   private readonly onError: (error: unknown) => void
+  private readonly emptyLobbyGraceMilliseconds: number
+  private readonly lobbyCleanupClock: LobbyCleanupClock
   private readonly sockets = new Map<
     string,
     {
@@ -88,6 +109,7 @@ export class WebSocketGameServer {
     }
   >()
   private readonly lobbies = new Map<string, MultiplayerLobby>()
+  private readonly lobbyCleanupTimers = new Map<string, unknown>()
   private readonly httpServer: HttpServer
   private readonly webSocketServer: WebSocketServer
   private listening = false
@@ -98,6 +120,19 @@ export class WebSocketGameServer {
     this.port = options.port ?? 8787
     this.defaultLobbyId = options.lobbyId ?? 'mars-alpha'
     this.seed = options.seed
+    this.emptyLobbyGraceMilliseconds =
+      options.emptyLobbyGraceMilliseconds ??
+      EMPTY_LOBBY_GRACE_MILLISECONDS
+    this.lobbyCleanupClock =
+      options.lobbyCleanupClock ?? defaultLobbyCleanupClock
+    if (
+      !Number.isFinite(this.emptyLobbyGraceMilliseconds) ||
+      this.emptyLobbyGraceMilliseconds < 0
+    ) {
+      throw new Error(
+        'Empty lobby grace period must be a non-negative finite number.',
+      )
+    }
     this.allowedOrigins = options.allowedOrigins
       ? new Set(options.allowedOrigins)
       : null
@@ -175,6 +210,7 @@ export class WebSocketGameServer {
         return
       }
 
+      this.cancelLobbyCleanup(lobbyId)
       const lobby = this.getOrCreateLobby(lobbyId)
       const connectionId = this.createUniqueConnectionId()
       this.sockets.set(connectionId, { socket, lobbyId })
@@ -194,6 +230,7 @@ export class WebSocketGameServer {
       socket.once('close', () => {
         this.sockets.delete(connectionId)
         lobby.disconnect(connectionId)
+        this.scheduleLobbyCleanupIfEmpty(lobbyId, lobby)
       })
     })
     this.httpServer.on('clientError', (error, socket) => {
@@ -251,6 +288,11 @@ export class WebSocketGameServer {
     }
 
     this.closing = true
+    for (const timer of this.lobbyCleanupTimers.values()) {
+      this.lobbyCleanupClock.clearTimeout(timer)
+    }
+    this.lobbyCleanupTimers.clear()
+
     for (const lobby of this.lobbies.values()) {
       lobby.dispose()
     }
@@ -317,6 +359,57 @@ export class WebSocketGameServer {
     })
     this.lobbies.set(lobbyId, lobby)
     return lobby
+  }
+
+  private cancelLobbyCleanup(lobbyId: string) {
+    const timer = this.lobbyCleanupTimers.get(lobbyId)
+
+    if (timer === undefined) {
+      return
+    }
+
+    this.lobbyCleanupClock.clearTimeout(timer)
+    this.lobbyCleanupTimers.delete(lobbyId)
+  }
+
+  private scheduleLobbyCleanupIfEmpty(
+    lobbyId: string,
+    lobby: MultiplayerLobby,
+  ) {
+    if (
+      this.closing ||
+      this.hasLobbyConnections(lobbyId) ||
+      this.lobbies.get(lobbyId) !== lobby ||
+      this.lobbyCleanupTimers.has(lobbyId)
+    ) {
+      return
+    }
+
+    const timer = this.lobbyCleanupClock.setTimeout(() => {
+      this.lobbyCleanupTimers.delete(lobbyId)
+
+      if (
+        this.closing ||
+        this.hasLobbyConnections(lobbyId) ||
+        this.lobbies.get(lobbyId) !== lobby
+      ) {
+        return
+      }
+
+      lobby.dispose()
+      this.lobbies.delete(lobbyId)
+    }, this.emptyLobbyGraceMilliseconds)
+    this.lobbyCleanupTimers.set(lobbyId, timer)
+  }
+
+  private hasLobbyConnections(lobbyId: string) {
+    for (const connection of this.sockets.values()) {
+      if (connection.lobbyId === lobbyId) {
+        return true
+      }
+    }
+
+    return false
   }
 
   private async closeHttpServer() {

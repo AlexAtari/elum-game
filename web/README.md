@@ -41,9 +41,11 @@ Der Health-Endpunkt liegt unter
 
 Jeder nicht leere Lobbycode bis 128 Zeichen erzeugt bei der ersten
 WebSocket-Verbindung einen eigenen Spielraum. Unterschiedliche Codes
-teilen weder Sitze noch Reconnect-Tokens oder Matchzustände. Eine
-automatische Bereinigung vollständig verlassener Lobbys ist in
-diesem Paket noch nicht enthalten.
+teilen weder Sitze noch Reconnect-Tokens oder Matchzustände. Nach der
+letzten getrennten Verbindung bleibt eine Lobby zehn Minuten für
+Reconnects erhalten. Eine neue Verbindung mit demselben Code bricht
+die Bereinigung ab; bleibt die Lobby leer, werden Zustand, Timer und
+Reconnect-Tokens danach vollständig verworfen.
 
 Die React-Startseite enthält eine Mehrspieler-Lobby. Sie leitet den
 Server standardmäßig aus dem aktuellen Seitenhost und Port `8787` ab;
