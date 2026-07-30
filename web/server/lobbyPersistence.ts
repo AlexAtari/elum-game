@@ -36,24 +36,71 @@ const defaultClock: LobbyPersistenceClock = {
   now: () => Date.now(),
 }
 
-function assertLobbyId(lobbyId: string) {
-  if (lobbyId.length === 0 || lobbyId.length > 128) {
+function assertLobbyId(
+  lobbyId: unknown,
+): asserts lobbyId is string {
+  if (
+    typeof lobbyId !== 'string' ||
+    lobbyId.length === 0 ||
+    lobbyId.length > 128
+  ) {
     throw new Error('Invalid lobby id.')
   }
 }
 
-function assertFiniteTimestamp(value: number, label: string) {
-  if (!Number.isFinite(value) || value < 0) {
+function assertFiniteTimestamp(
+  value: unknown,
+  label: string,
+): asserts value is number {
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    value < 0
+  ) {
     throw new Error(`${label} must be a non-negative finite number.`)
   }
 }
 
-function cloneJson(value: JsonValue): JsonValue {
-  const serialized = JSON.stringify(value)
-
-  if (serialized === undefined) {
-    throw new Error('Lobby persistence payload must be JSON-serializable.')
+function isJsonValue(
+  value: unknown,
+  ancestors = new Set<object>(),
+): value is JsonValue {
+  if (
+    value === null ||
+    typeof value === 'boolean' ||
+    typeof value === 'string'
+  ) {
+    return true
   }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value)
+  }
+
+  if (typeof value !== 'object' || ancestors.has(value)) {
+    return false
+  }
+
+  ancestors.add(value)
+  const valid = Array.isArray(value)
+    ? value.every((entry) => isJsonValue(entry, ancestors))
+    : (Object.getPrototypeOf(value) === Object.prototype ||
+        Object.getPrototypeOf(value) === null) &&
+      Object.values(value).every((entry) =>
+        isJsonValue(entry, ancestors),
+      )
+  ancestors.delete(value)
+  return valid
+}
+
+function cloneJson(value: JsonValue): JsonValue {
+  if (!isJsonValue(value)) {
+    throw new Error(
+      'Lobby persistence payload must be JSON-serializable.',
+    )
+  }
+
+  const serialized = JSON.stringify(value)
 
   return JSON.parse(serialized) as JsonValue
 }
@@ -67,20 +114,49 @@ function cloneRecord(
   }
 }
 
-function assertRecord(record: PersistedLobbyRecord) {
-  if (record.version !== LOBBY_PERSISTENCE_VERSION) {
+function assertRecord(
+  record: unknown,
+): asserts record is PersistedLobbyRecord {
+  if (
+    typeof record !== 'object' ||
+    record === null ||
+    Array.isArray(record)
+  ) {
+    throw new Error('Invalid persisted lobby record.')
+  }
+
+  const candidate = record as Record<string, unknown>
+
+  if (candidate.version !== LOBBY_PERSISTENCE_VERSION) {
     throw new Error('Unsupported lobby persistence version.')
   }
 
-  assertLobbyId(record.lobbyId)
-  assertFiniteTimestamp(record.savedAt, 'savedAt')
-  assertFiniteTimestamp(record.expiresAt, 'expiresAt')
+  assertLobbyId(candidate.lobbyId)
+  assertFiniteTimestamp(candidate.savedAt, 'savedAt')
+  assertFiniteTimestamp(candidate.expiresAt, 'expiresAt')
 
-  if (record.expiresAt <= record.savedAt) {
+  if (candidate.expiresAt <= candidate.savedAt) {
     throw new Error('expiresAt must be later than savedAt.')
   }
 
-  cloneJson(record.payload)
+  if (!('payload' in candidate)) {
+    throw new Error(
+      'Lobby persistence payload must be JSON-serializable.',
+    )
+  }
+
+  cloneJson(candidate.payload as JsonValue)
+}
+
+export function parsePersistedLobbyRecord(
+  input: unknown,
+): PersistedLobbyRecord | null {
+  try {
+    assertRecord(input)
+    return cloneRecord(input)
+  } catch {
+    return null
+  }
 }
 
 export function createPersistedLobbyRecord(

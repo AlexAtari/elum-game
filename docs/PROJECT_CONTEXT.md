@@ -422,7 +422,10 @@ werden.
   Matchstart oder endgültiger Bereinigung; der Standardadapter bleibt
   prozesslokal; aktive Räume verwenden eine 24-Stunden-TTL, getrennte
   Räume die zehnminütige Reconnect-Schonfrist
-- nächste Strukturschritte sind ein externer Zustandsspeicher,
+- ein Redis-/Valkey-Adapter mit atomarer TTL ist implementiert und
+  wird über `REDIS_URL` gewählt; der Render-Blueprint provisioniert
+  und aktiviert noch keinen externen Speicher
+- nächste Strukturschritte sind Render-Key-Value-Provisionierung,
   Persistenz laufender Matches sowie externe
   Langzeitspeicherung der Metriken
 

@@ -4,6 +4,7 @@ import {
   createPersistedLobbyRecord,
   InMemoryLobbyPersistenceStore,
   LOBBY_PERSISTENCE_VERSION,
+  parsePersistedLobbyRecord,
   type JsonValue,
 } from './lobbyPersistence'
 
@@ -174,5 +175,28 @@ describe('Lobby-Persistenzgrenze', () => {
         payload: cyclicPayload,
       }),
     ).toThrow()
+    expect(() =>
+      createPersistedLobbyRecord({
+        lobbyId: 'mars-alpha',
+        savedAt: 1_000,
+        ttlMilliseconds: 5_000,
+        payload: { invalidNumber: Number.NaN },
+      }),
+    ).toThrow('JSON-serializable')
+  })
+
+  it('validiert unbekannte Datensatzfelder vollständig', () => {
+    expect(
+      parsePersistedLobbyRecord({
+        ...createRecord(),
+        lobbyId: 23,
+      }),
+    ).toBeNull()
+    expect(
+      parsePersistedLobbyRecord({
+        ...createRecord(),
+        payload: { invalidNumber: Number.POSITIVE_INFINITY },
+      }),
+    ).toBeNull()
   })
 })

@@ -359,14 +359,18 @@ stellt einen bereiten Host mit seinem Token über zwei getrennte
 Serverinstanzen und einen gemeinsam injizierten Speicher wieder her.
 Aktive wartende Räume erhalten eine getrennte 24-Stunden-TTL; nach
 dem letzten Disconnect gilt die zehnminütige Reconnect-Schonfrist.
-Der produktive Standardadapter bleibt jedoch prozesslokal. Noch offen
-sind externer Zustandsspeicher, Persistenz laufender Matches sowie
-externe Langzeitspeicherung der Metriken. Eine unabhängige GitHub
-Action prüft Health und erwartetes Metrikformat alle sechs Stunden
-sowie manuell; Fehler werden dadurch als fehlgeschlagene
-Workflow-Läufe sichtbar, ohne die kostenlose Render-Instanz dauerhaft
-warm zu halten. GitHub Pages hostet weiterhin nur das statische
-Frontend.
+Ein getesteter Redis-/Valkey-Adapter speichert Datensatz und TTL
+atomar, validiert externe JSON-Werte und wird beim Prozessstart über
+eine gültige `REDIS_URL` ausgewählt. Ohne Variable bleibt der
+In-Memory-Adapter aktiv. Der Blueprint provisioniert noch keinen
+Render-Key-Value-Dienst; der öffentliche Server nutzt deshalb
+weiterhin nur Prozessspeicher. Noch offen sind die tatsächliche
+Provisionierung, Persistenz laufender Matches sowie externe
+Langzeitspeicherung der Metriken. Eine unabhängige GitHub Action
+prüft Health und erwartetes Metrikformat alle sechs Stunden sowie
+manuell; Fehler werden dadurch als fehlgeschlagene Workflow-Läufe
+sichtbar, ohne die kostenlose Render-Instanz dauerhaft warm zu
+halten. GitHub Pages hostet weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

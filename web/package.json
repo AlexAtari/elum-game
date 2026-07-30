@@ -16,6 +16,7 @@
     "simulate:batch": "ELUM_BATCH_REPORT=1 vitest run src/simulationBatchReport.test.ts"
   },
   "dependencies": {
+    "ioredis": "^5.11.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "ws": "^8.21.1"

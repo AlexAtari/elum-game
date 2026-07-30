@@ -5,6 +5,7 @@ export type MultiplayerServerEnvironment = {
   ELUM_SERVER_HOST?: string
   ELUM_SERVER_PORT?: string
   PORT?: string
+  REDIS_URL?: string
 }
 
 function readPort(value: string | undefined) {
@@ -60,6 +61,26 @@ function readAllowedOrigins(value: string | undefined) {
   })
 }
 
+function readRedisUrl(value: string | undefined) {
+  if (value === undefined) {
+    return undefined
+  }
+
+  let url: URL
+
+  try {
+    url = new URL(value)
+  } catch {
+    throw new Error('REDIS_URL must be a valid Redis URL.')
+  }
+
+  if (url.protocol !== 'redis:' && url.protocol !== 'rediss:') {
+    throw new Error('REDIS_URL must use redis:// or rediss://.')
+  }
+
+  return value
+}
+
 export function readMultiplayerServerConfig(
   environment: MultiplayerServerEnvironment,
 ) {
@@ -73,5 +94,6 @@ export function readMultiplayerServerConfig(
     allowedOrigins: readAllowedOrigins(
       environment.ELUM_ALLOWED_ORIGINS,
     ),
+    redisUrl: readRedisUrl(environment.REDIS_URL),
   }
 }

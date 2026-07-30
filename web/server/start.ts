@@ -2,13 +2,21 @@ import {
   createWebSocketGameServer,
   formatWebSocketUrl,
 } from './websocketGameServer'
+import { createRedisLobbyPersistenceStore } from './redisLobbyPersistence'
 import { readMultiplayerServerConfig } from './serverConfig'
 
+const onError = (error: unknown) => {
+  console.error(error)
+}
+const { redisUrl, ...serverConfig } =
+  readMultiplayerServerConfig(process.env)
+const lobbyPersistenceStore = redisUrl
+  ? createRedisLobbyPersistenceStore(redisUrl, { onError })
+  : undefined
 const server = createWebSocketGameServer({
-  ...readMultiplayerServerConfig(process.env),
-  onError: (error) => {
-    console.error(error)
-  },
+  ...serverConfig,
+  lobbyPersistenceStore,
+  onError,
 })
 
 const address = await server.listen()
@@ -33,7 +41,11 @@ async function shutdown() {
   }
 
   shuttingDown = true
-  await server.close()
+  try {
+    await server.close()
+  } finally {
+    await lobbyPersistenceStore?.close()
+  }
 }
 
 process.once('SIGINT', () => {

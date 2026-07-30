@@ -9,6 +9,7 @@ describe('Konfiguration des Multiplayer-Servers', () => {
       lobbyId: 'mars-alpha',
       seed: 1,
       allowedOrigins: undefined,
+      redisUrl: undefined,
     })
   })
 
@@ -57,5 +58,26 @@ describe('Konfiguration des Multiplayer-Servers', () => {
         ELUM_ALLOWED_ORIGINS: 'wss://example.test',
       }),
     ).toThrow('HTTP origins only')
+  })
+
+  it('liest ausschließlich Redis-kompatible Speicher-URLs', () => {
+    expect(
+      readMultiplayerServerConfig({
+        REDIS_URL:
+          'rediss://default:secret@redis.example.test:6379',
+      }).redisUrl,
+    ).toBe(
+      'rediss://default:secret@redis.example.test:6379',
+    )
+    expect(() =>
+      readMultiplayerServerConfig({
+        REDIS_URL: 'https://example.test',
+      }),
+    ).toThrow('redis:// or rediss://')
+    expect(() =>
+      readMultiplayerServerConfig({
+        REDIS_URL: 'not a url',
+      }),
+    ).toThrow('valid Redis URL')
   })
 })

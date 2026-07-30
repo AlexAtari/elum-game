@@ -349,8 +349,12 @@ Prozessspeicher. `server/lobbyPersistence.ts` definiert als ersten
 Persistenzbaustein einen asynchronen Speichervertrag und einen
 versionierten, JSON-serialisierbaren Datensatz mit Ablaufzeit. Der
 In-Memory-Adapter kopiert Daten an beiden Grenzen, isoliert Lobbycodes
-und entfernt abgelaufene Einträge beim Laden. Er ist noch nicht an
-die Registry angebunden und überlebt keinen Prozesswechsel.
+und entfernt abgelaufene Einträge beim Laden.
+`server/redisLobbyPersistence.ts` implementiert denselben Vertrag für
+Redis beziehungsweise Valkey. Jeder Lobbycode wird unter einem
+versionierten, URL-kodierten Schlüssel gespeichert; `SET PX` schreibt
+Datensatz und Restlaufzeit atomar. Geladene Werte durchlaufen erneut
+die vollständige Datensatz- und Lobbyvalidierung.
 `MultiplayerLobby.exportWaitingState()` serialisiert inzwischen Seed,
 Revision, Sitzzuordnung, Bereitschaft und geheime Reconnect-Tokens
 einer wartenden Lobby in eine eigene Version-1-Nutzlast.
@@ -375,12 +379,16 @@ Zehn-Minuten-Bereinigung löscht auch den Speichereintrag. Solange
 mindestens eine Verbindung besteht, schützt eine getrennte
 24-Stunden-TTL unveränderte wartende Räume vor vorzeitigem Ablauf;
 nach dem letzten Disconnect gilt wieder genau die Reconnect-
-Schonfrist. Der Standardadapter bleibt jedoch prozesslokal und dient
-damit vorerst nur als getestete Integrationsgrenze. Der Render-Dienst
-darf weiterhin nicht horizontal skaliert werden; Deploys und
-Instanzwechsel können laufende Partien beenden. Laufende Matches, ein
-externer Adapter und betriebliche Langzeitspeicherung bleiben offen;
-der Prozess stellt Heartbeat, aggregierte Live-Health-Daten und einen
+Schonfrist. `server/start.ts` aktiviert den Redis-Adapter ausschließlich
+bei einer validierten geheimen `REDIS_URL`; ohne sie bleibt der
+prozesslokale In-Memory-Adapter aktiv. Der Render-Blueprint
+provisioniert noch keinen Key-Value-Dienst und setzt diese Variable
+nicht. Der aktuelle Render-Dienst ist deshalb weiterhin nicht
+deployfest und darf nicht horizontal skaliert werden; laufende Partien
+sind unabhängig davon noch nicht persistierbar. Provisionierung,
+Persistenz laufender Matches und betriebliche Langzeitspeicherung
+bleiben offen; der Prozess stellt Heartbeat, aggregierte
+Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
 bereit, die GitHub Actions regelmäßig unabhängig prüft.
 

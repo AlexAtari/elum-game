@@ -39,6 +39,8 @@ Konfiguration:
 - `ELUM_ALLOWED_ORIGINS`: optionale, kommaseparierte Liste exakt
   erlaubter Browser-Origins, zum Beispiel
   `https://alexatari.github.io,http://localhost:5173`
+- `REDIS_URL`: optionale geheime `redis://`- oder `rediss://`-URL;
+  aktiviert den externen Redis-/Valkey-Speicher für wartende Lobbys
 
 Der Health-Endpunkt liegt unter
 `http://<RECHNER-IP>:8787/health`.
@@ -126,6 +128,12 @@ müssen `wss://` verwenden. Für zusätzliche Frontend-Domains wird
 `ELUM_ALLOWED_ORIGINS` im Render-Dashboard um deren exakte
 `https://`-Origin ergänzt.
 
+Für externe Lobby-Persistenz wird ein Render-Key-Value-Dienst in
+derselben Region angelegt und dessen interne URL als geheime
+`REDIS_URL` am Web-Service gesetzt. Ohne diese Variable startet der
+Server bewusst mit dem lokalen In-Memory-Adapter. Der Blueprint
+provisioniert den Key-Value-Dienst noch nicht automatisch.
+
 Der aktuelle Matchzustand lebt im Arbeitsspeicher eines einzelnen
 Serverprozesses. Der Dienst darf deshalb noch nicht horizontal
 skaliert werden; ein Deploy oder Instanzwechsel beendet laufende
@@ -144,7 +152,9 @@ endgültigen Bereinigung wird der wartende Snapshot gelöscht. Aktive
 wartende Räume verwenden eine 24-Stunden-TTL; nach dem letzten
 Disconnect gilt die zehnminütige Reconnect-Schonfrist.
 
-Der standardmäßig verwendete In-Memory-Adapter überlebt weiterhin
-keinen Prozesswechsel und ist daher keine dauerhafte
-Produktionspersistenz. Ein externer Speicher, laufende Matches und
-instanzübergreifende Sitzungen sind der nächste Ausbau.
+Der Redis-/Valkey-Adapter speichert Datensatz und Ablaufzeit atomar
+und validiert geladene JSON-Werte erneut. Der aktuell provisionierte
+Render-Dienst hat jedoch noch keine `REDIS_URL` und verwendet daher
+weiterhin den In-Memory-Adapter. Tatsächliche Provisionierung,
+laufende Matches und instanzübergreifende Sitzungen sind der nächste
+Ausbau.
