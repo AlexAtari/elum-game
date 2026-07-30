@@ -42,6 +42,22 @@ describe('Multiplayer-Nachrichtenprotokoll', () => {
     })
   })
 
+  it('akzeptiert den leeren Neustartbefehl', () => {
+    expect(
+      parseMultiplayerClientMessage({
+        version: 1,
+        requestId: 'restart-1',
+        type: 'restart-match',
+        payload: {},
+      }),
+    ).toEqual({
+      version: 1,
+      requestId: 'restart-1',
+      type: 'restart-match',
+      payload: {},
+    })
+  })
+
   it('prüft eingebettete Spielkommandos vollständig', () => {
     const message = {
       version: 1,

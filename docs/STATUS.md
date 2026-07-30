@@ -92,7 +92,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sowie jedem serverseitigen Phasenwechsel den vollständigen
   Snapshot einschließlich autoritativem `deadlineAt`
 - versioniertes JSON-Nachrichtenprotokoll für Lobbybeitritt,
-  Wiederaufnahme, Bereitschaft, Matchstart und Spielkommandos mit
+  Wiederaufnahme, Bereitschaft, Matchstart, Matchneustart und
+  Spielkommandos mit
   vollständiger Laufzeitvalidierung unbekannter Eingaben
 - transportneutrale Vier-Sitz-Lobby: erster menschlicher Sitz wird
   Host, weitere Spieler erhalten freie Koloniesitze, der Host
@@ -163,8 +164,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   kompakten Statuszeile, die vollständige Rangliste im HQ und nach
   jeder Abrechnung zuerst den gemeinsamen Zwischenstand, danach das
   private Ereignis- und Koloniebriefing
-- nach der Abrechnung der 20. Runde bleibt die Abschlussrangliste
-  stehen und verhindert weitere Planungsaktionen im Client
+- nach der Abrechnung der 20. Runde markiert der Server den Match-
+  Snapshot endgültig als beendet und weist weitere Spielkommandos
+  sowie Rundenpläne unabhängig vom Client zurück
+- auf der Abschlussrangliste kann nur der Host die bestehende
+  Spielgruppe in dieselbe wartende Lobby zurückführen; Namen,
+  Sitzplätze und Reconnect-Tokens bleiben erhalten, die Bereitschaft
+  wird für die nächste Partie zurückgesetzt
 - private lokale Multiplayer-Ereignisse werden pro menschlichem Sitz
   reproduzierbar aus Match-Seed, Runde und Teilnehmer gewählt und
   mit einer getrennten Verzögerung von zwei bis sechs Sekunden
@@ -289,15 +295,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Die regelkritischen Browseraktionen, die Rundenbarriere, globale und
-lokale Ereignisse, Rangliste und das teilnehmerbezogene
-Rundenbriefing laufen im Mehrspielerpfad jetzt über den
-autoritativen Serverzustand. Als Nächstes wird das Partieende auch
-serverseitig gesperrt und ein sauberer Neustart derselben Lobby
-definiert. Für einen öffentlichen Mehrspielerbetrieb bleiben
-anschließend Backend-Hosting, TLS mit `wss://`, Origin-Policy und
-betriebliche Überwachung zu entscheiden; GitHub Pages hostet
-weiterhin nur das statische Frontend.
+Der lokale Mehrspielerpfad deckt jetzt den vollständigen
+Partielebenszyklus von Lobby und Hoststart über autoritative Runden,
+Ereignisse und Rangliste bis zum serverseitig gesperrten Partieende
+und gemeinsamen Rückweg in dieselbe Lobby ab. Als Nächstes sind für
+einen öffentlichen Mehrspielerbetrieb Backend-Hosting, TLS mit
+`wss://`, Origin-Policy und betriebliche Überwachung zu entscheiden;
+GitHub Pages hostet weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

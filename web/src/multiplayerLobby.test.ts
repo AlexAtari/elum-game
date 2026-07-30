@@ -61,6 +61,15 @@ function startMessage(requestId: string) {
   }
 }
 
+function restartMessage(requestId: string) {
+  return {
+    version: 1,
+    requestId,
+    type: 'restart-match',
+    payload: {},
+  }
+}
+
 function roundPlanMessage(
   requestId: string,
   foodLevel = 2,
@@ -386,5 +395,85 @@ describe('Multiplayer-Lobby', () => {
       lobby.getMatchSnapshot()?.state.colonies.agima
         .harvestersInConstruction,
     ).toBe(1)
+  })
+
+  it('führt nach Runde 20 alle Sitze in dieselbe wartende Lobby zurück', () => {
+    const { lobby, emitted } = createLobbyHarness()
+
+    lobby.handleMessage('host', joinMessage('Alex', 'join-host'))
+    lobby.handleMessage('guest', joinMessage('Bea', 'join-guest'))
+    lobby.handleMessage('host', readyMessage(true, 'ready-host'))
+    lobby.handleMessage('guest', readyMessage(true, 'ready-guest'))
+    lobby.handleMessage('host', startMessage('start-match'))
+
+    lobby.handleMessage(
+      'host',
+      restartMessage('restart-too-early'),
+    )
+    expect(
+      findMessages(emitted, 'request-error', 'host').at(-1)
+        ?.message,
+    ).toMatchObject({
+      payload: { error: 'match-not-finished' },
+    })
+
+    for (let round = 1; round <= 20; round += 1) {
+      lobby.handleMessage(
+        'host',
+        roundPlanMessage(`plan-host-${round}`),
+      )
+      lobby.handleMessage(
+        'guest',
+        roundPlanMessage(`plan-guest-${round}`),
+      )
+    }
+
+    expect(lobby.getMatchSnapshot()).toMatchObject({
+      finished: true,
+      state: { round: 20 },
+    })
+
+    lobby.handleMessage(
+      'guest',
+      restartMessage('restart-by-guest'),
+    )
+    expect(
+      findMessages(emitted, 'request-error', 'guest').at(-1)
+        ?.message,
+    ).toMatchObject({
+      payload: { error: 'not-host' },
+    })
+
+    lobby.handleMessage('host', restartMessage('restart-match'))
+
+    expect(lobby.getMatchSnapshot()).toBeNull()
+    expect(lobby.getSnapshot()).toMatchObject({
+      phase: 'waiting',
+      hostParticipantId: 'agima',
+      seats: {
+        agima: {
+          kind: 'human',
+          displayName: 'Alex',
+          connected: true,
+          ready: false,
+          isHost: true,
+        },
+        orion: {
+          kind: 'human',
+          displayName: 'Bea',
+          connected: true,
+          ready: false,
+          isHost: false,
+        },
+      },
+    })
+    expect(
+      findMessages(emitted, 'lobby-snapshot', 'host').at(-1)
+        ?.message,
+    ).toMatchObject({
+      payload: {
+        phase: 'waiting',
+      },
+    })
   })
 })

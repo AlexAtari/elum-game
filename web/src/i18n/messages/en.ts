@@ -298,7 +298,11 @@ export const en = {
   'multiplayer.errorPlayersNotReady':
     'Not all connected players are ready yet.',
   'multiplayer.errorNotHost':
-    'Only the host can start the match.',
+    'Only the host can perform this action.',
+  'multiplayer.errorMatchNotFinished':
+    'The current match has not finished yet.',
+  'multiplayer.errorMatchFinished':
+    'The match is over. The host can prepare a new one.',
   'multiplayer.errorUnknownSession':
     'The stored session is no longer valid.',
   'multiplayer.errorRequest':
@@ -323,6 +327,9 @@ export const en = {
   'multiplayerGame.place': 'Place',
   'multiplayerGame.toRoundBriefing':
     'Continue to events and colony report',
+  'multiplayerGame.prepareNewMatch': 'Prepare new match',
+  'multiplayerGame.waitForHostRestart':
+    'The host can return everyone to the lobby.',
   'multiplayerGame.leave': 'Leave connection',
   'multiplayerGame.landAuction': 'Land auction',
   'multiplayerGame.resourceMarket': 'Resource market',

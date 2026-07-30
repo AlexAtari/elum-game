@@ -112,6 +112,10 @@ function errorKey(error: MultiplayerServerError) {
       return 'multiplayer.errorPlayersNotReady' as const
     case 'not-host':
       return 'multiplayer.errorNotHost' as const
+    case 'match-not-finished':
+      return 'multiplayer.errorMatchNotFinished' as const
+    case 'match-finished':
+      return 'multiplayer.errorMatchFinished' as const
     case 'unknown-session':
       return 'multiplayer.errorUnknownSession' as const
     default:
@@ -274,6 +278,9 @@ export default function MultiplayerLobbyScreen({
 
       if (message.type === 'lobby-snapshot') {
         setSnapshot(message.payload)
+        if (message.payload.phase === 'waiting') {
+          setMatchSnapshot(null)
+        }
         return
       }
 
@@ -340,6 +347,15 @@ export default function MultiplayerLobbyScreen({
     })
   }
 
+  const restartMatch = () => {
+    send({
+      version: 1,
+      requestId: createRequestId(),
+      type: 'restart-match',
+      payload: {},
+    })
+  }
+
   const leave = () => {
     socketRef.current?.close()
     socketRef.current = null
@@ -352,7 +368,11 @@ export default function MultiplayerLobbyScreen({
         participantId={participantId}
         snapshot={matchSnapshot}
         error={error}
+        isHost={
+          snapshot?.hostParticipantId === participantId
+        }
         sendMessage={send}
+        onRestart={restartMatch}
         onLeave={leave}
       />
     )

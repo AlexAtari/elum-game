@@ -373,12 +373,16 @@ werden.
   Match-Seed, Runde und Teilnehmer gewählt, nach zwei bis sechs
   Sekunden außerhalb laufender Auktionen serverseitig angewendet und
   nur dem betroffenen Client als Ereignis-ID zugestellt
+- die 20. Abrechnung setzt im autoritativen Snapshot ein endgültiges
+  Matchende; danach lehnt der Server weitere Kommandos und
+  Versorgungspläne ab
+- nur der Host kann die verbundenen Menschen nach dem Partieende in
+  dieselbe wartende Lobby zurückführen; Sitze und Reconnect-Tokens
+  bleiben erhalten, alle Bereitschaften werden zurückgesetzt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Abschluss und Wiederholung einer
-  Multiplayerpartie serverseitig sperren beziehungsweise neu
-  initialisieren; danach Backend-Hosting, TLS und Origin-Policy für
-  öffentlichen Betrieb festlegen
+- nächster Strukturschritt: Backend-Hosting, TLS und Origin-Policy
+  für öffentlichen Mehrspielerbetrieb festlegen
 
 ### Nächster Regelstand
 

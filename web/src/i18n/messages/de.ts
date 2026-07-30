@@ -298,7 +298,11 @@ export const de = {
   'multiplayer.errorPlayersNotReady':
     'Noch sind nicht alle verbundenen Spieler bereit.',
   'multiplayer.errorNotHost':
-    'Nur der Host kann die Partie starten.',
+    'Nur der Host kann diese Aktion ausführen.',
+  'multiplayer.errorMatchNotFinished':
+    'Die laufende Partie ist noch nicht beendet.',
+  'multiplayer.errorMatchFinished':
+    'Die Partie ist beendet. Der Host kann eine neue vorbereiten.',
   'multiplayer.errorUnknownSession':
     'Die gespeicherte Sitzung ist nicht mehr gültig.',
   'multiplayer.errorRequest':
@@ -322,6 +326,10 @@ export const de = {
   'multiplayerGame.place': 'Platz',
   'multiplayerGame.toRoundBriefing':
     'Weiter zu Ereignissen und Koloniebericht',
+  'multiplayerGame.prepareNewMatch':
+    'Neue Partie vorbereiten',
+  'multiplayerGame.waitForHostRestart':
+    'Der Host kann alle zurück in die Lobby führen.',
   'multiplayerGame.leave': 'Verbindung verlassen',
   'multiplayerGame.landAuction': 'Grundstücksauktion',
   'multiplayerGame.resourceMarket': 'Ressourcenmarkt',

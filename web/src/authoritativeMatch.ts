@@ -5,6 +5,7 @@ import {
   getColonyLocalEvent,
   getMarketTiming,
   getSeededLocalEventDelay,
+  isGameFinished,
   LAND_AUCTION_TIMING,
   resolveLandTieBreak,
   selectSeededGlobalEvent,
@@ -61,6 +62,7 @@ export type AuthoritativeCommandError =
   | 'participant-mismatch'
   | 'participant-ready'
   | 'invalid-round-plan'
+  | 'match-finished'
   | 'round-action-active'
   | 'server-controlled-action'
 
@@ -96,6 +98,7 @@ type ScheduledPhaseTiming =
 
 export type AuthoritativeMatchSnapshot = {
   revision: number
+  finished: boolean
   state: GameState
   phaseTiming: AuthoritativePhaseTiming | null
   lastRoundReport: RoundReport | null
@@ -170,6 +173,7 @@ const defaultClock: MatchClock = {
 
 function copySnapshot(
   revision: number,
+  finished: boolean,
   state: GameState,
   phaseTiming: AuthoritativePhaseTiming | null,
   readyParticipantIds: ParticipantId[],
@@ -191,6 +195,7 @@ function copySnapshot(
 
   return structuredClone({
     revision,
+    finished,
     state: personalizedState,
     phaseTiming,
     lastRoundReport,
@@ -317,6 +322,7 @@ function getPhaseSchedule(state: GameState): PhaseSchedule | null {
 export class AuthoritativeMatch {
   private state: GameState
   private revision = 0
+  private finished = false
   private phaseTiming: AuthoritativePhaseTiming | null = null
   private scheduledPhaseKey: string | null = null
   private phaseTimer: unknown = null
@@ -448,6 +454,14 @@ export class AuthoritativeMatch {
       }
     }
 
+    if (this.finished) {
+      return {
+        ok: false,
+        error: 'match-finished',
+        snapshot: this.getSnapshot(),
+      }
+    }
+
     const command = parseGameCommand(input)
 
     if (!command) {
@@ -526,6 +540,14 @@ export class AuthoritativeMatch {
       }
     }
 
+    if (this.finished) {
+      return {
+        ok: false,
+        error: 'match-finished',
+        snapshot: this.getSnapshot(),
+      }
+    }
+
     const plan = parseParticipantRoundPlan(input)
 
     if (!plan) {
@@ -565,6 +587,7 @@ export class AuthoritativeMatch {
   getSnapshot(participantId?: ParticipantId) {
     return copySnapshot(
       this.revision,
+      this.finished,
       this.state,
       this.phaseTiming,
       participantIds.filter((participantId) =>
@@ -817,6 +840,9 @@ export class AuthoritativeMatch {
     this.lastRoundReports = result.reports
     this.roundPlans.clear()
     this.clearLocalEventTimers()
+    this.finished = Object.values(result.reports).some(
+      (report) => isGameFinished(report.roundPlayed),
+    )
     this.acceptState(nextState)
 
     if (nextRoundStarted) {

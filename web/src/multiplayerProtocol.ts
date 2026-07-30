@@ -66,6 +66,10 @@ export type MultiplayerClientMessage =
       payload: Record<string, never>
     })
   | (ClientMessageBase & {
+      type: 'restart-match'
+      payload: Record<string, never>
+    })
+  | (ClientMessageBase & {
       type: 'game-command'
       payload: {
         command: GameCommand
@@ -88,6 +92,7 @@ export type MultiplayerServerError =
   | 'not-host'
   | 'players-not-ready'
   | 'match-not-started'
+  | 'match-not-finished'
   | 'seat-connection-failed'
   | AuthoritativeCommandError
 
@@ -219,10 +224,13 @@ export function parseMultiplayerClientMessage(
       : null
   }
 
-  if (input.type === 'start-match') {
+  if (
+    input.type === 'start-match' ||
+    input.type === 'restart-match'
+  ) {
     return {
       ...base,
-      type: 'start-match',
+      type: input.type,
       payload: {},
     }
   }

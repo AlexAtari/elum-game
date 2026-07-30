@@ -138,6 +138,9 @@ export class MultiplayerLobby {
       case 'start-match':
         this.startMatch(connectionId, message)
         return
+      case 'restart-match':
+        this.restartMatch(connectionId, message)
+        return
       case 'game-command':
         this.submitGameCommand(connectionId, message)
         return
@@ -503,6 +506,61 @@ export class MultiplayerLobby {
             revision: result.snapshot.revision,
           },
     })
+  }
+
+  private restartMatch(
+    connectionId: string,
+    message: Extract<
+      MultiplayerClientMessage,
+      { type: 'restart-match' }
+    >,
+  ) {
+    const seat = this.getConnectedSeat(connectionId)
+
+    if (!seat) {
+      this.emitError(
+        connectionId,
+        message.requestId,
+        'not-in-lobby',
+      )
+      return
+    }
+
+    if (!this.match) {
+      this.emitError(
+        connectionId,
+        message.requestId,
+        'match-not-started',
+      )
+      return
+    }
+
+    if (!seat.isHost) {
+      this.emitError(connectionId, message.requestId, 'not-host')
+      return
+    }
+
+    if (!this.match.getSnapshot().finished) {
+      this.emitError(
+        connectionId,
+        message.requestId,
+        'match-not-finished',
+      )
+      return
+    }
+
+    this.unsubscribeMatch?.()
+    this.unsubscribeMatch = null
+    this.match.dispose()
+    this.match = null
+    this.phase = 'waiting'
+
+    for (const humanSeat of this.humanSeats.values()) {
+      humanSeat.ready = false
+    }
+
+    this.revision += 1
+    this.broadcastLobbySnapshot()
   }
 
   private submitRoundPlan(

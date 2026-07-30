@@ -178,7 +178,8 @@ Der Kommandoinhalt selbst gilt damit nicht als Identitätsnachweis.
 
 Erfolgreiche Kommandos erhöhen eine monotone Snapshot-Revision.
 Abonnenten erhalten vollständige, strukturierte Kopien aus
-`GameState`, Revision und optionaler autoritativer Phasenfrist.
+`GameState`, Revision, endgültigem Matchstatus und optionaler
+autoritativer Phasenfrist.
 Fehlerhafte, fremde oder nicht authentifizierte Kommandos verändern
 weder Zustand noch Revision und werden nicht verteilt. Fehler eines
 einzelnen Abonnenten können die Zustandsmaschine nicht unterbrechen.
@@ -203,6 +204,11 @@ genau eine gemeinsame Rundenabrechnung ausgeführt. Eine noch offene
 grafische Grundstücksauktion bleibt dabei eine echte Barriere: Der
 Server startet und beendet zunächst ihre kanonischen Phasen und
 rechnet die Runde erst nach der Auflösung ab.
+
+Nach der 20. Abrechnung setzt der Matchkern `finished` dauerhaft auf
+`true`. Weitere `GameCommand`s und Versorgungspläne werden danach an
+derselben autoritativen Grenze mit `match-finished` abgewiesen; die
+sichtbare Abschlussrangliste ist daher nicht die einzige Sperre.
 
 `multiplayerRound.ts` adaptiert die vorhandene Rundenökonomie für
 beliebige menschliche Koloniesitze. Damit dieselben Produktions-,
@@ -233,8 +239,9 @@ verwendet weiterhin direkt die Kommandoschicht.
 `multiplayerProtocol.ts` definiert die JSON-serialisierbaren
 Nachrichten beider Richtungen und normalisiert Clientdaten aus
 `unknown`. Das Protokoll Version 1 umfasst Lobbybeitritt,
-Sitzungswiederaufnahme, Bereitschaft, Matchstart, eingebettete
-`GameCommand`s und Versorgungspläne für die Rundenbarriere. Sichtbare
+Sitzungswiederaufnahme, Bereitschaft, Matchstart, Matchneustart,
+eingebettete `GameCommand`s und Versorgungspläne für die
+Rundenbarriere. Sichtbare
 Lobby-Snapshots enthalten ausschließlich
 öffentliche Sitzdaten; Reconnect-Tokens erscheinen nur in der
 gezielten Bestätigung an genau eine Verbindung.
@@ -255,6 +262,14 @@ undurchsichtiges Reconnect-Token kann ihn an eine neue
 Verbindungs-ID binden und liefert sofort den aktuellen Lobby- und
 Match-Snapshot. Transportfehler werden isoliert, damit ein
 geschlossener Socket keine Zustandsoperation unterbricht.
+
+Nach einem beendeten Match darf ausschließlich der Host
+`restart-match` senden. Die Lobby löst ihr Matchabonnement, verwirft
+den abgeschlossenen Matchkern und wechselt mit denselben menschlichen
+Sitzen und Reconnect-Tokens zurück nach `waiting`; lediglich alle
+Bereitschaften werden zurückgesetzt. Der wartende Lobby-Snapshot
+entfernt in jedem Browser den alten Match-Snapshot, sodass alle
+verbundenen Spieler gemeinsam in der Lobby landen.
 
 Der lokale WebSocket-Adapter ist durch einen echten
 Zwei-Client-Integrationstest einschließlich Matchstart, Disconnect

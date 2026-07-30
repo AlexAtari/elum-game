@@ -242,9 +242,34 @@ describe('Autoritativer Match-Serverkern', () => {
     )
 
     expect(completed.snapshot.state.round).toBe(20)
+    expect(completed.snapshot.finished).toBe(true)
     expect(
       completed.snapshot.state.activeGlobalEvent,
     ).toBeNull()
+    expect(
+      match.submitRoundPlan('agima-session', {
+        supplyPlan: { foodLevel: 2, energyLevel: 2 },
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: 'match-finished',
+    })
+    expect(
+      match.submitCommand(
+        'agima-session',
+        createCommand(
+          {
+            participantId: 'agima',
+            type: 'order-harvester-build',
+            payload: {},
+          },
+          'build-after-finish',
+        ),
+      ),
+    ).toMatchObject({
+      ok: false,
+      error: 'match-finished',
+    })
   })
 
   it('bewahrt Bereitschaft über einen Reconnect hinweg', () => {

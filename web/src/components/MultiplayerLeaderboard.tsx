@@ -7,7 +7,9 @@ type MultiplayerLeaderboardProps = {
   mode: 'interstitial' | 'headquarters'
   roundPlayed?: number
   isFinal?: boolean
+  isHost?: boolean
   onContinue?: () => void
+  onRestart?: () => void
 }
 
 function MultiplayerLeaderboard({
@@ -15,7 +17,9 @@ function MultiplayerLeaderboard({
   mode,
   roundPlayed,
   isFinal = false,
+  isHost = false,
   onContinue,
+  onRestart,
 }: MultiplayerLeaderboardProps) {
   const { number, t } = useI18n()
   const winner = entries[0]
@@ -125,6 +129,22 @@ function MultiplayerLeaderboard({
         >
           {t('multiplayerGame.toRoundBriefing')}
         </button>
+      ) : null}
+
+      {mode === 'interstitial' && isFinal ? (
+        isHost && onRestart ? (
+          <button
+            className="network-primary-button"
+            type="button"
+            onClick={onRestart}
+          >
+            {t('multiplayerGame.prepareNewMatch')}
+          </button>
+        ) : (
+          <p className="network-leaderboard-waiting">
+            {t('multiplayerGame.waitForHostRestart')}
+          </p>
+        )
       ) : null}
     </section>
   )

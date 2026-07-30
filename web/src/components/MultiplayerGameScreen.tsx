@@ -37,7 +37,9 @@ type MultiplayerGameScreenProps = {
   participantId: ParticipantId
   snapshot: AuthoritativeMatchSnapshot
   error: string | null
+  isHost: boolean
   sendMessage: (message: MultiplayerClientMessage) => void
+  onRestart: () => void
   onLeave: () => void
 }
 
@@ -61,7 +63,9 @@ function MultiplayerGameScreen({
   participantId,
   snapshot,
   error,
+  isHost,
   sendMessage,
+  onRestart,
   onLeave,
 }: MultiplayerGameScreenProps) {
   const { number, t } = useI18n()
@@ -440,6 +444,8 @@ function MultiplayerGameScreen({
           mode="interstitial"
           roundPlayed={lastRoundReport.roundPlayed}
           isFinal={finalLeaderboard}
+          isHost={isHost}
+          onRestart={onRestart}
           onContinue={
             finalLeaderboard
               ? undefined
