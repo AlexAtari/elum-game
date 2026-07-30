@@ -417,8 +417,13 @@ werden.
 - gespeicherte Lobby-Nutzlasten werden strikt validiert und können als
   wartende Lobby mit getrennten Sitzen, erhaltenen Tokens,
   Bereitschaften und ursprünglichem Seed wiederhergestellt werden
-- nächste Strukturschritte sind Registry-Anbindung, ein externer
-  Zustandsspeicher, Persistenz laufender Matches sowie externe
+- die WebSocket-Registry lädt wartende Lobbys vor dem ersten Upgrade,
+  speichert ihre Änderungen geordnet und löscht den Snapshot bei
+  Matchstart oder endgültiger Bereinigung; der Standardadapter bleibt
+  prozesslokal; aktive Räume verwenden eine 24-Stunden-TTL, getrennte
+  Räume die zehnminütige Reconnect-Schonfrist
+- nächste Strukturschritte sind ein externer Zustandsspeicher,
+  Persistenz laufender Matches sowie externe
   Langzeitspeicherung der Metriken
 
 ### Nächster Regelstand

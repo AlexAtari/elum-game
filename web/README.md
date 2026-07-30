@@ -137,8 +137,14 @@ eigene Version-1-Nutzlast exportieren; Verbindungs-IDs und laufende
 Matches werden nicht exportiert. Gespeicherte Nutzlasten werden
 vollständig validiert und können als wartende Lobby wiederhergestellt
 werden. Die reservierten Sitze beginnen getrennt und verbinden sich
-über ihre erhaltenen Reconnect-Tokens erneut. Diese Grenze ist noch
-nicht an die Lobby-Registry angebunden und daher noch keine
-automatische oder dauerhafte Persistenz. Registry-Anbindung, externer
-Speicher, laufende Matches und instanzübergreifende Sitzungen sind
-der nächste Ausbau.
+über ihre erhaltenen Reconnect-Tokens erneut. Die Lobby-Registry lädt
+diesen Zustand vor dem ersten Verbindungsaufbau und speichert
+Änderungen wartender Räume geordnet. Beim Matchstart und nach der
+endgültigen Bereinigung wird der wartende Snapshot gelöscht. Aktive
+wartende Räume verwenden eine 24-Stunden-TTL; nach dem letzten
+Disconnect gilt die zehnminütige Reconnect-Schonfrist.
+
+Der standardmäßig verwendete In-Memory-Adapter überlebt weiterhin
+keinen Prozesswechsel und ist daher keine dauerhafte
+Produktionspersistenz. Ein externer Speicher, laufende Matches und
+instanzübergreifende Sitzungen sind der nächste Ausbau.

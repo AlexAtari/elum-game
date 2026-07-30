@@ -351,13 +351,22 @@ Phase, IDs, Seed, Revision, kanonische Sitzfolge, Hostrolle, Namen
 und eindeutige Tokens validiert. Aus gültigen Nutzlasten lässt sich
 eine wartende Lobby mit zunächst getrennten Sitzen und erhaltenen
 Reconnect-Tokens wiederherstellen. Laufende Matches werden noch
-nicht exportiert oder wiederhergestellt. Noch offen sind
-Registry-Anbindung, externer Zustandsspeicher sowie externe
-Langzeitspeicherung der Metriken. Eine unabhängige GitHub Action
-prüft Health und erwartetes Metrikformat alle sechs Stunden sowie
-manuell; Fehler werden dadurch als fehlgeschlagene Workflow-Läufe
-sichtbar, ohne die kostenlose Render-Instanz dauerhaft warm zu
-halten. GitHub Pages hostet weiterhin nur das statische Frontend.
+nicht exportiert oder wiederhergestellt. Die WebSocket-Registry lädt
+beim ersten Zugriff einmalig aus dem Speicher, speichert Änderungen
+wartender Lobbys in Reihenfolge und löscht den Snapshot bei
+Matchstart oder endgültiger Lobbybereinigung. Ein Integrationstest
+stellt einen bereiten Host mit seinem Token über zwei getrennte
+Serverinstanzen und einen gemeinsam injizierten Speicher wieder her.
+Aktive wartende Räume erhalten eine getrennte 24-Stunden-TTL; nach
+dem letzten Disconnect gilt die zehnminütige Reconnect-Schonfrist.
+Der produktive Standardadapter bleibt jedoch prozesslokal. Noch offen
+sind externer Zustandsspeicher, Persistenz laufender Matches sowie
+externe Langzeitspeicherung der Metriken. Eine unabhängige GitHub
+Action prüft Health und erwartetes Metrikformat alle sechs Stunden
+sowie manuell; Fehler werden dadurch als fehlgeschlagene
+Workflow-Läufe sichtbar, ohne die kostenlose Render-Instanz dauerhaft
+warm zu halten. GitHub Pages hostet weiterhin nur das statische
+Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

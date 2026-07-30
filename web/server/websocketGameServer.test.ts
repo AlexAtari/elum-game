@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { WebSocket } from 'ws'
 import type { MultiplayerServerMessage } from '../src/multiplayerProtocol'
+import { InMemoryLobbyPersistenceStore } from './lobbyPersistence'
 import {
   createWebSocketGameServer,
   type LobbyCleanupClock,
@@ -594,6 +595,152 @@ describe('Lokaler WebSocket-Spielserver', () => {
       await closeClient(host)
       await server.close()
     }
+  })
+
+  it('lädt eine wartende Lobby nach einem Serverneustart aus dem Speicher', async () => {
+    const persistenceStore =
+      new InMemoryLobbyPersistenceStore()
+    const firstServer = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'restart-room',
+      seed: 41,
+      lobbyPersistenceStore: persistenceStore,
+    })
+    const firstAddress = await firstServer.listen()
+    const firstHost = await openClient(
+      formatWebSocketUrl(firstAddress),
+    )
+    let reconnectToken: string | undefined
+
+    try {
+      send(firstHost, {
+        version: 1,
+        requestId: 'join-before-restart',
+        type: 'join-lobby',
+        payload: { displayName: 'Alex' },
+      })
+      const session = await firstHost.waitFor(
+        (message) => message.type === 'session-established',
+      )
+
+      if (session.type !== 'session-established') {
+        throw new Error('Expected an established host session.')
+      }
+
+      reconnectToken = session.payload.reconnectToken
+      send(firstHost, {
+        version: 1,
+        requestId: 'ready-before-restart',
+        type: 'set-ready',
+        payload: { ready: true },
+      })
+      await firstHost.waitFor(
+        (message) =>
+          message.type === 'lobby-snapshot' &&
+          message.payload.seats.agima.kind === 'human' &&
+          message.payload.seats.agima.ready,
+      )
+    } finally {
+      await closeClient(firstHost)
+      await firstServer.close()
+    }
+
+    if (!reconnectToken) {
+      throw new Error('Expected a reconnect token before restart.')
+    }
+
+    const secondServer = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'restart-room',
+      lobbyPersistenceStore: persistenceStore,
+    })
+    const secondAddress = await secondServer.listen()
+    const restoredHost = await openClient(
+      formatWebSocketUrl(secondAddress),
+    )
+
+    try {
+      send(restoredHost, {
+        version: 1,
+        requestId: 'resume-after-restart',
+        type: 'resume-session',
+        payload: { reconnectToken },
+      })
+      await expect(
+        restoredHost.waitFor(
+          (message) =>
+            message.type === 'session-established' &&
+            message.payload.participantId === 'agima',
+        ),
+      ).resolves.toBeDefined()
+      await expect(
+        restoredHost.waitFor(
+          (message) =>
+            message.type === 'lobby-snapshot' &&
+            message.payload.seats.agima.kind === 'human' &&
+            message.payload.seats.agima.connected &&
+            message.payload.seats.agima.ready,
+        ),
+      ).resolves.toBeDefined()
+    } finally {
+      await closeClient(restoredHost)
+      await secondServer.close()
+    }
+  })
+
+  it('löscht den wartenden Speicherstand beim Matchstart', async () => {
+    const persistenceStore =
+      new InMemoryLobbyPersistenceStore()
+    const server = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'playing-room',
+      lobbyPersistenceStore: persistenceStore,
+    })
+    const address = await server.listen()
+    const host = await openClient(formatWebSocketUrl(address))
+
+    try {
+      send(host, {
+        version: 1,
+        requestId: 'join-playing-room',
+        type: 'join-lobby',
+        payload: { displayName: 'Alex' },
+      })
+      await host.waitFor(
+        (message) => message.type === 'session-established',
+      )
+      send(host, {
+        version: 1,
+        requestId: 'ready-playing-room',
+        type: 'set-ready',
+        payload: { ready: true },
+      })
+      await host.waitFor(
+        (message) =>
+          message.type === 'lobby-snapshot' &&
+          message.payload.seats.agima.kind === 'human' &&
+          message.payload.seats.agima.ready,
+      )
+      send(host, {
+        version: 1,
+        requestId: 'start-playing-room',
+        type: 'start-match',
+        payload: {},
+      })
+      await host.waitFor(
+        (message) => message.type === 'match-snapshot',
+      )
+    } finally {
+      await closeClient(host)
+      await server.close()
+    }
+
+    expect(
+      await persistenceStore.load('playing-room'),
+    ).toBeNull()
   })
 
   it('weist Binärnachrichten und ungültige Lobby-Pfade zurück', async () => {

@@ -11,8 +11,16 @@ import {
 } from 'ws'
 import {
   createMultiplayerLobby,
+  restoreMultiplayerLobby,
   type MultiplayerLobby,
+  type RestoreMultiplayerLobbyOptions,
 } from '../src/multiplayerLobby'
+import {
+  createPersistedLobbyRecord,
+  InMemoryLobbyPersistenceStore,
+  type LobbyPersistenceClock,
+  type LobbyPersistenceStore,
+} from './lobbyPersistence'
 
 export type WebSocketGameServerOptions = {
   host?: string
@@ -24,6 +32,9 @@ export type WebSocketGameServerOptions = {
   heartbeatClock?: ServerHeartbeatClock
   emptyLobbyGraceMilliseconds?: number
   lobbyCleanupClock?: LobbyCleanupClock
+  lobbyPersistenceStore?: LobbyPersistenceStore
+  lobbyPersistenceClock?: LobbyPersistenceClock
+  waitingLobbyPersistenceTtlMilliseconds?: number
   allowedOrigins?: string[]
   createConnectionId?: () => string
   onError?: (error: unknown) => void
@@ -59,6 +70,8 @@ const DEFAULT_MAX_PAYLOAD_BYTES = 64 * 1024
 export const DEFAULT_HEARTBEAT_INTERVAL_MILLISECONDS = 30_000
 export const EMPTY_LOBBY_GRACE_MILLISECONDS =
   10 * 60 * 1_000
+export const WAITING_LOBBY_PERSISTENCE_TTL_MILLISECONDS =
+  24 * 60 * 60 * 1_000
 
 const defaultLobbyCleanupClock: LobbyCleanupClock = {
   setTimeout: (callback, delayMilliseconds) =>
@@ -72,6 +85,10 @@ const defaultHeartbeatClock: ServerHeartbeatClock = {
     setInterval(callback, intervalMilliseconds),
   clearInterval: (timer) =>
     clearInterval(timer as ReturnType<typeof setInterval>),
+}
+
+const defaultLobbyPersistenceClock: LobbyPersistenceClock = {
+  now: () => Date.now(),
 }
 
 function rejectUpgrade(
@@ -120,6 +137,9 @@ export class WebSocketGameServer {
   private readonly onError: (error: unknown) => void
   private readonly emptyLobbyGraceMilliseconds: number
   private readonly lobbyCleanupClock: LobbyCleanupClock
+  private readonly lobbyPersistenceStore: LobbyPersistenceStore
+  private readonly lobbyPersistenceClock: LobbyPersistenceClock
+  private readonly waitingLobbyPersistenceTtlMilliseconds: number
   private readonly heartbeatIntervalMilliseconds: number
   private readonly heartbeatClock: ServerHeartbeatClock
   private readonly sockets = new Map<
@@ -131,6 +151,14 @@ export class WebSocketGameServer {
     }
   >()
   private readonly lobbies = new Map<string, MultiplayerLobby>()
+  private readonly lobbyLoads = new Map<
+    string,
+    Promise<MultiplayerLobby>
+  >()
+  private readonly lobbyPersistenceOperations = new Map<
+    string,
+    Promise<void>
+  >()
   private readonly lobbyCleanupTimers = new Map<string, unknown>()
   private readonly httpServer: HttpServer
   private readonly webSocketServer: WebSocketServer
@@ -151,6 +179,17 @@ export class WebSocketGameServer {
       EMPTY_LOBBY_GRACE_MILLISECONDS
     this.lobbyCleanupClock =
       options.lobbyCleanupClock ?? defaultLobbyCleanupClock
+    this.lobbyPersistenceClock =
+      options.lobbyPersistenceClock ??
+      defaultLobbyPersistenceClock
+    this.lobbyPersistenceStore =
+      options.lobbyPersistenceStore ??
+      new InMemoryLobbyPersistenceStore(
+        this.lobbyPersistenceClock,
+      )
+    this.waitingLobbyPersistenceTtlMilliseconds =
+      options.waitingLobbyPersistenceTtlMilliseconds ??
+      WAITING_LOBBY_PERSISTENCE_TTL_MILLISECONDS
     this.heartbeatIntervalMilliseconds =
       options.heartbeatIntervalMilliseconds ??
       DEFAULT_HEARTBEAT_INTERVAL_MILLISECONDS
@@ -170,6 +209,16 @@ export class WebSocketGameServer {
     ) {
       throw new Error(
         'Heartbeat interval must be a positive finite number.',
+      )
+    }
+    if (
+      !Number.isFinite(
+        this.waitingLobbyPersistenceTtlMilliseconds,
+      ) ||
+      this.waitingLobbyPersistenceTtlMilliseconds <= 0
+    ) {
+      throw new Error(
+        'Waiting lobby persistence TTL must be a positive finite number.',
       )
     }
     this.allowedOrigins = options.allowedOrigins
@@ -241,18 +290,37 @@ export class WebSocketGameServer {
         return
       }
 
-      this.webSocketServer.handleUpgrade(
-        request,
-        socket,
-        head,
-        (webSocket) => {
-          this.webSocketServer.emit(
-            'connection',
-            webSocket,
+      void this.getOrLoadLobby(lobbyId)
+        .then(() => {
+          if (this.closing || request.socket.destroyed) {
+            request.socket.destroy()
+            return
+          }
+
+          this.webSocketServer.handleUpgrade(
             request,
+            socket,
+            head,
+            (webSocket) => {
+              this.webSocketServer.emit(
+                'connection',
+                webSocket,
+                request,
+              )
+            },
           )
-        },
-      )
+        })
+        .catch((error: unknown) => {
+          this.onError(error)
+
+          if (!request.socket.destroyed) {
+            rejectUpgrade(
+              request,
+              503,
+              'Service Unavailable',
+            )
+          }
+        })
     })
 
     this.webSocketServer.on('connection', (socket, request) => {
@@ -264,7 +332,13 @@ export class WebSocketGameServer {
       }
 
       this.cancelLobbyCleanup(lobbyId)
-      const lobby = this.getOrCreateLobby(lobbyId)
+      const lobby = this.lobbies.get(lobbyId)
+
+      if (!lobby) {
+        socket.close(1011, 'Lobby unavailable')
+        return
+      }
+
       const connectionId = this.createUniqueConnectionId()
       const connection = { socket, lobbyId, alive: true }
       this.sockets.set(connectionId, connection)
@@ -281,15 +355,27 @@ export class WebSocketGameServer {
           return
         }
 
+        const previousRevision = lobby.getSnapshot().revision
         lobby.handleMessage(
           connectionId,
           parseJsonMessage(data),
+        )
+        this.persistLobbyIfChanged(
+          lobbyId,
+          lobby,
+          previousRevision,
         )
       })
       socket.on('error', this.onError)
       socket.once('close', () => {
         this.sockets.delete(connectionId)
+        const previousRevision = lobby.getSnapshot().revision
         lobby.disconnect(connectionId)
+        this.persistLobbyIfChanged(
+          lobbyId,
+          lobby,
+          previousRevision,
+        )
         this.scheduleLobbyCleanupIfEmpty(lobbyId, lobby)
       })
     })
@@ -360,6 +446,8 @@ export class WebSocketGameServer {
       this.lobbyCleanupClock.clearTimeout(timer)
     }
     this.lobbyCleanupTimers.clear()
+    await Promise.allSettled(this.lobbyLoads.values())
+    await Promise.all(this.lobbyPersistenceOperations.values())
 
     for (const lobby of this.lobbies.values()) {
       lobby.dispose()
@@ -433,16 +521,32 @@ export class WebSocketGameServer {
     }
   }
 
-  private getOrCreateLobby(lobbyId: string) {
+  private getOrLoadLobby(lobbyId: string) {
     const existingLobby = this.lobbies.get(lobbyId)
 
     if (existingLobby) {
-      return existingLobby
+      return Promise.resolve(existingLobby)
     }
 
-    const lobby = createMultiplayerLobby({
-      lobbyId,
-      seed: this.seed,
+    const existingLoad = this.lobbyLoads.get(lobbyId)
+
+    if (existingLoad) {
+      return existingLoad
+    }
+
+    const load = this.loadLobby(lobbyId).finally(() => {
+      if (this.lobbyLoads.get(lobbyId) === load) {
+        this.lobbyLoads.delete(lobbyId)
+      }
+    })
+    this.lobbyLoads.set(lobbyId, load)
+    return load
+  }
+
+  private async loadLobby(lobbyId: string) {
+    await this.lobbyPersistenceOperations.get(lobbyId)
+    const record = await this.lobbyPersistenceStore.load(lobbyId)
+    const lobbyOptions: RestoreMultiplayerLobbyOptions = {
       emit: (connectionId, message) => {
         const connection = this.sockets.get(connectionId)
 
@@ -461,9 +565,94 @@ export class WebSocketGameServer {
         }
       },
       onEmitError: this.onError,
-    })
+    }
+    const lobby = record
+      ? restoreMultiplayerLobby(record.payload, lobbyOptions)
+      : createMultiplayerLobby({
+          ...lobbyOptions,
+          lobbyId,
+          seed: this.seed,
+        })
+
+    if (lobby.getSnapshot().lobbyId !== lobbyId) {
+      lobby.dispose()
+      throw new Error(
+        'Persisted lobby id does not match its storage key.',
+      )
+    }
+
     this.lobbies.set(lobbyId, lobby)
     return lobby
+  }
+
+  private persistLobbyIfChanged(
+    lobbyId: string,
+    lobby: MultiplayerLobby,
+    previousRevision: number,
+  ) {
+    const snapshot = lobby.getSnapshot()
+
+    if (snapshot.revision === previousRevision) {
+      return
+    }
+
+    if (snapshot.phase !== 'waiting') {
+      this.queueLobbyPersistence(lobbyId, () =>
+        this.lobbyPersistenceStore.delete(lobbyId),
+      )
+      return
+    }
+
+    const hasConnections = this.hasLobbyConnections(lobbyId)
+
+    if (
+      !hasConnections &&
+      this.emptyLobbyGraceMilliseconds === 0
+    ) {
+      this.queueLobbyPersistence(lobbyId, () =>
+        this.lobbyPersistenceStore.delete(lobbyId),
+      )
+      return
+    }
+
+    try {
+      const record = createPersistedLobbyRecord({
+        lobbyId,
+        savedAt: this.lobbyPersistenceClock.now(),
+        ttlMilliseconds: hasConnections
+          ? this.waitingLobbyPersistenceTtlMilliseconds
+          : this.emptyLobbyGraceMilliseconds,
+        payload: lobby.exportWaitingState(),
+      })
+      this.queueLobbyPersistence(lobbyId, () =>
+        this.lobbyPersistenceStore.save(record),
+      )
+    } catch (error) {
+      this.onError(error)
+    }
+  }
+
+  private queueLobbyPersistence(
+    lobbyId: string,
+    operation: () => Promise<void>,
+  ) {
+    const previous =
+      this.lobbyPersistenceOperations.get(lobbyId) ??
+      Promise.resolve()
+    const next = previous
+      .then(operation)
+      .catch((error: unknown) => {
+        this.onError(error)
+      })
+
+    this.lobbyPersistenceOperations.set(lobbyId, next)
+    void next.finally(() => {
+      if (
+        this.lobbyPersistenceOperations.get(lobbyId) === next
+      ) {
+        this.lobbyPersistenceOperations.delete(lobbyId)
+      }
+    })
   }
 
   private cancelLobbyCleanup(lobbyId: string) {
@@ -503,6 +692,9 @@ export class WebSocketGameServer {
 
       lobby.dispose()
       this.lobbies.delete(lobbyId)
+      this.queueLobbyPersistence(lobbyId, () =>
+        this.lobbyPersistenceStore.delete(lobbyId),
+      )
     }, this.emptyLobbyGraceMilliseconds)
     this.lobbyCleanupTimers.set(lobbyId, timer)
   }

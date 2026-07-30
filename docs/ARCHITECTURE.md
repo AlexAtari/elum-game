@@ -363,12 +363,24 @@ Sitzreihenfolge, Hostrolle, Anzeigenamen und eindeutige Tokens.
 `restoreMultiplayerLobby()` baut daraus eine neue wartende Lobby auf.
 Alle Sitze beginnen getrennt, behalten aber ihre Tokens,
 Bereitschaften und den ursprünglichen Seed; erst das bestehende
-Resume-Protokoll bindet neue Prozess-Verbindungen. Der Render-Dienst
+Resume-Protokoll bindet neue Prozess-Verbindungen.
+
+Die WebSocket-Registry verwendet den Speichervertrag inzwischen
+direkt. Vor dem ersten Upgrade eines Lobbycodes lädt sie genau einmal
+einen gültigen wartenden Zustand oder erzeugt einen neuen Raum.
+Änderungen werden pro Lobby geordnet gespeichert; nach Matchstart
+wird der wartende Snapshot gelöscht, damit ein Neustart keinen
+veralteten Vor-Spiel-Zustand reaktiviert. Die bestehende
+Zehn-Minuten-Bereinigung löscht auch den Speichereintrag. Solange
+mindestens eine Verbindung besteht, schützt eine getrennte
+24-Stunden-TTL unveränderte wartende Räume vor vorzeitigem Ablauf;
+nach dem letzten Disconnect gilt wieder genau die Reconnect-
+Schonfrist. Der Standardadapter bleibt jedoch prozesslokal und dient
+damit vorerst nur als getestete Integrationsgrenze. Der Render-Dienst
 darf weiterhin nicht horizontal skaliert werden; Deploys und
-Instanzwechsel können laufende Partien beenden. Registry-Anbindung,
-laufende Matches, ein externer Adapter und betriebliche
-Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat,
-aggregierte Live-Health-Daten und einen
+Instanzwechsel können laufende Partien beenden. Laufende Matches, ein
+externer Adapter und betriebliche Langzeitspeicherung bleiben offen;
+der Prozess stellt Heartbeat, aggregierte Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
 bereit, die GitHub Actions regelmäßig unabhängig prüft.
 
