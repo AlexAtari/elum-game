@@ -7,6 +7,15 @@ import {
 } from './multiplayerClient'
 
 describe('Multiplayer-Clientadresse', () => {
+  it('verwendet auf GitHub Pages den öffentlichen Render-Dienst', () => {
+    expect(
+      createDefaultMultiplayerServerUrl({
+        protocol: 'https:',
+        hostname: 'alexatari.github.io',
+      }),
+    ).toBe('wss://elum-multiplayer.onrender.com')
+  })
+
   it('leitet für lokale Seiten denselben Host ab', () => {
     expect(
       createDefaultMultiplayerServerUrl({

@@ -84,10 +84,11 @@ mit Build, Health Check, öffentlicher Bind-Adresse und einer auf die
 GitHub-Pages-Origin begrenzten Origin-Policy. In Render:
 
 1. Repository als Blueprint verbinden und `render.yaml` anwenden.
-2. Nach dem ersten erfolgreichen Deploy die öffentliche Adresse
-   notieren, zum Beispiel `https://elum-multiplayer.onrender.com`.
-3. In der Mehrspieleroberfläche dieselbe Adresse mit WebSocket-Schema
-   eintragen, zum Beispiel `wss://elum-multiplayer.onrender.com`.
+2. Der angelegte Dienst ist unter
+   `https://elum-multiplayer.onrender.com` erreichbar.
+3. Die GitHub-Pages-Version verwendet automatisch
+   `wss://elum-multiplayer.onrender.com`; andere Clients können diese
+   Adresse weiterhin manuell eintragen.
 
 Render terminiert TLS; der Node-Prozess selbst spricht intern HTTP
 und bindet an den von Render gesetzten `PORT`. Öffentliche Clients

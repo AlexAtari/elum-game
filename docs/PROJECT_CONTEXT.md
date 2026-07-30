@@ -396,10 +396,12 @@ werden.
   bleiben erhalten, alle Bereitschaften werden zurückgesetzt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- Render-Blueprint für den öffentlichen Multiplayerdienst mit
-  Plattform-Port, Health Check, TLS-Terminierung und Origin-Policy
-  ist vorbereitet; nächster Strukturschritt sind tatsächliches
-  Provisionieren, persistenter Zustand und betriebliche Überwachung
+- kostenloser Render-Dienst `elum-multiplayer` ist mit Plattform-Port,
+  Health Check, TLS-Terminierung und Origin-Policy provisioniert; die
+  GitHub-Pages-Oberfläche verwendet seinen `wss://`-Endpunkt
+  standardmäßig
+- nächster Strukturschritt sind persistenter Zustand und betriebliche
+  Überwachung
 
 ### Nächster Regelstand
 

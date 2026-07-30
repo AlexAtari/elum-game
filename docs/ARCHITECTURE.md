@@ -322,7 +322,11 @@ Build, Health Check, Plattform-Port, öffentlicher Bind-Adresse und
 einer auf `https://alexatari.github.io` begrenzten Origin-Policy.
 Render terminiert TLS; öffentliche Browser verwenden daher `wss://`,
 während der Prozess intern HTTP und WebSocket auf demselben Port
-bedient.
+bedient. Der kostenlose Dienst läuft unter
+`https://elum-multiplayer.onrender.com`; `multiplayerClient.ts`
+verwendet auf `alexatari.github.io` automatisch den entsprechenden
+`wss://`-Ursprung und behält für lokale Seiten die hostbasierte
+Port-8787-Ableitung bei.
 
 Lobby-, Token- und Matchzustand liegen weiterhin nur im
 Prozessspeicher. Der Render-Dienst darf deshalb nicht horizontal

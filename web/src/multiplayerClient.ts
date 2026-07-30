@@ -1,4 +1,7 @@
 const DEFAULT_MULTIPLAYER_PORT = 8787
+const PUBLIC_MULTIPLAYER_SERVER_URL =
+  'wss://elum-multiplayer.onrender.com'
+const PUBLIC_FRONTEND_HOSTNAME = 'alexatari.github.io'
 const MULTIPLAYER_INVITE_FLAG = 'multiplayer'
 const MULTIPLAYER_INVITE_SERVER = 'server'
 const MULTIPLAYER_INVITE_LOBBY = 'lobby'
@@ -16,6 +19,10 @@ export type MultiplayerInvite = {
 export function createDefaultMultiplayerServerUrl(
   location: BrowserLocation,
 ) {
+  if (location.hostname === PUBLIC_FRONTEND_HOSTNAME) {
+    return PUBLIC_MULTIPLAYER_SERVER_URL
+  }
+
   const protocol =
     location.protocol === 'https:' ? 'wss:' : 'ws:'
 

@@ -330,10 +330,12 @@ Schonfrist. Einladungslinks übernehmen inzwischen Serveradresse und
 Lobbycode direkt in den Mehrspielerpfad. Ein Render-Blueprint
 konfiguriert den Node-Web-Service mit Plattform-Port, Health Check,
 öffentlicher Bind-Adresse und auf GitHub Pages begrenzter
-Browser-Origin. Render terminiert TLS, sodass öffentliche Clients
-`wss://` verwenden. Noch offen sind das tatsächliche Anlegen des
-Dienstes, persistenter Zustand über Deploys und Instanzwechsel sowie
-betriebliche Überwachung; GitHub Pages hostet weiterhin nur das
+Browser-Origin. Der kostenlose Dienst `elum-multiplayer` ist unter
+`https://elum-multiplayer.onrender.com` angelegt; Health Check und
+TLS-WebSocket-Handshake sind erfolgreich geprüft. Die
+GitHub-Pages-Oberfläche verwendet ihn standardmäßig über `wss://`.
+Noch offen sind persistenter Zustand über Deploys und Instanzwechsel
+sowie betriebliche Überwachung; GitHub Pages hostet weiterhin nur das
 statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
