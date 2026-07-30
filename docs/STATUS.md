@@ -337,10 +337,12 @@ GitHub-Pages-Oberfläche verwendet ihn standardmäßig über `wss://`.
 Der Server hält WebSocket-Verbindungen mit einem 30-sekündigen
 Ping/Pong-Heartbeat sauber und entfernt nicht mehr antwortende
 Sockets; der Health-Endpunkt veröffentlicht Bereitschaft sowie
-Lobby- und Verbindungszahl. Noch offen sind persistenter Zustand über
-Deploys und Instanzwechsel sowie externe Alarmierung und
-Langzeitmetriken; GitHub Pages hostet weiterhin nur das statische
-Frontend.
+Lobby- und Verbindungszahl. `/metrics` stellt zusätzlich
+Prometheus-kompatible, rein aggregierte Gauges und Prozesszähler für
+Lobbys, Verbindungen, Nachrichten und abgewiesene Upgrades bereit.
+Noch offen sind persistenter Zustand über Deploys und Instanzwechsel
+sowie externe Erfassung, Alarmierung und Langzeitspeicherung dieser
+Metriken; GitHub Pages hostet weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

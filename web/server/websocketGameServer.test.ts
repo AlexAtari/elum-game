@@ -662,6 +662,73 @@ describe('Lokaler WebSocket-Spielserver', () => {
     }
   })
 
+  it('veröffentlicht nur aggregierte Prometheus-Metriken', async () => {
+    const server = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'metrics-default',
+    })
+    const address = await server.listen()
+    const baseUrl = `http://127.0.0.1:${address.port}`
+    const rejectedSocket = new WebSocket(
+      `ws://127.0.0.1:${address.port}/multiplayer`,
+    )
+    rejectedSocket.on('error', () => undefined)
+
+    try {
+      await new Promise<void>((resolve) => {
+        rejectedSocket.once('unexpected-response', (_, response) => {
+          response.resume()
+          resolve()
+        })
+      })
+      const client = await openClient(
+        formatWebSocketUrl({
+          ...address,
+          lobbyId: 'private-lobby-name',
+        }),
+      )
+
+      try {
+        send(client, {
+          version: 1,
+          requestId: 'metrics-message',
+          type: 'join-lobby',
+          payload: { displayName: 'Private Player' },
+        })
+        await client.waitFor(
+          (message) => message.type === 'session-established',
+        )
+
+        const response = await fetch(`${baseUrl}/metrics`)
+        const metrics = await response.text()
+
+        expect(response.status).toBe(200)
+        expect(response.headers.get('content-type')).toBe(
+          'text/plain; version=0.0.4; charset=utf-8',
+        )
+        expect(metrics).toContain('elum_active_lobbies 1')
+        expect(metrics).toContain(
+          'elum_active_websocket_connections 1',
+        )
+        expect(metrics).toContain(
+          'elum_websocket_connections_total 1',
+        )
+        expect(metrics).toContain('elum_websocket_messages_total 1')
+        expect(metrics).toContain(
+          'elum_websocket_upgrade_rejections_total 1',
+        )
+        expect(metrics).not.toContain('private-lobby-name')
+        expect(metrics).not.toContain('Private Player')
+      } finally {
+        await closeClient(client)
+      }
+    } finally {
+      rejectedSocket.close()
+      await server.close()
+    }
+  })
+
   it('erlaubt ausschließlich konfigurierte Browser-Origins', async () => {
     const server = createWebSocketGameServer({
       host: '127.0.0.1',

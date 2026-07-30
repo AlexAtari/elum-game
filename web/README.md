@@ -48,6 +48,18 @@ Clients alle 30 Sekunden einen WebSocket-Ping; Verbindungen ohne Pong
 werden beim nächsten Intervall beendet und können anschließend über
 den vorhandenen Reconnect-Pfad wieder aufgenommen werden.
 
+Der Prometheus-kompatible Endpunkt
+`http://<RECHNER-IP>:8787/metrics` veröffentlicht ausschließlich
+aggregierte Prozesszähler:
+
+- aktuell gehaltene Lobbys und WebSocket-Verbindungen,
+- insgesamt akzeptierte Verbindungen,
+- insgesamt empfangene Nachrichten,
+- insgesamt abgewiesene WebSocket-Upgrades.
+
+Lobbycodes, Anzeigenamen, Reconnect-Tokens und Matchzustände werden
+nicht als Metriken ausgegeben.
+
 Jeder nicht leere Lobbycode bis 128 Zeichen erzeugt bei der ersten
 WebSocket-Verbindung einen eigenen Spielraum. Unterschiedliche Codes
 teilen weder Sitze noch Reconnect-Tokens oder Matchzustände. Nach der

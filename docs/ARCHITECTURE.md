@@ -275,6 +275,10 @@ nächsten Intervall aus, wird der Socket terminiert und durchläuft
 denselben Disconnect- und Reconnect-Pfad. `/health` veröffentlicht
 neben Bereitschaft und Standardlobby ausschließlich aggregierte
 Lobby- und Verbindungszahlen, keine Lobbycodes oder Sitzungsdaten.
+`/metrics` ergänzt Prometheus-kompatible Gauges für aktive Lobbys und
+Verbindungen sowie monotone Prozesszähler für akzeptierte
+Verbindungen, empfangene Nachrichten und abgewiesene Upgrades.
+Bezeichner, Namen, Tokens und Matchinhalte werden nicht exportiert.
 Die bestehende lokale React-Partie
 verwendet weiterhin direkt die Kommandoschicht.
 
@@ -338,8 +342,9 @@ Lobby-, Token- und Matchzustand liegen weiterhin nur im
 Prozessspeicher. Der Render-Dienst darf deshalb nicht horizontal
 skaliert werden; Deploys und Instanzwechsel können laufende Partien
 beenden. Tatsächliches Provisionieren, Persistenz und betriebliche
-Langzeitüberwachung bleiben offen; der Prozess stellt inzwischen
-Heartbeat und aggregierte Live-Health-Daten als betriebliche
+externe Erfassung, Alarmierung und Langzeitspeicherung bleiben offen;
+der Prozess stellt inzwischen Heartbeat, aggregierte Live-Health-Daten
+und einen Prometheus-kompatiblen Metrikendpunkt als betriebliche
 Grundsignale bereit.
 
 Die lokale React-Partie koordiniert ihre Runde weiterhin in

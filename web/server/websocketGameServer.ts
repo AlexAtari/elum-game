@@ -54,6 +54,7 @@ export type WebSocketGameServerAddress = {
 
 const WEBSOCKET_PATH = '/multiplayer'
 const HEALTH_PATH = '/health'
+const METRICS_PATH = '/metrics'
 const DEFAULT_MAX_PAYLOAD_BYTES = 64 * 1024
 export const DEFAULT_HEARTBEAT_INTERVAL_MILLISECONDS = 30_000
 export const EMPTY_LOBBY_GRACE_MILLISECONDS =
@@ -136,6 +137,9 @@ export class WebSocketGameServer {
   private listening = false
   private closing = false
   private heartbeatTimer: unknown
+  private acceptedConnectionTotal = 0
+  private receivedMessageTotal = 0
+  private rejectedUpgradeTotal = 0
 
   constructor(options: WebSocketGameServerOptions = {}) {
     this.host = options.host ?? '127.0.0.1'
@@ -194,6 +198,16 @@ export class WebSocketGameServer {
         return
       }
 
+      if (request.method === 'GET' && url.pathname === METRICS_PATH) {
+        response.writeHead(200, {
+          'Content-Type':
+            'text/plain; version=0.0.4; charset=utf-8',
+          'Cache-Control': 'no-store',
+        })
+        response.end(this.createMetrics())
+        return
+      }
+
       response.writeHead(404, {
         'Content-Type': 'application/json; charset=utf-8',
       })
@@ -213,6 +227,7 @@ export class WebSocketGameServer {
         url.pathname !== WEBSOCKET_PATH ||
         lobbyId === null
       ) {
+        this.rejectedUpgradeTotal += 1
         rejectUpgrade(request, 404, 'Not Found')
         return
       }
@@ -221,6 +236,7 @@ export class WebSocketGameServer {
         this.allowedOrigins !== null &&
         (origin === undefined || !this.allowedOrigins.has(origin))
       ) {
+        this.rejectedUpgradeTotal += 1
         rejectUpgrade(request, 403, 'Forbidden')
         return
       }
@@ -252,11 +268,14 @@ export class WebSocketGameServer {
       const connectionId = this.createUniqueConnectionId()
       const connection = { socket, lobbyId, alive: true }
       this.sockets.set(connectionId, connection)
+      this.acceptedConnectionTotal += 1
 
       socket.on('pong', () => {
         connection.alive = true
       })
       socket.on('message', (data, isBinary) => {
+        this.receivedMessageTotal += 1
+
         if (isBinary) {
           socket.close(1003, 'JSON text messages required')
           return
@@ -375,6 +394,27 @@ export class WebSocketGameServer {
     }
 
     throw new Error('Unable to create a unique connection id.')
+  }
+
+  private createMetrics() {
+    return [
+      '# HELP elum_active_lobbies Current in-memory lobby count.',
+      '# TYPE elum_active_lobbies gauge',
+      `elum_active_lobbies ${this.lobbies.size}`,
+      '# HELP elum_active_websocket_connections Current WebSocket connection count.',
+      '# TYPE elum_active_websocket_connections gauge',
+      `elum_active_websocket_connections ${this.sockets.size}`,
+      '# HELP elum_websocket_connections_total Accepted WebSocket connections since process start.',
+      '# TYPE elum_websocket_connections_total counter',
+      `elum_websocket_connections_total ${this.acceptedConnectionTotal}`,
+      '# HELP elum_websocket_messages_total Received WebSocket messages since process start.',
+      '# TYPE elum_websocket_messages_total counter',
+      `elum_websocket_messages_total ${this.receivedMessageTotal}`,
+      '# HELP elum_websocket_upgrade_rejections_total Rejected WebSocket upgrades since process start.',
+      '# TYPE elum_websocket_upgrade_rejections_total counter',
+      `elum_websocket_upgrade_rejections_total ${this.rejectedUpgradeTotal}`,
+      '',
+    ].join('\n')
   }
 
   private checkHeartbeats() {

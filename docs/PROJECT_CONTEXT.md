@@ -403,8 +403,10 @@ werden.
 - 30-sekündiger WebSocket-Heartbeat entfernt nicht mehr antwortende
   Verbindungen; der Health-Endpunkt meldet Bereitschaft, Lobby- und
   Verbindungszahl
-- nächster Strukturschritt sind persistenter Zustand, externe
-  Alarmierung und Langzeitmetriken
+- Prometheus-kompatibler `/metrics`-Endpunkt veröffentlicht nur
+  aggregierte Gauges und Prozesszähler, keine Lobby- oder Sitzdaten
+- nächster Strukturschritt sind persistenter Zustand sowie externe
+  Erfassung, Alarmierung und Langzeitspeicherung der Metriken
 
 ### Nächster Regelstand
 
