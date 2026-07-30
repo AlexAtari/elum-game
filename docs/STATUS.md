@@ -346,8 +346,12 @@ Persistenzgrenze. Sie isoliert Lobbycodes und Objektmutationen und
 verwirft abgelaufene Einträge beim Lesen. Wartende Lobbys exportieren
 Seed, Revision, menschliche Sitze, Bereitschaft und geheime
 Reconnect-Tokens als eigene Version-1-Nutzlast; Verbindungs-IDs
-bleiben prozesslokal. Laufende Matches werden noch nicht exportiert.
-Noch offen sind Laden und Validieren der Lobby-Nutzlast,
+bleiben prozesslokal. Unbekannte Nutzlasten werden gegen Version,
+Phase, IDs, Seed, Revision, kanonische Sitzfolge, Hostrolle, Namen
+und eindeutige Tokens validiert. Aus gültigen Nutzlasten lässt sich
+eine wartende Lobby mit zunächst getrennten Sitzen und erhaltenen
+Reconnect-Tokens wiederherstellen. Laufende Matches werden noch
+nicht exportiert oder wiederhergestellt. Noch offen sind
 Registry-Anbindung, externer Zustandsspeicher sowie externe
 Langzeitspeicherung der Metriken. Eine unabhängige GitHub Action
 prüft Health und erwartetes Metrikformat alle sechs Stunden sowie

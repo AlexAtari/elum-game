@@ -134,7 +134,11 @@ versionierten JSON-Datensatz, den asynchronen Speichervertrag und
 einen ablaufzeitfähigen In-Memory-Adapter. Wartende Lobbys können
 Seed, Revision, Sitzdaten, Bereitschaft und Reconnect-Tokens als
 eigene Version-1-Nutzlast exportieren; Verbindungs-IDs und laufende
-Matches werden nicht exportiert. Diese Grenze ist noch nicht an die
-Lobby-Registry angebunden und daher noch keine dauerhafte Persistenz.
-Laden und Validieren der Nutzlast, externer Speicher und
-instanzübergreifende Sitzungen sind der nächste Ausbau.
+Matches werden nicht exportiert. Gespeicherte Nutzlasten werden
+vollständig validiert und können als wartende Lobby wiederhergestellt
+werden. Die reservierten Sitze beginnen getrennt und verbinden sich
+über ihre erhaltenen Reconnect-Tokens erneut. Diese Grenze ist noch
+nicht an die Lobby-Registry angebunden und daher noch keine
+automatische oder dauerhafte Persistenz. Registry-Anbindung, externer
+Speicher, laufende Matches und instanzübergreifende Sitzungen sind
+der nächste Ausbau.

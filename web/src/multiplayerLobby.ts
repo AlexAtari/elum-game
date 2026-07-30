@@ -12,6 +12,7 @@ import {
   type ParticipantId,
 } from './match'
 import {
+  normalizeDisplayName,
   parseMultiplayerClientMessage,
   type LobbySeatSnapshot,
   type LobbySnapshot,
@@ -58,6 +59,11 @@ export type MultiplayerLobbyOptions = {
   onEmitError?: (error: unknown) => void
 }
 
+export type RestoreMultiplayerLobbyOptions = Omit<
+  MultiplayerLobbyOptions,
+  'lobbyId' | 'seed'
+>
+
 const aiProfiles: Record<ParticipantId, AiProfile> = {
   agima: 'balanced',
   orion: 'balanced',
@@ -88,6 +94,92 @@ function requestIdFromUnknown(input: unknown) {
     : null
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value)
+  )
+}
+
+function parsePersistedHumanSeat(
+  input: unknown,
+  expectedParticipantId: ParticipantId,
+  expectedHost: boolean,
+) {
+  if (
+    !isRecord(input) ||
+    input.participantId !== expectedParticipantId ||
+    typeof input.displayName !== 'string' ||
+    normalizeDisplayName(input.displayName) !== input.displayName ||
+    typeof input.reconnectToken !== 'string' ||
+    input.reconnectToken.length === 0 ||
+    input.reconnectToken.length > 128 ||
+    typeof input.ready !== 'boolean' ||
+    input.isHost !== expectedHost
+  ) {
+    return null
+  }
+
+  return {
+    participantId: expectedParticipantId,
+    displayName: input.displayName,
+    reconnectToken: input.reconnectToken,
+    ready: input.ready,
+    isHost: expectedHost,
+  }
+}
+
+export function parsePersistedWaitingLobbyState(
+  input: unknown,
+): PersistedWaitingLobbyState | null {
+  if (
+    !isRecord(input) ||
+    input.version !== MULTIPLAYER_LOBBY_STATE_VERSION ||
+    typeof input.lobbyId !== 'string' ||
+    input.lobbyId.length === 0 ||
+    input.lobbyId.length > 128 ||
+    typeof input.seed !== 'number' ||
+    !Number.isFinite(input.seed) ||
+    !Number.isInteger(input.seed) ||
+    input.seed < 0 ||
+    typeof input.revision !== 'number' ||
+    !Number.isInteger(input.revision) ||
+    input.revision < 0 ||
+    input.phase !== 'waiting' ||
+    !Array.isArray(input.humanSeats) ||
+    input.humanSeats.length > participantIds.length
+  ) {
+    return null
+  }
+
+  const humanSeats = input.humanSeats.map((seat, index) =>
+    parsePersistedHumanSeat(
+      seat,
+      participantIds[index],
+      index === 0,
+    ),
+  )
+
+  if (
+    humanSeats.some((seat) => seat === null) ||
+    new Set(
+      humanSeats.map((seat) => seat?.reconnectToken),
+    ).size !== humanSeats.length
+  ) {
+    return null
+  }
+
+  return structuredClone({
+    version: MULTIPLAYER_LOBBY_STATE_VERSION,
+    lobbyId: input.lobbyId,
+    seed: input.seed,
+    revision: input.revision,
+    phase: 'waiting',
+    humanSeats: humanSeats as PersistedWaitingLobbyState['humanSeats'],
+  })
+}
+
 export class MultiplayerLobby {
   private revision = 0
   private phase: LobbySnapshot['phase'] = 'waiting'
@@ -108,6 +200,38 @@ export class MultiplayerLobby {
   private readonly matchOptions: AuthoritativeMatchOptions
   private match: AuthoritativeMatch | null = null
   private unsubscribeMatch: (() => void) | null = null
+
+  static restoreWaitingState(
+    input: unknown,
+    options: RestoreMultiplayerLobbyOptions,
+  ) {
+    const state = parsePersistedWaitingLobbyState(input)
+
+    if (!state) {
+      throw new Error('Invalid persisted waiting lobby state.')
+    }
+
+    const lobby = new MultiplayerLobby({
+      ...options,
+      lobbyId: state.lobbyId,
+      seed: state.seed,
+    })
+    lobby.revision = state.revision
+
+    for (const persistedSeat of state.humanSeats) {
+      const seat: LobbyHumanSeat = {
+        ...persistedSeat,
+        connectionId: null,
+      }
+      lobby.humanSeats.set(seat.participantId, seat)
+      lobby.tokenSeats.set(
+        seat.reconnectToken,
+        seat.participantId,
+      )
+    }
+
+    return lobby
+  }
 
   constructor(options: MultiplayerLobbyOptions) {
     if (
@@ -773,4 +897,11 @@ export function createMultiplayerLobby(
   options: MultiplayerLobbyOptions,
 ) {
   return new MultiplayerLobby(options)
+}
+
+export function restoreMultiplayerLobby(
+  input: unknown,
+  options: RestoreMultiplayerLobbyOptions,
+) {
+  return MultiplayerLobby.restoreWaitingState(input, options)
 }

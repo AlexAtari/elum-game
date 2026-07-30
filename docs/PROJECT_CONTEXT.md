@@ -414,8 +414,11 @@ werden.
 - wartende Lobbys exportieren Seed, Revision, Sitze, Bereitschaft und
   geheime Reconnect-Tokens als versionierte JSON-Nutzlast; laufende
   Matches und prozesslokale Verbindungs-IDs werden nicht exportiert
-- nächste Strukturschritte sind Laden und Validieren dieser Nutzlast,
-  Registry-Anbindung, ein externer Zustandsspeicher sowie externe
+- gespeicherte Lobby-Nutzlasten werden strikt validiert und können als
+  wartende Lobby mit getrennten Sitzen, erhaltenen Tokens,
+  Bereitschaften und ursprünglichem Seed wiederhergestellt werden
+- nächste Strukturschritte sind Registry-Anbindung, ein externer
+  Zustandsspeicher, Persistenz laufender Matches sowie externe
   Langzeitspeicherung der Metriken
 
 ### Nächster Regelstand

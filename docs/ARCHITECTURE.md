@@ -356,12 +356,19 @@ Revision, Sitzzuordnung, Bereitschaft und geheime Reconnect-Tokens
 einer wartenden Lobby in eine eigene Version-1-Nutzlast.
 Prozessgebundene Verbindungs-IDs werden nicht übernommen; ein Export
 laufender Matches wird abgewiesen, solange deren vollständige
-Wiederherstellung noch nicht implementiert ist. Der Render-Dienst darf
-deshalb weiterhin nicht horizontal skaliert werden; Deploys und
-Instanzwechsel können laufende Partien beenden. Laden und Validieren
-dieser Lobby-Nutzlast, die Registry-Anbindung, ein externer Adapter
-und betriebliche Langzeitspeicherung bleiben offen; der Prozess stellt
-Heartbeat, aggregierte Live-Health-Daten und einen
+Wiederherstellung noch nicht implementiert ist.
+`parsePersistedWaitingLobbyState()` validiert unbekannte Speicherdaten
+gegen Version, Phase, Lobby-ID, Seed, Revision, kanonische
+Sitzreihenfolge, Hostrolle, Anzeigenamen und eindeutige Tokens.
+`restoreMultiplayerLobby()` baut daraus eine neue wartende Lobby auf.
+Alle Sitze beginnen getrennt, behalten aber ihre Tokens,
+Bereitschaften und den ursprünglichen Seed; erst das bestehende
+Resume-Protokoll bindet neue Prozess-Verbindungen. Der Render-Dienst
+darf weiterhin nicht horizontal skaliert werden; Deploys und
+Instanzwechsel können laufende Partien beenden. Registry-Anbindung,
+laufende Matches, ein externer Adapter und betriebliche
+Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat,
+aggregierte Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
 bereit, die GitHub Actions regelmäßig unabhängig prüft.
 

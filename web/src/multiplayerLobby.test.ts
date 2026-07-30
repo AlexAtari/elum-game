@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   createMultiplayerLobby,
   MULTIPLAYER_LOBBY_STATE_VERSION,
+  parsePersistedWaitingLobbyState,
+  restoreMultiplayerLobby,
   type MultiplayerLobbyOptions,
 } from './multiplayerLobby'
 import type { MultiplayerServerMessage } from './multiplayerProtocol'
@@ -100,6 +102,152 @@ function findMessages(
 }
 
 describe('Multiplayer-Lobby', () => {
+  it('stellt wartende Sitze getrennt wieder her und erhält ihre Tokens', () => {
+    const { lobby } = createLobbyHarness()
+    lobby.handleMessage('old-host', joinMessage('Alex', 'join-host'))
+    lobby.handleMessage(
+      'old-guest',
+      joinMessage('Bea', 'join-guest'),
+    )
+    lobby.handleMessage(
+      'old-guest',
+      readyMessage(true, 'ready-guest'),
+    )
+    const persistedState = lobby.exportWaitingState()
+    const emitted: EmittedMessage[] = []
+    const restoredLobby = restoreMultiplayerLobby(persistedState, {
+      emit: (connectionId, message) => {
+        emitted.push({ connectionId, message })
+      },
+      createReconnectToken: () => 'reconnect-new',
+    })
+
+    expect(restoredLobby.getSnapshot()).toMatchObject({
+      lobbyId: 'mars-alpha',
+      revision: 3,
+      phase: 'waiting',
+      hostParticipantId: 'agima',
+      seats: {
+        agima: {
+          displayName: 'Alex',
+          connected: false,
+          ready: false,
+          isHost: true,
+        },
+        orion: {
+          displayName: 'Bea',
+          connected: false,
+          ready: true,
+          isHost: false,
+        },
+      },
+    })
+    expect(restoredLobby.exportWaitingState()).toEqual(
+      persistedState,
+    )
+
+    restoredLobby.handleMessage('new-host', {
+      version: 1,
+      requestId: 'resume-host',
+      type: 'resume-session',
+      payload: { reconnectToken: 'reconnect-1' },
+    })
+    restoredLobby.handleMessage('new-guest', {
+      version: 1,
+      requestId: 'resume-guest',
+      type: 'resume-session',
+      payload: { reconnectToken: 'reconnect-2' },
+    })
+    restoredLobby.handleMessage(
+      'new-host',
+      readyMessage(true, 'ready-host'),
+    )
+    restoredLobby.handleMessage(
+      'new-host',
+      startMessage('start-restored'),
+    )
+
+    expect(restoredLobby.getSnapshot().phase).toBe('playing')
+    expect(restoredLobby.getMatchSnapshot()?.state.match.seed).toBe(
+      23,
+    )
+    expect(
+      findMessages(emitted, 'session-established'),
+    ).toHaveLength(2)
+  })
+
+  it('weist beschädigte oder nicht kanonische Lobbyzustände zurück', () => {
+    const validState = {
+      version: MULTIPLAYER_LOBBY_STATE_VERSION,
+      lobbyId: 'mars-alpha',
+      seed: 23,
+      revision: 2,
+      phase: 'waiting',
+      humanSeats: [
+        {
+          participantId: 'agima',
+          displayName: 'Alex',
+          reconnectToken: 'reconnect-1',
+          ready: false,
+          isHost: true,
+        },
+        {
+          participantId: 'orion',
+          displayName: 'Bea',
+          reconnectToken: 'reconnect-2',
+          ready: false,
+          isHost: false,
+        },
+      ],
+    }
+
+    expect(parsePersistedWaitingLobbyState(validState)).toEqual(
+      validState,
+    )
+
+    const invalidStates = [
+      { ...validState, version: 2 },
+      { ...validState, phase: 'playing' },
+      { ...validState, revision: -1 },
+      {
+        ...validState,
+        humanSeats: [
+          {
+            ...validState.humanSeats[0],
+            participantId: 'orion',
+          },
+        ],
+      },
+      {
+        ...validState,
+        humanSeats: validState.humanSeats.map((seat) => ({
+          ...seat,
+          reconnectToken: 'duplicate',
+        })),
+      },
+      {
+        ...validState,
+        humanSeats: [
+          {
+            ...validState.humanSeats[0],
+            displayName: ' Alex ',
+          },
+        ],
+      },
+    ]
+
+    for (const invalidState of invalidStates) {
+      expect(
+        parsePersistedWaitingLobbyState(invalidState),
+      ).toBeNull()
+      expect(() =>
+        restoreMultiplayerLobby(invalidState, {
+          emit: () => undefined,
+        }),
+      ).toThrow('Invalid persisted waiting lobby state')
+    }
+  })
+
   it('exportiert den vollständigen wartenden Zustand ohne Verbindungs-IDs', () => {
     const { lobby } = createLobbyHarness()
 
