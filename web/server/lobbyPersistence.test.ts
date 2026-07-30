@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { createMultiplayerLobby } from '../src/multiplayerLobby'
 import {
   createPersistedLobbyRecord,
   InMemoryLobbyPersistenceStore,
@@ -22,6 +23,51 @@ function createRecord(
 }
 
 describe('Lobby-Persistenzgrenze', () => {
+  it('speichert den exportierten Zustand einer wartenden Lobby', async () => {
+    const lobby = createMultiplayerLobby({
+      lobbyId: 'mars-alpha',
+      seed: 23,
+      emit: () => undefined,
+      createReconnectToken: () => 'reconnect-host',
+    })
+    lobby.handleMessage('host-phone', {
+      version: 1,
+      requestId: 'join-host',
+      type: 'join-lobby',
+      payload: { displayName: 'Alex' },
+    })
+    const record = createPersistedLobbyRecord({
+      lobbyId: 'mars-alpha',
+      savedAt: 1_000,
+      ttlMilliseconds: 5_000,
+      payload: lobby.exportWaitingState(),
+    })
+    const store = new InMemoryLobbyPersistenceStore({
+      now: () => 2_000,
+    })
+
+    await store.save(record)
+
+    expect(await store.load('mars-alpha')).toMatchObject({
+      payload: {
+        version: 1,
+        lobbyId: 'mars-alpha',
+        seed: 23,
+        revision: 1,
+        phase: 'waiting',
+        humanSeats: [
+          {
+            participantId: 'agima',
+            displayName: 'Alex',
+            reconnectToken: 'reconnect-host',
+            ready: false,
+            isHost: true,
+          },
+        ],
+      },
+    })
+  })
+
   it('erzeugt einen versionierten Datensatz mit Ablaufzeit', () => {
     expect(createRecord()).toEqual({
       version: LOBBY_PERSISTENCE_VERSION,

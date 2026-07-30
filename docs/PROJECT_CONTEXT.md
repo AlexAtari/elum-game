@@ -410,10 +410,13 @@ werden.
 - `server/lobbyPersistence.ts` stellt einen asynchronen Speichervertrag
   und versionierte JSON-Datensätze mit Ablaufzeit bereit; der
   In-Memory-Adapter kopiert Nutzdaten und bereinigt abgelaufene
-  Einträge, ist aber noch nicht an Lobby oder Registry angebunden
-- nächste Strukturschritte sind konkrete Lobby-Serialisierung, ein
-  externer Zustandsspeicher sowie externe Langzeitspeicherung der
-  Metriken
+  Einträge
+- wartende Lobbys exportieren Seed, Revision, Sitze, Bereitschaft und
+  geheime Reconnect-Tokens als versionierte JSON-Nutzlast; laufende
+  Matches und prozesslokale Verbindungs-IDs werden nicht exportiert
+- nächste Strukturschritte sind Laden und Validieren dieser Nutzlast,
+  Registry-Anbindung, ein externer Zustandsspeicher sowie externe
+  Langzeitspeicherung der Metriken
 
 ### Nächster Regelstand
 

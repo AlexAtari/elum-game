@@ -131,7 +131,10 @@ Serverprozesses. Der Dienst darf deshalb noch nicht horizontal
 skaliert werden; ein Deploy oder Instanzwechsel beendet laufende
 Partien. `server/lobbyPersistence.ts` enthält bereits den
 versionierten JSON-Datensatz, den asynchronen Speichervertrag und
-einen ablaufzeitfähigen In-Memory-Adapter. Diese Grenze ist noch nicht
-an die Lobby-Registry angebunden und daher noch keine dauerhafte
-Persistenz. Konkrete Lobby-Serialisierung, externer Speicher und
+einen ablaufzeitfähigen In-Memory-Adapter. Wartende Lobbys können
+Seed, Revision, Sitzdaten, Bereitschaft und Reconnect-Tokens als
+eigene Version-1-Nutzlast exportieren; Verbindungs-IDs und laufende
+Matches werden nicht exportiert. Diese Grenze ist noch nicht an die
+Lobby-Registry angebunden und daher noch keine dauerhafte Persistenz.
+Laden und Validieren der Nutzlast, externer Speicher und
 instanzübergreifende Sitzungen sind der nächste Ausbau.

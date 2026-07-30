@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   createMultiplayerLobby,
+  MULTIPLAYER_LOBBY_STATE_VERSION,
   type MultiplayerLobbyOptions,
 } from './multiplayerLobby'
 import type { MultiplayerServerMessage } from './multiplayerProtocol'
@@ -99,6 +100,66 @@ function findMessages(
 }
 
 describe('Multiplayer-Lobby', () => {
+  it('exportiert den vollständigen wartenden Zustand ohne Verbindungs-IDs', () => {
+    const { lobby } = createLobbyHarness()
+
+    lobby.handleMessage('host-phone', joinMessage('Alex', 'join-host'))
+    lobby.handleMessage(
+      'guest-phone',
+      joinMessage('Bea', 'join-guest'),
+    )
+    lobby.handleMessage(
+      'guest-phone',
+      readyMessage(true, 'ready-guest'),
+    )
+    lobby.disconnect('guest-phone')
+
+    const state = lobby.exportWaitingState()
+
+    expect(state).toEqual({
+      version: MULTIPLAYER_LOBBY_STATE_VERSION,
+      lobbyId: 'mars-alpha',
+      seed: 23,
+      revision: 4,
+      phase: 'waiting',
+      humanSeats: [
+        {
+          participantId: 'agima',
+          displayName: 'Alex',
+          reconnectToken: 'reconnect-1',
+          ready: false,
+          isHost: true,
+        },
+        {
+          participantId: 'orion',
+          displayName: 'Bea',
+          reconnectToken: 'reconnect-2',
+          ready: true,
+          isHost: false,
+        },
+      ],
+    })
+    expect(JSON.stringify(state)).not.toContain('connectionId')
+
+    state.humanSeats[0].displayName = 'Verändert'
+
+    expect(
+      lobby.exportWaitingState().humanSeats[0].displayName,
+    ).toBe('Alex')
+  })
+
+  it('verhindert einen unvollständigen Export laufender Matches', () => {
+    const { lobby } = createLobbyHarness()
+
+    lobby.handleMessage('host', joinMessage('Alex', 'join'))
+    lobby.handleMessage('host', readyMessage(true, 'ready'))
+    lobby.handleMessage('host', startMessage('start'))
+
+    expect(() => lobby.exportWaitingState()).toThrow(
+      'Only a waiting lobby can be exported',
+    )
+  })
+
   it('leitet Rundenpläne weiter und veröffentlicht die gemeinsame Abrechnung', () => {
     const { lobby, emitted } = createLobbyHarness()
 

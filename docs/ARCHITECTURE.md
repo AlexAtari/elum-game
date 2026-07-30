@@ -350,11 +350,17 @@ Persistenzbaustein einen asynchronen Speichervertrag und einen
 versionierten, JSON-serialisierbaren Datensatz mit Ablaufzeit. Der
 In-Memory-Adapter kopiert Daten an beiden Grenzen, isoliert Lobbycodes
 und entfernt abgelaufene Einträge beim Laden. Er ist noch nicht an
-Registry oder Lobbykern angebunden und überlebt keinen Prozesswechsel.
-Der Render-Dienst darf deshalb weiterhin nicht horizontal skaliert
-werden; Deploys und Instanzwechsel können laufende Partien beenden.
-Die konkrete Lobby-Serialisierung, ein externer Adapter und
-betriebliche Langzeitspeicherung bleiben offen; der Prozess stellt
+die Registry angebunden und überlebt keinen Prozesswechsel.
+`MultiplayerLobby.exportWaitingState()` serialisiert inzwischen Seed,
+Revision, Sitzzuordnung, Bereitschaft und geheime Reconnect-Tokens
+einer wartenden Lobby in eine eigene Version-1-Nutzlast.
+Prozessgebundene Verbindungs-IDs werden nicht übernommen; ein Export
+laufender Matches wird abgewiesen, solange deren vollständige
+Wiederherstellung noch nicht implementiert ist. Der Render-Dienst darf
+deshalb weiterhin nicht horizontal skaliert werden; Deploys und
+Instanzwechsel können laufende Partien beenden. Laden und Validieren
+dieser Lobby-Nutzlast, die Registry-Anbindung, ein externer Adapter
+und betriebliche Langzeitspeicherung bleiben offen; der Prozess stellt
 Heartbeat, aggregierte Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
 bereit, die GitHub Actions regelmäßig unabhängig prüft.

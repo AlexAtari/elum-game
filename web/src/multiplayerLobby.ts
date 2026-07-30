@@ -29,6 +29,23 @@ type LobbyHumanSeat = {
   isHost: boolean
 }
 
+export const MULTIPLAYER_LOBBY_STATE_VERSION = 1 as const
+
+export type PersistedWaitingLobbyState = {
+  version: typeof MULTIPLAYER_LOBBY_STATE_VERSION
+  lobbyId: string
+  seed: number
+  revision: number
+  phase: 'waiting'
+  humanSeats: Array<{
+    participantId: ParticipantId
+    displayName: string
+    reconnectToken: string
+    ready: boolean
+    isHost: boolean
+  }>
+}
+
 export type MultiplayerLobbyOptions = {
   lobbyId: string
   seed?: number
@@ -193,6 +210,37 @@ export class MultiplayerLobby {
 
   getMatchSnapshot() {
     return this.match?.getSnapshot() ?? null
+  }
+
+  exportWaitingState(): PersistedWaitingLobbyState {
+    if (this.phase !== 'waiting' || this.match !== null) {
+      throw new Error(
+        'Only a waiting lobby can be exported for persistence.',
+      )
+    }
+
+    return structuredClone({
+      version: MULTIPLAYER_LOBBY_STATE_VERSION,
+      lobbyId: this.lobbyId,
+      seed: this.seed,
+      revision: this.revision,
+      phase: 'waiting',
+      humanSeats: participantIds.flatMap((participantId) => {
+        const seat = this.humanSeats.get(participantId)
+
+        return seat
+          ? [
+              {
+                participantId: seat.participantId,
+                displayName: seat.displayName,
+                reconnectToken: seat.reconnectToken,
+                ready: seat.ready,
+                isHost: seat.isHost,
+              },
+            ]
+          : []
+      }),
+    } satisfies PersistedWaitingLobbyState)
   }
 
   dispose() {
