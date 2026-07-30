@@ -407,8 +407,13 @@ werden.
   aggregierte Gauges und Prozesszähler, keine Lobby- oder Sitzdaten
 - GitHub Action prüft Health und Metrikformat alle sechs Stunden und
   manuell; Fehler bleiben als fehlgeschlagene Workflow-Läufe sichtbar
-- nächster Strukturschritt sind persistenter Zustand sowie externe
-  Langzeitspeicherung der Metriken
+- `server/lobbyPersistence.ts` stellt einen asynchronen Speichervertrag
+  und versionierte JSON-Datensätze mit Ablaufzeit bereit; der
+  In-Memory-Adapter kopiert Nutzdaten und bereinigt abgelaufene
+  Einträge, ist aber noch nicht an Lobby oder Registry angebunden
+- nächste Strukturschritte sind konkrete Lobby-Serialisierung, ein
+  externer Zustandsspeicher sowie externe Langzeitspeicherung der
+  Metriken
 
 ### Nächster Regelstand
 

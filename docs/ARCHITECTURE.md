@@ -345,10 +345,16 @@ verwendet auf `alexatari.github.io` automatisch den entsprechenden
 Port-8787-Ableitung bei.
 
 Lobby-, Token- und Matchzustand liegen weiterhin nur im
-Prozessspeicher. Der Render-Dienst darf deshalb nicht horizontal
-skaliert werden; Deploys und Instanzwechsel können laufende Partien
-beenden. Tatsächliches Provisionieren, Persistenz und betriebliche
-externe Langzeitspeicherung bleibt offen; der Prozess stellt
+Prozessspeicher. `server/lobbyPersistence.ts` definiert als ersten
+Persistenzbaustein einen asynchronen Speichervertrag und einen
+versionierten, JSON-serialisierbaren Datensatz mit Ablaufzeit. Der
+In-Memory-Adapter kopiert Daten an beiden Grenzen, isoliert Lobbycodes
+und entfernt abgelaufene Einträge beim Laden. Er ist noch nicht an
+Registry oder Lobbykern angebunden und überlebt keinen Prozesswechsel.
+Der Render-Dienst darf deshalb weiterhin nicht horizontal skaliert
+werden; Deploys und Instanzwechsel können laufende Partien beenden.
+Die konkrete Lobby-Serialisierung, ein externer Adapter und
+betriebliche Langzeitspeicherung bleiben offen; der Prozess stellt
 Heartbeat, aggregierte Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
 bereit, die GitHub Actions regelmäßig unabhängig prüft.

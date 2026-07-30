@@ -129,5 +129,9 @@ müssen `wss://` verwenden. Für zusätzliche Frontend-Domains wird
 Der aktuelle Matchzustand lebt im Arbeitsspeicher eines einzelnen
 Serverprozesses. Der Dienst darf deshalb noch nicht horizontal
 skaliert werden; ein Deploy oder Instanzwechsel beendet laufende
-Partien. Persistenz und instanzübergreifende Sitzungen sind ein
-separater Ausbau.
+Partien. `server/lobbyPersistence.ts` enthält bereits den
+versionierten JSON-Datensatz, den asynchronen Speichervertrag und
+einen ablaufzeitfähigen In-Memory-Adapter. Diese Grenze ist noch nicht
+an die Lobby-Registry angebunden und daher noch keine dauerhafte
+Persistenz. Konkrete Lobby-Serialisierung, externer Speicher und
+instanzübergreifende Sitzungen sind der nächste Ausbau.

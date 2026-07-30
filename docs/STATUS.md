@@ -340,13 +340,18 @@ Sockets; der Health-Endpunkt veröffentlicht Bereitschaft sowie
 Lobby- und Verbindungszahl. `/metrics` stellt zusätzlich
 Prometheus-kompatible, rein aggregierte Gauges und Prozesszähler für
 Lobbys, Verbindungen, Nachrichten und abgewiesene Upgrades bereit.
-Noch offen sind persistenter Zustand über Deploys und Instanzwechsel
-sowie externe Langzeitspeicherung dieser Metriken. Eine unabhängige
-GitHub Action prüft Health und erwartetes Metrikformat alle sechs
-Stunden sowie manuell; Fehler werden dadurch als fehlgeschlagene
-Workflow-Läufe sichtbar, ohne die kostenlose Render-Instanz dauerhaft
-warm zu halten. GitHub Pages hostet weiterhin nur das statische
-Frontend.
+Eine versionierte JSON-Speicherhülle mit Ablaufzeit, asynchronem
+Speichervertrag und In-Memory-Adapter bildet die neue
+Persistenzgrenze. Sie isoliert Lobbycodes und Objektmutationen und
+verwirft abgelaufene Einträge beim Lesen, ist aber noch nicht an
+Registry oder Lobbykern angebunden und überlebt keinen
+Prozesswechsel. Noch offen sind konkrete Lobby-Serialisierung,
+externer Zustandsspeicher sowie externe Langzeitspeicherung der
+Metriken. Eine unabhängige GitHub Action prüft Health und erwartetes
+Metrikformat alle sechs Stunden sowie manuell; Fehler werden dadurch
+als fehlgeschlagene Workflow-Läufe sichtbar, ohne die kostenlose
+Render-Instanz dauerhaft warm zu halten. GitHub Pages hostet
+weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 
