@@ -12,3 +12,16 @@ services:
         value: 0.0.0.0
       - key: ELUM_ALLOWED_ORIGINS
         value: https://alexatari.github.io
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: elum-multiplayer-state
+          property: connectionString
+
+  - type: keyvalue
+    name: elum-multiplayer-state
+    plan: free
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+    persistenceMode: off

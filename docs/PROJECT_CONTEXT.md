@@ -426,7 +426,7 @@ werden.
 - laufende Lobbys exportieren den Match-Snapshot zusammen mit Seed,
   Revision, menschlichen Sitzen und Reconnect-Tokens als
   `playing`-Variante und können mit zunächst getrennten Sitzen
-  wiederhergestellt werden; die Registry-Speicheranbindung fehlt noch
+  wiederhergestellt werden
 - gespeicherte Lobby-Nutzlasten werden strikt validiert und können als
   wartende Lobby mit getrennten Sitzen, erhaltenen Tokens,
   Bereitschaften und ursprünglichem Seed wiederhergestellt werden
@@ -437,8 +437,13 @@ werden.
   Reconnect-Schonfrist
 - ein Redis-/Valkey-Adapter mit atomarer TTL ist implementiert und
   wird über `REDIS_URL` gewählt; der Render-Blueprint provisioniert
-  und aktiviert noch keinen externen Speicher
-- nächste Strukturschritte sind Render-Key-Value-Provisionierung
+  dafür einen privaten kostenlosen Key-Value-Dienst in derselben
+  Region und bindet dessen interne URL ohne festgeschriebenes
+  Geheimnis ein
+- der kostenlose Key-Value-Tarif schützt Lobby- und Matchzustand
+  gegen Neustarts des Web-Service, besitzt aber selbst keine
+  Festplattenpersistenz
+- nächste Strukturschritte sind belastbare dauerhafte Speicherung
   sowie externe Langzeitspeicherung der Metriken
 
 ### Nächster Regelstand

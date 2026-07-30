@@ -411,13 +411,14 @@ nach dem letzten Disconnect gilt wieder genau die Reconnect-
 Schonfrist. `server/start.ts` aktiviert den Redis-Adapter ausschließlich
 bei einer validierten geheimen `REDIS_URL`; ohne sie bleibt der
 prozesslokale In-Memory-Adapter aktiv. Der Render-Blueprint
-provisioniert noch keinen Key-Value-Dienst und setzt diese Variable
-nicht. Der aktuelle Render-Dienst ist deshalb weiterhin nicht
-deployfest und darf nicht horizontal skaliert werden. Die Registry
-kann laufende Partien bereits über ihren Speichervertrag sichern und
-laden; dem öffentlichen Dienst fehlt dafür noch der externe
-Key-Value-Dienst. Dessen Provisionierung sowie betriebliche
-Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat,
+provisioniert einen privaten kostenlosen Key-Value-Dienst in Oregon
+und referenziert dessen interne `connectionString` als `REDIS_URL`,
+ohne ein Geheimnis in `render.yaml` festzuschreiben. Damit überlebt
+der Lobby- und Matchzustand Neustarts des Web-Service. Der kostenlose
+Key-Value-Tarif arbeitet jedoch ohne Festplattenpersistenz; ein
+Neustart oder Ablauf dieses Speicherdienstes kann den Zustand
+weiterhin verlieren. Dauerhaft belastbare Speicherung sowie
+betriebliche Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat,
 aggregierte Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
 bereit, die GitHub Actions regelmäßig unabhängig prüft.

@@ -376,11 +376,15 @@ dem letzten Disconnect gilt die zehnminütige Reconnect-Schonfrist.
 Ein getesteter Redis-/Valkey-Adapter speichert Datensatz und TTL
 atomar, validiert externe JSON-Werte und wird beim Prozessstart über
 eine gültige `REDIS_URL` ausgewählt. Ohne Variable bleibt der
-In-Memory-Adapter aktiv. Der Blueprint provisioniert noch keinen
-Render-Key-Value-Dienst; der öffentliche Server nutzt deshalb
-weiterhin nur Prozessspeicher. Noch offen sind die tatsächliche
-Provisionierung des externen Speichers sowie externe
-Langzeitspeicherung der Metriken. Eine unabhängige GitHub Action
+In-Memory-Adapter aktiv. Der Blueprint provisioniert einen privaten
+kostenlosen Render-Key-Value-Dienst in derselben Region und bezieht
+dessen interne Verbindungs-URL direkt als `REDIS_URL`; Zugangsdaten
+stehen dadurch nicht im Repository. Dieser externe Prozessspeicher
+schützt Lobby- und Matchzustand gegen Neustarts des Web-Service, der
+kostenlose Key-Value-Tarif besitzt jedoch selbst keine
+Festplattenpersistenz. Noch offen sind belastbare dauerhafte
+Speicherung sowie externe Langzeitspeicherung der Metriken. Eine
+unabhängige GitHub Action
 prüft Health und erwartetes Metrikformat alle sechs Stunden sowie
 manuell; Fehler werden dadurch als fehlgeschlagene Workflow-Läufe
 sichtbar, ohne die kostenlose Render-Instanz dauerhaft warm zu

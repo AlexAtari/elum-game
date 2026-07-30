@@ -128,16 +128,16 @@ müssen `wss://` verwenden. Für zusätzliche Frontend-Domains wird
 `ELUM_ALLOWED_ORIGINS` im Render-Dashboard um deren exakte
 `https://`-Origin ergänzt.
 
-Für externe Lobby-Persistenz wird ein Render-Key-Value-Dienst in
-derselben Region angelegt und dessen interne URL als geheime
-`REDIS_URL` am Web-Service gesetzt. Ohne diese Variable startet der
-Server bewusst mit dem lokalen In-Memory-Adapter. Der Blueprint
-provisioniert den Key-Value-Dienst noch nicht automatisch.
+Der Blueprint legt einen privaten kostenlosen Render-Key-Value-Dienst
+in derselben Region an und referenziert dessen interne URL als
+`REDIS_URL` am Web-Service. Zugangsdaten stehen dadurch nicht im
+Repository. Ohne diese Variable startet der Server bewusst mit dem
+lokalen In-Memory-Adapter. Der kostenlose Key-Value-Tarif besitzt
+keine Festplattenpersistenz: Er schützt den Matchzustand gegen
+Deploys und Instanzwechsel des Web-Service, aber nicht gegen einen
+Neustart oder Ablauf des Speicherdienstes selbst.
 
-Der aktuelle Matchzustand lebt im Arbeitsspeicher eines einzelnen
-Serverprozesses. Der Dienst darf deshalb noch nicht horizontal
-skaliert werden; ein Deploy oder Instanzwechsel beendet laufende
-Partien. Der Matchkern kann seinen prozessunabhängigen Zustand
+Der Matchkern kann seinen prozessunabhängigen Zustand
 inzwischen als eigene Version-1-Nutzlast exportieren. Sie umfasst
 `GameState`, Revision, Abschlussstatus, private Rundenpläne und
 -berichte, Server-Kommandosequenz sowie absolute Phasen-, Runden- und
@@ -169,8 +169,7 @@ Räume verwenden eine 24-Stunden-TTL; nach dem letzten Disconnect gilt
 die zehnminütige Reconnect-Schonfrist.
 
 Der Redis-/Valkey-Adapter speichert Datensatz und Ablaufzeit atomar
-und validiert geladene JSON-Werte erneut. Der aktuell provisionierte
-Render-Dienst hat jedoch noch keine `REDIS_URL` und verwendet daher
-weiterhin den In-Memory-Adapter. Tatsächliche Provisionierung,
-instanzübergreifende Sitzungen und externer Neustartschutz sind der
-nächste Ausbau.
+und validiert geladene JSON-Werte erneut. Der Blueprint provisioniert
+den zugehörigen Key-Value-Dienst und bindet ihn über `REDIS_URL` ein.
+Belastbare dauerhafte Speicherung über den kostenlosen,
+nicht-diskbasierten Tarif hinaus bleibt der nächste Betriebsausbau.
