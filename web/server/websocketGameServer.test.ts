@@ -126,7 +126,8 @@ describe('Lokaler WebSocket-Spielserver', () => {
       expect(healthResponse.status).toBe(200)
       expect(await healthResponse.json()).toEqual({
         ok: true,
-        lobbyId: 'integration',
+        defaultLobbyId: 'integration',
+        lobbyCount: 1,
       })
 
       send(host, {
@@ -234,25 +235,182 @@ describe('Lokaler WebSocket-Spielserver', () => {
     }
   })
 
-  it('weist Binärnachrichten und falsche Lobby-Pfade zurück', async () => {
+  it('isoliert dynamisch erzeugte Lobbys und ihre Reconnect-Tokens', async () => {
+    let connectionSequence = 0
+    const server = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'default-room',
+      seed: 31,
+      createConnectionId: () => {
+        connectionSequence += 1
+        return `isolated-${connectionSequence}`
+      },
+    })
+    const address = await server.listen()
+    const alphaUrl = formatWebSocketUrl({
+      ...address,
+      lobbyId: 'alpha-room',
+    })
+    const betaUrl = formatWebSocketUrl({
+      ...address,
+      lobbyId: 'beta-room',
+    })
+    const alphaHost = await openClient(alphaUrl)
+    const betaHost = await openClient(betaUrl)
+    const betaGuest = await openClient(betaUrl)
+    const betaIntruder = await openClient(betaUrl)
+
+    try {
+      send(alphaHost, {
+        version: 1,
+        requestId: 'join-alpha',
+        type: 'join-lobby',
+        payload: { displayName: 'Alpha' },
+      })
+      const alphaSession = await alphaHost.waitFor(
+        (message) => message.type === 'session-established',
+      )
+      const alphaToken =
+        alphaSession.type === 'session-established'
+          ? alphaSession.payload.reconnectToken
+          : ''
+      expect(alphaSession).toMatchObject({
+        payload: { participantId: 'agima' },
+      })
+      await expect(
+        alphaHost.waitFor(
+          (message) =>
+            message.type === 'lobby-snapshot' &&
+            message.payload.lobbyId === 'alpha-room',
+        ),
+      ).resolves.toBeDefined()
+
+      send(betaHost, {
+        version: 1,
+        requestId: 'join-beta-host',
+        type: 'join-lobby',
+        payload: { displayName: 'Beta Host' },
+      })
+      const betaHostSession = await betaHost.waitFor(
+        (message) => message.type === 'session-established',
+      )
+      expect(betaHostSession).toMatchObject({
+        payload: { participantId: 'agima' },
+      })
+      await expect(
+        betaHost.waitFor(
+          (message) =>
+            message.type === 'lobby-snapshot' &&
+            message.payload.lobbyId === 'beta-room',
+        ),
+      ).resolves.toBeDefined()
+
+      send(betaGuest, {
+        version: 1,
+        requestId: 'join-beta-guest',
+        type: 'join-lobby',
+        payload: { displayName: 'Beta Guest' },
+      })
+      await expect(
+        betaGuest.waitFor(
+          (message) =>
+            message.type === 'session-established' &&
+            message.payload.participantId === 'orion',
+        ),
+      ).resolves.toBeDefined()
+
+      send(alphaHost, {
+        version: 1,
+        requestId: 'ready-alpha',
+        type: 'set-ready',
+        payload: { ready: true },
+      })
+      await alphaHost.waitFor(
+        (message) =>
+          message.type === 'lobby-snapshot' &&
+          message.payload.seats.agima.kind === 'human' &&
+          message.payload.seats.agima.ready,
+      )
+      send(alphaHost, {
+        version: 1,
+        requestId: 'start-alpha',
+        type: 'start-match',
+        payload: {},
+      })
+      await alphaHost.waitFor(
+        (message) => message.type === 'match-snapshot',
+      )
+
+      send(betaHost, {
+        version: 1,
+        requestId: 'ready-beta-after-alpha-start',
+        type: 'set-ready',
+        payload: { ready: true },
+      })
+      await expect(
+        betaHost.waitFor(
+          (message) =>
+            message.type === 'lobby-snapshot' &&
+            message.payload.phase === 'waiting' &&
+            message.payload.seats.agima.kind === 'human' &&
+            message.payload.seats.agima.ready,
+        ),
+      ).resolves.toBeDefined()
+
+      send(betaIntruder, {
+        version: 1,
+        requestId: 'cross-lobby-resume',
+        type: 'resume-session',
+        payload: { reconnectToken: alphaToken },
+      })
+      await expect(
+        betaIntruder.waitFor(
+          (message) =>
+            message.type === 'request-error' &&
+            message.payload.error === 'unknown-session',
+        ),
+      ).resolves.toBeDefined()
+
+      const healthResponse = await fetch(
+        `http://127.0.0.1:${address.port}/health`,
+      )
+      expect(await healthResponse.json()).toEqual({
+        ok: true,
+        defaultLobbyId: 'default-room',
+        lobbyCount: 2,
+      })
+    } finally {
+      await closeClient(alphaHost)
+      await closeClient(betaHost)
+      await closeClient(betaGuest)
+      await closeClient(betaIntruder)
+      await server.close()
+    }
+  })
+
+  it('weist Binärnachrichten und ungültige Lobby-Pfade zurück', async () => {
     const server = createWebSocketGameServer({
       host: '127.0.0.1',
       port: 0,
       lobbyId: 'expected',
     })
     const address = await server.listen()
-    const wrongLobby = new WebSocket(
-      `ws://127.0.0.1:${address.port}/multiplayer?lobby=wrong`,
+    const missingLobby = new WebSocket(
+      `ws://127.0.0.1:${address.port}/multiplayer`,
     )
-    wrongLobby.on('error', () => undefined)
+    missingLobby.on('error', () => undefined)
 
     try {
       const statusCode = await new Promise<number | undefined>(
         (resolve) => {
-          wrongLobby.once('unexpected-response', (_, response) => {
-            response.resume()
-            resolve(response.statusCode)
-          })
+          missingLobby.once(
+            'unexpected-response',
+            (_, response) => {
+              response.resume()
+              resolve(response.statusCode)
+            },
+          )
         },
       )
       expect(statusCode).toBe(404)

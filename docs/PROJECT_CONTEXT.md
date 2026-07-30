@@ -348,6 +348,10 @@ werden.
   Lobby und Matchkern, begrenzt Payloads und bietet einen
   Health-Endpunkt; Zwei-Client-Start, Disconnect und Reconnect sind
   als Integrationstest abgedeckt
+- eine dynamische Server-Registry erzeugt unterschiedliche
+  Lobbycodes bei der ersten Verbindung und isoliert deren Sitze,
+  Reconnect-Tokens, Matchzustände und Timer; der konfigurierte
+  Standardcode ist nur noch die vorgeschlagene Startadresse
 - Startskript bindet sicher standardmäßig nur an Loopback und kann
   für Smartphone-Tests explizit im lokalen WLAN freigegeben werden
 - React-Startseite bietet getrennte Einzel- und Mehrspielerpfade;
@@ -385,10 +389,10 @@ werden.
   bleiben erhalten, alle Bereitschaften werden zurückgesetzt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: mehrere getrennte Lobbycodes auf einem
-  Server verwalten und verlassene Lobbys aufräumen; danach
-  Backend-Hosting, TLS und Origin-Policy für öffentlichen
-  Mehrspielerbetrieb festlegen
+- nächster Strukturschritt: vollständig verlassene dynamische
+  Lobbys nach einer Schonfrist aufräumen, danach Einladungslinks
+  ergänzen und Backend-Hosting, TLS sowie Origin-Policy für
+  öffentlichen Mehrspielerbetrieb festlegen
 
 ### Nächster Regelstand
 

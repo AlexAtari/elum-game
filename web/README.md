@@ -21,7 +21,8 @@ Im lokalen WLAN, damit Smartphones denselben Server erreichen:
 ELUM_SERVER_HOST=0.0.0.0 npm run server
 ```
 
-Standardmäßig läuft eine Lobby `mars-alpha` auf Port `8787`:
+Die vorgeschlagene Standardlobby `mars-alpha` ist auf Port `8787`
+erreichbar:
 
 ```text
 ws://<RECHNER-IP>:8787/multiplayer?lobby=mars-alpha
@@ -31,11 +32,18 @@ Konfiguration:
 
 - `ELUM_SERVER_HOST`: Bind-Adresse, standardmäßig `127.0.0.1`
 - `ELUM_SERVER_PORT`: TCP-Port, standardmäßig `8787`
-- `ELUM_LOBBY_ID`: Lobby-ID, standardmäßig `mars-alpha`
+- `ELUM_LOBBY_ID`: Lobbycode der ausgegebenen Beispieladresse,
+  standardmäßig `mars-alpha`
 - `ELUM_MATCH_SEED`: reproduzierbarer Match-Seed, standardmäßig `1`
 
 Der Health-Endpunkt liegt unter
 `http://<RECHNER-IP>:8787/health`.
+
+Jeder nicht leere Lobbycode bis 128 Zeichen erzeugt bei der ersten
+WebSocket-Verbindung einen eigenen Spielraum. Unterschiedliche Codes
+teilen weder Sitze noch Reconnect-Tokens oder Matchzustände. Eine
+automatische Bereinigung vollständig verlassener Lobbys ist in
+diesem Paket noch nicht enthalten.
 
 Die React-Startseite enthält eine Mehrspieler-Lobby. Sie leitet den
 Server standardmäßig aus dem aktuellen Seitenhost und Port `8787` ab;

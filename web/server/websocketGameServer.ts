@@ -62,24 +62,42 @@ function parseJsonMessage(data: RawData) {
   }
 }
 
+function parseLobbyId(request: IncomingMessage) {
+  const lobbyId = parseRequestUrl(request).searchParams.get('lobby')
+
+  return lobbyId !== null &&
+    lobbyId.length > 0 &&
+    lobbyId.length <= 128
+    ? lobbyId
+    : null
+}
+
 export class WebSocketGameServer {
   private readonly host: string
   private readonly port: number
-  private readonly lobbyId: string
+  private readonly defaultLobbyId: string
+  private readonly seed: number | undefined
   private readonly allowedOrigins: Set<string> | null
   private readonly createConnectionId: () => string
   private readonly onError: (error: unknown) => void
-  private readonly sockets = new Map<string, WebSocket>()
+  private readonly sockets = new Map<
+    string,
+    {
+      socket: WebSocket
+      lobbyId: string
+    }
+  >()
+  private readonly lobbies = new Map<string, MultiplayerLobby>()
   private readonly httpServer: HttpServer
   private readonly webSocketServer: WebSocketServer
-  private readonly lobby: MultiplayerLobby
   private listening = false
   private closing = false
 
   constructor(options: WebSocketGameServerOptions = {}) {
     this.host = options.host ?? '127.0.0.1'
     this.port = options.port ?? 8787
-    this.lobbyId = options.lobbyId ?? 'mars-alpha'
+    this.defaultLobbyId = options.lobbyId ?? 'mars-alpha'
+    this.seed = options.seed
     this.allowedOrigins = options.allowedOrigins
       ? new Set(options.allowedOrigins)
       : null
@@ -97,7 +115,8 @@ export class WebSocketGameServer {
         response.end(
           JSON.stringify({
             ok: true,
-            lobbyId: this.lobbyId,
+            defaultLobbyId: this.defaultLobbyId,
+            lobbyCount: this.lobbies.size,
           }),
         )
         return
@@ -113,30 +132,14 @@ export class WebSocketGameServer {
       maxPayload:
         options.maxPayloadBytes ?? DEFAULT_MAX_PAYLOAD_BYTES,
     })
-    this.lobby = createMultiplayerLobby({
-      lobbyId: this.lobbyId,
-      seed: options.seed,
-      emit: (connectionId, message) => {
-        const socket = this.sockets.get(connectionId)
-
-        if (socket?.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify(message), (error) => {
-            if (error) {
-              this.onError(error)
-            }
-          })
-        }
-      },
-      onEmitError: this.onError,
-    })
-
     this.httpServer.on('upgrade', (request, socket, head) => {
       const url = parseRequestUrl(request)
       const origin = request.headers.origin
+      const lobbyId = parseLobbyId(request)
 
       if (
         url.pathname !== WEBSOCKET_PATH ||
-        url.searchParams.get('lobby') !== this.lobbyId
+        lobbyId === null
       ) {
         rejectUpgrade(request, 404, 'Not Found')
         return
@@ -164,9 +167,17 @@ export class WebSocketGameServer {
       )
     })
 
-    this.webSocketServer.on('connection', (socket) => {
+    this.webSocketServer.on('connection', (socket, request) => {
+      const lobbyId = parseLobbyId(request)
+
+      if (lobbyId === null) {
+        socket.close(1008, 'Valid lobby id required')
+        return
+      }
+
+      const lobby = this.getOrCreateLobby(lobbyId)
       const connectionId = this.createUniqueConnectionId()
-      this.sockets.set(connectionId, socket)
+      this.sockets.set(connectionId, { socket, lobbyId })
 
       socket.on('message', (data, isBinary) => {
         if (isBinary) {
@@ -174,7 +185,7 @@ export class WebSocketGameServer {
           return
         }
 
-        this.lobby.handleMessage(
+        lobby.handleMessage(
           connectionId,
           parseJsonMessage(data),
         )
@@ -182,7 +193,7 @@ export class WebSocketGameServer {
       socket.on('error', this.onError)
       socket.once('close', () => {
         this.sockets.delete(connectionId)
-        this.lobby.disconnect(connectionId)
+        lobby.disconnect(connectionId)
       })
     })
     this.httpServer.on('clientError', (error, socket) => {
@@ -229,7 +240,7 @@ export class WebSocketGameServer {
     return {
       host: address.address,
       port: address.port,
-      lobbyId: this.lobbyId,
+      lobbyId: this.defaultLobbyId,
       websocketPath: WEBSOCKET_PATH,
     }
   }
@@ -240,9 +251,12 @@ export class WebSocketGameServer {
     }
 
     this.closing = true
-    this.lobby.dispose()
+    for (const lobby of this.lobbies.values()) {
+      lobby.dispose()
+    }
+    this.lobbies.clear()
 
-    for (const socket of this.sockets.values()) {
+    for (const { socket } of this.sockets.values()) {
       socket.close(1001, 'Server shutting down')
     }
     this.sockets.clear()
@@ -270,6 +284,39 @@ export class WebSocketGameServer {
     }
 
     throw new Error('Unable to create a unique connection id.')
+  }
+
+  private getOrCreateLobby(lobbyId: string) {
+    const existingLobby = this.lobbies.get(lobbyId)
+
+    if (existingLobby) {
+      return existingLobby
+    }
+
+    const lobby = createMultiplayerLobby({
+      lobbyId,
+      seed: this.seed,
+      emit: (connectionId, message) => {
+        const connection = this.sockets.get(connectionId)
+
+        if (
+          connection?.lobbyId === lobbyId &&
+          connection.socket.readyState === WebSocket.OPEN
+        ) {
+          connection.socket.send(
+            JSON.stringify(message),
+            (error) => {
+              if (error) {
+                this.onError(error)
+              }
+            },
+          )
+        }
+      },
+      onEmitError: this.onError,
+    })
+    this.lobbies.set(lobbyId, lobby)
+    return lobby
   }
 
   private async closeHttpServer() {

@@ -238,12 +238,24 @@ einmal.
 `server/websocketGameServer.ts` bildet die konkrete, weiterhin dünne
 lokale Leitung. Ein Node-HTTP-Server stellt `/health` bereit und
 übergibt ausschließlich Upgrades auf
-`/multiplayer?lobby=<Lobby-ID>` an `ws`. Jede Verbindung erhält eine
-zufällige interne Verbindungs-ID; Textnachrichten werden als JSON an
-die Lobby weitergereicht, Lobbyantworten an genau den zugehörigen
-Socket serialisiert. Binärnachrichten, falsche Pfade und zu große
-Payloads werden abgewiesen. Disconnects werden der Lobby gemeldet,
-damit deren Reconnect-Modell unverändert greift.
+`/multiplayer?lobby=<Lobby-ID>` an `ws`. Eine Registry erzeugt beim
+ersten gültigen Upgrade pro Lobby-ID genau eine eigenständige
+`MultiplayerLobby`; der konfigurierte Standardcode dient nur der
+ausgegebenen Beispieladresse. Jede Verbindung erhält eine zufällige
+interne Verbindungs-ID und bleibt zusätzlich an ihre Lobby-ID
+gebunden. Textnachrichten werden als JSON ausschließlich an diese
+Lobby weitergereicht, und deren Antworten dürfen nur an einen Socket
+mit derselben Lobbybindung gesendet werden. Dadurch sind Sitze,
+Reconnect-Tokens, Timer und Matchzustände auch innerhalb desselben
+Node-Prozesses voneinander getrennt.
+
+Binärnachrichten, fehlende oder überlange Lobbycodes, falsche Pfade
+und zu große Payloads werden abgewiesen. Disconnects werden nur der
+zugehörigen Lobby gemeldet, damit deren Reconnect-Modell unverändert
+greift. Beim Server-Shutdown werden alle Registry-Einträge
+vollständig verworfen; eine automatische Bereinigung verlassener
+Lobbys während des Betriebs gehört bewusst noch nicht zu diesem
+Baustein.
 
 Der Adapter enthält keine Spielregeln und keinen eigenen Lobby- oder
 Matchzustand. Standardmäßig bindet das Startskript nur an
@@ -288,12 +300,14 @@ Bereitschaften werden zurückgesetzt. Der wartende Lobby-Snapshot
 entfernt in jedem Browser den alten Match-Snapshot, sodass alle
 verbundenen Spieler gemeinsam in der Lobby landen.
 
-Der lokale WebSocket-Adapter ist durch einen echten
-Zwei-Client-Integrationstest einschließlich Matchstart, Disconnect
-und Reconnect abgesichert. Token-Erzeugung und Sitzbindung verbleiben
-auf der Serverseite. GitHub Pages kann weiterhin nur das Frontend
-hosten, aber nicht diesen dauerhaft laufenden Dienst. Für öffentlichen
-Betrieb fehlen deshalb noch Backend-Hosting, TLS mit `wss://`,
+Der lokale WebSocket-Adapter ist durch echte Transporttests für
+Matchstart, Disconnect und Reconnect sowie zwei parallele Lobbycodes
+abgesichert. Der Isolationstest belegt getrennte Hostsitze und weist
+die Verwendung eines Reconnect-Tokens im falschen Raum zurück.
+Token-Erzeugung und Sitzbindung verbleiben auf der Serverseite.
+GitHub Pages kann weiterhin nur das Frontend hosten, aber nicht
+diesen dauerhaft laufenden Dienst. Für öffentlichen Betrieb fehlen
+deshalb noch Lobby-Aufräumlogik, Backend-Hosting, TLS mit `wss://`,
 Origin-Policy sowie betriebliche Überwachung.
 
 Die lokale React-Partie koordiniert ihre Runde weiterhin in

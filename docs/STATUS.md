@@ -129,9 +129,14 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   vollständig über die autoritativen Phasen aufgelöst
 - startbarer lokaler Node-WebSocket-Server verbindet JSON-Clients
   mit der transportneutralen Lobby und dem autoritativen Matchkern
-- feste Lobby-URL, maximale Payloadgröße, Ablehnung von Binärdaten,
-  Health-Endpunkt, zufällige Verbindungs-IDs und sauberes
-  Disconnect-/Shutdown-Verhalten sind implementiert
+- dynamische Lobby-Registry erzeugt beim ersten Verbindungsaufbau
+  jeden gültigen Lobbycode unabhängig; Sitze, Reconnect-Tokens,
+  Bereitschaft, Matchzustand und Timer bleiben vollständig zwischen
+  den Codes isoliert
+- feste WebSocket-Route, maximale Payloadgröße, Ablehnung von
+  Binärdaten, Health-Endpunkt mit aktueller Lobbyanzahl, zufällige
+  Verbindungs-IDs und sauberes Disconnect-/Shutdown-Verhalten sind
+  implementiert
 - echter Transporttest deckt zwei Clients, gemeinsamen Matchstart
   sowie Sitzübernahme per Reconnect-Token ab
 - Loopback ist die sichere Standardbindung; für Smartphone-Tests
@@ -310,11 +315,13 @@ Partielebenszyklus von Lobby und Hoststart über autoritative Runden,
 Ereignisse und Rangliste bis zum serverseitig gesperrten Partieende
 und gemeinsamen Rückweg in dieselbe Lobby ab. Eine autoritative
 Rundenfrist verhindert inzwischen auch Blockaden durch untätige oder
-getrennte Spieler. Als nächstes kleines Infrastrukturpaket soll ein
-Server mehrere getrennte Lobbycodes verwalten und ungenutzte Lobbys
-aufräumen. Danach sind Backend-Hosting, TLS mit `wss://`,
-Origin-Policy und betriebliche Überwachung zu entscheiden; GitHub
-Pages hostet weiterhin nur das statische Frontend.
+getrennte Spieler. Derselbe Server verwaltet inzwischen mehrere
+dynamische, voneinander isolierte Lobbycodes. Als nächstes kleines
+Infrastrukturpaket sollen vollständig verlassene Lobbys nach einer
+festgelegten Schonfrist aufgeräumt werden. Danach folgen
+Einladungslinks sowie die Entscheidungen zu Backend-Hosting, TLS mit
+`wss://`, Origin-Policy und betrieblicher Überwachung; GitHub Pages
+hostet weiterhin nur das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 
