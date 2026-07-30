@@ -31,10 +31,14 @@ ws://<RECHNER-IP>:8787/multiplayer?lobby=mars-alpha
 Konfiguration:
 
 - `ELUM_SERVER_HOST`: Bind-Adresse, standardmäßig `127.0.0.1`
-- `ELUM_SERVER_PORT`: TCP-Port, standardmäßig `8787`
+- `ELUM_SERVER_PORT`: expliziter TCP-Port; gewinnt vor `PORT`
+- `PORT`: Plattform-Port, ohne beide Portvariablen standardmäßig `8787`
 - `ELUM_LOBBY_ID`: Lobbycode der ausgegebenen Beispieladresse,
   standardmäßig `mars-alpha`
 - `ELUM_MATCH_SEED`: reproduzierbarer Match-Seed, standardmäßig `1`
+- `ELUM_ALLOWED_ORIGINS`: optionale, kommaseparierte Liste exakt
+  erlaubter Browser-Origins, zum Beispiel
+  `https://alexatari.github.io,http://localhost:5173`
 
 Der Health-Endpunkt liegt unter
 `http://<RECHNER-IP>:8787/health`.
@@ -73,5 +77,26 @@ der 20. Abrechnung sperrt der Server weitere Spielaktionen. Der Host
 kann anschließend alle verbundenen Spieler mit erhaltenen
 Sitzplätzen und Reconnect-Tokens in dieselbe Lobby zurückführen.
 
-Für öffentliches Hosting werden ein dauerhaft laufender Dienst, TLS
-(`wss://`) und eine konkrete Origin-Policy benötigt.
+## Render-Deployment
+
+Die Blueprint-Datei `../render.yaml` definiert einen Node-Web-Service
+mit Build, Health Check, öffentlicher Bind-Adresse und einer auf die
+GitHub-Pages-Origin begrenzten Origin-Policy. In Render:
+
+1. Repository als Blueprint verbinden und `render.yaml` anwenden.
+2. Nach dem ersten erfolgreichen Deploy die öffentliche Adresse
+   notieren, zum Beispiel `https://elum-multiplayer.onrender.com`.
+3. In der Mehrspieleroberfläche dieselbe Adresse mit WebSocket-Schema
+   eintragen, zum Beispiel `wss://elum-multiplayer.onrender.com`.
+
+Render terminiert TLS; der Node-Prozess selbst spricht intern HTTP
+und bindet an den von Render gesetzten `PORT`. Öffentliche Clients
+müssen `wss://` verwenden. Für zusätzliche Frontend-Domains wird
+`ELUM_ALLOWED_ORIGINS` im Render-Dashboard um deren exakte
+`https://`-Origin ergänzt.
+
+Der aktuelle Matchzustand lebt im Arbeitsspeicher eines einzelnen
+Serverprozesses. Der Dienst darf deshalb noch nicht horizontal
+skaliert werden; ein Deploy oder Instanzwechsel beendet laufende
+Partien. Persistenz und instanzübergreifende Sitzungen sind ein
+separater Ausbau.

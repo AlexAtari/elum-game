@@ -318,7 +318,7 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Nächster Architekturbaustein
 
-Der lokale Mehrspielerpfad deckt jetzt den vollständigen
+Der Mehrspielerpfad deckt jetzt den vollständigen
 Partielebenszyklus von Lobby und Hoststart über autoritative Runden,
 Ereignisse und Rangliste bis zum serverseitig gesperrten Partieende
 und gemeinsamen Rückweg in dieselbe Lobby ab. Eine autoritative
@@ -327,10 +327,14 @@ getrennte Spieler. Derselbe Server verwaltet inzwischen mehrere
 dynamische, voneinander isolierte Lobbycodes und bereinigt leere
 Räume nach einer zehnminütigen, durch Reconnect abbrechbaren
 Schonfrist. Einladungslinks übernehmen inzwischen Serveradresse und
-Lobbycode direkt in den Mehrspielerpfad. Als nächstes stehen die
-Entscheidungen zu Backend-Hosting, TLS mit `wss://`, Origin-Policy
-und betrieblicher Überwachung an; GitHub Pages hostet weiterhin nur
-das statische Frontend.
+Lobbycode direkt in den Mehrspielerpfad. Ein Render-Blueprint
+konfiguriert den Node-Web-Service mit Plattform-Port, Health Check,
+öffentlicher Bind-Adresse und auf GitHub Pages begrenzter
+Browser-Origin. Render terminiert TLS, sodass öffentliche Clients
+`wss://` verwenden. Noch offen sind das tatsächliche Anlegen des
+Dienstes, persistenter Zustand über Deploys und Instanzwechsel sowie
+betriebliche Überwachung; GitHub Pages hostet weiterhin nur das
+statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

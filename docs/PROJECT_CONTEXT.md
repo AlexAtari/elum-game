@@ -396,9 +396,10 @@ werden.
   bleiben erhalten, alle Bereitschaften werden zurückgesetzt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Backend-Hosting, TLS sowie Origin-Policy
-  für öffentlichen Mehrspielerbetrieb festlegen und anschließend
-  betriebliche Überwachung ergänzen
+- Render-Blueprint für den öffentlichen Multiplayerdienst mit
+  Plattform-Port, Health Check, TLS-Terminierung und Origin-Policy
+  ist vorbereitet; nächster Strukturschritt sind tatsächliches
+  Provisionieren, persistenter Zustand und betriebliche Überwachung
 
 ### Nächster Regelstand
 

@@ -236,7 +236,7 @@ Rundenmetadaten-, KI-, Grundstücks- und Meteorabrechnung läuft genau
 einmal.
 
 `server/websocketGameServer.ts` bildet die konkrete, weiterhin dünne
-lokale Leitung. Ein Node-HTTP-Server stellt `/health` bereit und
+Transportleitung. Ein Node-HTTP-Server stellt `/health` bereit und
 übergibt ausschließlich Upgrades auf
 `/multiplayer?lobby=<Lobby-ID>` an `ws`. Eine Registry erzeugt beim
 ersten gültigen Upgrade pro Lobby-ID genau eine eigenständige
@@ -264,7 +264,12 @@ sofort vollständig verworfen.
 Der Adapter enthält keine Spielregeln und keinen eigenen Lobby- oder
 Matchzustand. Standardmäßig bindet das Startskript nur an
 `127.0.0.1`; für Smartphone-Tests im lokalen WLAN kann es explizit an
-`0.0.0.0` gebunden werden. Die bestehende lokale React-Partie
+`0.0.0.0` gebunden werden. `server/serverConfig.ts` wertet die
+Umgebung getrennt vom Prozessstart aus. Ein explizites
+`ELUM_SERVER_PORT` gewinnt vor dem Plattform-Port `PORT`;
+`ELUM_ALLOWED_ORIGINS` aktiviert eine exakte, kommaseparierte
+Allowlist für den Browser-`Origin` des WebSocket-Upgrades. Die
+bestehende lokale React-Partie
 verwendet weiterhin direkt die Kommandoschicht.
 
 ### Multiplayer-Protokoll und Lobby
@@ -311,10 +316,19 @@ die Verwendung eines Reconnect-Tokens im falschen Raum zurück. Ein
 deterministischer Lifecycle-Test deckt außerdem Schonfrist,
 Abbruch bei Reconnect und endgültige Token-Ungültigkeit nach der
 Bereinigung ab. Token-Erzeugung und Sitzbindung verbleiben auf der
-Serverseite. GitHub Pages kann weiterhin nur das Frontend hosten,
-aber nicht diesen dauerhaft laufenden Dienst. Für öffentlichen
-Betrieb fehlen deshalb noch Backend-Hosting, TLS mit `wss://`,
-Origin-Policy sowie betriebliche Überwachung.
+Serverseite. GitHub Pages hostet weiterhin nur das Frontend.
+`render.yaml` beschreibt den dauerhaft laufenden Node-Web-Service mit
+Build, Health Check, Plattform-Port, öffentlicher Bind-Adresse und
+einer auf `https://alexatari.github.io` begrenzten Origin-Policy.
+Render terminiert TLS; öffentliche Browser verwenden daher `wss://`,
+während der Prozess intern HTTP und WebSocket auf demselben Port
+bedient.
+
+Lobby-, Token- und Matchzustand liegen weiterhin nur im
+Prozessspeicher. Der Render-Dienst darf deshalb nicht horizontal
+skaliert werden; Deploys und Instanzwechsel können laufende Partien
+beenden. Tatsächliches Provisionieren, Persistenz und betriebliche
+Überwachung bleiben offen.
 
 Die lokale React-Partie koordiniert ihre Runde weiterhin in
 `App.tsx`; der Mehrspieler-Client verwendet stattdessen

@@ -95,8 +95,11 @@ async function waitForPendingCleanupTimer(
   throw new Error('Timed out waiting for lobby cleanup timer.')
 }
 
-async function openClient(url: string): Promise<TestClient> {
-  const socket = new WebSocket(url)
+async function openClient(
+  url: string,
+  origin?: string,
+): Promise<TestClient> {
+  const socket = new WebSocket(url, { origin })
   const messages: MultiplayerServerMessage[] = []
   const waiters: Array<{
     predicate: (message: MultiplayerServerMessage) => boolean
@@ -160,6 +163,21 @@ async function openClient(url: string): Promise<TestClient> {
       )
     },
   }
+}
+
+async function readRejectedStatus(
+  url: string,
+  origin?: string,
+) {
+  const socket = new WebSocket(url, { origin })
+  socket.on('error', () => undefined)
+
+  return new Promise<number | undefined>((resolve) => {
+    socket.once('unexpected-response', (_, response) => {
+      response.resume()
+      resolve(response.statusCode)
+    })
+  })
 }
 
 function send(
@@ -606,6 +624,32 @@ describe('Lokaler WebSocket-Spielserver', () => {
       })
       client.socket.send(Buffer.from([1, 2, 3]))
       expect(await closeCode).toBe(1003)
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('erlaubt ausschließlich konfigurierte Browser-Origins', async () => {
+    const server = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'origin-check',
+      allowedOrigins: ['https://alexatari.github.io'],
+    })
+    const address = await server.listen()
+    const url = formatWebSocketUrl(address)
+
+    try {
+      const allowed = await openClient(
+        url,
+        'https://alexatari.github.io',
+      )
+
+      await closeClient(allowed)
+      await expect(
+        readRejectedStatus(url, 'https://example.test'),
+      ).resolves.toBe(403)
+      await expect(readRejectedStatus(url)).resolves.toBe(403)
     } finally {
       await server.close()
     }

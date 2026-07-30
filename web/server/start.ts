@@ -2,32 +2,10 @@ import {
   createWebSocketGameServer,
   formatWebSocketUrl,
 } from './websocketGameServer'
-
-function readPort(value: string | undefined) {
-  const port = Number(value ?? 8787)
-
-  if (!Number.isInteger(port) || port < 0 || port > 65_535) {
-    throw new Error('ELUM_SERVER_PORT must be a valid TCP port.')
-  }
-
-  return port
-}
-
-function readSeed(value: string | undefined) {
-  const seed = Number(value ?? 1)
-
-  if (!Number.isFinite(seed)) {
-    throw new Error('ELUM_MATCH_SEED must be a finite number.')
-  }
-
-  return Math.abs(Math.trunc(seed))
-}
+import { readMultiplayerServerConfig } from './serverConfig'
 
 const server = createWebSocketGameServer({
-  host: process.env.ELUM_SERVER_HOST ?? '127.0.0.1',
-  port: readPort(process.env.ELUM_SERVER_PORT),
-  lobbyId: process.env.ELUM_LOBBY_ID ?? 'mars-alpha',
-  seed: readSeed(process.env.ELUM_MATCH_SEED),
+  ...readMultiplayerServerConfig(process.env),
   onError: (error) => {
     console.error(error)
   },
