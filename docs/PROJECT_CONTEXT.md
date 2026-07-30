@@ -422,7 +422,11 @@ werden.
 - laufende Match-Snapshots können mit Zustand, privaten
   Bereitschaften, Berichten, Sequenz und Restfristen
   wiederhergestellt werden; alte Prozess-Sitzungen werden nicht
-  übernommen, die Lobby-/Registry-Speicheranbindung fehlt noch
+  übernommen
+- laufende Lobbys exportieren den Match-Snapshot zusammen mit Seed,
+  Revision, menschlichen Sitzen und Reconnect-Tokens als
+  `playing`-Variante und können mit zunächst getrennten Sitzen
+  wiederhergestellt werden; die Registry-Speicheranbindung fehlt noch
 - gespeicherte Lobby-Nutzlasten werden strikt validiert und können als
   wartende Lobby mit getrennten Sitzen, erhaltenen Tokens,
   Bereitschaften und ursprünglichem Seed wiederhergestellt werden

@@ -146,14 +146,17 @@ Speicherhülle und Grundstruktur der persistenzspezifischen Felder
 werden geprüft. Der Matchkern kann diese Nutzlast inzwischen mit
 privaten Bereitschaften und Berichten sowie den Restfristen aller
 autoritativen Timer wiederherstellen. Alte Prozess-Sitzungen werden
-nicht übernommen; die Lobby-/Registry-Speicheranbindung fehlt noch.
+nicht übernommen. Die Lobby kann eine laufende Partie zusammen mit
+Seed, Revision, menschlichen Sitzen und Reconnect-Tokens als
+`playing`-Variante desselben Version-1-Formats exportieren und mit
+zunächst getrennten Sitzen wiederherstellen. Die Registry-
+Speicheranbindung fehlt noch.
 `server/lobbyPersistence.ts` enthält bereits den
 versionierten JSON-Datensatz, den asynchronen Speichervertrag und
 einen ablaufzeitfähigen In-Memory-Adapter. Wartende Lobbys können
 Seed, Revision, Sitzdaten, Bereitschaft und Reconnect-Tokens als
 eigene Version-1-Nutzlast exportieren; Verbindungs-IDs werden nicht
-exportiert und der Lobbyexport laufender Matches bleibt bis zur
-Anbindung des Match-Snapshots gesperrt. Gespeicherte Nutzlasten werden
+exportiert. Gespeicherte Nutzlasten werden
 vollständig validiert und können als wartende Lobby wiederhergestellt
 werden. Die reservierten Sitze beginnen getrennt und verbinden sich
 über ihre erhaltenen Reconnect-Tokens erneut. Die Lobby-Registry lädt

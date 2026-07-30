@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createMultiplayerLobby,
   MULTIPLAYER_LOBBY_STATE_VERSION,
+  parsePersistedPlayingLobbyState,
   parsePersistedWaitingLobbyState,
   restoreMultiplayerLobby,
   type MultiplayerLobbyOptions,
@@ -244,7 +245,11 @@ describe('Multiplayer-Lobby', () => {
         restoreMultiplayerLobby(invalidState, {
           emit: () => undefined,
         }),
-      ).toThrow('Invalid persisted waiting lobby state')
+      ).toThrow(
+        invalidState.phase === 'playing'
+          ? 'Invalid persisted playing lobby state'
+          : 'Invalid persisted waiting lobby state',
+      )
     }
   })
 
@@ -306,6 +311,172 @@ describe('Multiplayer-Lobby', () => {
     expect(() => lobby.exportWaitingState()).toThrow(
       'Only a waiting lobby can be exported',
     )
+  })
+
+  it('exportiert und stellt eine laufende Partie ohne Verbindungs-IDs wieder her', () => {
+    const { lobby } = createLobbyHarness()
+
+    lobby.handleMessage('old-host', joinMessage('Alex', 'join-host'))
+    lobby.handleMessage(
+      'old-guest',
+      joinMessage('Bea', 'join-guest'),
+    )
+    lobby.handleMessage(
+      'old-host',
+      readyMessage(true, 'ready-host'),
+    )
+    lobby.handleMessage(
+      'old-guest',
+      readyMessage(true, 'ready-guest'),
+    )
+    lobby.handleMessage(
+      'old-host',
+      startMessage('start-match'),
+    )
+    lobby.handleMessage(
+      'old-host',
+      roundPlanMessage('plan-host'),
+    )
+
+    const persistedState = lobby.exportPersistenceState()
+
+    expect(persistedState.phase).toBe('playing')
+    if (persistedState.phase !== 'playing') {
+      return
+    }
+
+    expect(persistedState).toMatchObject({
+      version: MULTIPLAYER_LOBBY_STATE_VERSION,
+      lobbyId: 'mars-alpha',
+      seed: 23,
+      revision: 5,
+      phase: 'playing',
+      humanSeats: [
+        {
+          participantId: 'agima',
+          displayName: 'Alex',
+          reconnectToken: 'reconnect-1',
+          isHost: true,
+        },
+        {
+          participantId: 'orion',
+          displayName: 'Bea',
+          reconnectToken: 'reconnect-2',
+          isHost: false,
+        },
+      ],
+      match: {
+        revision: 1,
+        state: { round: 1 },
+        roundPlans: {
+          agima: {
+            supplyPlan: { foodLevel: 2, energyLevel: 2 },
+          },
+        },
+      },
+    })
+    expect(JSON.stringify(persistedState)).not.toContain(
+      'old-host',
+    )
+    expect(JSON.stringify(persistedState)).not.toContain(
+      'old-guest',
+    )
+    expect(
+      parsePersistedPlayingLobbyState(persistedState),
+    ).toEqual(persistedState)
+    lobby.dispose()
+
+    const emitted: EmittedMessage[] = []
+    const restoredLobby = restoreMultiplayerLobby(
+      persistedState,
+      {
+        emit: (connectionId, message) => {
+          emitted.push({ connectionId, message })
+        },
+      },
+    )
+
+    expect(restoredLobby.getSnapshot()).toMatchObject({
+      revision: 5,
+      phase: 'playing',
+      seats: {
+        agima: { connected: false },
+        orion: { connected: false },
+        nova: { kind: 'ai' },
+        vega: { kind: 'ai' },
+      },
+    })
+    expect(restoredLobby.getMatchSnapshot()).toMatchObject({
+      revision: 1,
+      state: { round: 1 },
+      roundReadiness: {
+        readyParticipantIds: ['agima'],
+      },
+    })
+
+    restoredLobby.handleMessage('new-host', {
+      version: 1,
+      requestId: 'resume-host',
+      type: 'resume-session',
+      payload: { reconnectToken: 'reconnect-1' },
+    })
+    restoredLobby.handleMessage('new-guest', {
+      version: 1,
+      requestId: 'resume-guest',
+      type: 'resume-session',
+      payload: { reconnectToken: 'reconnect-2' },
+    })
+    restoredLobby.handleMessage(
+      'new-guest',
+      roundPlanMessage('plan-guest'),
+    )
+
+    expect(restoredLobby.getMatchSnapshot()).toMatchObject({
+      revision: 2,
+      state: { round: 2 },
+      roundReadiness: {
+        readyParticipantIds: [],
+      },
+    })
+    expect(
+      findMessages(
+        emitted,
+        'session-established',
+      ),
+    ).toHaveLength(2)
+  })
+
+  it('weist widersprüchliche laufende Lobbyzustände zurück', () => {
+    const { lobby } = createLobbyHarness()
+    lobby.handleMessage('host', joinMessage('Alex', 'join'))
+    lobby.handleMessage('host', readyMessage(true, 'ready'))
+    lobby.handleMessage('host', startMessage('start'))
+    const persistedState = lobby.exportPersistenceState()
+    lobby.dispose()
+
+    expect(persistedState.phase).toBe('playing')
+    if (persistedState.phase !== 'playing') {
+      return
+    }
+
+    expect(
+      parsePersistedPlayingLobbyState({
+        ...persistedState,
+        seed: 24,
+      }),
+    ).toBeNull()
+    expect(() =>
+      restoreMultiplayerLobby(
+        {
+          ...persistedState,
+          match: {
+            ...persistedState.match,
+            roundTiming: null,
+          },
+        },
+        { emit: () => undefined },
+      ),
+    ).toThrow('Invalid persisted playing lobby state')
   })
 
   it('leitet Rundenpläne weiter und veröffentlicht die gemeinsame Abrechnung', () => {

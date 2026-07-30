@@ -359,9 +359,14 @@ Abonnenten und Timer-Handles bleiben prozesslokal. Speicherhülle und
 Grundstruktur der persistenzspezifischen Felder werden validiert;
 eine Wiederherstellungsfunktion setzt Zustand, private
 Bereitschaften, Berichte, Sequenz und sämtliche autoritativen Fristen
-fort. Alte Prozess-Sitzungen werden nicht übernommen. Die
-Speicheranbindung laufender Matches fehlt noch. Die WebSocket-Registry lädt beim ersten Zugriff einmalig aus
-dem Speicher, speichert Änderungen
+fort. Laufende Lobbys exportieren denselben Match-Snapshot zusammen
+mit Seed, Revision, menschlichen Sitzen und Reconnect-Tokens als
+`playing`-Variante der Version-1-Nutzlast. Sie können mit getrennten
+Sitzen wiederhergestellt und anschließend über die erhaltenen Tokens
+fortgesetzt werden. Alte Prozess-Sitzungen werden nicht übernommen.
+Die Speicheranbindung laufender Matches fehlt noch. Die
+WebSocket-Registry lädt beim ersten Zugriff einmalig aus dem Speicher,
+speichert Änderungen
 wartender Lobbys in Reihenfolge und löscht den Snapshot bei
 Matchstart oder endgültiger Lobbybereinigung. Ein Integrationstest
 stellt einen bereiten Host mit seinem Token über zwei getrennte

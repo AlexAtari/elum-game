@@ -1,7 +1,10 @@
 import {
   createAuthoritativeMatch,
+  parsePersistedAuthoritativeMatchState,
+  restoreAuthoritativeMatch,
   type AuthoritativeMatch,
   type AuthoritativeMatchOptions,
+  type PersistedAuthoritativeMatchState,
 } from './authoritativeMatch'
 import { createPlayableInitialGameStateForMatch } from './game'
 import {
@@ -46,6 +49,18 @@ export type PersistedWaitingLobbyState = {
     isHost: boolean
   }>
 }
+
+export type PersistedPlayingLobbyState = Omit<
+  PersistedWaitingLobbyState,
+  'phase'
+> & {
+  phase: 'playing'
+  match: PersistedAuthoritativeMatchState
+}
+
+export type PersistedMultiplayerLobbyState =
+  | PersistedWaitingLobbyState
+  | PersistedPlayingLobbyState
 
 export type MultiplayerLobbyOptions = {
   lobbyId: string
@@ -180,6 +195,51 @@ export function parsePersistedWaitingLobbyState(
   })
 }
 
+export function parsePersistedPlayingLobbyState(
+  input: unknown,
+): PersistedPlayingLobbyState | null {
+  if (!isRecord(input) || input.phase !== 'playing') {
+    return null
+  }
+
+  const lobbyState = parsePersistedWaitingLobbyState({
+    ...input,
+    phase: 'waiting',
+  })
+  const match = parsePersistedAuthoritativeMatchState(input.match)
+
+  if (
+    !lobbyState ||
+    !match ||
+    lobbyState.humanSeats.length === 0 ||
+    lobbyState.humanSeats.some(({ ready }) => !ready) ||
+    match.state.match.seed !== lobbyState.seed
+  ) {
+    return null
+  }
+
+  const humanParticipantIds = new Set(
+    lobbyState.humanSeats.map(({ participantId }) => participantId),
+  )
+
+  if (
+    participantIds.some(
+      (participantId) =>
+        (match.state.match.participants[participantId].controller
+          .kind === 'human') !==
+        humanParticipantIds.has(participantId),
+    )
+  ) {
+    return null
+  }
+
+  return structuredClone({
+    ...lobbyState,
+    phase: 'playing',
+    match,
+  })
+}
+
 export class MultiplayerLobby {
   private revision = 0
   private phase: LobbySnapshot['phase'] = 'waiting'
@@ -217,18 +277,40 @@ export class MultiplayerLobby {
       seed: state.seed,
     })
     lobby.revision = state.revision
+    lobby.restoreHumanSeats(state.humanSeats)
 
-    for (const persistedSeat of state.humanSeats) {
-      const seat: LobbyHumanSeat = {
-        ...persistedSeat,
-        connectionId: null,
-      }
-      lobby.humanSeats.set(seat.participantId, seat)
-      lobby.tokenSeats.set(
-        seat.reconnectToken,
-        seat.participantId,
-      )
+    return lobby
+  }
+
+  static restorePlayingState(
+    input: unknown,
+    options: RestoreMultiplayerLobbyOptions,
+  ) {
+    const state = parsePersistedPlayingLobbyState(input)
+
+    if (!state) {
+      throw new Error('Invalid persisted playing lobby state.')
     }
+
+    const match = restoreAuthoritativeMatch(
+      state.match,
+      options.matchOptions,
+    )
+
+    if (!match) {
+      throw new Error('Invalid persisted playing lobby state.')
+    }
+
+    const lobby = new MultiplayerLobby({
+      ...options,
+      lobbyId: state.lobbyId,
+      seed: state.seed,
+    })
+    lobby.revision = state.revision
+    lobby.phase = 'playing'
+    lobby.restoreHumanSeats(state.humanSeats)
+    lobby.match = match
+    lobby.subscribeToMatch(match)
 
     return lobby
   }
@@ -349,22 +431,30 @@ export class MultiplayerLobby {
       seed: this.seed,
       revision: this.revision,
       phase: 'waiting',
-      humanSeats: participantIds.flatMap((participantId) => {
-        const seat = this.humanSeats.get(participantId)
-
-        return seat
-          ? [
-              {
-                participantId: seat.participantId,
-                displayName: seat.displayName,
-                reconnectToken: seat.reconnectToken,
-                ready: seat.ready,
-                isHost: seat.isHost,
-              },
-            ]
-          : []
-      }),
+      humanSeats: this.exportHumanSeats(),
     } satisfies PersistedWaitingLobbyState)
+  }
+
+  exportPersistenceState(): PersistedMultiplayerLobbyState {
+    if (this.phase === 'waiting') {
+      return this.exportWaitingState()
+    }
+
+    if (!this.match) {
+      throw new Error(
+        'A playing lobby requires an authoritative match.',
+      )
+    }
+
+    return structuredClone({
+      version: MULTIPLAYER_LOBBY_STATE_VERSION,
+      lobbyId: this.lobbyId,
+      seed: this.seed,
+      revision: this.revision,
+      phase: 'playing',
+      humanSeats: this.exportHumanSeats(),
+      match: this.match.exportPersistenceState(),
+    } satisfies PersistedPlayingLobbyState)
   }
 
   dispose() {
@@ -627,19 +717,7 @@ export class MultiplayerLobby {
     this.phase = 'playing'
     this.revision += 1
     this.broadcastLobbySnapshot()
-    this.unsubscribeMatch = match.subscribe(() => {
-      for (const seat of this.humanSeats.values()) {
-        if (seat.connectionId === null) {
-          continue
-        }
-
-        this.send(seat.connectionId, {
-          version: 1,
-          type: 'match-snapshot',
-          payload: match.getSnapshot(seat.participantId),
-        })
-      }
-    })
+    this.subscribeToMatch(match)
   }
 
   private submitGameCommand(
@@ -852,6 +930,56 @@ export class MultiplayerLobby {
     })
   }
 
+  private exportHumanSeats() {
+    return participantIds.flatMap((participantId) => {
+      const seat = this.humanSeats.get(participantId)
+
+      return seat
+        ? [
+            {
+              participantId: seat.participantId,
+              displayName: seat.displayName,
+              reconnectToken: seat.reconnectToken,
+              ready: seat.ready,
+              isHost: seat.isHost,
+            },
+          ]
+        : []
+    })
+  }
+
+  private restoreHumanSeats(
+    persistedSeats: PersistedWaitingLobbyState['humanSeats'],
+  ) {
+    for (const persistedSeat of persistedSeats) {
+      const seat: LobbyHumanSeat = {
+        ...persistedSeat,
+        connectionId: null,
+      }
+      this.humanSeats.set(seat.participantId, seat)
+      this.tokenSeats.set(
+        seat.reconnectToken,
+        seat.participantId,
+      )
+    }
+  }
+
+  private subscribeToMatch(match: AuthoritativeMatch) {
+    this.unsubscribeMatch = match.subscribe(() => {
+      for (const seat of this.humanSeats.values()) {
+        if (seat.connectionId === null) {
+          continue
+        }
+
+        this.send(seat.connectionId, {
+          version: 1,
+          type: 'match-snapshot',
+          payload: match.getSnapshot(seat.participantId),
+        })
+      }
+    })
+  }
+
   private broadcastLobbySnapshot() {
     this.broadcast({
       version: 1,
@@ -903,5 +1031,7 @@ export function restoreMultiplayerLobby(
   input: unknown,
   options: RestoreMultiplayerLobbyOptions,
 ) {
-  return MultiplayerLobby.restoreWaitingState(input, options)
+  return isRecord(input) && input.phase === 'playing'
+    ? MultiplayerLobby.restorePlayingState(input, options)
+    : MultiplayerLobby.restoreWaitingState(input, options)
 }

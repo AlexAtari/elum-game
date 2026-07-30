@@ -361,9 +361,11 @@ verwendet auf `alexatari.github.io` automatisch den entsprechenden
 Port-8787-Ableitung bei.
 
 Lobby-, Token- und Matchzustand liegen weiterhin nur im
-Prozessspeicher. Laufende Matches besitzen zwar inzwischen einen
-versionierten Export und eine Wiederherstellungsfunktion, werden aber
-noch nicht durch Lobby oder Registry gespeichert und geladen.
+Prozessspeicher. Laufende Matches besitzen inzwischen einen
+versionierten Export und eine Wiederherstellungsfunktion. Auch die
+Lobby kann diesen Zustand gemeinsam mit ihren Sitzen und
+Reconnect-Tokens exportieren und wiederherstellen; die Registry
+speichert und lädt ihn aber noch nicht.
 `server/lobbyPersistence.ts` definiert als ersten
 Persistenzbaustein einen asynchronen Speichervertrag und einen
 versionierten, JSON-serialisierbaren Datensatz mit Ablaufzeit. Der
@@ -377,16 +379,20 @@ die vollständige Datensatz- und Lobbyvalidierung.
 `MultiplayerLobby.exportWaitingState()` serialisiert inzwischen Seed,
 Revision, Sitzzuordnung, Bereitschaft und geheime Reconnect-Tokens
 einer wartenden Lobby in eine eigene Version-1-Nutzlast.
-Prozessgebundene Verbindungs-IDs werden nicht übernommen; der
-Lobbyexport laufender Matches wird bis zur Anbindung des
-Match-Snapshots weiterhin abgewiesen.
+`exportPersistenceState()` erweitert dasselbe Format als
+diskriminierte Version-1-Union um die Phase `playing` und den
+autoritativen Match-Snapshot. Prozessgebundene Verbindungs-IDs werden
+in beiden Phasen nicht übernommen.
 `parsePersistedWaitingLobbyState()` validiert unbekannte Speicherdaten
 gegen Version, Phase, Lobby-ID, Seed, Revision, kanonische
 Sitzreihenfolge, Hostrolle, Anzeigenamen und eindeutige Tokens.
-`restoreMultiplayerLobby()` baut daraus eine neue wartende Lobby auf.
-Alle Sitze beginnen getrennt, behalten aber ihre Tokens,
-Bereitschaften und den ursprünglichen Seed; erst das bestehende
-Resume-Protokoll bindet neue Prozess-Verbindungen.
+Der Parser für laufende Lobbys prüft zusätzlich Seed und
+Controller-Zuordnung des enthaltenen Matches.
+`restoreMultiplayerLobby()` baut daraus je nach Phase eine wartende
+oder laufende Lobby auf. Alle Sitze beginnen getrennt, behalten aber
+ihre Tokens, Bereitschaften und den ursprünglichen Seed; erst das
+bestehende Resume-Protokoll bindet neue Prozess-Verbindungen und
+liefert den persönlichen Match-Snapshot.
 
 Die WebSocket-Registry verwendet den Speichervertrag inzwischen
 direkt. Vor dem ersten Upgrade eines Lobbycodes lädt sie genau einmal
@@ -404,9 +410,9 @@ prozesslokale In-Memory-Adapter aktiv. Der Render-Blueprint
 provisioniert noch keinen Key-Value-Dienst und setzt diese Variable
 nicht. Der aktuelle Render-Dienst ist deshalb weiterhin nicht
 deployfest und darf nicht horizontal skaliert werden; laufende Partien
-werden trotz wiederherstellbarem Match-Snapshot noch nicht
-gespeichert oder geladen. Provisionierung und Speicheranbindung
-laufender Matches sowie betriebliche
+werden trotz wiederherstellbarem Lobby- und Match-Snapshot noch nicht
+durch die Registry gespeichert oder geladen. Provisionierung und
+Speicheranbindung laufender Matches sowie betriebliche
 Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat, aggregierte
 Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
