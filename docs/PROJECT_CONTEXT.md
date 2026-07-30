@@ -405,8 +405,10 @@ werden.
   Verbindungszahl
 - Prometheus-kompatibler `/metrics`-Endpunkt veröffentlicht nur
   aggregierte Gauges und Prozesszähler, keine Lobby- oder Sitzdaten
+- GitHub Action prüft Health und Metrikformat alle sechs Stunden und
+  manuell; Fehler bleiben als fehlgeschlagene Workflow-Läufe sichtbar
 - nächster Strukturschritt sind persistenter Zustand sowie externe
-  Erfassung, Alarmierung und Langzeitspeicherung der Metriken
+  Langzeitspeicherung der Metriken
 
 ### Nächster Regelstand
 

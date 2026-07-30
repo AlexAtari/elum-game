@@ -341,8 +341,12 @@ Lobby- und Verbindungszahl. `/metrics` stellt zusätzlich
 Prometheus-kompatible, rein aggregierte Gauges und Prozesszähler für
 Lobbys, Verbindungen, Nachrichten und abgewiesene Upgrades bereit.
 Noch offen sind persistenter Zustand über Deploys und Instanzwechsel
-sowie externe Erfassung, Alarmierung und Langzeitspeicherung dieser
-Metriken; GitHub Pages hostet weiterhin nur das statische Frontend.
+sowie externe Langzeitspeicherung dieser Metriken. Eine unabhängige
+GitHub Action prüft Health und erwartetes Metrikformat alle sechs
+Stunden sowie manuell; Fehler werden dadurch als fehlgeschlagene
+Workflow-Läufe sichtbar, ohne die kostenlose Render-Instanz dauerhaft
+warm zu halten. GitHub Pages hostet weiterhin nur das statische
+Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

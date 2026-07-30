@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "preview": "vite preview",
     "server": "tsx server/start.ts",
+    "monitor:server": "tsx server/checkHostedServer.ts",
     "simulate": "ELUM_SIMULATION_REPORT=1 vitest run src/simulationReport.test.ts",
     "simulate:batch": "ELUM_BATCH_REPORT=1 vitest run src/simulationBatchReport.test.ts"
   },

@@ -60,6 +60,19 @@ aggregierte Prozesszähler:
 Lobbycodes, Anzeigenamen, Reconnect-Tokens und Matchzustände werden
 nicht als Metriken ausgegeben.
 
+Der gehostete Dienst kann lokal mit derselben Prüfung wie die
+regelmäßige GitHub Action kontrolliert werden:
+
+```bash
+npm run monitor:server
+```
+
+`monitor-multiplayer.yml` führt diesen Smoke-Test zusätzlich alle
+sechs Stunden und manuell aus. Das Intervall lässt die kostenlose
+Render-Instanz zwischen Prüfungen schlafen; ein fehlgeschlagener
+Health- oder Metrikcheck wird als fehlgeschlagener Workflow-Lauf
+sichtbar.
+
 Jeder nicht leere Lobbycode bis 128 Zeichen erzeugt bei der ersten
 WebSocket-Verbindung einen eigenen Spielraum. Unterschiedliche Codes
 teilen weder Sitze noch Reconnect-Tokens oder Matchzustände. Nach der
