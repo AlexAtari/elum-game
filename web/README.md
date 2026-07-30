@@ -42,6 +42,11 @@ Konfiguration:
 
 Der Health-Endpunkt liegt unter
 `http://<RECHNER-IP>:8787/health`.
+Er meldet Bereitschaft, Zahl der aktuell gehaltenen Lobbys und Zahl
+der aktiven WebSocket-Verbindungen. Der Server sendet verbundenen
+Clients alle 30 Sekunden einen WebSocket-Ping; Verbindungen ohne Pong
+werden beim nächsten Intervall beendet und können anschließend über
+den vorhandenen Reconnect-Pfad wieder aufgenommen werden.
 
 Jeder nicht leere Lobbycode bis 128 Zeichen erzeugt bei der ersten
 WebSocket-Verbindung einen eigenen Spielraum. Unterschiedliche Codes

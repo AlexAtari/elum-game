@@ -226,8 +226,10 @@ describe('Lokaler WebSocket-Spielserver', () => {
       expect(healthResponse.status).toBe(200)
       expect(await healthResponse.json()).toEqual({
         ok: true,
+        status: 'ready',
         defaultLobbyId: 'integration',
         lobbyCount: 1,
+        connectionCount: 2,
       })
 
       send(host, {
@@ -477,8 +479,10 @@ describe('Lokaler WebSocket-Spielserver', () => {
       )
       expect(await healthResponse.json()).toEqual({
         ok: true,
+        status: 'ready',
         defaultLobbyId: 'default-room',
         lobbyCount: 2,
+        connectionCount: 4,
       })
     } finally {
       await closeClient(alphaHost)
@@ -625,6 +629,35 @@ describe('Lokaler WebSocket-Spielserver', () => {
       client.socket.send(Buffer.from([1, 2, 3]))
       expect(await closeCode).toBe(1003)
     } finally {
+      await server.close()
+    }
+  })
+
+  it('hält aktive WebSockets mit Ping und Pong lebendig', async () => {
+    const server = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'heartbeat',
+      heartbeatIntervalMilliseconds: 10,
+    })
+    const address = await server.listen()
+    const client = await openClient(formatWebSocketUrl(address))
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error('Timed out waiting for heartbeat.')),
+          2_000,
+        )
+
+        client.socket.once('ping', () => {
+          clearTimeout(timeout)
+          resolve()
+        })
+      })
+      expect(client.socket.readyState).toBe(WebSocket.OPEN)
+    } finally {
+      await closeClient(client)
       await server.close()
     }
   })

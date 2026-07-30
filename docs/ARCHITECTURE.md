@@ -269,7 +269,13 @@ Umgebung getrennt vom Prozessstart aus. Ein explizites
 `ELUM_SERVER_PORT` gewinnt vor dem Plattform-Port `PORT`;
 `ELUM_ALLOWED_ORIGINS` aktiviert eine exakte, kommaseparierte
 Allowlist für den Browser-`Origin` des WebSocket-Upgrades. Die
-bestehende lokale React-Partie
+Transportleitung sendet alle 30 Sekunden einen WebSocket-Ping. Ein
+Pong markiert die Verbindung weiter als lebendig; bleibt es bis zum
+nächsten Intervall aus, wird der Socket terminiert und durchläuft
+denselben Disconnect- und Reconnect-Pfad. `/health` veröffentlicht
+neben Bereitschaft und Standardlobby ausschließlich aggregierte
+Lobby- und Verbindungszahlen, keine Lobbycodes oder Sitzungsdaten.
+Die bestehende lokale React-Partie
 verwendet weiterhin direkt die Kommandoschicht.
 
 ### Multiplayer-Protokoll und Lobby
@@ -332,7 +338,9 @@ Lobby-, Token- und Matchzustand liegen weiterhin nur im
 Prozessspeicher. Der Render-Dienst darf deshalb nicht horizontal
 skaliert werden; Deploys und Instanzwechsel können laufende Partien
 beenden. Tatsächliches Provisionieren, Persistenz und betriebliche
-Überwachung bleiben offen.
+Langzeitüberwachung bleiben offen; der Prozess stellt inzwischen
+Heartbeat und aggregierte Live-Health-Daten als betriebliche
+Grundsignale bereit.
 
 Die lokale React-Partie koordiniert ihre Runde weiterhin in
 `App.tsx`; der Mehrspieler-Client verwendet stattdessen

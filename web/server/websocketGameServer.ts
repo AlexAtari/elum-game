@@ -20,6 +20,8 @@ export type WebSocketGameServerOptions = {
   lobbyId?: string
   seed?: number
   maxPayloadBytes?: number
+  heartbeatIntervalMilliseconds?: number
+  heartbeatClock?: ServerHeartbeatClock
   emptyLobbyGraceMilliseconds?: number
   lobbyCleanupClock?: LobbyCleanupClock
   allowedOrigins?: string[]
@@ -35,6 +37,14 @@ export type LobbyCleanupClock = {
   clearTimeout: (timer: unknown) => void
 }
 
+export type ServerHeartbeatClock = {
+  setInterval: (
+    callback: () => void,
+    intervalMilliseconds: number,
+  ) => unknown
+  clearInterval: (timer: unknown) => void
+}
+
 export type WebSocketGameServerAddress = {
   host: string
   port: number
@@ -45,6 +55,7 @@ export type WebSocketGameServerAddress = {
 const WEBSOCKET_PATH = '/multiplayer'
 const HEALTH_PATH = '/health'
 const DEFAULT_MAX_PAYLOAD_BYTES = 64 * 1024
+export const DEFAULT_HEARTBEAT_INTERVAL_MILLISECONDS = 30_000
 export const EMPTY_LOBBY_GRACE_MILLISECONDS =
   10 * 60 * 1_000
 
@@ -53,6 +64,13 @@ const defaultLobbyCleanupClock: LobbyCleanupClock = {
     setTimeout(callback, delayMilliseconds),
   clearTimeout: (timer) =>
     clearTimeout(timer as ReturnType<typeof setTimeout>),
+}
+
+const defaultHeartbeatClock: ServerHeartbeatClock = {
+  setInterval: (callback, intervalMilliseconds) =>
+    setInterval(callback, intervalMilliseconds),
+  clearInterval: (timer) =>
+    clearInterval(timer as ReturnType<typeof setInterval>),
 }
 
 function rejectUpgrade(
@@ -101,11 +119,14 @@ export class WebSocketGameServer {
   private readonly onError: (error: unknown) => void
   private readonly emptyLobbyGraceMilliseconds: number
   private readonly lobbyCleanupClock: LobbyCleanupClock
+  private readonly heartbeatIntervalMilliseconds: number
+  private readonly heartbeatClock: ServerHeartbeatClock
   private readonly sockets = new Map<
     string,
     {
       socket: WebSocket
       lobbyId: string
+      alive: boolean
     }
   >()
   private readonly lobbies = new Map<string, MultiplayerLobby>()
@@ -114,6 +135,7 @@ export class WebSocketGameServer {
   private readonly webSocketServer: WebSocketServer
   private listening = false
   private closing = false
+  private heartbeatTimer: unknown
 
   constructor(options: WebSocketGameServerOptions = {}) {
     this.host = options.host ?? '127.0.0.1'
@@ -125,12 +147,25 @@ export class WebSocketGameServer {
       EMPTY_LOBBY_GRACE_MILLISECONDS
     this.lobbyCleanupClock =
       options.lobbyCleanupClock ?? defaultLobbyCleanupClock
+    this.heartbeatIntervalMilliseconds =
+      options.heartbeatIntervalMilliseconds ??
+      DEFAULT_HEARTBEAT_INTERVAL_MILLISECONDS
+    this.heartbeatClock =
+      options.heartbeatClock ?? defaultHeartbeatClock
     if (
       !Number.isFinite(this.emptyLobbyGraceMilliseconds) ||
       this.emptyLobbyGraceMilliseconds < 0
     ) {
       throw new Error(
         'Empty lobby grace period must be a non-negative finite number.',
+      )
+    }
+    if (
+      !Number.isFinite(this.heartbeatIntervalMilliseconds) ||
+      this.heartbeatIntervalMilliseconds <= 0
+    ) {
+      throw new Error(
+        'Heartbeat interval must be a positive finite number.',
       )
     }
     this.allowedOrigins = options.allowedOrigins
@@ -150,8 +185,10 @@ export class WebSocketGameServer {
         response.end(
           JSON.stringify({
             ok: true,
+            status: 'ready',
             defaultLobbyId: this.defaultLobbyId,
             lobbyCount: this.lobbies.size,
+            connectionCount: this.sockets.size,
           }),
         )
         return
@@ -213,8 +250,12 @@ export class WebSocketGameServer {
       this.cancelLobbyCleanup(lobbyId)
       const lobby = this.getOrCreateLobby(lobbyId)
       const connectionId = this.createUniqueConnectionId()
-      this.sockets.set(connectionId, { socket, lobbyId })
+      const connection = { socket, lobbyId, alive: true }
+      this.sockets.set(connectionId, connection)
 
+      socket.on('pong', () => {
+        connection.alive = true
+      })
       socket.on('message', (data, isBinary) => {
         if (isBinary) {
           socket.close(1003, 'JSON text messages required')
@@ -264,6 +305,10 @@ export class WebSocketGameServer {
       this.httpServer.listen(this.port, this.host)
     })
     this.listening = true
+    this.heartbeatTimer = this.heartbeatClock.setInterval(
+      () => this.checkHeartbeats(),
+      this.heartbeatIntervalMilliseconds,
+    )
     return this.getAddress()
   }
 
@@ -288,6 +333,10 @@ export class WebSocketGameServer {
     }
 
     this.closing = true
+    if (this.heartbeatTimer !== undefined) {
+      this.heartbeatClock.clearInterval(this.heartbeatTimer)
+      this.heartbeatTimer = undefined
+    }
     for (const timer of this.lobbyCleanupTimers.values()) {
       this.lobbyCleanupClock.clearTimeout(timer)
     }
@@ -326,6 +375,22 @@ export class WebSocketGameServer {
     }
 
     throw new Error('Unable to create a unique connection id.')
+  }
+
+  private checkHeartbeats() {
+    for (const connection of this.sockets.values()) {
+      if (!connection.alive) {
+        connection.socket.terminate()
+        continue
+      }
+
+      connection.alive = false
+      connection.socket.ping((error?: Error) => {
+        if (error) {
+          this.onError(error)
+        }
+      })
+    }
   }
 
   private getOrCreateLobby(lobbyId: string) {

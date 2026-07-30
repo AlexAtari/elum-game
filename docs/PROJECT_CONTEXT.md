@@ -400,8 +400,11 @@ werden.
   Health Check, TLS-Terminierung und Origin-Policy provisioniert; die
   GitHub-Pages-Oberfläche verwendet seinen `wss://`-Endpunkt
   standardmäßig
-- nächster Strukturschritt sind persistenter Zustand und betriebliche
-  Überwachung
+- 30-sekündiger WebSocket-Heartbeat entfernt nicht mehr antwortende
+  Verbindungen; der Health-Endpunkt meldet Bereitschaft, Lobby- und
+  Verbindungszahl
+- nächster Strukturschritt sind persistenter Zustand, externe
+  Alarmierung und Langzeitmetriken
 
 ### Nächster Regelstand
 

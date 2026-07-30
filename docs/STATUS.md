@@ -334,9 +334,13 @@ Browser-Origin. Der kostenlose Dienst `elum-multiplayer` ist unter
 `https://elum-multiplayer.onrender.com` angelegt; Health Check und
 TLS-WebSocket-Handshake sind erfolgreich geprüft. Die
 GitHub-Pages-Oberfläche verwendet ihn standardmäßig über `wss://`.
-Noch offen sind persistenter Zustand über Deploys und Instanzwechsel
-sowie betriebliche Überwachung; GitHub Pages hostet weiterhin nur das
-statische Frontend.
+Der Server hält WebSocket-Verbindungen mit einem 30-sekündigen
+Ping/Pong-Heartbeat sauber und entfernt nicht mehr antwortende
+Sockets; der Health-Endpunkt veröffentlicht Bereitschaft sowie
+Lobby- und Verbindungszahl. Noch offen sind persistenter Zustand über
+Deploys und Instanzwechsel sowie externe Alarmierung und
+Langzeitmetriken; GitHub Pages hostet weiterhin nur das statische
+Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 
