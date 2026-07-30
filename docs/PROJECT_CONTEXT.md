@@ -412,8 +412,13 @@ werden.
   In-Memory-Adapter kopiert Nutzdaten und bereinigt abgelaufene
   Einträge
 - wartende Lobbys exportieren Seed, Revision, Sitze, Bereitschaft und
-  geheime Reconnect-Tokens als versionierte JSON-Nutzlast; laufende
-  Matches und prozesslokale Verbindungs-IDs werden nicht exportiert
+  geheime Reconnect-Tokens als versionierte JSON-Nutzlast;
+  prozesslokale Verbindungs-IDs werden nicht exportiert
+- der autoritative Matchkern exportiert einen eigenen
+  Version-1-Snapshot mit `GameState`, Revision, Abschlussstatus,
+  privaten Rundenplänen und -berichten, Server-Kommandosequenz und
+  absoluten Fristen; Sitzungen und Timer-Handles bleiben
+  prozesslokal, Wiederherstellung und Speicheranbindung fehlen noch
 - gespeicherte Lobby-Nutzlasten werden strikt validiert und können als
   wartende Lobby mit getrennten Sitzen, erhaltenen Tokens,
   Bereitschaften und ursprünglichem Seed wiederhergestellt werden
@@ -426,8 +431,8 @@ werden.
   wird über `REDIS_URL` gewählt; der Render-Blueprint provisioniert
   und aktiviert noch keinen externen Speicher
 - nächste Strukturschritte sind Render-Key-Value-Provisionierung,
-  Persistenz laufender Matches sowie externe
-  Langzeitspeicherung der Metriken
+  Wiederherstellung und Speicheranbindung laufender Matches sowie
+  externe Langzeitspeicherung der Metriken
 
 ### Nächster Regelstand
 

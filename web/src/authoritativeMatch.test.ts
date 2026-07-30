@@ -7,8 +7,10 @@ import {
   type GameState,
 } from './game'
 import {
+  AUTHORITATIVE_MATCH_STATE_VERSION,
   createAuthoritativeMatch,
   MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
+  parsePersistedAuthoritativeMatchState,
   type MatchClock,
 } from './authoritativeMatch'
 import type { GameCommand } from './gameCommands'
@@ -103,6 +105,158 @@ function withRemoteOrion(state: GameState): GameState {
 }
 
 describe('Autoritativer Match-Serverkern', () => {
+  it('exportiert private Matchdaten ohne Prozess-Sitzungen oder Timer-Handles', () => {
+    const clock = new FakeClock()
+    const initialState = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const match = createAuthoritativeMatch(initialState, {
+      clock,
+    })
+    match.connectSeat({
+      sessionId: 'private-agima-session',
+      participantId: 'agima',
+    })
+    match.connectSeat({
+      sessionId: 'private-orion-session',
+      participantId: 'orion',
+    })
+    match.submitRoundPlan('private-agima-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 1 },
+    })
+
+    const persistedState = match.exportPersistenceState()
+
+    expect(persistedState).toMatchObject({
+      version: AUTHORITATIVE_MATCH_STATE_VERSION,
+      revision: 1,
+      finished: false,
+      state: { round: 1 },
+      phaseTiming: null,
+      roundTiming: {
+        status: 'running',
+        deadlineAt:
+          1_000 + MULTIPLAYER_ROUND_DURATION_MILLISECONDS,
+      },
+      serverCommandSequence: 0,
+      roundPlans: {
+        agima: {
+          supplyPlan: { foodLevel: 2, energyLevel: 1 },
+        },
+      },
+      lastRoundReports: {},
+      localEventSchedules: [],
+    })
+    expect(JSON.stringify(persistedState)).not.toContain(
+      'private-agima-session',
+    )
+    expect(JSON.stringify(persistedState)).not.toContain(
+      'private-orion-session',
+    )
+    expect(
+      parsePersistedAuthoritativeMatchState(persistedState),
+    ).toEqual(persistedState)
+
+    persistedState.state.colonies.agima.credits = 0
+
+    expect(
+      match.exportPersistenceState().state.colonies.agima.credits,
+    ).not.toBe(0)
+  })
+
+  it('exportiert private Berichte und geplante lokale Ereignisse', () => {
+    const clock = new FakeClock()
+    const initialState = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const match = createAuthoritativeMatch(initialState, {
+      clock,
+    })
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+    match.connectSeat({
+      sessionId: 'orion-session',
+      participantId: 'orion',
+    })
+    match.submitRoundPlan('agima-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+    match.submitRoundPlan('orion-session', {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    })
+
+    const persistedState = match.exportPersistenceState()
+
+    expect(persistedState.state.round).toBe(2)
+    expect(persistedState.roundPlans).toEqual({})
+    expect(persistedState.lastRoundReports).toMatchObject({
+      agima: { roundPlayed: 1 },
+      orion: { roundPlayed: 1 },
+    })
+    expect(persistedState.localEventSchedules).toEqual(
+      ['agima', 'orion'].map((participantId) => ({
+        participantId,
+        event: selectSeededLocalEvent(
+          2,
+          initialState.match.seed,
+          participantId as 'agima' | 'orion',
+        ),
+        round: 2,
+        deadlineAt:
+          1_000 +
+          getSeededLocalEventDelay(
+            2,
+            initialState.match.seed,
+            participantId as 'agima' | 'orion',
+          ),
+      })),
+    )
+  })
+
+  it('weist beschädigte Match-Persistenzhüllen zurück', () => {
+    const persistedState = createAuthoritativeMatch(
+      createPlayableInitialGameState(),
+    ).exportPersistenceState()
+
+    expect(
+      parsePersistedAuthoritativeMatchState({
+        ...persistedState,
+        version: 2,
+      }),
+    ).toBeNull()
+    expect(
+      parsePersistedAuthoritativeMatchState({
+        ...persistedState,
+        revision: -1,
+      }),
+    ).toBeNull()
+    expect(
+      parsePersistedAuthoritativeMatchState({
+        ...persistedState,
+        roundPlans: {
+          unknown: {
+            supplyPlan: { foodLevel: 2, energyLevel: 2 },
+          },
+        },
+      }),
+    ).toBeNull()
+    expect(
+      parsePersistedAuthoritativeMatchState({
+        ...persistedState,
+        localEventSchedules: [
+          {
+            participantId: 'agima',
+            event: 'unknown-event',
+            round: 1,
+            deadlineAt: 2_000,
+          },
+        ],
+      }),
+    ).toBeNull()
+  })
+
   it('rechnet nach vier Minuten fehlende Spieler konservativ ab', () => {
     const clock = new FakeClock()
     const baseState = withRemoteOrion(

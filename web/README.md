@@ -137,12 +137,21 @@ provisioniert den Key-Value-Dienst noch nicht automatisch.
 Der aktuelle Matchzustand lebt im Arbeitsspeicher eines einzelnen
 Serverprozesses. Der Dienst darf deshalb noch nicht horizontal
 skaliert werden; ein Deploy oder Instanzwechsel beendet laufende
-Partien. `server/lobbyPersistence.ts` enthält bereits den
+Partien. Der Matchkern kann seinen prozessunabhängigen Zustand
+inzwischen als eigene Version-1-Nutzlast exportieren. Sie umfasst
+`GameState`, Revision, Abschlussstatus, private Rundenpläne und
+-berichte, Server-Kommandosequenz sowie absolute Phasen-, Runden- und
+lokale Ereignisfristen, aber keine Sitzungs-IDs oder Timer-Handles.
+Speicherhülle und Grundstruktur der persistenzspezifischen Felder
+werden geprüft; eine Wiederherstellung und die Speicheranbindung
+fehlen noch.
+`server/lobbyPersistence.ts` enthält bereits den
 versionierten JSON-Datensatz, den asynchronen Speichervertrag und
 einen ablaufzeitfähigen In-Memory-Adapter. Wartende Lobbys können
 Seed, Revision, Sitzdaten, Bereitschaft und Reconnect-Tokens als
-eigene Version-1-Nutzlast exportieren; Verbindungs-IDs und laufende
-Matches werden nicht exportiert. Gespeicherte Nutzlasten werden
+eigene Version-1-Nutzlast exportieren; Verbindungs-IDs werden nicht
+exportiert und der Lobbyexport laufender Matches bleibt bis zur
+Anbindung des Match-Snapshots gesperrt. Gespeicherte Nutzlasten werden
 vollständig validiert und können als wartende Lobby wiederhergestellt
 werden. Die reservierten Sitze beginnen getrennt und verbinden sich
 über ihre erhaltenen Reconnect-Tokens erneut. Die Lobby-Registry lädt
@@ -156,5 +165,5 @@ Der Redis-/Valkey-Adapter speichert Datensatz und Ablaufzeit atomar
 und validiert geladene JSON-Werte erneut. Der aktuell provisionierte
 Render-Dienst hat jedoch noch keine `REDIS_URL` und verwendet daher
 weiterhin den In-Memory-Adapter. Tatsächliche Provisionierung,
-laufende Matches und instanzübergreifende Sitzungen sind der nächste
-Ausbau.
+Wiederherstellung und Speicheranbindung laufender Matches sowie
+instanzübergreifende Sitzungen sind der nächste Ausbau.

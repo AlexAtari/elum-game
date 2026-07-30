@@ -350,9 +350,16 @@ bleiben prozesslokal. Unbekannte Nutzlasten werden gegen Version,
 Phase, IDs, Seed, Revision, kanonische Sitzfolge, Hostrolle, Namen
 und eindeutige Tokens validiert. Aus gültigen Nutzlasten lässt sich
 eine wartende Lobby mit zunächst getrennten Sitzen und erhaltenen
-Reconnect-Tokens wiederherstellen. Laufende Matches werden noch
-nicht exportiert oder wiederhergestellt. Die WebSocket-Registry lädt
-beim ersten Zugriff einmalig aus dem Speicher, speichert Änderungen
+Reconnect-Tokens wiederherstellen. Der autoritative Matchkern
+exportiert inzwischen einen eigenen Version-1-Snapshot aus
+kanonischem Spielzustand, Revision, Abschlussstatus, privaten
+Rundenplänen und -berichten, Server-Kommandosequenz sowie absoluten
+Phasen-, Runden- und lokalen Ereignisfristen. Sitzungs-IDs,
+Abonnenten und Timer-Handles bleiben prozesslokal. Speicherhülle und
+Grundstruktur der persistenzspezifischen Felder werden validiert;
+Wiederherstellung und Speicheranbindung laufender Matches fehlen
+noch. Die WebSocket-Registry lädt beim ersten Zugriff einmalig aus
+dem Speicher, speichert Änderungen
 wartender Lobbys in Reihenfolge und löscht den Snapshot bei
 Matchstart oder endgültiger Lobbybereinigung. Ein Integrationstest
 stellt einen bereiten Host mit seinem Token über zwei getrennte
@@ -365,7 +372,8 @@ eine gültige `REDIS_URL` ausgewählt. Ohne Variable bleibt der
 In-Memory-Adapter aktiv. Der Blueprint provisioniert noch keinen
 Render-Key-Value-Dienst; der öffentliche Server nutzt deshalb
 weiterhin nur Prozessspeicher. Noch offen sind die tatsächliche
-Provisionierung, Persistenz laufender Matches sowie externe
+Provisionierung, Wiederherstellung und Speicheranbindung laufender
+Matches sowie externe
 Langzeitspeicherung der Metriken. Eine unabhängige GitHub Action
 prüft Health und erwartetes Metrikformat alle sechs Stunden sowie
 manuell; Fehler werden dadurch als fehlgeschlagene Workflow-Läufe

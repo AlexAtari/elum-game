@@ -227,6 +227,17 @@ Nach der 20. Abrechnung setzt der Matchkern `finished` dauerhaft auf
 derselben autoritativen Grenze mit `match-finished` abgewiesen; die
 sichtbare Abschlussrangliste ist daher nicht die einzige Sperre.
 
+`AuthoritativeMatch.exportPersistenceState()` erzeugt außerdem eine
+versionierte, JSON-serialisierbare Kopie des vollständigen
+prozessunabhängigen Matchzustands. Neben `GameState`, Revision und
+Abschlussstatus enthält sie die privaten Rundenpläne und -berichte,
+die Server-Kommandosequenz sowie absolute Phasen-, Runden- und lokale
+Ereignisfristen. Sitzungs-IDs, Abonnenten und Timer-Handles bleiben
+bewusst prozesslokal. Der Parser prüft die Version, die Speicherhülle,
+kanonische Teilnehmer-IDs und die persistenzspezifischen privaten
+Felder; Wiederherstellung und Anbindung an den Lobby-Speicher sind
+noch nicht implementiert.
+
 `multiplayerRound.ts` adaptiert die vorhandene Rundenökonomie für
 beliebige menschliche Koloniesitze. Damit dieselben Produktions-,
 Versorgungs-, Umrüstungs- und Ereignisregeln gelten, wird die
@@ -345,7 +356,9 @@ verwendet auf `alexatari.github.io` automatisch den entsprechenden
 Port-8787-Ableitung bei.
 
 Lobby-, Token- und Matchzustand liegen weiterhin nur im
-Prozessspeicher. `server/lobbyPersistence.ts` definiert als ersten
+Prozessspeicher. Laufende Matches besitzen zwar inzwischen einen
+versionierten Export, werden aber noch nicht gespeichert oder
+wiederhergestellt. `server/lobbyPersistence.ts` definiert als ersten
 Persistenzbaustein einen asynchronen Speichervertrag und einen
 versionierten, JSON-serialisierbaren Datensatz mit Ablaufzeit. Der
 In-Memory-Adapter kopiert Daten an beiden Grenzen, isoliert Lobbycodes
@@ -358,9 +371,9 @@ die vollständige Datensatz- und Lobbyvalidierung.
 `MultiplayerLobby.exportWaitingState()` serialisiert inzwischen Seed,
 Revision, Sitzzuordnung, Bereitschaft und geheime Reconnect-Tokens
 einer wartenden Lobby in eine eigene Version-1-Nutzlast.
-Prozessgebundene Verbindungs-IDs werden nicht übernommen; ein Export
-laufender Matches wird abgewiesen, solange deren vollständige
-Wiederherstellung noch nicht implementiert ist.
+Prozessgebundene Verbindungs-IDs werden nicht übernommen; der
+Lobbyexport laufender Matches wird bis zur Anbindung des
+Match-Snapshots weiterhin abgewiesen.
 `parsePersistedWaitingLobbyState()` validiert unbekannte Speicherdaten
 gegen Version, Phase, Lobby-ID, Seed, Revision, kanonische
 Sitzreihenfolge, Hostrolle, Anzeigenamen und eindeutige Tokens.
@@ -385,9 +398,10 @@ prozesslokale In-Memory-Adapter aktiv. Der Render-Blueprint
 provisioniert noch keinen Key-Value-Dienst und setzt diese Variable
 nicht. Der aktuelle Render-Dienst ist deshalb weiterhin nicht
 deployfest und darf nicht horizontal skaliert werden; laufende Partien
-sind unabhängig davon noch nicht persistierbar. Provisionierung,
-Persistenz laufender Matches und betriebliche Langzeitspeicherung
-bleiben offen; der Prozess stellt Heartbeat, aggregierte
+werden trotz exportierbarem Match-Snapshot noch nicht gespeichert
+oder wiederaufgenommen. Provisionierung, Wiederherstellung und
+Speicheranbindung laufender Matches sowie betriebliche
+Langzeitspeicherung bleiben offen; der Prozess stellt Heartbeat, aggregierte
 Live-Health-Daten und einen
 Prometheus-kompatiblen Metrikendpunkt als betriebliche Grundsignale
 bereit, die GitHub Actions regelmäßig unabhängig prüft.

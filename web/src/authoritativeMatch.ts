@@ -7,6 +7,7 @@ import {
   getSeededLocalEventDelay,
   isGameFinished,
   LAND_AUCTION_TIMING,
+  localEventIds,
   resolveLandTieBreak,
   selectSeededGlobalEvent,
   selectSeededLocalEvent,
@@ -118,6 +119,30 @@ export type AuthoritativeMatchSnapshot = {
     round: number
     readyParticipantIds: ParticipantId[]
   }
+}
+
+export const AUTHORITATIVE_MATCH_STATE_VERSION = 1 as const
+
+export type PersistedAuthoritativeMatchState = {
+  version: typeof AUTHORITATIVE_MATCH_STATE_VERSION
+  revision: number
+  finished: boolean
+  state: GameState
+  phaseTiming: AuthoritativePhaseTiming | null
+  roundTiming: AuthoritativeRoundTiming | null
+  serverCommandSequence: number
+  roundPlans: Partial<
+    Record<ParticipantId, ParticipantRoundPlan>
+  >
+  lastRoundReports: Partial<
+    Record<ParticipantId, RoundReport>
+  >
+  localEventSchedules: Array<{
+    participantId: ParticipantId
+    event: LocalEventId
+    round: number
+    deadlineAt: number
+  }>
 }
 
 export type AuthoritativeCommandResult =
@@ -240,6 +265,211 @@ function isParticipantId(
     typeof participantId === 'string' &&
     participantIds.includes(participantId as ParticipantId)
   )
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value)
+  )
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return (
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0
+  )
+}
+
+function isNonNegativeFiniteNumber(
+  value: unknown,
+): value is number {
+  return (
+    typeof value === 'number' &&
+    Number.isFinite(value) &&
+    value >= 0
+  )
+}
+
+function hasOnlyParticipantKeys(value: Record<string, unknown>) {
+  return Object.keys(value).every((key) =>
+    isParticipantId(key),
+  )
+}
+
+function isPersistedGameStateShape(
+  value: unknown,
+): value is GameState {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  const match = value.match
+  const colonies = value.colonies
+
+  if (
+    !isRecord(match) ||
+    match.version !== 1 ||
+    !isNonNegativeInteger(match.seed) ||
+    !isRecord(match.participants) ||
+    !isNonNegativeInteger(value.round) ||
+    value.round === 0 ||
+    !isRecord(colonies) ||
+    !Array.isArray(value.initiatedMarketResources) ||
+    !isRecord(value.market)
+  ) {
+    return false
+  }
+
+  const participants = match.participants
+
+  return participantIds.every(
+    (participantId) =>
+      isRecord(participants[participantId]) &&
+      participants[participantId].id === participantId &&
+      isRecord(colonies[participantId]) &&
+      colonies[participantId].id === participantId,
+  )
+}
+
+function isPhaseTiming(
+  value: unknown,
+): value is AuthoritativePhaseTiming | null {
+  if (value === null) {
+    return true
+  }
+
+  if (
+    !isRecord(value) ||
+    !isNonNegativeFiniteNumber(value.deadlineAt)
+  ) {
+    return false
+  }
+
+  return value.kind === 'resource-market'
+    ? typeof value.resource === 'string' &&
+        (value.phase === 'announcement' ||
+          value.phase === 'declaration' ||
+          value.phase === 'auction')
+    : value.kind === 'land-auction' &&
+        typeof value.tileId === 'string' &&
+        value.tileId.length > 0 &&
+        (value.phase === 'announcement' ||
+          value.phase === 'auction')
+}
+
+function isRoundTiming(
+  value: unknown,
+): value is AuthoritativeRoundTiming | null {
+  if (value === null) {
+    return true
+  }
+
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return value.status === 'running'
+    ? isNonNegativeFiniteNumber(value.deadlineAt)
+    : value.status === 'paused' &&
+        isNonNegativeFiniteNumber(value.remainingMilliseconds)
+}
+
+function isJsonValue(
+  value: unknown,
+  ancestors = new Set<object>(),
+): boolean {
+  if (
+    value === null ||
+    typeof value === 'boolean' ||
+    typeof value === 'string'
+  ) {
+    return true
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value)
+  }
+
+  if (typeof value !== 'object' || ancestors.has(value)) {
+    return false
+  }
+
+  ancestors.add(value)
+  const valid = Array.isArray(value)
+    ? value.every((entry) => isJsonValue(entry, ancestors))
+    : (Object.getPrototypeOf(value) === Object.prototype ||
+        Object.getPrototypeOf(value) === null) &&
+      Object.values(value).every((entry) =>
+        entry === undefined ||
+        isJsonValue(entry, ancestors),
+      )
+  ancestors.delete(value)
+  return valid
+}
+
+function clonePersistenceJson<T>(value: T): T {
+  if (!isJsonValue(value)) {
+    throw new Error(
+      'Authoritative match persistence state must be JSON-serializable.',
+    )
+  }
+
+  return JSON.parse(JSON.stringify(value)) as T
+}
+
+export function parsePersistedAuthoritativeMatchState(
+  input: unknown,
+): PersistedAuthoritativeMatchState | null {
+  if (
+    !isRecord(input) ||
+    input.version !== AUTHORITATIVE_MATCH_STATE_VERSION ||
+    !isNonNegativeInteger(input.revision) ||
+    typeof input.finished !== 'boolean' ||
+    !isPersistedGameStateShape(input.state) ||
+    !isPhaseTiming(input.phaseTiming) ||
+    !isRoundTiming(input.roundTiming) ||
+    !isNonNegativeInteger(input.serverCommandSequence) ||
+    !isRecord(input.roundPlans) ||
+    !hasOnlyParticipantKeys(input.roundPlans) ||
+    !Object.values(input.roundPlans).every(
+      (plan) => parseParticipantRoundPlan(plan) !== null,
+    ) ||
+    !isRecord(input.lastRoundReports) ||
+    !hasOnlyParticipantKeys(input.lastRoundReports) ||
+    !Object.values(input.lastRoundReports).every(isRecord) ||
+    !Array.isArray(input.localEventSchedules)
+  ) {
+    return null
+  }
+
+  const scheduledParticipants = new Set<ParticipantId>()
+
+  for (const schedule of input.localEventSchedules) {
+    if (
+      !isRecord(schedule) ||
+      !isParticipantId(schedule.participantId) ||
+      scheduledParticipants.has(schedule.participantId) ||
+      !localEventIds.includes(schedule.event as LocalEventId) ||
+      !isNonNegativeInteger(schedule.round) ||
+      schedule.round === 0 ||
+      !isNonNegativeFiniteNumber(schedule.deadlineAt)
+    ) {
+      return null
+    }
+
+    scheduledParticipants.add(schedule.participantId)
+  }
+
+  try {
+    return clonePersistenceJson(
+      input,
+    ) as PersistedAuthoritativeMatchState
+  } catch {
+    return null
+  }
 }
 
 function isServerControlledCommand(command: GameCommand) {
@@ -368,6 +598,14 @@ export class AuthoritativeMatch {
   private readonly localEventTimers = new Map<
     ParticipantId,
     unknown
+  >()
+  private readonly localEventSchedules = new Map<
+    ParticipantId,
+    {
+      event: LocalEventId
+      round: number
+      deadlineAt: number
+    }
   >()
   private readonly clock: MatchClock
   private readonly onSubscriberError: (error: unknown) => void
@@ -629,6 +867,30 @@ export class AuthoritativeMatch {
     )
   }
 
+  exportPersistenceState(): PersistedAuthoritativeMatchState {
+    return clonePersistenceJson({
+      version: AUTHORITATIVE_MATCH_STATE_VERSION,
+      revision: this.revision,
+      finished: this.finished,
+      state: this.state,
+      phaseTiming: this.phaseTiming,
+      roundTiming: this.getRoundTiming(),
+      serverCommandSequence: this.serverCommandSequence,
+      roundPlans: Object.fromEntries(this.roundPlans),
+      lastRoundReports: this.lastRoundReports,
+      localEventSchedules: participantIds.flatMap(
+        (participantId) => {
+          const schedule =
+            this.localEventSchedules.get(participantId)
+
+          return schedule
+            ? [{ participantId, ...schedule }]
+            : []
+        },
+      ),
+    })
+  }
+
   subscribe(
     subscriber: (
       snapshot: AuthoritativeMatchSnapshot,
@@ -677,6 +939,7 @@ export class AuthoritativeMatch {
     }
 
     this.localEventTimers.clear()
+    this.localEventSchedules.clear()
   }
 
   private scheduleLocalEvents(state: GameState) {
@@ -712,8 +975,14 @@ export class AuthoritativeMatch {
     round: number,
     delayMilliseconds: number,
   ) {
+    this.localEventSchedules.set(participantId, {
+      event,
+      round,
+      deadlineAt: this.clock.now() + delayMilliseconds,
+    })
     const timer = this.clock.setTimeout(() => {
       this.localEventTimers.delete(participantId)
+      this.localEventSchedules.delete(participantId)
 
       if (this.state.round !== round) {
         return
