@@ -2,6 +2,7 @@ services:
   - type: web
     name: elum-multiplayer
     runtime: node
+    plan: free
     rootDir: web
     buildCommand: npm ci && npm run build
     startCommand: npm run server
