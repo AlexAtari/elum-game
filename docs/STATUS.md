@@ -150,6 +150,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - sichtbare Eingaben für Name, WebSocket-Server und Lobby-ID sowie
   Vier-Sitz-Übersicht, Verbindungsstatus, Bereitschaft und
   Host-Startsteuerung sind implementiert
+- verbundene Teilnehmer können einen Einladungslink teilen; beim
+  Öffnen wechselt die Startseite direkt in die Mehrspieler-Lobby und
+  übernimmt validiert Serveradresse sowie Lobbycode, ohne Name,
+  Reconnect-Token oder automatischen Beitritt zu übertragen
 - Browserclient übernimmt Lobby- und Match-Snapshots, speichert das
   geheime Reconnect-Token nur lokal und nimmt denselben Sitz nach
   einem Verbindungsabbruch automatisch wieder auf
@@ -322,11 +326,11 @@ Rundenfrist verhindert inzwischen auch Blockaden durch untätige oder
 getrennte Spieler. Derselbe Server verwaltet inzwischen mehrere
 dynamische, voneinander isolierte Lobbycodes und bereinigt leere
 Räume nach einer zehnminütigen, durch Reconnect abbrechbaren
-Schonfrist. Als nächstes kleines Infrastrukturpaket folgen
-Einladungslinks mit automatischer Übernahme von Serveradresse und
-Lobbycode. Danach stehen die Entscheidungen zu Backend-Hosting, TLS
-mit `wss://`, Origin-Policy und betrieblicher Überwachung an; GitHub
-Pages hostet weiterhin nur das statische Frontend.
+Schonfrist. Einladungslinks übernehmen inzwischen Serveradresse und
+Lobbycode direkt in den Mehrspielerpfad. Als nächstes stehen die
+Entscheidungen zu Backend-Hosting, TLS mit `wss://`, Origin-Policy
+und betrieblicher Überwachung an; GitHub Pages hostet weiterhin nur
+das statische Frontend.
 
 ## Grundstücksauktion – aktueller Sollstand
 

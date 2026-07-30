@@ -50,7 +50,11 @@ Reconnect-Tokens danach vollständig verworfen.
 Die React-Startseite enthält eine Mehrspieler-Lobby. Sie leitet den
 Server standardmäßig aus dem aktuellen Seitenhost und Port `8787` ab;
 Server und Lobby-ID können in der Oberfläche geändert werden. Nach
-dem Matchstart wechselt jeder menschliche Sitz in seine eigene
+dem Beitritt kann jeder Teilnehmer einen Einladungslink teilen. Der
+Link öffnet den Mehrspielerpfad direkt und übernimmt Serveradresse
+sowie Lobbycode; Name, Reconnect-Token und automatischer Beitritt
+werden bewusst nicht in die URL aufgenommen. Nach dem Matchstart
+wechselt jeder menschliche Sitz in seine eigene
 teilnehmerbezogene Spielansicht. Karte, HQ, Harvester,
 Grundstücksgebote, Ressourcenmärkte und Rundenplanung verwenden dort
 ausschließlich Server-Snapshots und Netzwerkkommandos. Nach der

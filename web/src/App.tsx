@@ -58,6 +58,7 @@ import {
 } from './gameCommands'
 import { useI18n } from './i18n/I18nContext'
 import type { ParticipantId } from './match'
+import { readMultiplayerInvite } from './multiplayerClient'
 import './App.css'
 
 const supplyLabelKeys = [
@@ -83,9 +84,13 @@ function createClientCommandId() {
 
 function App() {
   const { number, t } = useI18n()
+  const initialMultiplayerInvite = useMemo(
+    () => readMultiplayerInvite(window.location.search),
+    [],
+  )
   const [gameStarted, setGameStarted] = useState(false)
   const [showMultiplayerLobby, setShowMultiplayerLobby] =
-    useState(false)
+    useState(() => initialMultiplayerInvite !== null)
   const [gameState, setGameState] = useState(
     () => createPlayableInitialGameState(Date.now()),
   )
@@ -1007,6 +1012,7 @@ function App() {
   if (showMultiplayerLobby) {
     return (
       <MultiplayerLobbyScreen
+        initialInvite={initialMultiplayerInvite}
         onBack={() => setShowMultiplayerLobby(false)}
       />
     )

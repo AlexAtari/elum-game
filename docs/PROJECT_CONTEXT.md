@@ -364,6 +364,9 @@ werden.
 - Name, Sitzvergabe, Bereitschaft, Hoststart, KI-Füllung,
   Verbindungsstatus und Wiederaufnahme per lokal gespeichertem
   Reconnect-Token sind über die sichtbare Oberfläche bedienbar
+- Einladungslinks öffnen direkt die Mehrspieler-Lobby und übernehmen
+  Serveradresse sowie Lobbycode; Name und geheime Reconnect-Tokens
+  bleiben lokal und der Beitritt erfordert eine bewusste Bestätigung
 - nach dem Matchstart wechselt jeder menschliche Sitz in eine
   teilnehmerbezogene Spielansicht; Karte, HQ, Harvester,
   Grundstücksgebote, Ressourcenmärkte und Rundenplanung werden aus
@@ -393,10 +396,9 @@ werden.
   bleiben erhalten, alle Bereitschaften werden zurückgesetzt
 - Rivalenabrechnung bleibt für Headless-Läufe eine getrennte
   Record-Funktion; der Browser übernimmt sie über einen Adapter
-- nächster Strukturschritt: Einladungslinks ergänzen, die
-  Serveradresse und Lobbycode automatisch übernehmen; danach
-  Backend-Hosting, TLS sowie Origin-Policy für öffentlichen
-  Mehrspielerbetrieb festlegen
+- nächster Strukturschritt: Backend-Hosting, TLS sowie Origin-Policy
+  für öffentlichen Mehrspielerbetrieb festlegen und anschließend
+  betriebliche Überwachung ergänzen
 
 ### Nächster Regelstand
 

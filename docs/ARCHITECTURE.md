@@ -313,8 +313,8 @@ Abbruch bei Reconnect und endgültige Token-Ungültigkeit nach der
 Bereinigung ab. Token-Erzeugung und Sitzbindung verbleiben auf der
 Serverseite. GitHub Pages kann weiterhin nur das Frontend hosten,
 aber nicht diesen dauerhaft laufenden Dienst. Für öffentlichen
-Betrieb fehlen deshalb noch Einladungslinks, Backend-Hosting, TLS
-mit `wss://`, Origin-Policy sowie betriebliche Überwachung.
+Betrieb fehlen deshalb noch Backend-Hosting, TLS mit `wss://`,
+Origin-Policy sowie betriebliche Überwachung.
 
 Die lokale React-Partie koordiniert ihre Runde weiterhin in
 `App.tsx`; der Mehrspieler-Client verwendet stattdessen
@@ -331,6 +331,15 @@ Lobby-ID editieren und sendet Beitritt, Bereitschaft und Hoststart
 über die typisierten Protokollnachrichten. Lobby-Snapshots erzeugen
 die Vier-Sitz-Ansicht; Reconnect-Token werden nur lokal für die
 automatische Wiederaufnahme desselben Sitzes gespeichert.
+
+`multiplayerClient.ts` kapselt zusätzlich das URL-Format für
+Einladungen. `?multiplayer=1&server=<WebSocket-Ursprung>&lobby=<Code>`
+öffnet beim Laden direkt die Mehrspieler-Lobby und füllt beide
+Verbindungswerte validiert vor. Ein verbundener Teilnehmer kann
+diesen Link über die native Mobilfreigabe teilen oder in die
+Zwischenablage kopieren. Anzeigename und Reconnect-Token sind
+absichtlich kein Bestandteil der URL; der eingeladene Spieler gibt
+seinen Namen ein und bestätigt den Beitritt selbst.
 
 Nach dem Matchstart wechselt der Client in
 `MultiplayerGameScreen.tsx`. Die Komponente leitet Kolonie,

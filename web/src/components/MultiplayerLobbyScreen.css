@@ -114,7 +114,19 @@
   font-size: 0.82rem;
 }
 
+.multiplayer-invite-loaded {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(121, 221, 185, 0.24);
+  border-radius: 11px;
+  color: #9cf0d1;
+  background: rgba(121, 221, 185, 0.07);
+  font-size: 0.84rem;
+}
+
 .multiplayer-lobby-meta {
+  align-items: stretch;
   display: flex;
   gap: 12px;
   margin-top: 26px;
@@ -127,6 +139,12 @@
   padding: 12px 14px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.045);
+}
+
+.multiplayer-invite-button {
+  min-height: 100%;
+  margin-left: auto;
+  padding: 10px 16px;
 }
 
 .multiplayer-seat-grid {
@@ -286,6 +304,12 @@
   .multiplayer-lobby-meta {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .multiplayer-invite-button {
+    grid-column: 1 / -1;
+    min-height: 46px;
+    margin-left: 0;
   }
 
   .multiplayer-lobby-meta > div {

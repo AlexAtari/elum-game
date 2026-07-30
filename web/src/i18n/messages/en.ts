@@ -269,6 +269,13 @@ export const en = {
   'multiplayer.reconnect': 'Reconnect',
   'multiplayer.localServerHint':
     'The multiplayer server must be running for local tests. Smartphones use the computer’s Wi-Fi address.',
+  'multiplayer.inviteLoaded':
+    'Invitation loaded. Enter your name and join the lobby.',
+  'multiplayer.inviteShare': 'Share invitation link',
+  'multiplayer.inviteShareText':
+    'Join my E.L.U.M. expedition.',
+  'multiplayer.inviteCopied': 'Invitation link copied',
+  'multiplayer.inviteShared': 'Invitation shared',
   'multiplayer.yourColony': 'Your colony',
   'multiplayer.seatOpen': 'Open seat',
   'multiplayer.seatAi': 'AI colony',
@@ -290,6 +297,8 @@ export const en = {
     'Please check name, server and lobby.',
   'multiplayer.errorConnection':
     'The multiplayer server cannot be reached.',
+  'multiplayer.errorInviteShare':
+    'The invitation link could not be shared or copied.',
   'multiplayer.errorInvalidResponse':
     'The server sent an unreadable response.',
   'multiplayer.errorLobbyFull': 'This lobby is already full.',

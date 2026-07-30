@@ -269,6 +269,13 @@ export const de = {
   'multiplayer.reconnect': 'Erneut verbinden',
   'multiplayer.localServerHint':
     'Für lokale Tests muss der Multiplayer-Server auf dem Rechner laufen. Smartphones verwenden dessen WLAN-IP.',
+  'multiplayer.inviteLoaded':
+    'Einladung übernommen. Gib nur noch deinen Namen ein und tritt der Lobby bei.',
+  'multiplayer.inviteShare': 'Einladungslink teilen',
+  'multiplayer.inviteShareText':
+    'Tritt meiner E.L.U.M.-Expedition bei.',
+  'multiplayer.inviteCopied': 'Einladungslink kopiert',
+  'multiplayer.inviteShared': 'Einladung geteilt',
   'multiplayer.yourColony': 'Deine Kolonie',
   'multiplayer.seatOpen': 'Freier Sitz',
   'multiplayer.seatAi': 'KI-Kolonie',
@@ -290,6 +297,8 @@ export const de = {
     'Bitte Name, Server und Lobby prüfen.',
   'multiplayer.errorConnection':
     'Der Multiplayer-Server ist nicht erreichbar.',
+  'multiplayer.errorInviteShare':
+    'Der Einladungslink konnte nicht geteilt oder kopiert werden.',
   'multiplayer.errorInvalidResponse':
     'Der Server hat eine unlesbare Antwort gesendet.',
   'multiplayer.errorLobbyFull': 'Diese Lobby ist bereits voll.',

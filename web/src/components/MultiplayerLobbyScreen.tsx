@@ -8,6 +8,8 @@ import { useI18n } from '../i18n/I18nContext'
 import {
   buildMultiplayerWebSocketUrl,
   createDefaultMultiplayerServerUrl,
+  createMultiplayerInviteUrl,
+  type MultiplayerInvite,
 } from '../multiplayerClient'
 import type {
   LobbySeatSnapshot,
@@ -22,6 +24,7 @@ import MultiplayerGameScreen from './MultiplayerGameScreen'
 import './MultiplayerLobbyScreen.css'
 
 type MultiplayerLobbyScreenProps = {
+  initialInvite: MultiplayerInvite | null
   onBack: () => void
 }
 
@@ -35,6 +38,8 @@ type StoredSession = {
   endpoint: string
   reconnectToken: string
 }
+
+type InviteActionStatus = 'idle' | 'copied' | 'shared'
 
 const participantOrder: ParticipantId[] = [
   'agima',
@@ -81,6 +86,27 @@ function readStoredSession(): StoredSession | null {
   }
 }
 
+async function copyText(value: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value)
+    return
+  }
+
+  const textarea = document.createElement('textarea')
+  textarea.value = value
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  document.body.append(textarea)
+  textarea.select()
+  const copied = document.execCommand('copy')
+  textarea.remove()
+
+  if (!copied) {
+    throw new Error('Unable to copy invite link.')
+  }
+}
+
 function describeSeat(
   seat: LobbySeatSnapshot,
   t: ReturnType<typeof useI18n>['t'],
@@ -124,6 +150,7 @@ function errorKey(error: MultiplayerServerError) {
 }
 
 export default function MultiplayerLobbyScreen({
+  initialInvite,
   onBack,
 }: MultiplayerLobbyScreenProps) {
   const { t } = useI18n()
@@ -132,9 +159,12 @@ export default function MultiplayerLobbyScreen({
   const resumeAttemptRef = useRef(false)
   const displayNameRef = useRef('')
   const [serverUrl, setServerUrl] = useState(() =>
+    initialInvite?.serverUrl ??
     createDefaultMultiplayerServerUrl(window.location),
   )
-  const [lobbyId, setLobbyId] = useState('mars-alpha')
+  const [lobbyId, setLobbyId] = useState(
+    () => initialInvite?.lobbyId ?? 'mars-alpha',
+  )
   const [displayName, setDisplayName] = useState('')
   const [status, setStatus] =
     useState<ConnectionStatus>('idle')
@@ -145,6 +175,8 @@ export default function MultiplayerLobbyScreen({
   const [matchSnapshot, setMatchSnapshot] =
     useState<AuthoritativeMatchSnapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [inviteActionStatus, setInviteActionStatus] =
+    useState<InviteActionStatus>('idle')
 
   const ownSeat = participantId
     ? snapshot?.seats[participantId] ?? null
@@ -173,6 +205,21 @@ export default function MultiplayerLobbyScreen({
       return null
     }
   }, [lobbyId, serverUrl])
+  const inviteUrl = useMemo(() => {
+    if (!endpoint) {
+      return null
+    }
+
+    try {
+      return createMultiplayerInviteUrl(
+        window.location.href,
+        serverUrl,
+        lobbyId,
+      )
+    } catch {
+      return null
+    }
+  }, [endpoint, lobbyId, serverUrl])
 
   useEffect(
     () => () => {
@@ -356,6 +403,40 @@ export default function MultiplayerLobbyScreen({
     })
   }
 
+  const shareInvite = async () => {
+    if (!inviteUrl) {
+      return
+    }
+
+    setError(null)
+
+    try {
+      if (
+        typeof navigator.share === 'function' &&
+        navigator.maxTouchPoints > 0
+      ) {
+        await navigator.share({
+          title: 'E.L.U.M.',
+          text: t('multiplayer.inviteShareText'),
+          url: inviteUrl,
+        })
+        setInviteActionStatus('shared')
+      } else {
+        await copyText(inviteUrl)
+        setInviteActionStatus('copied')
+      }
+    } catch (shareError) {
+      if (
+        shareError instanceof DOMException &&
+        shareError.name === 'AbortError'
+      ) {
+        return
+      }
+
+      setError(t('multiplayer.errorInviteShare'))
+    }
+  }
+
   const leave = () => {
     socketRef.current?.close()
     socketRef.current = null
@@ -398,6 +479,11 @@ export default function MultiplayerLobbyScreen({
 
         {status === 'idle' || status === 'disconnected' ? (
           <div className="multiplayer-connect-form">
+            {initialInvite ? (
+              <p className="multiplayer-invite-loaded">
+                {t('multiplayer.inviteLoaded')}
+              </p>
+            ) : null}
             <label>
               <span>{t('multiplayer.name')}</span>
               <input
@@ -463,6 +549,17 @@ export default function MultiplayerLobbyScreen({
                     : '—'}
                 </strong>
               </div>
+              <button
+                className="secondary-button multiplayer-invite-button"
+                type="button"
+                onClick={() => void shareInvite()}
+              >
+                {inviteActionStatus === 'copied'
+                  ? t('multiplayer.inviteCopied')
+                  : inviteActionStatus === 'shared'
+                    ? t('multiplayer.inviteShared')
+                    : t('multiplayer.inviteShare')}
+              </button>
             </div>
 
             <div className="multiplayer-seat-grid">
