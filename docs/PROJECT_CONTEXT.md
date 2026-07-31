@@ -243,8 +243,10 @@ werden.
 - lückenlose sphärische Dualzellen als unsichtbare
   Interaktionsflächen und kugelrichtige Rückprojektion der fest auf
   dem Planeten verankerten Oberflächentextur
-- feste Sonnenbeleuchtung und atmosphärischer Rand; Feldnummern nur
-  in Details und barrierefreien Namen, nicht auf der Kugeloberfläche
+- feste Sonnenbeleuchtung ohne künstlichen blauen Kugelrand sowie ein
+  zweistufiges, an die Planetendrehung gekoppeltes Sternfeld;
+  Feldnummern nur in Details und barrierefreien Namen, nicht auf der
+  Kugeloberfläche
 - mobile Kartenbreite mit schmaleren Seitenabständen und Nahzoom bis
   2,2-facher Ausgangsgröße; Harvesterplatzierung und Grundstücksgebot
   öffnen mobil über zwei kompakte Buttons direkt unter dem Planeten

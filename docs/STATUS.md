@@ -261,7 +261,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - nahrungsreiche Regionen entwickeln sich schneller und stärker;
   karge sowie erzreiche Regionen behalten länger Marsgestein
 - feste gerichtete Beleuchtung mit heller Einfallsseite, weich
-  abgedunkelter Gegenseite und atmosphärischem Kugelrand
+  abgedunkelter Gegenseite; der frühere blaue Kugelrand ist entfernt
+- tief gestaffeltes Sternfeld statt schwarzer Kartenfläche; zwei
+  Sternenebenen verschieben sich mit der Yaw- und Pitch-Rotation des
+  Planeten und bleiben nach einer vollständigen Drehung nahtlos
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in
   Spielstand und Diagnose erhalten
 - alle 91 Grundstücke tragen feste, eindeutige Londoner

@@ -1,6 +1,7 @@
 import {
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent,
   type WheelEvent,
 } from 'react'
@@ -326,6 +327,21 @@ function HexMap({
     !isLandBidBlocked &&
     selectedIsAdjacentToPlayer &&
     credits >= minimumBid
+  const fullTurn = Math.PI * 2
+  const spaceBackgroundStyle = {
+    '--stars-far-x': `${
+      (cameraState.yaw / fullTurn) * 180
+    }px`,
+    '--stars-far-y': `${
+      (cameraState.pitch / Math.PI) * 90
+    }px`,
+    '--stars-near-x': `${
+      (cameraState.yaw / fullTurn) * 260
+    }px`,
+    '--stars-near-y': `${
+      (cameraState.pitch / Math.PI) * 130
+    }px`,
+  } as CSSProperties
 
   const updateCamera = (camera: MapCamera) => {
     const nextCamera = {
@@ -603,6 +619,11 @@ function HexMap({
 
       <div className="map-layout">
         <div className="hex-map-viewport">
+          <div
+            className="space-backdrop"
+            style={spaceBackgroundStyle}
+            aria-hidden="true"
+          />
           <PlanetSurface
             radius={PLANET_RADIUS * cameraState.zoom}
             rotation={cameraState}
@@ -705,14 +726,6 @@ function HexMap({
               </clipPath>
             </defs>
 
-            <circle
-              className="planet-atmosphere"
-              r={PLANET_RADIUS * cameraState.zoom + 10}
-            />
-            <circle
-              className="planet-surface"
-              r={PLANET_RADIUS * cameraState.zoom}
-            />
             <circle
               className="planet-cell-lighting"
               r={PLANET_RADIUS * cameraState.zoom}
