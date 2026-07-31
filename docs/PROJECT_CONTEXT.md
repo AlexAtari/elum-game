@@ -374,8 +374,9 @@ werden.
 - zwei lokal gebündelte Startvideos laufen im Einzelspieler erst nach
   „Neue Kolonie“ stumm und automatisch direkt hintereinander; sie
   sind ohne sichtbaren Abschnittszähler jederzeit überspringbar und
-  werden auf Smartphones vollständig ohne seitliches Abschneiden
-  eingepasst, während gültige Einladungslinks sofort die Lobby öffnen
+  werden auf Smartphones zentriert so vergrößert, dass seitlich
+  zusammen ungefähr 15 Prozent des Bildes abgeschnitten werden,
+  während gültige Einladungslinks sofort die Lobby öffnen
 - Name, Sitzvergabe, Bereitschaft, Hoststart, KI-Füllung,
   Verbindungsstatus und Wiederaufnahme per lokal gespeichertem
   Reconnect-Token sind über die sichtbare Oberfläche bedienbar

@@ -152,9 +152,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   stummgeschaltete Videos direkt hintereinander, danach beginnt die
   Partie; die Sequenz ist jederzeit überspringbar und zeigt keinen
   sichtbaren Abschnittszähler
-- auf Smartphones werden die 16:9-Startvideos vollständig in das
-  Hochformat eingepasst, statt wichtige Bildbereiche an den Seiten
-  abzuschneiden
+- auf Smartphones werden die 16:9-Startvideos zentriert vergrößert;
+  links und rechts werden zusammen ungefähr 15 Prozent abgeschnitten,
+  damit die Sequenz im Hochformat präsenter erscheint
 - sichtbare Eingaben für Name, WebSocket-Server und Lobby-ID sowie
   Vier-Sitz-Übersicht, Verbindungsstatus, Bereitschaft und
   Host-Startsteuerung sind implementiert

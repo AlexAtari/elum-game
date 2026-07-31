@@ -64,7 +64,10 @@
   }
 
   .intro-video {
+    width: calc(100% / 0.85);
     height: 100dvh;
+    max-width: none;
+    justify-self: center;
     object-fit: contain;
   }
 }
