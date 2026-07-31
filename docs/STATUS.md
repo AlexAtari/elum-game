@@ -158,6 +158,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - sichtbare Eingaben für Name, WebSocket-Server und Lobby-ID sowie
   Vier-Sitz-Übersicht, Verbindungsstatus, Bereitschaft und
   Host-Startsteuerung sind implementiert
+- ein sichtbarer Aufweck-Button ruft vor dem Beitritt den aus der
+  WebSocket-Adresse abgeleiteten Health-Endpunkt auf und zeigt
+  Kaltstart, Bereitschaft oder einen erneuten Versuch verständlich an
 - verbundene Teilnehmer können einen Einladungslink teilen; beim
   Öffnen wechselt die Startseite direkt in die Mehrspieler-Lobby und
   übernimmt Serveradresse sowie Lobbycode validiert, ohne Name,
@@ -357,6 +360,10 @@ Browser-Origin. Der kostenlose Dienst `elum-multiplayer` ist unter
 `https://elum-multiplayer.onrender.com` angelegt; Health Check und
 TLS-WebSocket-Handshake sind erfolgreich geprüft. Die
 GitHub-Pages-Oberfläche verwendet ihn standardmäßig über `wss://`.
+Da der kostenlose Web-Service nach Inaktivität einschläft, kann die
+erste Antwort rund eine Minute dauern. Die Lobby kann ihn deshalb
+über einen eigenen Button wecken; `/health` ist dafür ohne
+Zugangsdaten browserlesbar und liefert nur aggregierte Zustandsdaten.
 Der Server hält WebSocket-Verbindungen mit einem 30-sekündigen
 Ping/Pong-Heartbeat sauber und entfernt nicht mehr antwortende
 Sockets; der Health-Endpunkt veröffentlicht Bereitschaft sowie

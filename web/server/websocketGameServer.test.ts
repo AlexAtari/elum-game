@@ -225,6 +225,9 @@ describe('Lokaler WebSocket-Spielserver', () => {
         `http://127.0.0.1:${address.port}/health`,
       )
       expect(healthResponse.status).toBe(200)
+      expect(
+        healthResponse.headers.get('access-control-allow-origin'),
+      ).toBe('*')
       expect(await healthResponse.json()).toEqual({
         ok: true,
         status: 'ready',

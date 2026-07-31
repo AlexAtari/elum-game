@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
+  buildMultiplayerHealthUrl,
   buildMultiplayerWebSocketUrl,
   createDefaultMultiplayerServerUrl,
   createMultiplayerInviteUrl,
   readMultiplayerInvite,
+  wakeMultiplayerServer,
 } from './multiplayerClient'
 
 describe('Multiplayer-Clientadresse', () => {
@@ -46,6 +48,35 @@ describe('Multiplayer-Clientadresse', () => {
         'mars',
       ),
     ).toThrow('WebSocket URL required.')
+  })
+
+  it('leitet den Health-Endpunkt aus der WebSocket-Adresse ab', () => {
+    expect(
+      buildMultiplayerHealthUrl(
+        'wss://elum-multiplayer.onrender.com/old?lobby=mars',
+      ),
+    ).toBe('https://elum-multiplayer.onrender.com/health')
+    expect(
+      buildMultiplayerHealthUrl('ws://192.168.1.20:8787'),
+    ).toBe('http://192.168.1.20:8787/health')
+  })
+
+  it('weckt den Server und prüft seine Bereitschaft', async () => {
+    const fetcher = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ ok: true, status: 'ready' }),
+    }))
+
+    await expect(
+      wakeMultiplayerServer(
+        'wss://elum-multiplayer.onrender.com',
+        fetcher,
+      ),
+    ).resolves.toBe(true)
+    expect(fetcher).toHaveBeenCalledWith(
+      'https://elum-multiplayer.onrender.com/health',
+      expect.objectContaining({ cache: 'no-store' }),
+    )
   })
 
   it('erzeugt einen Einladungslink für die aktuelle Seite', () => {

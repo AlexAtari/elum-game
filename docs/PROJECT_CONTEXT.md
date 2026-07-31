@@ -370,7 +370,9 @@ werden.
   für Smartphone-Tests explizit im lokalen WLAN freigegeben werden
 - React-Startseite bietet getrennte Einzel- und Mehrspielerpfade;
   die responsive Lobby verbindet sich mit einem editierbaren
-  WebSocket-Ziel und zeigt alle vier Koloniesitze
+  WebSocket-Ziel, kann dessen Health-Endpunkt zum Aufwecken eines
+  eingeschlafenen kostenlosen Servers aufrufen und zeigt alle vier
+  Koloniesitze
 - zwei lokal gebündelte Startvideos laufen im Einzelspieler erst nach
   „Neue Kolonie“ stumm und automatisch direkt hintereinander; sie
   sind ohne sichtbaren Abschnittszähler jederzeit überspringbar und
@@ -419,7 +421,8 @@ werden.
   standardmäßig
 - 30-sekündiger WebSocket-Heartbeat entfernt nicht mehr antwortende
   Verbindungen; der Health-Endpunkt meldet Bereitschaft, Lobby- und
-  Verbindungszahl
+  Verbindungszahl und erlaubt dem statischen Browserclient einen
+  CORS-freigegebenen lesenden Aufweckaufruf ohne Zugangsdaten
 - Prometheus-kompatibler `/metrics`-Endpunkt veröffentlicht nur
   aggregierte Gauges und Prozesszähler, keine Lobby- oder Sitzdaten
 - GitHub Action prüft Health und Metrikformat alle sechs Stunden und

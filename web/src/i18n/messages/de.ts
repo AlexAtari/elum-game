@@ -271,8 +271,18 @@ export const de = {
   'multiplayer.lobby': 'Lobby',
   'multiplayer.connect': 'Lobby beitreten',
   'multiplayer.reconnect': 'Erneut verbinden',
+  'multiplayer.serverWake': 'Server aufwecken',
+  'multiplayer.serverWaking': 'Server wird geweckt …',
+  'multiplayer.serverWakeRetry': 'Aufwecken erneut versuchen',
+  'multiplayer.serverReady': 'Server ist bereit',
+  'multiplayer.serverWakingHint':
+    'Der kostenlose Server startet. Das kann nach einer Pause bis zu einer Minute dauern.',
+  'multiplayer.serverReadyHint':
+    'Der Multiplayer-Server ist bereit. Du kannst jetzt der Lobby beitreten.',
+  'multiplayer.serverWakeError':
+    'Der Server hat nicht rechtzeitig geantwortet. Bitte versuche das Aufwecken erneut.',
   'multiplayer.localServerHint':
-    'Für lokale Tests muss der Multiplayer-Server auf dem Rechner laufen. Smartphones verwenden dessen WLAN-IP.',
+    'Für lokale Tests muss der Multiplayer-Server auf dem Rechner laufen. Smartphones verwenden dessen WLAN-IP. Der kostenlose Onlineserver kann nach einer Pause einschlafen.',
   'multiplayer.inviteLoaded':
     'Einladung übernommen. Gib nur noch deinen Namen ein und tritt der Lobby bei.',
   'multiplayer.inviteShare': 'Einladungslink teilen',

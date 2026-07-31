@@ -234,6 +234,7 @@ export class WebSocketGameServer {
         response.writeHead(200, {
           'Content-Type': 'application/json; charset=utf-8',
           'Cache-Control': 'no-store',
+          'Access-Control-Allow-Origin': '*',
         })
         response.end(
           JSON.stringify({

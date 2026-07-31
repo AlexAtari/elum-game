@@ -271,8 +271,18 @@ export const en = {
   'multiplayer.lobby': 'Lobby',
   'multiplayer.connect': 'Join lobby',
   'multiplayer.reconnect': 'Reconnect',
+  'multiplayer.serverWake': 'Wake server',
+  'multiplayer.serverWaking': 'Waking server …',
+  'multiplayer.serverWakeRetry': 'Try waking again',
+  'multiplayer.serverReady': 'Server is ready',
+  'multiplayer.serverWakingHint':
+    'The free server is starting. After a pause, this can take up to a minute.',
+  'multiplayer.serverReadyHint':
+    'The multiplayer server is ready. You can now join the lobby.',
+  'multiplayer.serverWakeError':
+    'The server did not respond in time. Please try waking it again.',
   'multiplayer.localServerHint':
-    'The multiplayer server must be running for local tests. Smartphones use the computer’s Wi-Fi address.',
+    'The multiplayer server must be running for local tests. Smartphones use the computer’s Wi-Fi address. The free online server may sleep after being idle.',
   'multiplayer.inviteLoaded':
     'Invitation loaded. Enter your name and join the lobby.',
   'multiplayer.inviteShare': 'Share invitation link',

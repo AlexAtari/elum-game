@@ -9,6 +9,7 @@ import {
   buildMultiplayerWebSocketUrl,
   createDefaultMultiplayerServerUrl,
   createMultiplayerInviteUrl,
+  wakeMultiplayerServer,
   type MultiplayerInvite,
 } from '../multiplayerClient'
 import type {
@@ -41,6 +42,7 @@ type StoredSession = {
 }
 
 type InviteActionStatus = 'idle' | 'copied' | 'shared'
+type ServerWakeStatus = 'idle' | 'waking' | 'ready' | 'error'
 
 const participantOrder: ParticipantId[] = [
   'agima',
@@ -156,6 +158,7 @@ export default function MultiplayerLobbyScreen({
 }: MultiplayerLobbyScreenProps) {
   const { t } = useI18n()
   const socketRef = useRef<WebSocket | null>(null)
+  const wakeRequestRef = useRef<AbortController | null>(null)
   const endpointRef = useRef('')
   const resumeAttemptRef = useRef(false)
   const displayNameRef = useRef('')
@@ -179,6 +182,8 @@ export default function MultiplayerLobbyScreen({
   const [error, setError] = useState<string | null>(null)
   const [inviteActionStatus, setInviteActionStatus] =
     useState<InviteActionStatus>('idle')
+  const [serverWakeStatus, setServerWakeStatus] =
+    useState<ServerWakeStatus>('idle')
 
   const ownSeat = participantId
     ? snapshot?.seats[participantId] ?? null
@@ -226,9 +231,47 @@ export default function MultiplayerLobbyScreen({
   useEffect(
     () => () => {
       socketRef.current?.close()
+      wakeRequestRef.current?.abort()
     },
     [],
   )
+
+  const wakeServer = async () => {
+    wakeRequestRef.current?.abort()
+    const controller = new AbortController()
+    wakeRequestRef.current = controller
+    setError(null)
+    setServerWakeStatus('waking')
+    const timeout = window.setTimeout(() => controller.abort(), 90_000)
+
+    try {
+      const ready = await wakeMultiplayerServer(
+        serverUrl,
+        fetch,
+        controller.signal,
+      )
+
+      if (wakeRequestRef.current === controller) {
+        setServerWakeStatus(ready ? 'ready' : 'error')
+      }
+    } catch {
+      if (wakeRequestRef.current === controller) {
+        setServerWakeStatus('error')
+      }
+    } finally {
+      window.clearTimeout(timeout)
+      if (wakeRequestRef.current === controller) {
+        wakeRequestRef.current = null
+      }
+    }
+  }
+
+  const updateServerUrl = (value: string) => {
+    wakeRequestRef.current?.abort()
+    wakeRequestRef.current = null
+    setServerWakeStatus('idle')
+    setServerUrl(value)
+  }
 
   const send = (message: MultiplayerClientMessage) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -516,7 +559,7 @@ export default function MultiplayerLobbyScreen({
                 spellCheck={false}
                 value={serverUrl}
                 onChange={(event) =>
-                  setServerUrl(event.target.value)
+                  updateServerUrl(event.target.value)
                 }
               />
             </label>
@@ -531,15 +574,50 @@ export default function MultiplayerLobbyScreen({
                 }
               />
             </label>
-            <button
-              className="start-button multiplayer-connect-button"
-              type="button"
-              onClick={connect}
-            >
-              {status === 'disconnected'
-                ? t('multiplayer.reconnect')
-                : t('multiplayer.connect')}
-            </button>
+            <div className="multiplayer-connect-actions">
+              <button
+                className="secondary-button multiplayer-wake-button"
+                disabled={serverWakeStatus === 'waking'}
+                type="button"
+                onClick={() => void wakeServer()}
+              >
+                {serverWakeStatus === 'waking'
+                  ? t('multiplayer.serverWaking')
+                  : serverWakeStatus === 'ready'
+                    ? t('multiplayer.serverReady')
+                    : serverWakeStatus === 'error'
+                      ? t('multiplayer.serverWakeRetry')
+                      : t('multiplayer.serverWake')}
+              </button>
+              <button
+                className="start-button multiplayer-connect-button"
+                type="button"
+                onClick={connect}
+              >
+                {status === 'disconnected'
+                  ? t('multiplayer.reconnect')
+                  : t('multiplayer.connect')}
+              </button>
+            </div>
+            {serverWakeStatus === 'waking' ? (
+              <p className="multiplayer-server-status" role="status">
+                {t('multiplayer.serverWakingHint')}
+              </p>
+            ) : serverWakeStatus === 'ready' ? (
+              <p
+                className="multiplayer-server-status is-ready"
+                role="status"
+              >
+                {t('multiplayer.serverReadyHint')}
+              </p>
+            ) : serverWakeStatus === 'error' ? (
+              <p
+                className="multiplayer-server-status is-error"
+                role="alert"
+              >
+                {t('multiplayer.serverWakeError')}
+              </p>
+            ) : null}
             <p className="multiplayer-hint">
               {t('multiplayer.localServerHint')}
             </p>

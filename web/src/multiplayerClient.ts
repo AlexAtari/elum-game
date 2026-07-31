@@ -16,6 +16,11 @@ export type MultiplayerInvite = {
   lobbyId: string
 }
 
+export type MultiplayerHealthFetcher = (
+  input: string,
+  init?: RequestInit,
+) => Promise<Pick<Response, 'ok' | 'json'>>
+
 export function createDefaultMultiplayerServerUrl(
   location: BrowserLocation,
 ) {
@@ -53,6 +58,46 @@ export function buildMultiplayerWebSocketUrl(
   url.hash = ''
   url.searchParams.set('lobby', normalizedLobbyId)
   return url.toString()
+}
+
+export function buildMultiplayerHealthUrl(serverUrl: string) {
+  const url = new URL(serverUrl.trim())
+
+  if (url.protocol !== 'ws:' && url.protocol !== 'wss:') {
+    throw new Error('WebSocket URL required.')
+  }
+
+  url.protocol = url.protocol === 'wss:' ? 'https:' : 'http:'
+  url.pathname = '/health'
+  url.search = ''
+  url.hash = ''
+  return url.toString()
+}
+
+export async function wakeMultiplayerServer(
+  serverUrl: string,
+  fetcher: MultiplayerHealthFetcher = fetch,
+  signal?: AbortSignal,
+) {
+  const response = await fetcher(
+    buildMultiplayerHealthUrl(serverUrl),
+    {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+      signal,
+    },
+  )
+
+  if (!response.ok) {
+    return false
+  }
+
+  const health = (await response.json()) as {
+    ok?: unknown
+    status?: unknown
+  }
+
+  return health.ok === true && health.status === 'ready'
 }
 
 export function createMultiplayerInviteUrl(

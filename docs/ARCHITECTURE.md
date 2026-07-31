@@ -295,6 +295,11 @@ Lobby- und Verbindungszahlen, keine Lobbycodes oder Sitzungsdaten.
 Verbindungen sowie monotone Prozesszähler für akzeptierte
 Verbindungen, empfangene Nachrichten und abgewiesene Upgrades.
 Bezeichner, Namen, Tokens und Matchinhalte werden nicht exportiert.
+Der rein lesende `/health`-Endpunkt sendet
+`Access-Control-Allow-Origin: *`, damit das statische Frontend einen
+eingeschlafenen kostenlosen Dienst vor dem WebSocket-Upgrade wecken
+kann. Er akzeptiert keine Eingaben und veröffentlicht weiterhin nur
+die genannten aggregierten Werte.
 `hostedServerMonitor.ts` validiert den öffentlichen Health-Endpunkt
 und das Vorhandensein sämtlicher erwarteter Metriken ohne
 Domänenzustand zu verändern. `monitor-multiplayer.yml` führt diese
@@ -435,7 +440,10 @@ Browserclient dieses Protokolls. Die Startseite trennt Einzel- und
 Mehrspielerpfad. Der Mehrspielerpfad leitet im lokalen Netz den
 WebSocket-Host aus dem aktuellen Seitenhost ab, lässt Server und
 Lobby-ID editieren und sendet Beitritt, Bereitschaft und Hoststart
-über die typisierten Protokollnachrichten. Lobby-Snapshots erzeugen
+über die typisierten Protokollnachrichten. Ein vorgeschalteter
+Aufweck-Button leitet `http(s)://…/health` aus dem eingetragenen
+`ws(s)://`-Ursprung ab, wartet bis zu 90 Sekunden auf Bereitschaft und
+ändert dabei keinen Lobbyzustand. Lobby-Snapshots erzeugen
 die Vier-Sitz-Ansicht; Reconnect-Token werden nur lokal für die
 automatische Wiederaufnahme desselben Sitzes gespeichert.
 

@@ -101,10 +101,37 @@
   box-shadow: 0 0 0 3px rgba(121, 221, 185, 0.1);
 }
 
-.multiplayer-connect-button {
-  align-self: end;
+.multiplayer-connect-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.multiplayer-connect-button,
+.multiplayer-wake-button {
   min-height: 45px;
   padding: 10px 18px;
+}
+
+.multiplayer-wake-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.multiplayer-server-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #ffd28a;
+  font-size: 0.84rem;
+}
+
+.multiplayer-server-status.is-ready {
+  color: #9cf0d1;
+}
+
+.multiplayer-server-status.is-error {
+  color: #ff9d9d;
 }
 
 .multiplayer-hint {
@@ -322,6 +349,14 @@
   }
 
   .multiplayer-actions button {
+    width: 100%;
+  }
+
+  .multiplayer-connect-actions {
+    flex-direction: column;
+  }
+
+  .multiplayer-connect-actions button {
     width: 100%;
   }
 }
