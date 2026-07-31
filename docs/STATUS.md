@@ -263,8 +263,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Kristallvorrat vollständig im sichtbaren Bereich
 - jedes sichtbare Grundstück zeigt direkt seine stärkste normale
   Ressource und deren Wert; ab dem 1,24-fachen Zoom oder bei Auswahl
-  erscheinen Nahrung, Energie und Erz mehrzeilig in gleichbleibend
-  lesbarer Größe auf dem Feld, entdeckte eigene Kristalle zusätzlich
+  erscheinen Nahrung, Energie und Erz mehrzeilig auf dem Feld; ihre
+  Schrift wächst proportional mit dem Planetenzoom bis zum 2,2-fachen
+  Nahzoom, entdeckte eigene Kristalle zusätzlich
 - kontextabhängige, transparente Aktionsbuttons schweben unter dem
   Planeten und erscheinen nur für legale Grundstücksgebote,
   Harvesterplatzierung oder Harvesterverwaltung; das HQ wird direkt

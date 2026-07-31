@@ -261,8 +261,9 @@ werden.
   oder Grundstücksgebot
 - Ressourcenwerte liegen zoomabhängig direkt auf den sichtbaren
   Grundstücken: in der Übersicht die stärkste normale Ressource, bei
-  Auswahl oder Nahzoom Nahrung, Energie und Erz mehrzeilig in
-  gleichbleibend lesbarer Größe sowie entdeckte eigene Kristalle
+  Auswahl oder Nahzoom Nahrung, Energie und Erz mehrzeilig; die
+  Schriftgröße wächst proportional mit dem Planetenzoom, entdeckte
+  eigene Kristalle werden ebenfalls dynamisch skaliert
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - getrennte Kartenbeschriftung der jeweils zwei Startfelder von
   Orion, Nova und Vega

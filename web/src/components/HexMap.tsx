@@ -870,6 +870,21 @@ function HexMap({
                 const primaryResource = getPrimaryResource(tile)
                 const showFullResourceReadout =
                   cameraState.zoom >= 1.24 || isSelected
+                const resourceReadoutScale = Math.max(
+                  1,
+                  cameraState.zoom,
+                )
+                const detailedResourceFontSize =
+                  12 * resourceReadoutScale
+                const overviewResourceFontSize =
+                  13 * resourceReadoutScale
+                const crystalResourceFontSize =
+                  11 * resourceReadoutScale
+                const detailedResourceCenterY =
+                  position.y -
+                  (isPlayerOwned || isOpponentOwned
+                    ? 5 * cameraState.zoom
+                    : 0)
                 const tileCrystalDiscovered =
                   isPlayerOwned &&
                   isColonyCrystalDiscovered(
@@ -990,24 +1005,39 @@ function HexMap({
                               <text
                                 className="is-detailed"
                                 x={position.x}
-                                y={position.y - 11 * cameraState.zoom}
+                                y={
+                                  detailedResourceCenterY -
+                                  13 * cameraState.zoom
+                                }
                                 textAnchor="middle"
+                                style={{
+                                  fontSize: `${detailedResourceFontSize}px`,
+                                }}
                               >
                                 🌾{tile.food}
                               </text>
                               <text
                                 className="is-detailed"
                                 x={position.x}
-                                y={position.y}
+                                y={detailedResourceCenterY}
                                 textAnchor="middle"
+                                style={{
+                                  fontSize: `${detailedResourceFontSize}px`,
+                                }}
                               >
                                 ⚡{tile.energy}
                               </text>
                               <text
                                 className="is-detailed"
                                 x={position.x}
-                                y={position.y + 11 * cameraState.zoom}
+                                y={
+                                  detailedResourceCenterY +
+                                  13 * cameraState.zoom
+                                }
                                 textAnchor="middle"
+                                style={{
+                                  fontSize: `${detailedResourceFontSize}px`,
+                                }}
                               >
                                 ⛏{tile.ore}
                               </text>
@@ -1023,6 +1053,9 @@ function HexMap({
                                   cameraState.zoom
                               }
                               textAnchor="middle"
+                              style={{
+                                fontSize: `${overviewResourceFontSize}px`,
+                              }}
                             >
                               {primaryResource.icon}
                               {primaryResource.value}
@@ -1045,6 +1078,9 @@ function HexMap({
                                     : 10) * cameraState.zoom
                                 }
                                 textAnchor="middle"
+                                style={{
+                                  fontSize: `${crystalResourceFontSize}px`,
+                                }}
                               >
                                 💎{tileCrystalRating}
                               </text>

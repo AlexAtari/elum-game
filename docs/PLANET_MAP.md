@@ -90,9 +90,9 @@ Smartphones ordnet es Rang und die sechs Koloniewerte in sieben festen
 Spalten an, damit auch der Kristallvorrat im sichtbaren Bereich bleibt.
 Grundstücke zeigen in der Übersicht ihre stärkste normale Ressource
 direkt an; ab Zoom 1,24 oder bei Auswahl stehen Nahrung, Energie und
-Erz mehrzeilig und in gleichbleibend lesbarer Größe auf dem Feld.
-Eigene entdeckte Kristalle erscheinen zusätzlich, ohne die bestehende
-Explorationsgrenze zu umgehen.
+Erz mehrzeilig auf dem Feld. Die Schriftgröße der normalen Ressourcen
+und eigener entdeckter Kristalle wächst proportional mit dem
+Planetenzoom, ohne die bestehende Explorationsgrenze zu umgehen.
 Nur aktuell legale Kartenaktionen schweben transparent unter dem
 Planeten; komplexere Auswahl- und Gebotsmenüs öffnen vorübergehend
 eine kompakte Fokusfläche.
