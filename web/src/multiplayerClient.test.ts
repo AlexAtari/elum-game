@@ -64,6 +64,7 @@ describe('Multiplayer-Clientadresse', () => {
   it('weckt den Server und prüft seine Bereitschaft', async () => {
     const fetcher = vi.fn(async () => ({
       ok: true,
+      type: 'basic' as ResponseType,
       json: async () => ({ ok: true, status: 'ready' }),
     }))
 
@@ -76,6 +77,28 @@ describe('Multiplayer-Clientadresse', () => {
     expect(fetcher).toHaveBeenCalledWith(
       'https://elum-multiplayer.onrender.com/health',
       expect.objectContaining({ cache: 'no-store' }),
+    )
+  })
+
+  it('sendet bei alter CORS-Konfiguration einen reinen Aufweckaufruf', async () => {
+    const fetcher = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce({
+        ok: false,
+        type: 'opaque' as ResponseType,
+        json: async () => ({}),
+      })
+
+    await expect(
+      wakeMultiplayerServer(
+        'wss://elum-multiplayer.onrender.com',
+        fetcher,
+      ),
+    ).resolves.toBe(true)
+    expect(fetcher).toHaveBeenLastCalledWith(
+      'https://elum-multiplayer.onrender.com/health',
+      expect.objectContaining({ mode: 'no-cors' }),
     )
   })
 

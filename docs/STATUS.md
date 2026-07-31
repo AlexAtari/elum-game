@@ -160,7 +160,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Host-Startsteuerung sind implementiert
 - ein sichtbarer Aufweck-Button ruft vor dem Beitritt den aus der
   WebSocket-Adresse abgeleiteten Health-Endpunkt auf und zeigt
-  Kaltstart, Bereitschaft oder einen erneuten Versuch verständlich an
+  Kaltstart, Bereitschaft oder einen erneuten Versuch verständlich an;
+  ein schreibfreier Fallback weckt auch ältere Server ohne lesbare
+  CORS-Antwort
 - verbundene Teilnehmer können einen Einladungslink teilen; beim
   Öffnen wechselt die Startseite direkt in die Mehrspieler-Lobby und
   übernimmt Serveradresse sowie Lobbycode validiert, ohne Name,

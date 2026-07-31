@@ -19,7 +19,7 @@ export type MultiplayerInvite = {
 export type MultiplayerHealthFetcher = (
   input: string,
   init?: RequestInit,
-) => Promise<Pick<Response, 'ok' | 'json'>>
+) => Promise<Pick<Response, 'ok' | 'json' | 'type'>>
 
 export function createDefaultMultiplayerServerUrl(
   location: BrowserLocation,
@@ -79,14 +79,30 @@ export async function wakeMultiplayerServer(
   fetcher: MultiplayerHealthFetcher = fetch,
   signal?: AbortSignal,
 ) {
-  const response = await fetcher(
-    buildMultiplayerHealthUrl(serverUrl),
-    {
+  const healthUrl = buildMultiplayerHealthUrl(serverUrl)
+  let response: Pick<Response, 'ok' | 'json' | 'type'>
+
+  try {
+    response = await fetcher(healthUrl, {
       cache: 'no-store',
       headers: { Accept: 'application/json' },
       signal,
-    },
-  )
+    })
+  } catch (error) {
+    if (signal?.aborted) {
+      throw error
+    }
+
+    response = await fetcher(healthUrl, {
+      cache: 'no-store',
+      mode: 'no-cors',
+      signal,
+    })
+  }
+
+  if (response.type === 'opaque') {
+    return true
+  }
 
   if (!response.ok) {
     return false

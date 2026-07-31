@@ -443,7 +443,9 @@ Lobby-ID editieren und sendet Beitritt, Bereitschaft und Hoststart
 über die typisierten Protokollnachrichten. Ein vorgeschalteter
 Aufweck-Button leitet `http(s)://…/health` aus dem eingetragenen
 `ws(s)://`-Ursprung ab, wartet bis zu 90 Sekunden auf Bereitschaft und
-ändert dabei keinen Lobbyzustand. Lobby-Snapshots erzeugen
+ändert dabei keinen Lobbyzustand. Bei älteren oder fremden Servern
+ohne lesbare CORS-Antwort fällt er auf einen opaken, schreibfreien
+Aufweckaufruf zurück. Lobby-Snapshots erzeugen
 die Vier-Sitz-Ansicht; Reconnect-Token werden nur lokal für die
 automatische Wiederaufnahme desselben Sitzes gespeichert.
 
