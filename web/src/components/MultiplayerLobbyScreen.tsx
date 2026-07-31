@@ -20,6 +20,7 @@ import type {
 } from '../multiplayerProtocol'
 import type { ParticipantId } from '../match'
 import type { AuthoritativeMatchSnapshot } from '../authoritativeMatch'
+import IntroSequence from './IntroSequence'
 import MultiplayerGameScreen from './MultiplayerGameScreen'
 import './MultiplayerLobbyScreen.css'
 
@@ -174,6 +175,7 @@ export default function MultiplayerLobbyScreen({
     useState<LobbySnapshot | null>(null)
   const [matchSnapshot, setMatchSnapshot] =
     useState<AuthoritativeMatchSnapshot | null>(null)
+  const [showMatchIntro, setShowMatchIntro] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [inviteActionStatus, setInviteActionStatus] =
     useState<InviteActionStatus>('idle')
@@ -256,6 +258,7 @@ export default function MultiplayerLobbyScreen({
     setStatus('connecting')
     setSnapshot(null)
     setMatchSnapshot(null)
+    setShowMatchIntro(true)
     displayNameRef.current = displayName.trim()
     endpointRef.current = endpoint
     const socket = new WebSocket(endpoint)
@@ -327,6 +330,7 @@ export default function MultiplayerLobbyScreen({
         setSnapshot(message.payload)
         if (message.payload.phase === 'waiting') {
           setMatchSnapshot(null)
+          setShowMatchIntro(true)
         }
         return
       }
@@ -444,6 +448,14 @@ export default function MultiplayerLobbyScreen({
   }
 
   if (matchSnapshot && participantId) {
+    if (showMatchIntro) {
+      return (
+        <IntroSequence
+          onComplete={() => setShowMatchIntro(false)}
+        />
+      )
+    }
+
     return (
       <MultiplayerGameScreen
         participantId={participantId}

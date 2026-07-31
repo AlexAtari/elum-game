@@ -244,7 +244,8 @@ werden.
   Interaktionsflächen und kugelrichtige Rückprojektion der fest auf
   dem Planeten verankerten Oberflächentextur
 - feste Sonnenbeleuchtung ohne künstlichen blauen Kugelrand sowie ein
-  zweistufiges, an die Planetendrehung gekoppeltes Sternfeld;
+  dichteres zweistufiges, an die Planetendrehung gekoppeltes
+  Sternfeld mit kleiner Sonne und entferntem Ringplaneten;
   Feldnummern nur in Details und barrierefreien Namen, nicht auf der
   Kugeloberfläche
 - mobile Kartenbreite mit schmaleren Seitenabständen und Nahzoom bis
@@ -376,6 +377,7 @@ werden.
   Serveradresse sowie Lobbycode; Name und geheime Reconnect-Tokens
   bleiben lokal und der Beitritt erfordert eine bewusste Bestätigung
 - nach dem Matchstart wechselt jeder menschliche Sitz in eine
+  gemeinsame überspringbare Startvideosequenz und danach in eine
   teilnehmerbezogene Spielansicht; Karte, HQ, Harvester,
   Grundstücksgebote, Ressourcenmärkte und Rundenplanung werden aus
   autoritativen Snapshots gespeist und als Netzwerkkommandos gesendet

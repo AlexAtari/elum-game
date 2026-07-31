@@ -162,8 +162,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   geheime Reconnect-Token nur lokal und nimmt denselben Sitz nach
   einem Verbindungsabbruch automatisch wieder auf
 - nach dem Start werden freie Sitze sichtbar als KI übernommen und
-  jeder menschliche Sitz wechselt in seine teilnehmerbezogene
-  Spielansicht
+  jeder menschliche Sitz sieht zunächst dieselbe überspringbare
+  Startvideosequenz und wechselt danach in seine teilnehmerbezogene
+  Spielansicht; laufende Match-Snapshots starten die Sequenz nicht
+  erneut
 - Karte, HQ, Harvesteraktionen, Grundstücksgebote,
   Ressourcenmärkte und Rundenplanung lesen ausschließlich
   autoritative Match-Snapshots und senden validierte
@@ -266,9 +268,11 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   karge sowie erzreiche Regionen behalten länger Marsgestein
 - feste gerichtete Beleuchtung mit heller Einfallsseite, weich
   abgedunkelter Gegenseite; der frühere blaue Kugelrand ist entfernt
-- tief gestaffeltes Sternfeld statt schwarzer Kartenfläche; zwei
-  Sternenebenen verschieben sich mit der Yaw- und Pitch-Rotation des
-  Planeten und bleiben nach einer vollständigen Drehung nahtlos
+- dichteres, tief gestaffeltes Sternfeld statt schwarzer
+  Kartenfläche; zwei Sternenebenen verschieben sich mit der Yaw- und
+  Pitch-Rotation des Planeten und bleiben nach einer vollständigen
+  Drehung nahtlos; eine kleine leuchtende Sonne und ein entfernter
+  Ringplanet ergänzen den Hintergrund
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in
   Spielstand und Diagnose erhalten
 - alle 91 Grundstücke tragen feste, eindeutige Londoner

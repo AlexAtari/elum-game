@@ -341,6 +341,18 @@ function HexMap({
     '--stars-near-y': `${
       (cameraState.pitch / Math.PI) * 130
     }px`,
+    '--space-object-x': `${
+      (cameraState.yaw / fullTurn) * 34
+    }px`,
+    '--space-object-y': `${
+      (cameraState.pitch / Math.PI) * 22
+    }px`,
+    '--space-object-far-x': `${
+      -(cameraState.yaw / fullTurn) * 24
+    }px`,
+    '--space-object-far-y': `${
+      -(cameraState.pitch / Math.PI) * 15
+    }px`,
   } as CSSProperties
 
   const updateCamera = (camera: MapCamera) => {
@@ -623,7 +635,12 @@ function HexMap({
             className="space-backdrop"
             style={spaceBackgroundStyle}
             aria-hidden="true"
-          />
+          >
+            <span className="space-sun" />
+            <span className="space-ringed-planet">
+              <span className="space-ringed-planet-body" />
+            </span>
+          </div>
           <PlanetSurface
             radius={PLANET_RADIUS * cameraState.zoom}
             rotation={cameraState}
