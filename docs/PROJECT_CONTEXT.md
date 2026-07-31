@@ -366,10 +366,11 @@ werden.
 - React-Startseite bietet getrennte Einzel- und Mehrspielerpfade;
   die responsive Lobby verbindet sich mit einem editierbaren
   WebSocket-Ziel und zeigt alle vier Koloniesitze
-- zwei lokal gebündelte Startvideos laufen beim normalen Seitenaufruf
-  stumm und automatisch direkt hintereinander; sie sind jederzeit
-  überspringbar, während gültige Einladungslinks sofort die Lobby
-  öffnen
+- zwei lokal gebündelte Startvideos laufen im Einzelspieler erst nach
+  „Neue Kolonie“ stumm und automatisch direkt hintereinander; sie
+  sind jederzeit überspringbar und werden auf Smartphones vollständig
+  ohne seitliches Abschneiden eingepasst, während gültige
+  Einladungslinks sofort die Lobby öffnen
 - Name, Sitzvergabe, Bereitschaft, Hoststart, KI-Füllung,
   Verbindungsstatus und Wiederaufnahme per lokal gespeichertem
   Reconnect-Token sind über die sichtbare Oberfläche bedienbar

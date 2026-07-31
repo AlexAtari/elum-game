@@ -92,9 +92,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false)
   const [showMultiplayerLobby, setShowMultiplayerLobby] =
     useState(() => initialMultiplayerInvite !== null)
-  const [showIntroSequence, setShowIntroSequence] = useState(
-    () => initialMultiplayerInvite === null,
-  )
+  const [showIntroSequence, setShowIntroSequence] = useState(false)
   const [gameState, setGameState] = useState(
     () => createPlayableInitialGameState(Date.now()),
   )
@@ -198,7 +196,7 @@ function App() {
     setActiveLocalEvent(null)
     setPlanningView('colony')
     setFocusedTileId(null)
-    setGameStarted(true)
+    setShowIntroSequence(true)
   }
 
   useEffect(() => {
@@ -1025,7 +1023,10 @@ function App() {
   if (showIntroSequence) {
     return (
       <IntroSequence
-        onComplete={() => setShowIntroSequence(false)}
+        onComplete={() => {
+          setShowIntroSequence(false)
+          setGameStarted(true)
+        }}
       />
     )
   }

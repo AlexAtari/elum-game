@@ -147,17 +147,20 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   kann der Server bewusst im lokalen WLAN geöffnet werden
 - Startseite enthält eine responsive Mehrspieler-Lobby neben dem
   unveränderten Einzelspielerstart
-- beim normalen Seitenaufruf laufen zwei lokal gebündelte,
-  stummgeschaltete Startvideos automatisch direkt hintereinander;
-  eine sichtbare Überspringen-Aktion führt jederzeit zum Startmenü
+- die Einzelspieler-Startseite erscheint ohne vorgeschaltetes Video;
+  erst „Neue Kolonie“ startet zwei lokal gebündelte,
+  stummgeschaltete Videos direkt hintereinander, danach beginnt die
+  Partie; die Sequenz ist jederzeit überspringbar
+- auf Smartphones werden die 16:9-Startvideos vollständig in das
+  Hochformat eingepasst, statt wichtige Bildbereiche an den Seiten
+  abzuschneiden
 - sichtbare Eingaben für Name, WebSocket-Server und Lobby-ID sowie
   Vier-Sitz-Übersicht, Verbindungsstatus, Bereitschaft und
   Host-Startsteuerung sind implementiert
 - verbundene Teilnehmer können einen Einladungslink teilen; beim
   Öffnen wechselt die Startseite direkt in die Mehrspieler-Lobby und
-  überspringt die Startvideos; Serveradresse sowie Lobbycode werden
-  validiert übernommen, ohne Name, Reconnect-Token oder
-  automatischen Beitritt zu übertragen
+  übernimmt Serveradresse sowie Lobbycode validiert, ohne Name,
+  Reconnect-Token oder automatischen Beitritt zu übertragen
 - Browserclient übernimmt Lobby- und Match-Snapshots, speichert das
   geheime Reconnect-Token nur lokal und nimmt denselben Sitz nach
   einem Verbindungsabbruch automatisch wieder auf

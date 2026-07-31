@@ -52,6 +52,23 @@
   color: #9cf0d1;
 }
 
+@media (max-width: 720px), (max-aspect-ratio: 3 / 4) {
+  .intro-screen {
+    min-height: 100dvh;
+    background:
+      radial-gradient(
+        ellipse at center,
+        rgba(18, 29, 52, 0.72),
+        #010308 64%
+      );
+  }
+
+  .intro-video {
+    height: 100dvh;
+    object-fit: contain;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .intro-video {
     transition: none;
