@@ -255,12 +255,14 @@ werden.
   Kugeloberfläche
 - immersive Vollbild-Kolonieansicht mit vergrößertem Planeten,
   randlosem Weltraum, frei schwebendem Status-HUD und bis zu
-  2,2-fachem Nahzoom; kontextabhängige transparente Aktionen öffnen
-  Harvesterplatzierung, -verwaltung oder Grundstücksgebot
+  2,2-fachem Nahzoom; das mobile HUD hält alle sieben Statuswerte
+  einschließlich Kristallen vollständig sichtbar; kontextabhängige
+  transparente Aktionen öffnen Harvesterplatzierung, -verwaltung
+  oder Grundstücksgebot
 - Ressourcenwerte liegen zoomabhängig direkt auf den sichtbaren
   Grundstücken: in der Übersicht die stärkste normale Ressource, bei
-  Auswahl oder Nahzoom Nahrung, Energie und Erz vollständig sowie
-  entdeckte eigene Kristalle
+  Auswahl oder Nahzoom Nahrung, Energie und Erz mehrzeilig in
+  gleichbleibend lesbarer Größe sowie entdeckte eigene Kristalle
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - getrennte Kartenbeschriftung der jeweils zwei Startfelder von
   Orion, Nova und Vega
@@ -382,7 +384,7 @@ werden.
   „Neue Kolonie“ stumm und automatisch direkt hintereinander; sie
   sind ohne sichtbaren Abschnittszähler jederzeit überspringbar und
   werden auf Smartphones zentriert so vergrößert, dass seitlich
-  zusammen ungefähr 15 Prozent des Bildes abgeschnitten werden,
+  zusammen ungefähr 20 Prozent des Bildes abgeschnitten werden,
   während gültige Einladungslinks sofort die Lobby öffnen
 - Name, Sitzvergabe, Bereitschaft, Hoststart, KI-Füllung,
   Verbindungsstatus und Wiederaufnahme per lokal gespeichertem

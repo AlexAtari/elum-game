@@ -85,11 +85,14 @@ indem sie den getrennten Kartenrahmen vollständig entfernt. Weltall
 und Kugelviewport füllen die gesamte Kolonieansicht; die vergrößerte
 Kugel bleibt zentriert und wird weiterhin durch Drehen navigiert. Der
 zulässige Nahzoom beträgt 2,2 gegenüber der Ausgangsansicht.
-Runden- und Koloniestatus liegen als frei schwebendes HUD darüber.
+Runden- und Koloniestatus liegen als frei schwebendes HUD darüber; auf
+Smartphones ordnet es Rang und die sechs Koloniewerte in sieben festen
+Spalten an, damit auch der Kristallvorrat im sichtbaren Bereich bleibt.
 Grundstücke zeigen in der Übersicht ihre stärkste normale Ressource
 direkt an; ab Zoom 1,24 oder bei Auswahl stehen Nahrung, Energie und
-Erz gemeinsam auf dem Feld. Eigene entdeckte Kristalle erscheinen
-zusätzlich, ohne die bestehende Explorationsgrenze zu umgehen.
+Erz mehrzeilig und in gleichbleibend lesbarer Größe auf dem Feld.
+Eigene entdeckte Kristalle erscheinen zusätzlich, ohne die bestehende
+Explorationsgrenze zu umgehen.
 Nur aktuell legale Kartenaktionen schweben transparent unter dem
 Planeten; komplexere Auswahl- und Gebotsmenüs öffnen vorübergehend
 eine kompakte Fokusfläche.

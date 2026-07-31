@@ -153,7 +153,7 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Partie; die Sequenz ist jederzeit überspringbar und zeigt keinen
   sichtbaren Abschnittszähler
 - auf Smartphones werden die 16:9-Startvideos zentriert vergrößert;
-  links und rechts werden zusammen ungefähr 15 Prozent abgeschnitten,
+  links und rechts werden zusammen ungefähr 20 Prozent abgeschnitten,
   damit die Sequenz im Hochformat präsenter erscheint
 - sichtbare Eingaben für Name, WebSocket-Server und Lobby-ID sowie
   Vier-Sitz-Übersicht, Verbindungsstatus, Bereitschaft und
@@ -258,11 +258,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   auf dem Zielgraphen
 - immersive Kolonieansicht ohne Kartenrahmen: Weltraum und ein
   vergrößerter Planet füllen den gesamten Bildschirm, während Runde,
-  Rang und Kolonievorräte ohne einfarbige Leiste darüber schweben
+  Rang und Kolonievorräte ohne einfarbige Leiste darüber schweben;
+  auf Smartphones hält ein festes Sieben-Spalten-Raster auch den
+  Kristallvorrat vollständig im sichtbaren Bereich
 - jedes sichtbare Grundstück zeigt direkt seine stärkste normale
   Ressource und deren Wert; ab dem 1,24-fachen Zoom oder bei Auswahl
-  erscheinen Nahrung, Energie und Erz vollständig auf dem Feld,
-  entdeckte eigene Kristalle zusätzlich
+  erscheinen Nahrung, Energie und Erz mehrzeilig in gleichbleibend
+  lesbarer Größe auf dem Feld, entdeckte eigene Kristalle zusätzlich
 - kontextabhängige, transparente Aktionsbuttons schweben unter dem
   Planeten und erscheinen nur für legale Grundstücksgebote,
   Harvesterplatzierung oder Harvesterverwaltung; das HQ wird direkt

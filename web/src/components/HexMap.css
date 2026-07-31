@@ -245,13 +245,12 @@
 }
 
 .hex-resource-readout text.is-detailed {
-  font-size: 8px;
-  letter-spacing: -0.03em;
+  font-size: 11px;
 }
 
 .hex-resource-readout .hex-crystal-readout {
   fill: #e6c4ff;
-  font-size: 8.5px;
+  font-size: 10px;
 }
 
 .planet-cell-lighting {
@@ -1087,14 +1086,29 @@
     top: max(80px, calc(env(safe-area-inset-top) + 70px));
     right: max(8px, env(safe-area-inset-right));
     left: max(8px, env(safe-area-inset-left));
-    justify-content: flex-start;
-    gap: 2px;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0;
+    overflow: visible;
   }
 
   .immersive-planet-screen > .compact-status-panel > span,
   .immersive-planet-screen > .compact-status-panel .compact-rank {
-    padding: 3px 6px;
-    font-size: 0.78rem;
+    min-width: 0;
+    justify-content: center;
+    gap: 2px;
+    padding: 3px 1px;
+    font-size: 0.72rem;
+  }
+
+  .immersive-planet-screen > .compact-status-panel .compact-rank {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .immersive-planet-screen > .compact-status-panel .compact-rank small {
+    font-size: 0.52rem;
+    line-height: 1;
   }
 
   .immersive-planet-screen .mobile-map-actions {
@@ -1180,11 +1194,11 @@
   }
 
   .hex-resource-readout text.is-detailed {
-    font-size: 9.5px;
+    font-size: 12px;
   }
 
   .hex-resource-readout .hex-crystal-readout {
-    font-size: 10px;
+    font-size: 11px;
   }
 }
 

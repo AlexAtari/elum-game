@@ -985,34 +985,64 @@ function HexMap({
                     {tile.owner !== 'hq' &&
                       !hasVisibleHarvester && (
                         <g className="hex-resource-readout">
-                          <text
-                            className={
-                              showFullResourceReadout
-                                ? 'is-detailed'
-                                : ''
-                            }
-                            x={position.x}
-                            y={
-                              position.y -
-                              (isPlayerOwned || isOpponentOwned
-                                ? 5
-                                : 0) *
-                                cameraState.zoom
-                            }
-                            textAnchor="middle"
-                          >
-                            {showFullResourceReadout
-                              ? `🌾${tile.food} ⚡${tile.energy} ⛏${tile.ore}`
-                              : `${primaryResource.icon}${primaryResource.value}`}
-                          </text>
+                          {showFullResourceReadout ? (
+                            <>
+                              <text
+                                className="is-detailed"
+                                x={position.x}
+                                y={position.y - 11 * cameraState.zoom}
+                                textAnchor="middle"
+                              >
+                                🌾{tile.food}
+                              </text>
+                              <text
+                                className="is-detailed"
+                                x={position.x}
+                                y={position.y}
+                                textAnchor="middle"
+                              >
+                                ⚡{tile.energy}
+                              </text>
+                              <text
+                                className="is-detailed"
+                                x={position.x}
+                                y={position.y + 11 * cameraState.zoom}
+                                textAnchor="middle"
+                              >
+                                ⛏{tile.ore}
+                              </text>
+                            </>
+                          ) : (
+                            <text
+                              x={position.x}
+                              y={
+                                position.y -
+                                (isPlayerOwned || isOpponentOwned
+                                  ? 5
+                                  : 0) *
+                                  cameraState.zoom
+                              }
+                              textAnchor="middle"
+                            >
+                              {primaryResource.icon}
+                              {primaryResource.value}
+                            </text>
+                          )}
                           {tileCrystalDiscovered &&
                             tileCrystalRating > 0 && (
                               <text
                                 className="hex-crystal-readout"
-                                x={position.x}
+                                x={
+                                  position.x +
+                                  (showFullResourceReadout
+                                    ? 17 * cameraState.zoom
+                                    : 0)
+                                }
                                 y={
                                   position.y +
-                                  10 * cameraState.zoom
+                                  (showFullResourceReadout
+                                    ? -18
+                                    : 10) * cameraState.zoom
                                 }
                                 textAnchor="middle"
                               >
