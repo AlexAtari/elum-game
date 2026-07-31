@@ -33,6 +33,7 @@ import {
   targetPlanetMap,
 } from '../planetMap'
 import { useI18n } from '../i18n/I18nContext'
+import { createSpaceBackdropStyle } from '../spaceBackdrop'
 import {
   createPlanetSurfaceCells,
   createRotationForTile,
@@ -327,33 +328,9 @@ function HexMap({
     !isLandBidBlocked &&
     selectedIsAdjacentToPlayer &&
     credits >= minimumBid
-  const fullTurn = Math.PI * 2
-  const spaceBackgroundStyle = {
-    '--stars-far-x': `${
-      (cameraState.yaw / fullTurn) * 180
-    }px`,
-    '--stars-far-y': `${
-      (cameraState.pitch / Math.PI) * 90
-    }px`,
-    '--stars-near-x': `${
-      (cameraState.yaw / fullTurn) * 260
-    }px`,
-    '--stars-near-y': `${
-      (cameraState.pitch / Math.PI) * 130
-    }px`,
-    '--space-object-x': `${
-      (cameraState.yaw / fullTurn) * 34
-    }px`,
-    '--space-object-y': `${
-      (cameraState.pitch / Math.PI) * 22
-    }px`,
-    '--space-object-far-x': `${
-      -(cameraState.yaw / fullTurn) * 24
-    }px`,
-    '--space-object-far-y': `${
-      -(cameraState.pitch / Math.PI) * 15
-    }px`,
-  } as CSSProperties
+  const spaceBackgroundStyle = createSpaceBackdropStyle(
+    cameraState,
+  ) as CSSProperties
 
   const updateCamera = (camera: MapCamera) => {
     const nextCamera = {

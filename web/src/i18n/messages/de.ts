@@ -255,7 +255,6 @@ export const de = {
   'start.newColony': 'Neue Kolonie',
   'start.multiplayer': 'Mehrspieler',
   'start.version': 'Prototype 0.2',
-  'intro.progress': 'Startsequenz {{current}} von {{total}}',
   'intro.skip': 'Überspringen',
 
   'multiplayer.eyebrow': 'Gemeinsame Expedition',

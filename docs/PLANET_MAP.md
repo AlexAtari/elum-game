@@ -64,8 +64,9 @@ Die beiden Sternenebenen verschieben sich mit der Yaw- und
 Pitch-Rotation der Planetenkamera und erzeugen dezente räumliche
 Parallaxe. Eine kleine leuchtende Sonne und ein entfernter
 saturnähnlicher Ringplanet ergänzen die dichtere Sternkulisse als
-rein visuelle Hintergrundelemente. Ein künstlicher farbiger
-Kugelrand wird nicht verwendet.
+rein visuelle Hintergrundelemente. Beide wandern bei Yaw- und
+Pitch-Rotation deutlich in derselben Richtung durch das Sichtfeld.
+Ein künstlicher farbiger Kugelrand wird nicht verwendet.
 Feld-IDs erscheinen nicht als Text auf der Kugel. Die 91 Grundstücke
 tragen stattdessen feste, eindeutige Namen nach Stationen der London
 Underground. Diese Namen erscheinen in Felddetailansicht, Auktionen,

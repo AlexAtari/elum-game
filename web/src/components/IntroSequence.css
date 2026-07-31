@@ -28,7 +28,7 @@
   left: max(18px, env(safe-area-inset-left));
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   color: rgba(230, 240, 255, 0.74);
   font-size: 0.78rem;

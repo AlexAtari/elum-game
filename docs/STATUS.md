@@ -150,7 +150,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - die Einzelspieler-Startseite erscheint ohne vorgeschaltetes Video;
   erst „Neue Kolonie“ startet zwei lokal gebündelte,
   stummgeschaltete Videos direkt hintereinander, danach beginnt die
-  Partie; die Sequenz ist jederzeit überspringbar
+  Partie; die Sequenz ist jederzeit überspringbar und zeigt keinen
+  sichtbaren Abschnittszähler
 - auf Smartphones werden die 16:9-Startvideos vollständig in das
   Hochformat eingepasst, statt wichtige Bildbereiche an den Seiten
   abzuschneiden
@@ -275,7 +276,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Kartenfläche; zwei Sternenebenen verschieben sich mit der Yaw- und
   Pitch-Rotation des Planeten und bleiben nach einer vollständigen
   Drehung nahtlos; eine kleine leuchtende Sonne und ein entfernter
-  Ringplanet ergänzen den Hintergrund
+  Ringplanet wandern bei der Planetendrehung deutlich in derselben
+  Richtung durch den Hintergrund
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in
   Spielstand und Diagnose erhalten
 - alle 91 Grundstücke tragen feste, eindeutige Londoner

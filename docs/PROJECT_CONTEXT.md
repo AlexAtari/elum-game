@@ -245,7 +245,8 @@ werden.
   dem Planeten verankerten Oberflächentextur
 - feste Sonnenbeleuchtung ohne künstlichen blauen Kugelrand sowie ein
   dichteres zweistufiges, an die Planetendrehung gekoppeltes
-  Sternfeld mit kleiner Sonne und entferntem Ringplaneten;
+  Sternfeld mit kleiner Sonne und entferntem Ringplaneten; beide
+  Himmelskörper wandern bei der Planetendrehung deutlich mit;
   Feldnummern nur in Details und barrierefreien Namen, nicht auf der
   Kugeloberfläche
 - mobile Kartenbreite mit schmaleren Seitenabständen und Nahzoom bis
@@ -368,9 +369,9 @@ werden.
   WebSocket-Ziel und zeigt alle vier Koloniesitze
 - zwei lokal gebündelte Startvideos laufen im Einzelspieler erst nach
   „Neue Kolonie“ stumm und automatisch direkt hintereinander; sie
-  sind jederzeit überspringbar und werden auf Smartphones vollständig
-  ohne seitliches Abschneiden eingepasst, während gültige
-  Einladungslinks sofort die Lobby öffnen
+  sind ohne sichtbaren Abschnittszähler jederzeit überspringbar und
+  werden auf Smartphones vollständig ohne seitliches Abschneiden
+  eingepasst, während gültige Einladungslinks sofort die Lobby öffnen
 - Name, Sitzvergabe, Bereitschaft, Hoststart, KI-Füllung,
   Verbindungsstatus und Wiederaufnahme per lokal gespeichertem
   Reconnect-Token sind über die sichtbare Oberfläche bedienbar

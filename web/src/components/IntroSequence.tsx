@@ -66,12 +66,6 @@ function IntroSequence({ onComplete }: IntroSequenceProps) {
       ))}
 
       <div className="intro-controls">
-        <span aria-live="polite">
-          {t('intro.progress', {
-            current: activeVideoIndex + 1,
-            total: introVideoUrls.length,
-          })}
-        </span>
         <button type="button" onClick={onComplete}>
           {t('intro.skip')}
         </button>
