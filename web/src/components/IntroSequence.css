@@ -1,0 +1,59 @@
+.intro-screen {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  overflow: hidden;
+  color: #f6f7fb;
+  background: #010308;
+}
+
+.intro-video {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100vh;
+  object-fit: cover;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.intro-video.active {
+  opacity: 1;
+}
+
+.intro-controls {
+  position: absolute;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: max(18px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: rgba(230, 240, 255, 0.74);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.intro-controls button {
+  cursor: pointer;
+  padding: 10px 16px;
+  border: 1px solid rgba(230, 240, 255, 0.34);
+  border-radius: 999px;
+  color: #f6f7fb;
+  background: rgba(2, 7, 15, 0.56);
+  backdrop-filter: blur(10px);
+}
+
+.intro-controls button:hover {
+  border-color: rgba(121, 221, 185, 0.8);
+  color: #9cf0d1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-video {
+    transition: none;
+  }
+}

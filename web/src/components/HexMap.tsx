@@ -738,6 +738,14 @@ function HexMap({
                 const polygonPoints = formatPolygonPoints(
                   cell.points,
                 )
+                const cellXs = cell.points.map((point) => point.x)
+                const cellYs = cell.points.map((point) => point.y)
+                const cellBounds = {
+                  minX: Math.min(...cellXs),
+                  maxX: Math.max(...cellXs),
+                  minY: Math.min(...cellYs),
+                  maxY: Math.max(...cellYs),
+                }
                 const isSelected = tile.id === selectedId
                 const harvester = harvesters[tile.id]
                 const production = harvester?.production
@@ -828,44 +836,41 @@ function HexMap({
                       className="hex-landscape"
                       points={polygonPoints}
                     />
-                    <polygon
-                      className="hex-border"
-                      points={polygonPoints}
-                    />
 
                     {tile.owner === 'hq' && (
                       <g
                         className="hex-hq-marker"
-                        transform={`translate(${position.x} ${position.y}) scale(${cameraState.zoom})`}
                         aria-label="Zentrales Hauptquartier"
                       >
                         <defs>
                           <clipPath id="hq-marker-clip">
-                            <circle r="27" />
+                            <polygon points={polygonPoints} />
                           </clipPath>
                         </defs>
-                        <circle
-                          className="hex-hq-marker-frame"
-                          r="29"
-                        />
                         <image
                           href={headquartersImage}
-                          x="-27"
-                          y="-27"
-                          width="54"
-                          height="54"
+                          x={cellBounds.minX}
+                          y={cellBounds.minY}
+                          width={cellBounds.maxX - cellBounds.minX}
+                          height={cellBounds.maxY - cellBounds.minY}
                           preserveAspectRatio="xMidYMid slice"
                           clipPath="url(#hq-marker-clip)"
                         />
                         <text
                           className="hex-hq-label"
-                          y="34"
+                          x={position.x}
+                          y={position.y + 5 * cameraState.zoom}
                           textAnchor="middle"
                         >
                           HQ
                         </text>
                       </g>
                     )}
+
+                    <polygon
+                      className="hex-border"
+                      points={polygonPoints}
+                    />
 
                     {isMeteorCenter && (
                       <text

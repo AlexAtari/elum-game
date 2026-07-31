@@ -293,7 +293,8 @@ werden.
   Grundstücksnamen; stabile Feld-IDs bleiben die interne
   Regelgrundlage
 - gemeinsames HQ-Luftbild mit Zentralkuppel und vier angeschlossenen
-  Kolonie-Lagern als Marker und Verwaltungsbild
+  Kolonie-Lagern über die vollständige HQ-Kartenzelle sowie als
+  Verwaltungsbild
 - gemeinsame Nachbarschaftsprüfung für Spieler- und KI-Landaktionen
 - teilnehmerbezogene Schreibgrenze für die dynamischen Grunddaten;
   Ereignisse, Spieler-Harvesterbau, direkter Koloniehandel und
@@ -364,6 +365,10 @@ werden.
 - React-Startseite bietet getrennte Einzel- und Mehrspielerpfade;
   die responsive Lobby verbindet sich mit einem editierbaren
   WebSocket-Ziel und zeigt alle vier Koloniesitze
+- zwei lokal gebündelte Startvideos laufen beim normalen Seitenaufruf
+  stumm und automatisch direkt hintereinander; sie sind jederzeit
+  überspringbar, während gültige Einladungslinks sofort die Lobby
+  öffnen
 - Name, Sitzvergabe, Bereitschaft, Hoststart, KI-Füllung,
   Verbindungsstatus und Wiederaufnahme per lokal gespeichertem
   Reconnect-Token sind über die sichtbare Oberfläche bedienbar

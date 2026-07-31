@@ -6,6 +6,7 @@ import {
 } from 'react'
 import headquartersImage from './assets/hq-four-colonies.webp'
 import HexMap from './components/HexMap'
+import IntroSequence from './components/IntroSequence'
 import LandTieAuctionPanel from './components/LandTieAuctionPanel'
 import LeaderboardPanel from './components/LeaderboardPanel'
 import LocalEventNotice from './components/LocalEventNotice'
@@ -91,6 +92,9 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false)
   const [showMultiplayerLobby, setShowMultiplayerLobby] =
     useState(() => initialMultiplayerInvite !== null)
+  const [showIntroSequence, setShowIntroSequence] = useState(
+    () => initialMultiplayerInvite === null,
+  )
   const [gameState, setGameState] = useState(
     () => createPlayableInitialGameState(Date.now()),
   )
@@ -1014,6 +1018,14 @@ function App() {
       <MultiplayerLobbyScreen
         initialInvite={initialMultiplayerInvite}
         onBack={() => setShowMultiplayerLobby(false)}
+      />
+    )
+  }
+
+  if (showIntroSequence) {
+    return (
+      <IntroSequence
+        onComplete={() => setShowIntroSequence(false)}
       />
     )
   }

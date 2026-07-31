@@ -1,7 +1,7 @@
 # Planet, Karte, Kristalle und Meteore
 
 **Status:** beschlossenes Zielbild, noch nicht vollständig implementiert
-**Last Updated:** 2026-07-28
+**Last Updated:** 2026-07-31
 
 Dieses Dokument konkretisiert die Karten-, Kristall- und Meteorregeln
 des GDD. Zahlenwerte bleiben Balancingparameter. Bei Abweichungen zum
@@ -103,6 +103,9 @@ als gemeinsame Hilfskonstruktion, Markt- und Verwaltungsstation.
 Seine Darstellung zeigt eine zentrale Kuppel und vier über Korridore
 angeschlossene Außenlager. Jedes Außenlager repräsentiert das HQ
 einer der vier Kolonien Agima, Orion, Nova und Vega.
+Das Luftbild wird auf der Kugel an der projizierten Grundstücksform
+ausgeschnitten und füllt das gesamte HQ-Feld statt nur eines kleinen
+kreisförmigen Markers.
 Auf der Kugel wird seine erste Ausbaustufe als deutlich erkennbare
 Scheunen- und Lagerstation dargestellt. Spätere Ausbaustufen können
 diese Silhouette mit wachsender Bevölkerung sichtbar erweitern.

@@ -147,13 +147,17 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   kann der Server bewusst im lokalen WLAN geöffnet werden
 - Startseite enthält eine responsive Mehrspieler-Lobby neben dem
   unveränderten Einzelspielerstart
+- beim normalen Seitenaufruf laufen zwei lokal gebündelte,
+  stummgeschaltete Startvideos automatisch direkt hintereinander;
+  eine sichtbare Überspringen-Aktion führt jederzeit zum Startmenü
 - sichtbare Eingaben für Name, WebSocket-Server und Lobby-ID sowie
   Vier-Sitz-Übersicht, Verbindungsstatus, Bereitschaft und
   Host-Startsteuerung sind implementiert
 - verbundene Teilnehmer können einen Einladungslink teilen; beim
   Öffnen wechselt die Startseite direkt in die Mehrspieler-Lobby und
-  übernimmt validiert Serveradresse sowie Lobbycode, ohne Name,
-  Reconnect-Token oder automatischen Beitritt zu übertragen
+  überspringt die Startvideos; Serveradresse sowie Lobbycode werden
+  validiert übernommen, ohne Name, Reconnect-Token oder
+  automatischen Beitritt zu übertragen
 - Browserclient übernimmt Lobby- und Match-Snapshots, speichert das
   geheime Reconnect-Token nur lokal und nimmt denselben Sitz nach
   einem Verbindungsabbruch automatisch wieder auf
@@ -273,7 +277,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - deutlich markiertes zentrales HQ mit eigenem Luftbild: vier
   Kolonie-HQs von Agima, Orion, Nova und Vega sind über Korridore an
   eine gemeinsame Zentralkuppel angeschlossen; dasselbe Motiv
-  erscheint als Kartenmarker und in der HQ-Ansicht
+  füllt die vollständige projizierte HQ-Zelle und erscheint außerdem
+  in der HQ-Ansicht
 - größere kontrastunterlegte Harvesterzeichen; Kolonienamen bleiben
   auf belegten Feldern weiterhin sichtbar
 - getrennte Besitzanzeige für Orion, Nova und Vega statt einer
