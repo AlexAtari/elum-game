@@ -81,10 +81,18 @@ Rundenberichten und barrierefreien Interaktionsnamen. Die IDs bleiben
 als interne Schlüssel erhalten.
 
 Die mobile Darstellung reduziert äußere und innere Seitenabstände,
-damit der Kugelviewport möglichst viel Bildschirmbreite erhält. Der
-zulässige Nahzoom beträgt 2,2 gegenüber der Ausgangsansicht; die
-Kugel bleibt dabei zentriert und wird weiterhin durch Drehen
-navigiert.
+indem sie den getrennten Kartenrahmen vollständig entfernt. Weltall
+und Kugelviewport füllen die gesamte Kolonieansicht; die vergrößerte
+Kugel bleibt zentriert und wird weiterhin durch Drehen navigiert. Der
+zulässige Nahzoom beträgt 2,2 gegenüber der Ausgangsansicht.
+Runden- und Koloniestatus liegen als frei schwebendes HUD darüber.
+Grundstücke zeigen in der Übersicht ihre stärkste normale Ressource
+direkt an; ab Zoom 1,24 oder bei Auswahl stehen Nahrung, Energie und
+Erz gemeinsam auf dem Feld. Eigene entdeckte Kristalle erscheinen
+zusätzlich, ohne die bestehende Explorationsgrenze zu umgehen.
+Nur aktuell legale Kartenaktionen schweben transparent unter dem
+Planeten; komplexere Auswahl- und Gebotsmenüs öffnen vorübergehend
+eine kompakte Fokusfläche.
 
 Alle Grundstücke sind wirtschaftlich gleich große Spieleinheiten.
 Sichtbare Größenunterschiede beeinflussen weder Produktion noch Preis.

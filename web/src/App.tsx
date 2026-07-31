@@ -562,6 +562,14 @@ function App() {
           showLeaderboard && lastReport
             ? 'leaderboard-screen'
             : ''
+        } ${
+          activeMarket === null &&
+          gameState.landAuctionTie === null &&
+          !showLeaderboard &&
+          !showRoundBriefing &&
+          planningView === 'colony'
+            ? 'immersive-planet-screen'
+            : ''
         }`}
       >
         <header className="game-header">

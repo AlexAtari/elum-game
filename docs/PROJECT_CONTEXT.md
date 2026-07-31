@@ -253,9 +253,14 @@ werden.
   Abstand zur Kugeloberfläche;
   Feldnummern nur in Details und barrierefreien Namen, nicht auf der
   Kugeloberfläche
-- mobile Kartenbreite mit schmaleren Seitenabständen und Nahzoom bis
-  2,2-facher Ausgangsgröße; Harvesterplatzierung und Grundstücksgebot
-  öffnen mobil über zwei kompakte Buttons direkt unter dem Planeten
+- immersive Vollbild-Kolonieansicht mit vergrößertem Planeten,
+  randlosem Weltraum, frei schwebendem Status-HUD und bis zu
+  2,2-fachem Nahzoom; kontextabhängige transparente Aktionen öffnen
+  Harvesterplatzierung, -verwaltung oder Grundstücksgebot
+- Ressourcenwerte liegen zoomabhängig direkt auf den sichtbaren
+  Grundstücken: in der Übersicht die stärkste normale Ressource, bei
+  Auswahl oder Nahzoom Nahrung, Energie und Erz vollständig sowie
+  entdeckte eigene Kristalle
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - getrennte Kartenbeschriftung der jeweils zwei Startfelder von
   Orion, Nova und Vega

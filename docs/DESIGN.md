@@ -206,6 +206,14 @@ Der Spieler soll jederzeit verstehen:
 
 Versteckte Formeln werden vermieden.
 
+Die Kolonieplanung soll sich wie eine freie Umlaufansicht über Agima
+anfühlen: Planet und Weltraum bilden die dauerhafte Hauptbühne,
+Statuswerte schweben als leichtes HUD darüber. Ressourcenhinweise und
+zulässige Aktionen erscheinen möglichst direkt am betroffenen Feld,
+statt den Planeten hinter dauerhaften Karten und Seitenleisten zu
+verbergen. Komplexe Entscheidungen dürfen weiterhin vorübergehend
+eine gut lesbare Fokusfläche öffnen.
+
 ---
 
 ## 15. Sprache ist Darstellung, nicht Spielregel

@@ -256,10 +256,17 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sichtbaren Nachbarverbindungen und erkennbaren Pentagonen
 - Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
   auf dem Zielgraphen
-- mobile Kartenansicht mit reduziertem seitlichem Außenabstand und
-  Nahzoom bis 2,2-facher Ausgangsgröße; zwei kompakte Aktionsbuttons
-  direkt unter dem Planeten öffnen die Harvesterplatzierung oder das
-  Grundstücksgebot für das ausgewählte Feld
+- immersive Kolonieansicht ohne Kartenrahmen: Weltraum und ein
+  vergrößerter Planet füllen den gesamten Bildschirm, während Runde,
+  Rang und Kolonievorräte ohne einfarbige Leiste darüber schweben
+- jedes sichtbare Grundstück zeigt direkt seine stärkste normale
+  Ressource und deren Wert; ab dem 1,24-fachen Zoom oder bei Auswahl
+  erscheinen Nahrung, Energie und Erz vollständig auf dem Feld,
+  entdeckte eigene Kristalle zusätzlich
+- kontextabhängige, transparente Aktionsbuttons schweben unter dem
+  Planeten und erscheinen nur für legale Grundstücksgebote,
+  Harvesterplatzierung oder Harvesterverwaltung; das HQ wird direkt
+  über sein Planetenfeld geöffnet
 - durchgehende fotorealistische, marsartige Oberflächentextur aus
   Rostboden, Terrakotta, Ocker und dunklem Basalt ohne gezeichnete
   Ressourcenmotive oder harte Biome

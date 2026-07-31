@@ -763,7 +763,12 @@ SVG-Raum. Zellen am Horizont werden gegen die Vorderseite der Kugel
 geschnitten; Rückseitenfelder werden nicht interaktiv gerendert.
 `HexMap.tsx` zeichnet daraus unsichtbare, zusammenhängende Hexagon-
 und Pentagonzellen und verwaltet Touch-Drehung, Zoom sowie
-HQ-Zentrierung. `PlanetSurface.tsx` bereitet aus einer gemeinsamen
+HQ-Zentrierung. Dieselbe Komponente rendert für Einzel- und
+Mehrspieler die zoomabhängigen Ressourcenreadouts und nur die für das
+ausgewählte Feld legalen schwebenden Aktionen. Die beiden äußeren
+Spielansichten aktivieren dafür denselben
+`immersive-planet-screen`-Rahmen; Spielregeln werden nicht in CSS oder
+Darstellung kopiert. `PlanetSurface.tsx` bereitet aus einer gemeinsamen
 marsartigen, fotorealistischen Welttextur und moderat
 differenzierten, räumlich geglätteten Ressourcenfarbnuancen eine
 diffuse Oberflächenkarte vor. `planetSurfaceTint.ts` hält die reine

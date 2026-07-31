@@ -28,6 +28,7 @@ export const en = {
   'map.mobileActions': 'Actions for the selected plot',
   'map.deployHarvester': 'Deploy harvester',
   'map.placeBid': 'Place bid',
+  'map.manageHarvester': 'Manage harvester',
 
   'supply.none': 'No supply',
   'supply.minimum': 'Minimum supply',

@@ -578,7 +578,13 @@ function MultiplayerGameScreen({
   }
 
   return (
-    <main className="network-game-screen">
+    <main
+      className={`network-game-screen ${
+        planningView === 'colony'
+          ? 'immersive-planet-screen'
+          : ''
+      }`}
+    >
       <header className="network-game-header">
         <div>
           <span className="eyebrow">E.L.U.M.</span>

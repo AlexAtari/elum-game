@@ -56,7 +56,7 @@ export function createCelestialPositions(
       surfaceRadius + 38,
     ),
     ringedPlanet: positionOnOrbit(
-      -1.45 + rotationOffset,
+      -1.12 + rotationOffset,
       surfaceRadius + 58,
     ),
   }

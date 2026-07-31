@@ -26,6 +26,7 @@ export const de = {
   'map.mobileActions': 'Aktionen für das ausgewählte Grundstück',
   'map.deployHarvester': 'Harvester einsetzen',
   'map.placeBid': 'Gebot abgeben',
+  'map.manageHarvester': 'Harvester verwalten',
 
   'supply.none': 'Keine Versorgung',
   'supply.minimum': 'Mindestversorgung',

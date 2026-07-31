@@ -103,7 +103,7 @@ type MapGesture = {
 type MobileMapAction = 'harvester' | 'land-bid' | null
 
 const MAP_VIEW_SIZE = 720
-const PLANET_RADIUS = 280
+const PLANET_RADIUS = 340
 const MIN_MAP_ZOOM = 0.72
 const MAX_MAP_ZOOM = 2.2
 const MAX_MAP_PITCH = Math.PI * 0.48
@@ -179,6 +179,18 @@ function formatPolygonPoints(
 
 function formatStars(value = 0) {
   return `${'★'.repeat(value)}${'☆'.repeat(5 - value)}`
+}
+
+function getPrimaryResource(tile: (typeof tiles)[number]) {
+  return (
+    [
+      { icon: '🌾', value: tile.food ?? 0 },
+      { icon: '⚡', value: tile.energy ?? 0 },
+      { icon: '⛏', value: tile.ore ?? 0 },
+    ] as const
+  ).reduce((best, candidate) =>
+    candidate.value > best.value ? candidate : best,
+  )
 }
 
 function HexMap({
@@ -855,6 +867,21 @@ function HexMap({
                           ? 'pending'
                           : 'free'
                 const isMeteorCenter = meteorCenterIds.has(tile.id)
+                const primaryResource = getPrimaryResource(tile)
+                const showFullResourceReadout =
+                  cameraState.zoom >= 1.24 || isSelected
+                const tileCrystalDiscovered =
+                  isPlayerOwned &&
+                  isColonyCrystalDiscovered(
+                    { round, colonies },
+                    participantId,
+                    tile.id,
+                  )
+                const tileCrystalRating = Math.min(
+                  5,
+                  (tile.crystals ?? 0) +
+                    (meteorBonuses[tile.id] ?? 0),
+                )
 
                 return (
                   <g
@@ -954,6 +981,46 @@ function HexMap({
                         ☄
                       </text>
                     )}
+
+                    {tile.owner !== 'hq' &&
+                      !hasVisibleHarvester && (
+                        <g className="hex-resource-readout">
+                          <text
+                            className={
+                              showFullResourceReadout
+                                ? 'is-detailed'
+                                : ''
+                            }
+                            x={position.x}
+                            y={
+                              position.y -
+                              (isPlayerOwned || isOpponentOwned
+                                ? 5
+                                : 0) *
+                                cameraState.zoom
+                            }
+                            textAnchor="middle"
+                          >
+                            {showFullResourceReadout
+                              ? `🌾${tile.food} ⚡${tile.energy} ⛏${tile.ore}`
+                              : `${primaryResource.icon}${primaryResource.value}`}
+                          </text>
+                          {tileCrystalDiscovered &&
+                            tileCrystalRating > 0 && (
+                              <text
+                                className="hex-crystal-readout"
+                                x={position.x}
+                                y={
+                                  position.y +
+                                  10 * cameraState.zoom
+                                }
+                                textAnchor="middle"
+                              >
+                                💎{tileCrystalRating}
+                              </text>
+                            )}
+                        </g>
+                      )}
 
                     {isPlayerOwned && hasVisibleHarvester && (
                       <rect
@@ -1091,29 +1158,52 @@ function HexMap({
           className="mobile-map-actions"
           aria-label={t('map.mobileActions')}
         >
-          <button
-            className="mobile-map-action-button"
-            type="button"
-            aria-expanded={mobileMapAction === 'harvester'}
-            aria-controls="harvester-production-menu"
-            disabled={!canOpenHarvesterMenu}
-            onClick={toggleMobileHarvesterMenu}
-          >
-            {t('map.deployHarvester')}
-          </button>
-          <button
-            className="mobile-map-action-button"
-            type="button"
-            aria-expanded={mobileMapAction === 'land-bid'}
-            aria-controls="land-bid-menu"
-            disabled={!canOpenLandBidMenu}
-            onClick={toggleMobileLandBidMenu}
-          >
-            {t('map.placeBid')}
-          </button>
+          {canOpenHarvesterMenu && (
+            <button
+              className="mobile-map-action-button"
+              type="button"
+              aria-expanded={mobileMapAction === 'harvester'}
+              aria-controls="harvester-production-menu"
+              onClick={toggleMobileHarvesterMenu}
+            >
+              {t('map.deployHarvester')}
+            </button>
+          )}
+          {canOpenLandBidMenu && (
+            <button
+              className="mobile-map-action-button"
+              type="button"
+              aria-expanded={mobileMapAction === 'land-bid'}
+              aria-controls="land-bid-menu"
+              onClick={toggleMobileLandBidMenu}
+            >
+              {t('map.placeBid')}
+            </button>
+          )}
+          {selectedIsPlayerOwned && selectedHarvester && (
+            <button
+              className="mobile-map-action-button"
+              type="button"
+              aria-expanded={isChoosingProduction}
+              aria-controls="harvester-production-menu"
+              disabled={isRetoolingBlocked}
+              onClick={() => {
+                setMobileMapAction(null)
+                setIsChoosingProduction((current) => !current)
+              }}
+            >
+              {t('map.manageHarvester')}
+            </button>
+          )}
         </div>
 
-        <aside className="tile-details">
+        <aside
+          className={`tile-details ${
+            mobileMapAction !== null || isChoosingProduction
+              ? 'is-action-open'
+              : ''
+          }`}
+        >
           {selectedTile.owner === 'hq' ? (
             <>
               <p className="eyebrow">Zentrale</p>
@@ -1299,7 +1389,10 @@ function HexMap({
               {selectedIsPlayerOwned &&
                 selectedHarvester &&
                 isChoosingProduction && (
-                  <div className="production-picker">
+                  <div
+                    className="production-picker"
+                    id="harvester-production-menu"
+                  >
                     <p>Neue Produktion wählen:</p>
 
                     <div className="production-options">
