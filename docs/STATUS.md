@@ -242,7 +242,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
   auf dem Zielgraphen
 - mobile Kartenansicht mit reduziertem seitlichem Außenabstand und
-  Nahzoom bis 2,2-facher Ausgangsgröße
+  Nahzoom bis 2,2-facher Ausgangsgröße; zwei kompakte Aktionsbuttons
+  direkt unter dem Planeten öffnen die Harvesterplatzierung oder das
+  Grundstücksgebot für das ausgewählte Feld
 - durchgehende fotorealistische, marsartige Oberflächentextur aus
   Rostboden, Terrakotta, Ocker und dunklem Basalt ohne gezeichnete
   Ressourcenmotive oder harte Biome

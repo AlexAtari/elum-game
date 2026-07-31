@@ -23,6 +23,9 @@ export const de = {
   'meteor.impactTitle': 'Meteoriteneinschlag auf Feld {{tileId}}',
   'meteor.impactDescription':
     'Der Krater ist öffentlich sichtbar. Die genaue Kristallaufwertung bleibt verdeckt.',
+  'map.mobileActions': 'Aktionen für das ausgewählte Grundstück',
+  'map.deployHarvester': 'Harvester einsetzen',
+  'map.placeBid': 'Gebot abgeben',
 
   'supply.none': 'Keine Versorgung',
   'supply.minimum': 'Mindestversorgung',

@@ -246,7 +246,8 @@ werden.
 - feste Sonnenbeleuchtung und atmosphärischer Rand; Feldnummern nur
   in Details und barrierefreien Namen, nicht auf der Kugeloberfläche
 - mobile Kartenbreite mit schmaleren Seitenabständen und Nahzoom bis
-  2,2-facher Ausgangsgröße
+  2,2-facher Ausgangsgröße; Harvesterplatzierung und Grundstücksgebot
+  öffnen mobil über zwei kompakte Buttons direkt unter dem Planeten
 - 92-Felder-Zielgraph im Browserzustand und in der Darstellung aktiv
 - getrennte Kartenbeschriftung der jeweils zwei Startfelder von
   Orion, Nova und Vega

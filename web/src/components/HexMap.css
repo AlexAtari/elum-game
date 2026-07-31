@@ -40,6 +40,10 @@
   gap: 20px;
 }
 
+.mobile-map-actions {
+  display: none;
+}
+
 .hex-map-viewport {
   position: relative;
   height: clamp(500px, 58vw, 680px);
@@ -582,10 +586,55 @@
 
   .map-layout {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .hex-map-viewport {
     height: clamp(430px, 68vh, 620px);
+  }
+
+  .mobile-map-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mobile-map-action-button {
+    min-height: 48px;
+    padding: 11px 8px;
+    cursor: pointer;
+    border: 1px solid rgba(121, 221, 185, 0.32);
+    border-radius: 11px;
+    color: #dff8ef;
+    background: rgba(121, 221, 185, 0.09);
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 750;
+  }
+
+  .mobile-map-action-button[aria-expanded='true'] {
+    border-color: rgba(121, 221, 185, 0.82);
+    color: #07110d;
+    background: #79ddb9;
+  }
+
+  .mobile-map-action-button:disabled {
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #6f7a8e;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .harvester-launch-button {
+    display: none;
+  }
+
+  .land-bid-panel {
+    display: none;
+  }
+
+  .land-bid-panel.is-mobile-open {
+    display: block;
   }
 
   .hex-owner-label,

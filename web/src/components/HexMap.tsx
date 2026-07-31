@@ -31,6 +31,7 @@ import {
   getPlanetTileName,
   targetPlanetMap,
 } from '../planetMap'
+import { useI18n } from '../i18n/I18nContext'
 import {
   createPlanetSurfaceCells,
   createRotationForTile,
@@ -92,6 +93,8 @@ type MapGesture = {
   midpoint: Point
   distance: number
 }
+
+type MobileMapAction = 'harvester' | 'land-bid' | null
 
 const MAP_VIEW_SIZE = 720
 const PLANET_RADIUS = 280
@@ -201,11 +204,14 @@ function HexMap({
   onChangeHarvesterProduction,
   onRemoveHarvester,
 }: HexMapProps) {
+  const { t } = useI18n()
   const [selectedId, setSelectedId] = useState(
     focusTileId ?? ownedTileIds[0],
   )
   const [isChoosingProduction, setIsChoosingProduction] =
     useState(false)
+  const [mobileMapAction, setMobileMapAction] =
+    useState<MobileMapAction>(null)
   const [bidAmount, setBidAmount] = useState(LAND_MINIMUM_BID)
   const [cameraState, setCameraState] = useState<MapCamera>(() => {
     if (!focusTileId) {
@@ -306,6 +312,20 @@ function HexMap({
     !isHarvesterBuildBlocked &&
     credits >= harvesterCreditCost &&
     ore >= HARVESTER_ORE_COST
+  const canOpenHarvesterMenu =
+    selectedIsPlayerOwned &&
+    !selectedHarvester &&
+    freeHarvesters > 0
+  const canOpenLandBidMenu =
+    selectedTile.owner === 'free' &&
+    !selectedIsPlayerOwned &&
+    !selectedIsOpponentOwned &&
+    !selectedPendingBid &&
+    !pendingLandBid &&
+    (!landAuctionTie || Boolean(selectedAuctionTie)) &&
+    !isLandBidBlocked &&
+    selectedIsAdjacentToPlayer &&
+    credits >= minimumBid
 
   const updateCamera = (camera: MapCamera) => {
     const nextCamera = {
@@ -504,6 +524,7 @@ function HexMap({
 
     setSelectedId(tileId)
     setIsChoosingProduction(false)
+    setMobileMapAction(null)
     if (tileId === targetPlanetMap.hqTileId) {
       onOpenHeadquarters()
     }
@@ -525,6 +546,7 @@ function HexMap({
 
     onAssignHarvester(selectedTile.id, production)
     setIsChoosingProduction(false)
+    setMobileMapAction(null)
   }
 
   const changeHarvesterProduction = (
@@ -536,6 +558,31 @@ function HexMap({
 
     onChangeHarvesterProduction(selectedTile.id, production)
     setIsChoosingProduction(false)
+    setMobileMapAction(null)
+  }
+
+  const toggleMobileHarvesterMenu = () => {
+    const nextIsOpen = mobileMapAction !== 'harvester'
+
+    setMobileMapAction(nextIsOpen ? 'harvester' : null)
+    setIsChoosingProduction(nextIsOpen)
+  }
+
+  const toggleMobileLandBidMenu = () => {
+    setMobileMapAction(
+      mobileMapAction === 'land-bid' ? null : 'land-bid',
+    )
+    setIsChoosingProduction(false)
+  }
+
+  const closeProductionMenu = () => {
+    setIsChoosingProduction(false)
+    setMobileMapAction(null)
+  }
+
+  const placeLandBid = () => {
+    onPlaceLandBid(selectedTile.id, effectiveBidAmount)
+    setMobileMapAction(null)
   }
 
   return (
@@ -951,6 +998,32 @@ function HexMap({
           </span>
         </div>
 
+        <div
+          className="mobile-map-actions"
+          aria-label={t('map.mobileActions')}
+        >
+          <button
+            className="mobile-map-action-button"
+            type="button"
+            aria-expanded={mobileMapAction === 'harvester'}
+            aria-controls="harvester-production-menu"
+            disabled={!canOpenHarvesterMenu}
+            onClick={toggleMobileHarvesterMenu}
+          >
+            {t('map.deployHarvester')}
+          </button>
+          <button
+            className="mobile-map-action-button"
+            type="button"
+            aria-expanded={mobileMapAction === 'land-bid'}
+            aria-controls="land-bid-menu"
+            disabled={!canOpenLandBidMenu}
+            onClick={toggleMobileLandBidMenu}
+          >
+            {t('map.placeBid')}
+          </button>
+        </div>
+
         <aside className="tile-details">
           {selectedTile.owner === 'hq' ? (
             <>
@@ -1174,9 +1247,7 @@ function HexMap({
                     <button
                       className="cancel-button"
                       type="button"
-                      onClick={() =>
-                        setIsChoosingProduction(false)
-                      }
+                      onClick={closeProductionMenu}
                     >
                       Abbrechen
                     </button>
@@ -1188,7 +1259,7 @@ function HexMap({
                 !selectedHarvester &&
                 !isChoosingProduction && (
                   <button
-                    className="field-button"
+                    className="field-button harvester-launch-button"
                     type="button"
                     disabled={freeHarvesters === 0}
                     onClick={() =>
@@ -1205,7 +1276,10 @@ function HexMap({
                 !selectedProduction &&
                 !selectedHarvester &&
                 isChoosingProduction && (
-                  <div className="production-picker">
+                  <div
+                    className="production-picker"
+                    id="harvester-production-menu"
+                  >
                     <p>
                       Was soll der Harvester produzieren?
                     </p>
@@ -1242,9 +1316,7 @@ function HexMap({
                     <button
                       className="cancel-button"
                       type="button"
-                      onClick={() =>
-                        setIsChoosingProduction(false)
-                      }
+                      onClick={closeProductionMenu}
                     >
                       Abbrechen
                     </button>
@@ -1313,7 +1385,14 @@ function HexMap({
                         }`}
                   </button>
                 ) : (
-                  <div className="land-bid-panel">
+                  <div
+                    className={`land-bid-panel ${
+                      mobileMapAction === 'land-bid'
+                        ? 'is-mobile-open'
+                        : ''
+                    }`}
+                    id="land-bid-menu"
+                  >
                     {selectedAuctionTie && (
                       <div className="tie-notice">
                         <strong>
@@ -1357,12 +1436,7 @@ function HexMap({
                         !selectedIsAdjacentToPlayer ||
                         credits < minimumBid
                       }
-                      onClick={() =>
-                        onPlaceLandBid(
-                          selectedTile.id,
-                          effectiveBidAmount,
-                        )
-                      }
+                      onClick={placeLandBid}
                     >
                       {isLandBidBlocked
                         ? 'Grundstückserwerb gesperrt'
