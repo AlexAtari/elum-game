@@ -1,4 +1,5 @@
 import {
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -33,7 +34,10 @@ import {
   targetPlanetMap,
 } from '../planetMap'
 import { useI18n } from '../i18n/I18nContext'
-import { createSpaceBackdropStyle } from '../spaceBackdrop'
+import {
+  createCelestialPositions,
+  createSpaceBackdropStyle,
+} from '../spaceBackdrop'
 import {
   createPlanetSurfaceCells,
   createRotationForTile,
@@ -232,6 +236,15 @@ function HexMap({
   const pointerPositions = useRef(new Map<number, Point>())
   const gesture = useRef<MapGesture | null>(null)
   const didMoveMap = useRef(false)
+  const cultivatedTileIds = useMemo(
+    () =>
+      participantIds.flatMap((participantId) =>
+        Object.keys(
+          colonies[participantId].harvesterAssignments,
+        ),
+      ),
+    [colonies],
+  )
 
   const selectedTile =
     tiles.find((tile) => tile.id === selectedId) ?? tiles[0]!
@@ -331,6 +344,11 @@ function HexMap({
   const spaceBackgroundStyle = createSpaceBackdropStyle(
     cameraState,
   ) as CSSProperties
+  const celestialPositions = createCelestialPositions(
+    cameraState,
+    cameraState.zoom,
+    PLANET_RADIUS,
+  )
 
   const updateCamera = (camera: MapCamera) => {
     const nextCamera = {
@@ -612,13 +630,72 @@ function HexMap({
             className="space-backdrop"
             style={spaceBackgroundStyle}
             aria-hidden="true"
+          />
+          <svg
+            className="space-celestial-layer"
+            viewBox={`${-MAP_VIEW_SIZE / 2} ${
+              -MAP_VIEW_SIZE / 2
+            } ${MAP_VIEW_SIZE} ${MAP_VIEW_SIZE}`}
+            aria-hidden="true"
           >
-            <span className="space-sun" />
-            <span className="space-ringed-planet">
-              <span className="space-ringed-planet-body" />
-            </span>
-          </div>
+            <defs>
+              <radialGradient id="space-sun-surface">
+                <stop offset="0" stopColor="#fffbd0" />
+                <stop offset="0.38" stopColor="#ffd769" />
+                <stop offset="0.72" stopColor="#f28a32" />
+                <stop offset="1" stopColor="#b53a19" />
+              </radialGradient>
+              <linearGradient
+                id="space-ringed-planet-surface"
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="1"
+              >
+                <stop offset="0" stopColor="#ead59c" />
+                <stop offset="0.45" stopColor="#c69e70" />
+                <stop offset="0.7" stopColor="#8d6657" />
+                <stop offset="1" stopColor="#382b36" />
+              </linearGradient>
+            </defs>
+            <g
+              className="space-sun"
+              transform={`translate(${celestialPositions.sun.x} ${celestialPositions.sun.y})`}
+            >
+              <circle className="space-sun-glow" r="24" />
+              <circle
+                className="space-sun-body"
+                r="14"
+                fill="url(#space-sun-surface)"
+              />
+            </g>
+            <g
+              className="space-ringed-planet"
+              transform={`translate(${celestialPositions.ringedPlanet.x} ${celestialPositions.ringedPlanet.y}) rotate(-15)`}
+            >
+              <ellipse
+                className="space-ring-outer"
+                rx="38"
+                ry="10"
+              />
+              <ellipse
+                className="space-ring-inner"
+                rx="32"
+                ry="6"
+              />
+              <circle
+                className="space-ringed-planet-body"
+                r="17"
+                fill="url(#space-ringed-planet-surface)"
+              />
+              <path
+                className="space-ring-front"
+                d="M -37 2 Q 0 16 37 -2"
+              />
+            </g>
+          </svg>
           <PlanetSurface
+            cultivatedTileIds={cultivatedTileIds}
             radius={PLANET_RADIUS * cameraState.zoom}
             rotation={cameraState}
             round={round}

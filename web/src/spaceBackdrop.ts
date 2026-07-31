@@ -3,6 +3,11 @@ type SpaceRotation = {
   pitch: number
 }
 
+type CelestialPosition = {
+  x: number
+  y: number
+}
+
 function toPixelValue(value: number) {
   return `${Number(value.toFixed(3))}px`
 }
@@ -23,17 +28,36 @@ export function createSpaceBackdropStyle(rotation: SpaceRotation) {
     '--stars-near-y': toPixelValue(
       (rotation.pitch / Math.PI) * 130,
     ),
-    '--space-object-x': toPixelValue(
-      (rotation.yaw / fullTurn) * 520,
+  }
+}
+
+function positionOnOrbit(
+  angle: number,
+  orbitRadius: number,
+): CelestialPosition {
+  return {
+    x: Math.cos(angle) * orbitRadius,
+    y: Math.sin(angle) * orbitRadius,
+  }
+}
+
+export function createCelestialPositions(
+  rotation: SpaceRotation,
+  zoom: number,
+  planetRadius: number,
+) {
+  const surfaceRadius = planetRadius * zoom
+  const rotationOffset =
+    rotation.yaw * 0.38 + rotation.pitch * 0.22
+
+  return {
+    sun: positionOnOrbit(
+      -2.45 + rotationOffset,
+      surfaceRadius + 38,
     ),
-    '--space-object-y': toPixelValue(
-      (rotation.pitch / Math.PI) * 100,
-    ),
-    '--space-object-far-x': toPixelValue(
-      (rotation.yaw / fullTurn) * 440,
-    ),
-    '--space-object-far-y': toPixelValue(
-      (rotation.pitch / Math.PI) * 82,
+    ringedPlanet: positionOnOrbit(
+      -1.45 + rotationOffset,
+      surfaceRadius + 58,
     ),
   }
 }

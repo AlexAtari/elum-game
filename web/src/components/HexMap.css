@@ -162,97 +162,45 @@
   opacity: 0.88;
 }
 
-.space-sun {
+.space-celestial-layer {
   position: absolute;
-  top: 13%;
-  left: 12%;
-  width: clamp(24px, 4.8vw, 46px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 38% 35%,
-    #fffbd0 0 16%,
-    #ffd769 38%,
-    #f28a32 70%,
-    #b53a19 100%
-  );
-  box-shadow:
-    0 0 12px 4px rgba(255, 218, 111, 0.56),
-    0 0 36px 13px rgba(255, 151, 57, 0.2),
-    0 0 70px 25px rgba(255, 111, 45, 0.08);
-  transform: translate(
-    var(--space-object-x),
-    var(--space-object-y)
-  );
-}
-
-.space-ringed-planet {
-  position: absolute;
-  top: 20%;
-  right: 8%;
-  width: clamp(58px, 9.5vw, 92px);
-  aspect-ratio: 2 / 1;
-  transform: translate(
-      var(--space-object-far-x),
-      var(--space-object-far-y)
-    )
-    rotate(-15deg);
-}
-
-.space-ringed-planet::before,
-.space-ringed-planet::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  z-index: 1;
+  inset: 0;
   width: 100%;
-  height: 28%;
-  border: 2px solid rgba(221, 201, 160, 0.72);
-  border-right-color: rgba(157, 132, 111, 0.42);
-  border-left-color: rgba(252, 232, 187, 0.82);
-  border-radius: 50%;
-  content: '';
-  transform: translate(-50%, -50%);
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
 }
 
-.space-ringed-planet::after {
-  width: 86%;
-  height: 20%;
-  border-width: 1px;
-  opacity: 0.6;
+.space-sun-glow {
+  fill: rgba(255, 183, 76, 0.22);
+  filter: drop-shadow(0 0 13px rgba(255, 177, 67, 0.84));
+}
+
+.space-sun-body {
+  filter: drop-shadow(0 0 7px rgba(255, 221, 113, 0.86));
+}
+
+.space-ring-outer,
+.space-ring-inner,
+.space-ring-front {
+  fill: none;
+  stroke: rgba(229, 207, 161, 0.76);
+  stroke-width: 2;
+}
+
+.space-ring-inner {
+  stroke: rgba(153, 128, 105, 0.56);
+  stroke-width: 1;
 }
 
 .space-ringed-planet-body {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 50%;
-  width: 43%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: linear-gradient(
-    180deg,
-    #ead59c 0 20%,
-    #b98d65 21% 34%,
-    #e2c68d 35% 53%,
-    #8d6657 54% 62%,
-    #caa879 63% 100%
-  );
-  box-shadow:
-    inset -10px -3px 12px rgba(22, 15, 30, 0.72),
-    0 0 16px rgba(199, 173, 124, 0.18);
-  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 7px rgba(199, 173, 124, 0.26));
 }
 
-@media (max-width: 720px) {
-  .space-sun {
-    top: 15%;
-    left: 10%;
-  }
-
-  .space-ringed-planet {
-    top: 14%;
-    right: 40%;
-  }
+.space-ring-front {
+  stroke: rgba(250, 229, 184, 0.9);
+  stroke-width: 2.4;
 }
 
 .hex-map {

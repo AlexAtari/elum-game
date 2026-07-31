@@ -270,14 +270,18 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   von der Marsbasis zur erdähnlichen Vegetationsbasis
 - nahrungsreiche Regionen entwickeln sich schneller und stärker;
   karge sowie erzreiche Regionen behalten länger Marsgestein
+- aktuell mit Harvestern bewirtschaftete Grundstücke erhalten einen
+  weich auslaufenden zusätzlichen Grün- und Terraforminganteil, der
+  von Runde 1 bis 20 sichtbar zunimmt und keine Regeln verändert
 - feste gerichtete Beleuchtung mit heller Einfallsseite, weich
   abgedunkelter Gegenseite; der frühere blaue Kugelrand ist entfernt
 - dichteres, tief gestaffeltes Sternfeld statt schwarzer
   Kartenfläche; zwei Sternenebenen verschieben sich mit der Yaw- und
   Pitch-Rotation des Planeten und bleiben nach einer vollständigen
   Drehung nahtlos; eine kleine leuchtende Sonne und ein entfernter
-  Ringplanet wandern bei der Planetendrehung deutlich in derselben
-  Richtung durch den Hintergrund
+  Ringplanet wandern bei der Planetendrehung auf Außenbahnen um die
+  Kugel; ihr Abstand zur Planetenoberfläche bleibt beim Zoomen
+  konstant, sodass die Kugel sie nicht mehr überdeckt
 - keine sichtbaren Feldnummern auf der Kugel; Feld-IDs bleiben in
   Spielstand und Diagnose erhalten
 - alle 91 Grundstücke tragen feste, eindeutige Londoner

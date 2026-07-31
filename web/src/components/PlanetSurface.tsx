@@ -17,11 +17,14 @@ import {
   type PlanetRotation,
 } from '../planetProjection'
 import {
+  applyCultivationGreening,
+  calculateCultivationGreening,
   calculateResourceColorScale,
   calculateTerraformingBlend,
 } from '../planetSurfaceTint'
 
 type PlanetSurfaceProps = {
+  cultivatedTileIds: string[]
   radius: number
   rotation: PlanetRotation
   round: number
@@ -55,6 +58,7 @@ function createPlanetTexture(
   marsImage: HTMLImageElement,
   terraformedImage: HTMLImageElement,
   tiles: Tile[],
+  cultivatedTileIds: string[],
   round: number,
 ) {
   const canvas = document.createElement('canvas')
@@ -104,12 +108,19 @@ function createPlanetTexture(
     TINT_TEXTURE_WIDTH,
     TINT_TEXTURE_HEIGHT,
   )
+  const cultivatedTileIdSet = new Set(cultivatedTileIds)
   const resourceTiles = tiles.flatMap((tile) => {
     const position =
       targetPlanetMap.spherePositions?.[tile.id]
 
     return position
-      ? [{ tile, position }]
+      ? [
+          {
+            tile,
+            position,
+            isCultivated: cultivatedTileIdSet.has(tile.id),
+          },
+        ]
       : []
   })
 
@@ -132,6 +143,7 @@ function createPlanetTexture(
       let food = 0
       let energy = 0
       let ore = 0
+      let cultivationWeight = 0
       let weightTotal = 0
 
       for (const resourceTile of resourceTiles) {
@@ -144,18 +156,32 @@ function createPlanetTexture(
         food += (resourceTile.tile.food ?? 0) * weight
         energy += (resourceTile.tile.energy ?? 0) * weight
         ore += (resourceTile.tile.ore ?? 0) * weight
+        cultivationWeight += resourceTile.isCultivated
+          ? weight
+          : 0
         weightTotal += weight
       }
 
-      const colorScale = calculateResourceColorScale(
-        food,
-        energy,
-        ore,
-        weightTotal,
-        round,
-        GAME_ROUND_LIMIT,
+      const cultivationGreening =
+        calculateCultivationGreening(
+          cultivationWeight,
+          weightTotal,
+          round,
+          GAME_ROUND_LIMIT,
+        )
+      const colorScale = applyCultivationGreening(
+        calculateResourceColorScale(
+          food,
+          energy,
+          ore,
+          weightTotal,
+          round,
+          GAME_ROUND_LIMIT,
+        ),
+        cultivationGreening,
       )
-      const terraformingBlend =
+      const terraformingBlend = Math.min(
+        1,
         calculateTerraformingBlend(
           food,
           energy,
@@ -163,7 +189,9 @@ function createPlanetTexture(
           weightTotal,
           round,
           GAME_ROUND_LIMIT,
-        )
+        ) +
+          cultivationGreening * 0.36,
+      )
       const offset =
         (y * TINT_TEXTURE_WIDTH + x) * 4
 
@@ -186,6 +214,7 @@ function createPlanetTexture(
 }
 
 export function PlanetSurface({
+  cultivatedTileIds,
   radius,
   rotation,
   round,
@@ -255,6 +284,7 @@ export function PlanetSurface({
             marsImage,
             terraformedImage,
             tiles,
+            cultivatedTileIds,
             round,
           ),
         )
@@ -268,7 +298,7 @@ export function PlanetSurface({
     return () => {
       isActive = false
     }
-  }, [round, tiles])
+  }, [cultivatedTileIds, round, tiles])
 
   useEffect(() => {
     const canvas = canvasRef.current

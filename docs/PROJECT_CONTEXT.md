@@ -240,13 +240,17 @@ werden.
   Ressourcenfarbkarte für scharfen mobilen Nahzoom
 - Überblendung von Mars- zu erdähnlicher Terraformingbasis über 20
   Runden; Nahrungseignung beschleunigt die rein visuelle Entwicklung
+- bewirtschaftete Grundstücke aller vier Kolonien erzeugen um ihre
+  Harvester einen zusätzlichen weich auslaufenden Kultivierungs- und
+  Grünanteil, der über die Runden stärker wird
 - lückenlose sphärische Dualzellen als unsichtbare
   Interaktionsflächen und kugelrichtige Rückprojektion der fest auf
   dem Planeten verankerten Oberflächentextur
 - feste Sonnenbeleuchtung ohne künstlichen blauen Kugelrand sowie ein
   dichteres zweistufiges, an die Planetendrehung gekoppeltes
   Sternfeld mit kleiner Sonne und entferntem Ringplaneten; beide
-  Himmelskörper wandern bei der Planetendrehung deutlich mit;
+  Himmelskörper wandern auf zoomgebundenen Außenbahnen mit konstantem
+  Abstand zur Kugeloberfläche;
   Feldnummern nur in Details und barrierefreien Namen, nicht auf der
   Kugeloberfläche
 - mobile Kartenbreite mit schmaleren Seitenabständen und Nahzoom bis

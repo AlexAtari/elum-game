@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  applyCultivationGreening,
+  calculateCultivationGreening,
   calculateResourceColorScale,
   calculateTerraformingBlend,
 } from './planetSurfaceTint'
@@ -142,5 +144,41 @@ describe('geglättete Ressourcenfarbnuancen', () => {
     )
 
     expect(fertile).toBeGreaterThan(barren)
+  })
+
+  it('begrünt bewirtschaftete Flächen im Rundenverlauf stärker', () => {
+    const opening = calculateCultivationGreening(
+      1,
+      1,
+      1,
+      20,
+    )
+    const finale = calculateCultivationGreening(
+      1,
+      1,
+      20,
+      20,
+    )
+    const uncultivated = calculateCultivationGreening(
+      0,
+      1,
+      20,
+      20,
+    )
+
+    expect(opening).toBeGreaterThan(0)
+    expect(finale).toBeGreaterThan(opening)
+    expect(uncultivated).toBe(0)
+  })
+
+  it('verschiebt die Kultivierungsfarbe sichtbar ins Grüne', () => {
+    const cultivated = applyCultivationGreening(
+      { red: 1, green: 1, blue: 1 },
+      0.6,
+    )
+
+    expect(cultivated.green).toBeGreaterThan(1)
+    expect(cultivated.red).toBeLessThan(1)
+    expect(cultivated.blue).toBeLessThan(1)
   })
 })

@@ -40,6 +40,11 @@ mit einer deckungsgleichen Terraformingbasis überblendet. Eine
 moderate Grundentwicklung betrifft den gesamten Planeten.
 Nahrungseignung verstärkt den lokalen Anteil, sodass fruchtbare
 Regionen früher dunkle Böden, Flechten und Vegetation zeigen.
+Grundstücke mit einem eingesetzten Harvester erhalten unabhängig von
+der Kolonie einen zusätzlichen, räumlich weich auslaufenden
+Kultivierungsimpuls. Dieser beginnt dezent in Runde 1 und verstärkt
+sich bis Runde 20; er verschwindet ohne aktive Bewirtschaftung und
+bleibt eine rein visuelle Anzeige.
 Erzreiche und karge Regionen bleiben länger trocken und felsig.
 Selbst der Endzustand enthält weiterhin Basalt, Ocker und
 Halbtrockenzonen; offene Gewässer und Siedlungen werden nicht Teil
@@ -65,7 +70,9 @@ Pitch-Rotation der Planetenkamera und erzeugen dezente räumliche
 Parallaxe. Eine kleine leuchtende Sonne und ein entfernter
 saturnähnlicher Ringplanet ergänzen die dichtere Sternkulisse als
 rein visuelle Hintergrundelemente. Beide wandern bei Yaw- und
-Pitch-Rotation deutlich in derselben Richtung durch das Sichtfeld.
+Pitch-Rotation auf Außenbahnen um die Kugel. Der Bahnradius wird aus
+dem aktuellen Kugelradius plus einem festen sichtbaren Abstand
+berechnet, sodass Zoomen die Himmelskörper nicht überdeckt.
 Ein künstlicher farbiger Kugelrand wird nicht verwendet.
 Feld-IDs erscheinen nicht als Text auf der Kugel. Die 91 Grundstücke
 tragen stattdessen feste, eindeutige Namen nach Stationen der London

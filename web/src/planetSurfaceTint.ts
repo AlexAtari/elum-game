@@ -4,6 +4,41 @@ export type ResourceColorScale = {
   blue: number
 }
 
+export function calculateCultivationGreening(
+  cultivationWeight: number,
+  weightTotal: number,
+  round: number,
+  finalRound: number,
+) {
+  if (cultivationWeight <= 0 || weightTotal <= 0) {
+    return 0
+  }
+
+  const coverage = Math.min(
+    1,
+    cultivationWeight / weightTotal,
+  )
+  const roundProgress = calculateRoundProgress(
+    round,
+    finalRound,
+  )
+
+  return coverage * (0.16 + roundProgress * 0.44)
+}
+
+export function applyCultivationGreening(
+  colorScale: ResourceColorScale,
+  cultivationGreening: number,
+): ResourceColorScale {
+  return {
+    red: colorScale.red * (1 - cultivationGreening * 0.1),
+    green:
+      colorScale.green * (1 + cultivationGreening * 0.22),
+    blue:
+      colorScale.blue * (1 - cultivationGreening * 0.045),
+  }
+}
+
 function calculateRoundProgress(
   round: number,
   finalRound: number,
