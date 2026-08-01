@@ -278,6 +278,7 @@ function MarketPanel({
     MarketUiCounterparty | null
   >(null)
   const nextPlayerMovementAt = useRef(0)
+  const initializedAuctionKey = useRef<string | null>(null)
   if (countdown.phase !== phase) {
     setCountdown({
       phase,
@@ -347,28 +348,30 @@ function MarketPanel({
   ])
 
   useEffect(() => {
-    if (stage !== 'auction') {
+    const auctionKey = `${roundPlayed}-${resource}`
+
+    if (
+      stage !== 'auction' ||
+      initializedAuctionKey.current === auctionKey
+    ) {
       return
     }
 
-    const initializeAuction = window.setTimeout(() => {
-      setActiveRivalId(plannedRivalId)
-      setOrionRole(plannedOrionRole)
-      setOrionUnitsRemaining(plannedOrionUnits)
-      setPlayerPrice(
-        role === 'seller' ? maximumPrice : minimumPrice,
-      )
-      setPlayerOfferActive(false)
-      setOrionPrice(
-        role === 'seller' ? minimumPrice : maximumPrice,
-      )
-      setOrionResourceAmount(
-        rivals[plannedRivalId].resources[resource],
-      )
-      setOrionParked(false)
-    }, 0)
-
-    return () => window.clearTimeout(initializeAuction)
+    initializedAuctionKey.current = auctionKey
+    setActiveRivalId(plannedRivalId)
+    setOrionRole(plannedOrionRole)
+    setOrionUnitsRemaining(plannedOrionUnits)
+    setPlayerPrice(
+      role === 'seller' ? maximumPrice : minimumPrice,
+    )
+    setPlayerOfferActive(false)
+    setOrionPrice(
+      role === 'seller' ? minimumPrice : maximumPrice,
+    )
+    setOrionResourceAmount(
+      rivals[plannedRivalId].resources[resource],
+    )
+    setOrionParked(false)
   }, [
     maximumPrice,
     minimumPrice,
@@ -378,6 +381,7 @@ function MarketPanel({
     resource,
     rivals,
     role,
+    roundPlayed,
     stage,
   ])
 

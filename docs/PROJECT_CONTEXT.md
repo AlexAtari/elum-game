@@ -332,6 +332,9 @@ werden.
 - lokale Countdowns lösen validierte Phasenkommandos aus, statt
   selbst den Phasenzustand zu halten; sichtbare Bewegungen und
   KI-Auswahl bleiben Singleplayer-Adapter der grafischen Komponenten
+- die lokale Marktvisualisierung initialisiert eine Auktion genau
+  einmal; Angebotskommandos dürfen aktive Preispositionen nicht auf
+  die Ausgangsposition zurücksetzen
 - transportneutraler autoritativer Match-Serverkern bindet
   authentifizierte Sitzungen an menschliche Teilnehmer, verhindert
   Identitätsspoofing und verteilt revisionsnummerierte

@@ -80,6 +80,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Quelle des Phasenzustands
 - Countdown, Avatarbewegungen und KI-Auswahl bleiben vorerst lokale
   Darstellung beziehungsweise Singleplayer-Adapter
+- die lokale Ressourcenauktion initialisiert Preispositionen nur beim
+  einmaligen Eintritt in die Auktionsphase; kanonische Angebotsupdates
+  setzen aktive Käufer- oder Verkäuferfiguren nicht mehr zurück
 - transportneutraler autoritativer Match-Serverkern mit
   Sitzungsbindung an menschliche `ParticipantId`, Abwehr von
   Identitätswechseln und vom Serverzustand isolierten,
