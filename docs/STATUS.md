@@ -324,6 +324,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - Nahrung, Energie, Erz, Kristalle und Credits
 - Kristallförderung durch Harvester auf natürlichen und durch
   Meteore aufgewerteten Vorkommen
+- nach abgeschlossener Exploration steht Kristallproduktion in der
+  mobilen Harvester-Auswahl an erster Stelle; vier verfügbare
+  Produktionsarten erscheinen als scrollbares 2×2-Raster
 - Kristallwerte neu gekaufter Felder bleiben eine vollständige
   Folgerunde verborgen und sind erst ab der darauffolgenden Runde
   sichtbar und förderbar; dies gilt auch für KI-Kolonien
@@ -454,10 +457,10 @@ Aktueller 200-Partien-Stand mit 20 Runden, Markt und den Seeds
 
 | Kolonie | Siegquote | Durchschnittsrang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 36,0 % | 2,11 | 19,6 | 106,0 |
-| Vega | 26,0 % | 2,37 | 19,2 | 78,0 |
-| Agima | 23,0 % | 2,58 | 18,0 | 201,5 |
-| Orion | 15,0 % | 2,94 | 17,3 | 224,3 |
+| Nova | 38,5 % | 2,06 | 19,6 | 107,3 |
+| Vega | 28,5 % | 2,36 | 19,2 | 77,8 |
+| Agima | 19,5 % | 2,64 | 17,5 | 215,0 |
+| Orion | 13,5 % | 2,93 | 17,3 | 224,0 |
 
 Die Seriensimulation verwendet jetzt dieselbe lexikografische
 Schlusswertung wie die Browserpartie: Bevölkerung,
@@ -467,16 +470,24 @@ entscheidet keine Partie.
 
 Systemische Beobachtungen aus dem aktuellen Lauf:
 
-- 143 unterschiedliche Endergebnisse
-- 141,7 Markttransaktionen je Partie
+- 142 unterschiedliche Endergebnisse
+- 143,9 Markttransaktionen je Partie
 - 3,5 direkte Spielertransaktionen je Partie
-- direkter Handelsanteil 2,5 %
-- 137,2 HQ-Lagertransaktionen je Partie
+- direkter Handelsanteil 2,4 %
+- 139,3 HQ-Lagertransaktionen je Partie
 - 1,0 Verkauf an den interstellaren Käufer je Partie
 - durchschnittlich 2,4 Meteore je Partie
-- 9,42 Versorgungssignale je Partie
-- davon 585 Bevölkerungsrückgänge, 501 leere Nahrungs- und
+- 9,27 Versorgungssignale je Partie
+- davon 573 Bevölkerungsrückgänge, 490 leere Nahrungs- und
   149 leere Energiebestände
+
+Der Versorgungssprung am elften Einwohner ist als wahrscheinlichster
+systemischer Engpass identifiziert: normale HQ-Versorgung steigt dort
+von jeweils zwei auf vier Nahrung und Energie. Mit zwei aktiven
+Harvestern wächst der gesamte Energiebedarf zugleich von vier auf
+sechs Einheiten. Geglättete Verbrauchsschwellen und höhere
+Grundproduktion müssen als getrennte Zahlenvarianten simuliert werden,
+bevor eine Balancingänderung übernommen wird.
 
 Die gemeinsame Agentenregel erlaubt die erste Expansion von zwei auf
 drei Harvester bereits bei sicherer Versorgung der unmittelbar

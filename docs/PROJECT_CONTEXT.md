@@ -259,6 +259,9 @@ werden.
   einschließlich Kristallen vollständig sichtbar; kontextabhängige
   transparente Aktionen öffnen Harvesterplatzierung, -verwaltung
   oder Grundstücksgebot
+- entdeckte Kristallvorkommen bieten Kristallproduktion in der mobilen
+  Harvester-Auswahl sichtbar an erster Stelle und zeigen alle vier
+  Produktionsarten in einem scrollbar abgesicherten 2×2-Raster
 - Ressourcenwerte liegen zoomabhängig direkt auf den sichtbaren
   Grundstücken: in der Übersicht die stärkste normale Ressource, bei
   Auswahl oder Nahzoom Nahrung, Energie und Erz mehrzeilig; die
@@ -500,7 +503,7 @@ werden.
 
 Die 20-Runden-Seriensimulation wertet inzwischen nach derselben
 Reihenfolge wie die Browserpartie. Der Referenzlauf mit 200 Partien
-liegt zwischen 15,0 % und 36,0 % Siegen. Die gemeinsame erste
+liegt zwischen 13,5 % und 38,5 % Siegen. Die gemeinsame erste
 Expansion baut bei sicherer Folgerunde von zwei auf drei Harvester und
 schützt nach Bau beziehungsweise Mindestgebot 20 Credits. Im Mittel
 enden die Kolonien mit 2,9 bis 3,1 Harvestern und 2,9 bis 3,0
@@ -512,6 +515,11 @@ in der Headless-Simulation. Jede Kolonie startet mit einer
 Kristallprobe. Der 200-Partien-Lauf erzeugt 2,4 Meteore und
 1,0 interstellare Käufertransaktion je Partie. Natürliche
 Fernzonenadern werden noch nicht zuverlässig erreicht.
+
+Die aktuelle Serie erzeugt 9,27 Versorgungssignale je Partie. Der
+Sprung von einer auf zwei angefangene Bevölkerungsgruppen beim elften
+Einwohner ist der auffälligste Engpass; Verbrauchsglättung und höhere
+Grundproduktion sind vor einer Regeländerung getrennt zu simulieren.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

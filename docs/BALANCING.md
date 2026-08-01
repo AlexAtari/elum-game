@@ -3,7 +3,7 @@
 
 **Version:** 0.2
 **Status:** Draft  
-**Last Updated:** 2026-07-28
+**Last Updated:** 2026-08-01
 
 ---
 
@@ -40,18 +40,29 @@ lexikografischen Wertung wie im Browser bestimmt.
 
 | Kolonie | Siegquote | Ø Rang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 36,0 % | 2,11 | 19,6 | 106,0 |
-| Vega | 26,0 % | 2,37 | 19,2 | 78,0 |
-| Agima | 23,0 % | 2,58 | 18,0 | 201,5 |
-| Orion | 15,0 % | 2,94 | 17,3 | 224,3 |
+| Nova | 38,5 % | 2,06 | 19,6 | 107,3 |
+| Vega | 28,5 % | 2,36 | 19,2 | 77,8 |
+| Agima | 19,5 % | 2,64 | 17,5 | 215,0 |
+| Orion | 13,5 % | 2,93 | 17,3 | 224,0 |
 
 Der breitere Ökonomiewert aus Ressourcen, Bevölkerung, Harvestern und
 Land dient ausschließlich der Diagnose. Er ist kein
 Gleichstandskriterium.
 
-Der Lauf erzeugt durchschnittlich 141,7 Markttransaktionen und 9,42
-Versorgungssignale je Partie. 2,5 % des Volumens sind direkte
+Der Lauf erzeugt durchschnittlich 143,9 Markttransaktionen und 9,27
+Versorgungssignale je Partie. 2,4 % des Volumens sind direkte
 Geschäfte zwischen Kolonien.
+
+Die Versorgungssignale bestätigen einen auffälligen Schwellenwert:
+Bei normaler Versorgung verdoppelt der elfte Einwohner durch die
+zweite angefangene Zehnergruppe den HQ-Bedarf sofort von zwei auf vier
+Nahrung und Energie. Zusammen mit zwei aktiven Harvestern steigt der
+gesamte Energiebedarf damit von vier auf sechs. Im aktuellen Lauf
+treten 573 Bevölkerungsrückgänge, 490 leere Nahrungs- und 149 leere
+Energiebestände auf. Eine Zahlenänderung ist daraus noch nicht
+abgeleitet; als nächster Vergleich sind eine geglättete
+Versorgungsschwelle und behutsam höhere Grundproduktion getrennt zu
+simulieren.
 
 Jede Kolonie startet mit einer Kristallprobe im Lager. Agenten mit
 Kristallreserve 0 dürfen sie anbieten; Agenten mit Reserve 1 behalten

@@ -1140,6 +1140,8 @@
     display: block;
     width: auto;
     max-height: 38dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 20px;
   }
 
@@ -1160,6 +1162,10 @@
 
   .immersive-planet-screen .tile-details.is-action-open .production-options {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .immersive-planet-screen .tile-details.is-action-open .production-options.has-crystal-production {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .immersive-planet-screen .tile-details.is-action-open .production-button {
@@ -1289,6 +1295,16 @@
 .production-button:hover {
   border-color: #79ddb9;
   background: rgba(121, 221, 185, 0.1);
+}
+
+.production-button.crystal-production-button {
+  border-color: rgba(196, 142, 255, 0.56);
+  background: rgba(156, 93, 230, 0.14);
+}
+
+.production-button.crystal-production-button:hover {
+  border-color: #d9b6ff;
+  background: rgba(176, 111, 246, 0.22);
 }
 
 .production-button span {

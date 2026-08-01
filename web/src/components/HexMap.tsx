@@ -25,6 +25,7 @@ import {
   participantIds,
   type ParticipantId,
 } from '../match'
+import { getHarvesterProductionOptions } from '../harvesterProductionOptions'
 import {
   combineMeteorBonuses,
   type MeteorImpact,
@@ -318,6 +319,14 @@ function HexMap({
   const selectedIsOpponentOwned = opponentTileIds.includes(
     selectedTile.id,
   )
+  const canProduceSelectedCrystals =
+    selectedIsPlayerOwned &&
+    selectedCrystalDiscovered &&
+    selectedCrystalRating > 0
+  const availableProductionTypes =
+    getHarvesterProductionOptions(
+      canProduceSelectedCrystals,
+    )
   const selectedIsAdjacentToPlayer = ownedTileIds.some(
     (tileId) =>
       tiles
@@ -1461,22 +1470,22 @@ function HexMap({
                   >
                     <p>Neue Produktion wählen:</p>
 
-                    <div className="production-options">
-                      {(
-                        Object.keys(
-                          productionTypes,
-                        ) as ProductionType[]
-                      )
-                        .filter(
-                          (production) =>
-                            production !== 'crystals' ||
-                            (selectedCrystalDiscovered &&
-                              selectedCrystalRating > 0),
-                        )
-                        .map((production) => (
+                    <div
+                      className={`production-options${
+                        canProduceSelectedCrystals
+                          ? ' has-crystal-production'
+                          : ''
+                      }`}
+                    >
+                      {availableProductionTypes.map(
+                        (production) => (
                         <button
                           key={production}
-                          className="production-button"
+                          className={`production-button${
+                            production === 'crystals'
+                              ? ' crystal-production-button'
+                              : ''
+                          }`}
                           type="button"
                           onClick={() =>
                             changeHarvesterProduction(production)
@@ -1489,7 +1498,8 @@ function HexMap({
                             ? `${productionTypes[production].label} beibehalten`
                             : productionTypes[production].label}
                         </button>
-                      ))}
+                        ),
+                      )}
                     </div>
 
                     <button
@@ -1532,22 +1542,22 @@ function HexMap({
                       Was soll der Harvester produzieren?
                     </p>
 
-                    <div className="production-options">
-                      {(
-                        Object.keys(
-                          productionTypes,
-                        ) as ProductionType[]
-                      )
-                        .filter(
-                          (production) =>
-                            production !== 'crystals' ||
-                            (selectedCrystalDiscovered &&
-                              selectedCrystalRating > 0),
-                        )
-                        .map((production) => (
+                    <div
+                      className={`production-options${
+                        canProduceSelectedCrystals
+                          ? ' has-crystal-production'
+                          : ''
+                      }`}
+                    >
+                      {availableProductionTypes.map(
+                        (production) => (
                         <button
                           key={production}
-                          className="production-button"
+                          className={`production-button${
+                            production === 'crystals'
+                              ? ' crystal-production-button'
+                              : ''
+                          }`}
                           type="button"
                           onClick={() =>
                             assignHarvester(production)
@@ -1558,7 +1568,8 @@ function HexMap({
                           </span>
                           {productionTypes[production].label}
                         </button>
-                      ))}
+                        ),
+                      )}
                     </div>
 
                     <button

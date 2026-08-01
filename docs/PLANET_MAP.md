@@ -257,6 +257,10 @@ Auf einem eigenen Vorkommen kann ein Harvester Kristalle als vierte
 Produktionsart fördern. Der wirksame Ertrag kombiniert den natürlichen
 Wert mit bisherigen Meteorboni und bleibt bei fünf Sternen gedeckelt.
 Dieselbe Regel gilt für Rivalen und Headless-Simulation.
+Nach abgeschlossener Exploration erscheint Kristallproduktion in der
+mobilen Harvester-Auswahl an erster Stelle. Sind alle vier
+Produktionsarten verfügbar, verwendet das kompakte, scrollbar
+abgesicherte Menü ein 2×2-Raster.
 
 Harvester werden auf der Kugel als deutlich vergrößerte,
 kontrastunterlegte Maschinenmarkierung gezeigt. Der Koloniename bleibt
