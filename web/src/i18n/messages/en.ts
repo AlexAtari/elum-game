@@ -26,7 +26,7 @@ export const en = {
   'meteor.impactDescription':
     'The crater is visible to everyone. Its exact crystal upgrade remains hidden.',
   'map.mobileActions': 'Actions for the selected plot',
-  'map.deployHarvester': 'Deploy harvester',
+  'map.deployHarvester': 'Deploy harvester ({{count}})',
   'map.placeBid': 'Place bid',
   'map.manageHarvester': 'Manage harvester',
 

@@ -404,6 +404,9 @@ werden.
   teilnehmerbezogene Spielansicht; Karte, HQ, Harvester,
   Grundstücksgebote, Ressourcenmärkte und Rundenplanung werden aus
   autoritativen Snapshots gespeist und als Netzwerkkommandos gesendet
+- die Multiplayer-Karte startet auf dem eigenen Grundstück; der
+  mobile Harvester-Button bleibt oberhalb der Browserbedienelemente
+  sichtbar und nennt die Zahl der freien Harvester
 - nach jeder gemeinsamen Abrechnung erhält jeder menschliche Sitz
   ausschließlich seinen eigenen Rundenbericht mit Produktion,
   Versorgung, Bevölkerung, Grundstücksausgang, neuen Harvestern und

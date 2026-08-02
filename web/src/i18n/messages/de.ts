@@ -24,7 +24,7 @@ export const de = {
   'meteor.impactDescription':
     'Der Krater ist öffentlich sichtbar. Die genaue Kristallaufwertung bleibt verdeckt.',
   'map.mobileActions': 'Aktionen für das ausgewählte Grundstück',
-  'map.deployHarvester': 'Harvester einsetzen',
+  'map.deployHarvester': 'Harvester einsetzen ({{count}})',
   'map.placeBid': 'Gebot abgeben',
   'map.manageHarvester': 'Harvester verwalten',
 

@@ -453,8 +453,8 @@
 }
 
 .immersive-planet-screen .mobile-map-actions {
-  position: absolute;
-  z-index: 8;
+  position: fixed;
+  z-index: 12;
   bottom: max(76px, calc(env(safe-area-inset-bottom) + 66px));
   left: 50%;
   display: flex;
@@ -472,18 +472,24 @@
   min-height: 46px;
   padding: 10px 17px;
   cursor: pointer;
-  border: 1px solid rgba(157, 230, 208, 0.72);
+  border: 1px solid rgba(177, 244, 224, 0.88);
   border-radius: 999px;
   color: #e9fff8;
-  background: transparent;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(29, 83, 72, 0.9),
+      rgba(9, 28, 31, 0.94)
+    );
   box-shadow:
-    0 0 22px rgba(69, 205, 165, 0.16),
-    inset 0 0 18px rgba(69, 205, 165, 0.06);
+    0 0 26px rgba(69, 205, 165, 0.32),
+    0 8px 24px rgba(0, 0, 0, 0.38),
+    inset 0 0 18px rgba(116, 244, 205, 0.1);
   font: inherit;
   font-size: 0.88rem;
   font-weight: 800;
   text-shadow: 0 2px 6px #000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(10px);
 }
 
 .immersive-planet-screen .mobile-map-action-button[aria-expanded='true'] {
@@ -1112,7 +1118,10 @@
   }
 
   .immersive-planet-screen .mobile-map-actions {
-    bottom: max(72px, calc(env(safe-area-inset-bottom) + 62px));
+    bottom: max(
+      144px,
+      calc(env(safe-area-inset-bottom) + 132px)
+    );
     display: flex;
     width: auto;
     max-width: calc(100% - 36px);

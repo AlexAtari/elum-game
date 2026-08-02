@@ -183,6 +183,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   autoritative Match-Snapshots und senden validierte
   Netzwerkkommandos; fremde Sitze führen dadurch keine lokale
   Agima-Logik aus
+- die Mehrspieler-Planetensicht zentriert beim Einstieg das eigene
+  Startgrundstück; mobile Harvesteraktionen sind oberhalb des
+  Browser-Sicherheitsbereichs fest verankert, kontrastreich sichtbar
+  und zeigen die Anzahl freier Harvester
 - teilnehmerbezogene Multiplayer-Rundenbriefings zeigen Produktion,
   Versorgung, Bevölkerung, Grundstücksausgang, neue Harvester und
   abgeschlossene Kristallexplorationen; Explorationsergebnisse

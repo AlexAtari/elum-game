@@ -224,21 +224,20 @@ function HexMap({
   onRemoveHarvester,
 }: HexMapProps) {
   const { t } = useI18n()
-  const [selectedId, setSelectedId] = useState(
-    focusTileId ?? ownedTileIds[0],
-  )
+  const initialTileId = focusTileId ?? ownedTileIds[0]
+  const [selectedId, setSelectedId] = useState(initialTileId)
   const [isChoosingProduction, setIsChoosingProduction] =
     useState(false)
   const [mobileMapAction, setMobileMapAction] =
     useState<MobileMapAction>(null)
   const [bidAmount, setBidAmount] = useState(LAND_MINIMUM_BID)
   const [cameraState, setCameraState] = useState<MapCamera>(() => {
-    if (!focusTileId) {
+    if (!initialTileId) {
       return INITIAL_MAP_CAMERA
     }
 
     return {
-      ...createRotationForTile(targetPlanetMap, focusTileId),
+      ...createRotationForTile(targetPlanetMap, initialTileId),
       zoom: INITIAL_MAP_CAMERA.zoom,
     }
   })
@@ -1241,7 +1240,9 @@ function HexMap({
               aria-controls="harvester-production-menu"
               onClick={toggleMobileHarvesterMenu}
             >
-              {t('map.deployHarvester')}
+              {t('map.deployHarvester', {
+                count: freeHarvesters,
+              })}
             </button>
           )}
           {canOpenLandBidMenu && (
