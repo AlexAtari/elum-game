@@ -393,6 +393,11 @@ export const de = {
     '1 Kristall interstellar verkaufen · {{price}} Credits',
   'multiplayerGame.interstellarLimitTooHigh':
     'Senke dein persönliches Limit auf höchstens {{price}} Credits, um dieses Gebot anzunehmen.',
+  'multiplayerGame.allParticipants': 'Alle Kolonien am Markt',
+  'multiplayerGame.you': 'Du',
+  'multiplayerGame.offerPrice': 'Limit {{price}} Credits',
+  'multiplayerGame.tradeTogether':
+    '1 Einheit handeln · {{price}} Credits',
   'multiplayerGame.closeMarket': 'Markt abschließen',
 } as const
 

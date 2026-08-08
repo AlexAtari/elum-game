@@ -265,6 +265,59 @@
   color: #aebbd3;
 }
 
+.network-market-participants {
+  margin-top: 16px;
+}
+
+.network-market-participants h3 {
+  margin: 0 0 9px;
+}
+
+.network-market-participants > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.network-market-participants article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.network-market-participants article > span {
+  font-size: 1.35rem;
+}
+
+.network-market-participants article div {
+  display: grid;
+  min-width: 0;
+}
+
+.network-market-participants article small {
+  color: #aeb8cb;
+}
+
+.network-direct-trade-button {
+  grid-column: 1 / -1;
+  cursor: pointer;
+  padding: 8px 10px;
+  border: 1px solid rgba(121, 221, 185, 0.28);
+  border-radius: 9px;
+  color: #dff8ef;
+  background: rgba(121, 221, 185, 0.07);
+  font-weight: 750;
+}
+
+.network-direct-trade-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
 .network-market-hint {
   display: block;
   margin-top: 9px;
@@ -297,5 +350,9 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .network-market-participants > div {
+    grid-template-columns: 1fr;
   }
 }

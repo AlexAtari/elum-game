@@ -523,7 +523,7 @@ Mit wachsender Bevölkerung entwickelt sich auch das Hauptquartier optisch weite
 
 # 11. Markt
 
-Ressourcenauktionen sind freiwillige Aktionen innerhalb der Planungsphase. Jeder Spieler darf eine noch verfügbare Auktion initiieren; global kann jede Ressource jedoch nur einmal pro Runde aufgerufen werden. Das verhindert wiederholte Märkte für dieselbe Ware und hält die Rundendauer kalkulierbar. Das Auktionsrecht gilt mit dem Aufruf als verbraucht, auch wenn anschließend niemand teilnimmt.
+Ressourcenauktionen sind freiwillige Aktionen innerhalb der Planungsphase. Jeder Spieler darf eine noch verfügbare Auktion initiieren; der Aufruf lädt immer alle vier Kolonien in denselben gemeinsamen Markt ein. Global kann jede Ressource jedoch nur einmal pro Runde aufgerufen werden. Das verhindert wiederholte Märkte für dieselbe Ware und hält die Rundendauer kalkulierbar. Das Auktionsrecht gilt mit dem Aufruf als verbraucht, auch wenn anschließend alle vier Kolonien aussetzen. Diese gemeinsame Teilnahme gilt nur für Ressourcenmärkte; an einer Grundstücksauktion nehmen weiterhin ausschließlich die tatsächlichen Bieter teil.
 
 Die frei wählbaren Ressourcenmärkte sind:
 
@@ -536,7 +536,7 @@ Nach dem Aufruf wird die Planungsansicht zunächst durch eine kurze Auktionsank�
 
 Nach dem Ankündigungs-Countdown beginnt eine fünfsekündige Rollenwahl. Eine Bewegung nach oben meldet den Spieler als Verkäufer, eine Bewegung nach unten als Käufer und die Mittelposition als nicht teilnehmend. Bis zum Ablauf der Positionierungszeit darf die Auswahl geändert werden; danach ist die Rolle für diese Ressourcenauktion festgelegt.
 
-Meldet sich kein Spieler als Käufer oder Verkäufer, wird die Ressourcenauktion vollständig übersprungen. Nach einer abgeschlossenen oder übersprungenen Auktion kehrt das Spiel in dieselbe Planungsphase zurück. Die Rundenabrechnung beginnt ausschließlich über „Runde ausführen“ und startet keine automatische Marktfolge.
+Meldet sich keine der vier Kolonien als Käufer oder Verkäufer, wird die Ressourcenauktion vollständig übersprungen. Die Entscheidung des Initiators besitzt dabei kein Sondergewicht: Sobald mindestens eine andere Kolonie aktiv kaufen oder verkaufen möchte, beginnt die Handelsphase. Nach einer abgeschlossenen oder übersprungenen Auktion kehrt das Spiel in dieselbe Planungsphase zurück. Die Rundenabrechnung beginnt ausschließlich über „Runde ausführen“ und startet keine automatische Marktfolge.
 
 Ein Käufer kann sein Gebot niemals über seine aktuell verfügbaren Credits erhöhen. Reicht sein Guthaben nicht für das günstigste aktive Verkaufsangebot, zeigt die Marktsteuerung dessen Preis und den fehlenden Betrag. Liegt bereits ein Kaufgebot im Markt und sinken die Credits durch eine Transaktion unter diesen Preis, wird das Gebot automatisch auf das neue bezahlbare Maximum zurückgenommen oder vollständig hinter das Lager gestellt.
 
@@ -577,11 +577,9 @@ Die Auktionsarena ist die visuelle Hauptbühne der Marktphase und darf breiter a
 
 Die gemeinsame Preislinie gehört nicht dauerhaft einem Teilnehmer. Im normalen Handel zeigt sie das beste aktuell aktive Angebot einer Marktseite. Während eines sichtbaren Rückzugs darf sie vorübergehend noch am bisherigen Linienführer hängen, ohne dass sein Angebot weiter handelbar ist. Zieht sich der führende Teilnehmer zurück, übernimmt das nächstbeste aktive Angebot die Linie, sobald es erreicht wird. Gibt es keinen weiteren Teilnehmer, führt der Rückweg die Linie bis zum entsprechenden HQ-Lagerpreis.
 
-Die Preisskala übernimmt die Anzeige der aktuellen Angebotshöhe. Deshalb zeigt ein Avatar während der Auktion keinen Preis, sondern seinen aktuellen Bestand der gehandelten Ressource. Beim Verkäufer sinkt diese Zahl pro Verkauf um eine Einheit, beim Käufer steigt sie pro Kauf um eine Einheit; die Anzeige aktualisiert sich unmittelbar und erhält einen kurzen Farbpuls. In der ersten technischen Marktstufe beginnt Orions sichtbarer Bestand je Ressourcenauktion bei vier Einheiten. Nova und Vega besitzen als reine Layout-Testfiguren noch keinen simulierten Bestand und bleiben mit „wartet“ gekennzeichnet.
+Die Preisskala übernimmt die Anzeige der aktuellen Angebotshöhe. Deshalb zeigt ein Avatar während der Auktion keinen Preis, sondern seinen aktuellen Bestand der gehandelten Ressource. Beim Verkäufer sinkt diese Zahl pro Verkauf um eine Einheit, beim Käufer steigt sie pro Kauf um eine Einheit; die Anzeige aktualisiert sich unmittelbar und erhält einen kurzen Farbpuls. Alle vier Kolonien verwenden dabei ihre tatsächlichen Bestände und Credits.
 
-Die erste technische Ausbaustufe bildet frei initiierbare Nahrungs-, Energie-, Erz- und Kristallauktionen gegen den KI-Konkurrenten „Konsortium Orion“ und das HQ-Gesamtlager ab. Vor jeder einzelnen Auktion wird die Rolle neu gewählt. Orion beginnt sichtbar im neutralen Bereich und zeigt seine Entscheidung nach kurzer Bedenkzeit durch eine Bewegung an. Seine angezeigte Rolle gilt anschließend tatsächlich für die Auktion. Weitere Spieler werden anschließend auf demselben Marktprinzip ergänzt.
-
-Für die Erprobung des Vierer-Layouts werden Nova und Vega zunächst als sichtbare Testspieler eingeblendet. Sie zeigen Rollen und Platzbedarf, greifen in dieser Zwischenstufe aber noch nicht in Vorräte, Credits oder die Handelswarteschlange ein.
+Nahrungs-, Energie-, Erz- und Kristallauktionen verwenden denselben Vierer-Markt. Vor jeder einzelnen Auktion wählen alle menschlichen und computergesteuerten Kolonien ihre Rolle neu. Alle vier Rollen und aktiven Preislimits sind Teil des gemeinsamen Spielzustands; passende direkte Geschäfte verändern Vorräte und Credits beider beteiligter Kolonien. Das HQ-Gesamtlager bleibt als verlässlicher, aber ungünstigerer Handelspartner verfügbar.
 
 ## Zwischenstand nach der Rundenabrechnung
 

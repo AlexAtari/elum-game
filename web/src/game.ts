@@ -2517,7 +2517,9 @@ export function initiateColonyResourceMarket(
       roundPlayed: currentState.round,
       initiatorId: participantId,
       phase: 'announcement',
-      roles: {},
+      roles: Object.fromEntries(
+        participantIds.map((id) => [id, 'neutral']),
+      ) as Record<ParticipantId, MarketRole>,
       offers: {},
     },
     initiatedMarketResources: [
@@ -2633,8 +2635,11 @@ export function advanceColonyResourceMarketPhase(
     expectedPhase === 'announcement'
       ? 'declaration'
       : expectedPhase === 'declaration'
-        ? activeMarket.roles[participantId] === 'buyer' ||
-          activeMarket.roles[participantId] === 'seller'
+        ? participantIds.some(
+            (id) =>
+              activeMarket.roles[id] === 'buyer' ||
+              activeMarket.roles[id] === 'seller',
+          )
           ? 'auction'
           : 'finished'
         : 'finished'

@@ -35,6 +35,10 @@ import {
   participantIds,
   type ParticipantId,
 } from './match'
+import {
+  prepareMultiplayerAiMarketOffers,
+  prepareMultiplayerAiMarketRoles,
+} from './multiplayerMarket'
 
 export type AuthenticatedSeat = {
   sessionId: string
@@ -1333,8 +1337,18 @@ export class AuthoritativeMatch {
       return
     }
 
+    let nextState = result.state
+
+    if (schedule.timing.kind === 'resource-market') {
+      if (schedule.timing.phase === 'announcement') {
+        nextState = prepareMultiplayerAiMarketRoles(nextState)
+      } else if (schedule.timing.phase === 'declaration') {
+        nextState = prepareMultiplayerAiMarketOffers(nextState)
+      }
+    }
+
     this.phaseTimer = null
-    this.acceptState(result.state)
+    this.acceptState(nextState)
 
     if (result.state.landAuctionTie?.phase === 'finished') {
       this.tryCompleteRound()

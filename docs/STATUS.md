@@ -195,6 +195,15 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   verbleibende Rundenkapazität des interstellaren Käufers; aktive
   Verkäufer können ihm über eine eigene Schaltfläche einen Kristall
   verkaufen, sofern Bestand, Kapazität und persönliches Limit passen
+- jeder initiierte Ressourcenmarkt führt alle vier Kolonien in einer
+  gemeinsamen Teilnehmerliste; jede Kolonie kann unabhängig vom
+  Initiator kaufen, verkaufen oder aussetzen, und bereits eine aktive
+  andere Kolonie führt in die Handelsphase
+- freie KI-Sitze wählen Rolle und Preislimit im autoritativen
+  Mehrspielermarkt serverseitig aus ihrer eigenen Wirtschaftslage;
+  kompatible aktive Angebote zweier Kolonien erhalten eine direkte
+  Einzeltransaktion, während Grundstücksauktionen unverändert nur
+  ihre tatsächlichen Bieter umfassen
 - teilnehmerbezogene Multiplayer-Rundenbriefings zeigen Produktion,
   Versorgung, Bevölkerung, Grundstücksausgang, neue Harvester und
   abgeschlossene Kristallexplorationen; Explorationsergebnisse

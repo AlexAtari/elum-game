@@ -335,7 +335,7 @@ Direkter Handel mit einer anderen Kolonie beeinflusst diesen Lagerwert nicht.
 
 Bei mehreren passenden Partnern entscheidet zunächst die Ankunftsreihenfolge. Nach jeder einzeln übertragenen Einheit wird die Reihenfolge erneut ausgewertet.
 
-Im ersten KI-Prototyp wählt Orion nach kurzer sichtbarer Bedenkzeit die Gegenrolle des Spielers. Bei jeder vierten Kombination aus Runde und Ressource setzt Orion testweise aus; das HQ-Lager bleibt dann als Handelspartner verfügbar. Eine spätere KI-Version entscheidet anhand eigener Vorräte und Credits unabhängig.
+Im gemeinsamen Vierer-Markt entscheiden Orion, Nova und Vega anhand ihrer eigenen Vorräte, Credits und Wirtschaftsprofile unabhängig über Käufer-, Verkäufer- oder Aussetzerrolle sowie Wunschmenge und Preislimit. Das HQ-Lager bleibt unabhängig von diesen Entscheidungen als Handelspartner verfügbar.
 
 ## Marktzeiten
 

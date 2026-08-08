@@ -28,7 +28,10 @@ import type {
 } from '../multiplayerProtocol'
 import type { AuthoritativeMatchSnapshot } from '../authoritativeMatch'
 import { getInterstellarCrystalBuyerOffer } from '../interstellarCrystalBuyer'
-import { getDefaultMultiplayerMarketOfferPrice } from '../multiplayerMarket'
+import {
+  getDefaultMultiplayerMarketOfferPrice,
+  getMultiplayerParticipantTradePrice,
+} from '../multiplayerMarket'
 import HexMap from './HexMap'
 import LocalEventNotice from './LocalEventNotice'
 import MultiplayerLeaderboard from './MultiplayerLeaderboard'
@@ -396,6 +399,93 @@ function MultiplayerGameScreen({
               </span>
             </div>
           ) : null}
+
+          <div className="network-market-participants">
+            <h3>{t('multiplayerGame.allParticipants')}</h3>
+            <div>
+              {participantIds.map((marketParticipantId) => {
+                const participant =
+                  state.colonies[marketParticipantId]
+                const participantRole =
+                  activeMarket.roles[marketParticipantId] ??
+                  'neutral'
+                const participantOffer =
+                  activeMarket.offers[marketParticipantId]
+                const directTradePrice =
+                  getMultiplayerParticipantTradePrice(
+                    activeMarket,
+                    participantId,
+                    marketParticipantId,
+                  )
+                const canAffordDirectTrade =
+                  directTradePrice === null ||
+                  (marketRole === 'buyer'
+                    ? colony.credits >= directTradePrice &&
+                      participant.resources[
+                        activeMarket.resource
+                      ] > 0
+                    : colony.resources[
+                          activeMarket.resource
+                        ] > 0 &&
+                      participant.credits >= directTradePrice)
+
+                return (
+                  <article key={marketParticipantId}>
+                    <span aria-hidden="true">
+                      {participant.icon}
+                    </span>
+                    <div>
+                      <strong>
+                        {participant.name}
+                        {marketParticipantId === participantId
+                          ? ` · ${t('multiplayerGame.you')}`
+                          : ''}
+                      </strong>
+                      <small>
+                        {t(
+                          `multiplayerGame.role.${participantRole}`,
+                        )}
+                        {participantOffer?.active
+                          ? ` · ${t(
+                              'multiplayerGame.offerPrice',
+                              {
+                                price: participantOffer.price,
+                              },
+                            )}`
+                          : ''}
+                      </small>
+                    </div>
+                    {directTradePrice !== null &&
+                    marketParticipantId !== participantId ? (
+                      <button
+                        className="network-direct-trade-button"
+                        type="button"
+                        disabled={!canAffordDirectTrade}
+                        onClick={() =>
+                          sendAction({
+                            type: 'execute-market-trade',
+                            payload: {
+                              resource: activeMarket.resource,
+                              direction:
+                                marketRole === 'buyer'
+                                  ? 'buy'
+                                  : 'sell',
+                              price: directTradePrice,
+                              counterparty: marketParticipantId,
+                            },
+                          })
+                        }
+                      >
+                        {t('multiplayerGame.tradeTogether', {
+                          price: directTradePrice,
+                        })}
+                      </button>
+                    ) : null}
+                  </article>
+                )
+              })}
+            </div>
+          </div>
 
           {activeMarket.phase === 'declaration' ? (
             <div className="network-role-actions">

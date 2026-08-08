@@ -411,6 +411,11 @@ werden.
   jeweils sofort handelbaren HQ-Lagerpreis; der Kristallmarkt zeigt
   außerdem Gebot und Restkapazität des interstellaren Käufers und
   erlaubt Verkäufern eine eigene Einzeltransaktion mit ihm
+- jeder initiierte Ressourcenmarkt umfasst alle vier Kolonien; der
+  Initiator besitzt kein Sonderrecht auf die Handelsphase, freie
+  KI-Sitze setzen serverseitig eigene Rollen und Angebote und
+  passende Kolonieangebote können direkt miteinander handeln;
+  Grundstücksauktionen bleiben auf ihre Bieter begrenzt
 - nach jeder gemeinsamen Abrechnung erhält jeder menschliche Sitz
   ausschließlich seinen eigenen Rundenbericht mit Produktion,
   Versorgung, Bevölkerung, Grundstücksausgang, neuen Harvestern und
