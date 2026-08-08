@@ -1,4 +1,6 @@
 import {
+  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -245,9 +247,72 @@ function HexMap({
     null,
   )
   const cameraRef = useRef(cameraState)
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const [viewportSize, setViewportSize] = useState({
+    width: 0,
+    height: 0,
+  })
+  const [selectedRenderedPoint, setSelectedRenderedPoint] =
+    useState<Point | null>(null)
   const pointerPositions = useRef(new Map<number, Point>())
   const gesture = useRef<MapGesture | null>(null)
   const didMoveMap = useRef(false)
+
+  useEffect(() => {
+    const viewport = viewportRef.current
+
+    if (!viewport) {
+      return
+    }
+
+    const updateViewportSize = () => {
+      const bounds = viewport.getBoundingClientRect()
+
+      setViewportSize({
+        width: bounds.width,
+        height: bounds.height,
+      })
+    }
+    const observer = new ResizeObserver(updateViewportSize)
+
+    updateViewportSize()
+    observer.observe(viewport)
+
+    return () => observer.disconnect()
+  }, [])
+
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current
+    const selectedField = viewport?.querySelector(
+      '.hex-tile.selected',
+    )
+
+    if (!viewport || !selectedField) {
+      setSelectedRenderedPoint(null)
+      return
+    }
+
+    const viewportBounds = viewport.getBoundingClientRect()
+    const fieldBounds = selectedField.getBoundingClientRect()
+    const nextPoint = {
+      x:
+        fieldBounds.left -
+        viewportBounds.left +
+        fieldBounds.width / 2,
+      y:
+        fieldBounds.top -
+        viewportBounds.top +
+        fieldBounds.height / 2,
+    }
+
+    setSelectedRenderedPoint((currentPoint) =>
+      currentPoint &&
+      Math.abs(currentPoint.x - nextPoint.x) < 0.5 &&
+      Math.abs(currentPoint.y - nextPoint.y) < 0.5
+        ? currentPoint
+        : nextPoint,
+    )
+  }, [cameraState, selectedId, viewportSize])
   const cultivatedTileIds = useMemo(
     () =>
       participantIds.flatMap((participantId) =>
@@ -361,6 +426,71 @@ function HexMap({
     !isLandBidBlocked &&
     selectedIsAdjacentToPlayer &&
     credits >= minimumBid
+  const hasSelectedFieldAction =
+    canOpenHarvesterMenu ||
+    canOpenLandBidMenu ||
+    (selectedIsPlayerOwned && selectedHarvester !== undefined)
+  const selectedFieldIsVisible =
+    selectedTile.owner !== 'hq' &&
+    selectedCell.points.length >= 3 &&
+    viewportSize.width > 0 &&
+    viewportSize.height > 0
+  const viewportScale =
+    Math.min(viewportSize.width, viewportSize.height) /
+    MAP_VIEW_SIZE
+  const planetVerticalOffset = Math.min(
+    52,
+    Math.max(24, viewportSize.height * 0.05),
+  )
+  const projectedSelectedFieldPoint = {
+    x:
+      viewportSize.width / 2 +
+      projectedTiles[selectedTile.id].x * viewportScale,
+    y:
+      viewportSize.height / 2 +
+      projectedTiles[selectedTile.id].y * viewportScale +
+      planetVerticalOffset,
+  }
+  const selectedFieldPoint =
+    selectedRenderedPoint ?? projectedSelectedFieldPoint
+  const isCompactViewport = viewportSize.width <= 820
+  const hologramWidth = isCompactViewport ? 230 : 280
+  const hologramHeight = isCompactViewport ? 190 : 330
+  const hologramGap = isCompactViewport ? 52 : 84
+  const hologramOpensLeft =
+    selectedFieldPoint.x > viewportSize.width / 2
+  const hologramLeft = Math.max(
+    12,
+    Math.min(
+      viewportSize.width - hologramWidth - 12,
+      hologramOpensLeft
+        ? selectedFieldPoint.x - hologramWidth - hologramGap
+        : selectedFieldPoint.x + hologramGap,
+    ),
+  )
+  const hologramTop = Math.max(
+    isCompactViewport ? 118 : 132,
+    Math.min(
+      viewportSize.height - hologramHeight - 82,
+      selectedFieldPoint.y - hologramHeight / 2,
+    ),
+  )
+  const hologramConnectorPoint = {
+    x: hologramOpensLeft
+      ? hologramLeft + hologramWidth
+      : hologramLeft,
+    y: Math.max(
+      hologramTop + 24,
+      Math.min(
+        hologramTop + hologramHeight - 24,
+        selectedFieldPoint.y,
+      ),
+    ),
+  }
+  const hologramStyle = {
+    '--hologram-left': `${hologramLeft}px`,
+    '--hologram-top': `${hologramTop}px`,
+  } as CSSProperties
   const spaceBackgroundStyle = createSpaceBackdropStyle(
     cameraState,
   ) as CSSProperties
@@ -645,7 +775,7 @@ function HexMap({
       </div>
 
       <div className="map-layout">
-        <div className="hex-map-viewport">
+        <div className="hex-map-viewport" ref={viewportRef}>
           <div
             className="space-backdrop"
             style={spaceBackgroundStyle}
@@ -1229,8 +1359,48 @@ function HexMap({
           </span>
         </div>
 
+        {selectedFieldIsVisible && (
+          <svg
+            className="field-hologram-connectors"
+            viewBox={`0 0 ${viewportSize.width} ${viewportSize.height}`}
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <line
+              className="field-detail-connector"
+              x1={selectedFieldPoint.x}
+              y1={selectedFieldPoint.y}
+              x2={hologramConnectorPoint.x}
+              y2={hologramConnectorPoint.y}
+            />
+            <circle
+              cx={selectedFieldPoint.x}
+              cy={selectedFieldPoint.y}
+              r="3"
+            />
+            {hasSelectedFieldAction &&
+              mobileMapAction === null &&
+              !isChoosingProduction && (
+                <line
+                  className="field-action-connector"
+                  x1={selectedFieldPoint.x}
+                  y1={selectedFieldPoint.y}
+                  x2={viewportSize.width / 2}
+                  y2={
+                    viewportSize.height -
+                    (isCompactViewport ? 166 : 100)
+                  }
+                />
+              )}
+          </svg>
+        )}
+
         <div
-          className="mobile-map-actions"
+          className={`mobile-map-actions ${
+            mobileMapAction !== null || isChoosingProduction
+              ? 'is-action-open'
+              : ''
+          }`}
           aria-label={t('map.mobileActions')}
         >
           {canOpenHarvesterMenu && (
@@ -1276,10 +1446,15 @@ function HexMap({
 
         <aside
           className={`tile-details ${
+            selectedFieldIsVisible
+              ? 'is-field-hologram'
+              : 'is-field-hidden'
+          } ${
             mobileMapAction !== null || isChoosingProduction
               ? 'is-action-open'
               : ''
           }`}
+          style={hologramStyle}
         >
           {selectedTile.owner === 'hq' ? (
             <>

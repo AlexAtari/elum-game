@@ -485,6 +485,12 @@
   display: none;
 }
 
+.immersive-planet-screen
+  .map-layout
+  .mobile-map-actions.is-action-open {
+  display: none;
+}
+
 .immersive-planet-screen .mobile-map-action-button {
   min-height: 46px;
   padding: 10px 17px;
@@ -522,24 +528,97 @@
 .immersive-planet-screen .tile-details {
   position: absolute;
   z-index: 7;
-  top: 150px;
-  right: max(24px, env(safe-area-inset-right));
-  width: min(310px, 28vw);
-  max-height: calc(100dvh - 250px);
-  padding: 24px;
+  top: var(--hologram-top);
+  right: auto;
+  left: var(--hologram-left);
+  width: 280px;
+  max-height: 330px;
+  padding: 16px 18px;
   overflow: auto;
-  border: 0;
+  border: 1px solid rgba(153, 232, 255, 0.25);
+  border-radius: 14px;
   background:
-    radial-gradient(
-      ellipse at center,
-      rgba(2, 8, 18, 0.78),
-      rgba(2, 8, 18, 0.35) 52%,
-      transparent 76%
+    linear-gradient(
+      145deg,
+      rgba(9, 30, 43, 0.72),
+      rgba(3, 11, 22, 0.56)
     );
-  box-shadow: none;
+  box-shadow:
+    0 0 24px rgba(78, 204, 224, 0.12),
+    inset 0 0 20px rgba(99, 221, 222, 0.035);
   text-shadow: 0 2px 7px #000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(8px);
   scrollbar-width: none;
+}
+
+.immersive-planet-screen .tile-details.is-field-hidden {
+  display: none;
+}
+
+.immersive-planet-screen .tile-details h3 {
+  margin: 4px 0 10px;
+  font-size: 1.3rem;
+}
+
+.immersive-planet-screen .tile-details .resource-rating,
+.immersive-planet-screen .tile-details .detail-row {
+  padding: 7px 0;
+  font-size: 0.8rem;
+}
+
+.immersive-planet-screen .tile-details:not(.is-action-open) .land-bid-panel,
+.immersive-planet-screen .tile-details:not(.is-action-open) .harvester-status button,
+.immersive-planet-screen .tile-details:not(.is-action-open) .opponent-land-status p,
+.immersive-planet-screen .tile-details:not(.is-action-open) .land-purchase-status p {
+  display: none;
+}
+
+.immersive-planet-screen .tile-details.is-action-open {
+  top: auto;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(92px, calc(env(safe-area-inset-bottom) + 78px));
+  left: max(18px, env(safe-area-inset-left));
+  width: min(560px, calc(100% - 36px));
+  max-height: min(56dvh, 520px);
+  margin: 0 auto;
+  padding: 22px;
+  border-color: rgba(153, 232, 255, 0.32);
+  background: rgba(3, 12, 23, 0.88);
+  pointer-events: auto;
+}
+
+.field-hologram-connectors {
+  display: none;
+}
+
+.immersive-planet-screen .field-hologram-connectors {
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.immersive-planet-screen .field-hologram-connectors line {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke: rgba(150, 239, 226, 0.52);
+  stroke-width: 1;
+  stroke-dasharray: 4 6;
+  filter: drop-shadow(0 0 4px rgba(92, 225, 207, 0.42));
+}
+
+.immersive-planet-screen .field-hologram-connectors .field-action-connector {
+  stroke: rgba(177, 244, 224, 0.58);
+  stroke-dasharray: 5 7;
+}
+
+.immersive-planet-screen .field-hologram-connectors circle {
+  fill: #d8fff4;
+  filter: drop-shadow(0 0 5px rgba(92, 225, 207, 0.8));
 }
 
 .immersive-planet-screen .tile-details::-webkit-scrollbar {
@@ -1150,7 +1229,13 @@
   }
 
   .immersive-planet-screen .tile-details {
-    display: none;
+    display: block;
+    width: 230px;
+    max-height: 190px;
+    padding: 11px 13px;
+    border-radius: 12px;
+    overflow-y: auto;
+    pointer-events: none;
   }
 
   .immersive-planet-screen .tile-details.is-action-open {
@@ -1164,6 +1249,30 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 20px;
+    pointer-events: auto;
+  }
+
+  .immersive-planet-screen .tile-details:not(.is-action-open) h3 {
+    margin: 2px 0 6px;
+    font-size: 1rem;
+  }
+
+  .immersive-planet-screen .tile-details:not(.is-action-open) .eyebrow {
+    font-size: 0.58rem;
+  }
+
+  .immersive-planet-screen .tile-details:not(.is-action-open) .resource-rating,
+  .immersive-planet-screen .tile-details:not(.is-action-open) .detail-row {
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 0.68rem;
+  }
+
+  .immersive-planet-screen .tile-details:not(.is-action-open) .harvester-status,
+  .immersive-planet-screen .tile-details:not(.is-action-open) .opponent-land-status,
+  .immersive-planet-screen .tile-details:not(.is-action-open) .land-purchase-status,
+  .immersive-planet-screen .tile-details:not(.is-action-open) .meteor-crater-notice {
+    display: none;
   }
 
   .immersive-planet-screen .tile-details.is-action-open > .resource-rating,

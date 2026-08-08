@@ -260,6 +260,11 @@ werden.
   mobile HUD hält alle sieben Statuswerte einschließlich Kristallen
   vollständig sichtbar; nahezu ungefüllte Konturaktionen öffnen
   Harvesterplatzierung, -verwaltung oder Grundstücksgebot
+- die kompakte holografische Feldkarte wird an der tatsächlich
+  gerenderten Bildschirmposition der Auswahl verankert und bewegt sich mit
+  Rotation und Zoom; feine Linien verbinden sie und verfügbare
+  Aktionen mit dem Grundstück, komplexe Eingaben öffnen weiterhin
+  eine größere temporäre Glasfläche
 - entdeckte Kristallvorkommen bieten Kristallproduktion in der mobilen
   Harvester-Auswahl sichtbar an erster Stelle und zeigen alle vier
   Produktionsarten in einem scrollbar abgesicherten 2×2-Raster

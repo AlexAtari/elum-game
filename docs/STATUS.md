@@ -298,6 +298,14 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   über sein Planetenfeld geöffnet; die frühere HQ-beschriftete
   Zentriertaste verwendet ein neutrales Zielsymbol und die Aktionen
   besitzen nur noch eine sehr schwache transparente Füllung
+- die ausgewählte sichtbare Parzelle erhält eine kompakte
+  holografische Detailkarte mit Name, Besitzer und Ressourcenwerten;
+  ihre Position wird an der tatsächlich gerenderten Feldposition
+  verankert und folgt beim Drehen und Zoomen, während feine Leuchtlinien
+  Detailkarte und verfügbare Aktionen mit dem Feld verbinden
+- Produktionswahl und Gebotshöhe lösen sich beim Öffnen aus der
+  Feldkarte und erscheinen als größere, gut lesbare temporäre
+  Glasfläche; auf Smartphones bleibt die normale Feldkarte kompakt
 - durchgehende fotorealistische, marsartige Oberflächentextur aus
   Rostboden, Terrakotta, Ocker und dunklem Basalt ohne gezeichnete
   Ressourcenmotive oder harte Biome
