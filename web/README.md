@@ -79,6 +79,12 @@ Render-Instanz zwischen Prüfungen schlafen; ein fehlgeschlagener
 Health- oder Metrikcheck wird als fehlgeschlagener Workflow-Lauf
 sichtbar.
 
+Der lokale WebSocket-Integrationstest verwendet zwei echte Clients
+und eine kontrollierte Match-Uhr. Er prüft Lobby und Start sowie eine
+vollständige erste Runde mit Harvester, Grundstücksgebot, direkten
+Geschäften auf allen vier Ressourcenmärkten, Rundenabrechnung und
+Reconnect. Er läuft mit `npx vitest run server/websocketGameServer.test.ts`.
+
 Jeder nicht leere Lobbycode bis 128 Zeichen erzeugt bei der ersten
 WebSocket-Verbindung einen eigenen Spielraum. Unterschiedliche Codes
 teilen weder Sitze noch Reconnect-Tokens oder Matchzustände. Nach der

@@ -12,6 +12,7 @@ import {
 import {
   createMultiplayerLobby,
   restoreMultiplayerLobby,
+  type MultiplayerLobbyOptions,
   type MultiplayerLobby,
   type RestoreMultiplayerLobbyOptions,
 } from '../src/multiplayerLobby'
@@ -34,6 +35,7 @@ export type WebSocketGameServerOptions = {
   lobbyCleanupClock?: LobbyCleanupClock
   lobbyPersistenceStore?: LobbyPersistenceStore
   lobbyPersistenceClock?: LobbyPersistenceClock
+  matchOptions?: MultiplayerLobbyOptions['matchOptions']
   activeLobbyPersistenceTtlMilliseconds?: number
   allowedOrigins?: string[]
   createConnectionId?: () => string
@@ -139,6 +141,7 @@ export class WebSocketGameServer {
   private readonly lobbyCleanupClock: LobbyCleanupClock
   private readonly lobbyPersistenceStore: LobbyPersistenceStore
   private readonly lobbyPersistenceClock: LobbyPersistenceClock
+  private readonly matchOptions: MultiplayerLobbyOptions['matchOptions']
   private readonly activeLobbyPersistenceTtlMilliseconds: number
   private readonly heartbeatIntervalMilliseconds: number
   private readonly heartbeatClock: ServerHeartbeatClock
@@ -182,6 +185,7 @@ export class WebSocketGameServer {
     this.lobbyPersistenceClock =
       options.lobbyPersistenceClock ??
       defaultLobbyPersistenceClock
+    this.matchOptions = options.matchOptions
     this.lobbyPersistenceStore =
       options.lobbyPersistenceStore ??
       new InMemoryLobbyPersistenceStore(
@@ -566,6 +570,7 @@ export class WebSocketGameServer {
         }
       },
       onEmitError: this.onError,
+      matchOptions: this.matchOptions,
     }
     const lobby = record
       ? restoreMultiplayerLobby(record.payload, lobbyOptions)

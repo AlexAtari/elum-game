@@ -377,8 +377,10 @@ werden.
   vorher serverseitig beendet
 - lokaler Node-WebSocket-Adapter verbindet echte JSON-Sockets mit
   Lobby und Matchkern, begrenzt Payloads und bietet einen
-  Health-Endpunkt; Zwei-Client-Start, Disconnect und Reconnect sind
-  als Integrationstest abgedeckt
+  Health-Endpunkt; ein Zwei-Client-Integrationstest deckt zusätzlich
+  Harvester, Grundstücksgebot, direkte Geschäfte auf Nahrung,
+  Energie, Erz und Kristallen, gemeinsame Rundenabrechnung sowie
+  den Reconnect in Runde 2 ab
 - eine dynamische Server-Registry erzeugt unterschiedliche
   Lobbycodes bei der ersten Verbindung und isoliert deren Sitze,
   Reconnect-Tokens, Matchzustände und Timer; der konfigurierte

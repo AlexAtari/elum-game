@@ -144,8 +144,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Binärdaten, Health-Endpunkt mit aktueller Lobbyanzahl, zufällige
   Verbindungs-IDs und sauberes Disconnect-/Shutdown-Verhalten sind
   implementiert
-- echter Transporttest deckt zwei Clients, gemeinsamen Matchstart
-  sowie Sitzübernahme per Reconnect-Token ab
+- echte Transporttests decken zwei Clients, gemeinsamen Matchstart,
+  Sitzübernahme per Reconnect-Token und eine vollständige erste
+  Smoke-Runde ab; diese setzt einen Harvester, reserviert ein
+  Grundstücksgebot, führt direkte Geschäfte auf allen vier Märkten
+  aus, rechnet beide menschlichen Pläne gemeinsam ab und prüft den
+  fortgesetzten Rundenzustand nach dem Reconnect
 - Loopback ist die sichere Standardbindung; für Smartphone-Tests
   kann der Server bewusst im lokalen WLAN geöffnet werden
 - Startseite enthält eine responsive Mehrspieler-Lobby neben dem

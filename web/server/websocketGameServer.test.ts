@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { WebSocket } from 'ws'
+import {
+  getMarketTiming,
+  type MarketResource,
+} from '../src/game'
+import type { GameCommand } from '../src/gameCommands'
+import { participantIds } from '../src/match'
 import type { MultiplayerServerMessage } from '../src/multiplayerProtocol'
+import { targetPlanetMap } from '../src/planetMap'
+import type { MatchClock } from '../src/authoritativeMatch'
 import { InMemoryLobbyPersistenceStore } from './lobbyPersistence'
 import {
   createWebSocketGameServer,
@@ -13,6 +21,74 @@ type TestClient = {
   waitFor: (
     predicate: (message: MultiplayerServerMessage) => boolean,
   ) => Promise<MultiplayerServerMessage>
+}
+
+type MatchSnapshotMessage = Extract<
+  MultiplayerServerMessage,
+  { type: 'match-snapshot' }
+>
+
+class FakeMatchClock implements MatchClock {
+  private currentMilliseconds = 0
+  private nextTimerId = 1
+  private readonly timers = new Map<
+    number,
+    {
+      callback: () => void
+      dueMilliseconds: number
+    }
+  >()
+
+  now = () => this.currentMilliseconds
+
+  setTimeout = (
+    callback: () => void,
+    delayMilliseconds: number,
+  ) => {
+    const timerId = this.nextTimerId
+    this.nextTimerId += 1
+    this.timers.set(timerId, {
+      callback,
+      dueMilliseconds:
+        this.currentMilliseconds + delayMilliseconds,
+    })
+    return timerId
+  }
+
+  clearTimeout = (timer: unknown) => {
+    if (typeof timer === 'number') {
+      this.timers.delete(timer)
+    }
+  }
+
+  advanceBy(milliseconds: number) {
+    const targetMilliseconds =
+      this.currentMilliseconds + milliseconds
+
+    while (true) {
+      const nextTimer = [...this.timers.entries()]
+        .filter(
+          ([, timer]) =>
+            timer.dueMilliseconds <= targetMilliseconds,
+        )
+        .sort(
+          ([firstId, first], [secondId, second]) =>
+            first.dueMilliseconds - second.dueMilliseconds ||
+            firstId - secondId,
+        )[0]
+
+      if (!nextTimer) {
+        break
+      }
+
+      const [timerId, timer] = nextTimer
+      this.timers.delete(timerId)
+      this.currentMilliseconds = timer.dueMilliseconds
+      timer.callback()
+    }
+
+    this.currentMilliseconds = targetMilliseconds
+  }
 }
 
 class FakeLobbyCleanupClock implements LobbyCleanupClock {
@@ -188,6 +264,91 @@ function send(
   client.socket.send(JSON.stringify(message))
 }
 
+async function submitGameCommand(
+  client: TestClient,
+  requestId: string,
+  command: GameCommand,
+) {
+  send(client, {
+    version: 1,
+    requestId,
+    type: 'game-command',
+    payload: { command },
+  })
+  const result = await client.waitFor(
+    (message) =>
+      message.type === 'command-result' &&
+      message.requestId === requestId,
+  )
+
+  expect(result).toMatchObject({
+    type: 'command-result',
+    payload: { ok: true },
+  })
+
+  if (
+    result.type !== 'command-result' ||
+    !result.payload.ok
+  ) {
+    throw new Error(`Command ${requestId} was rejected.`)
+  }
+
+  const snapshot = await client.waitFor(
+    (message) =>
+      message.type === 'match-snapshot' &&
+      message.payload.revision === result.payload.revision,
+  )
+
+  if (snapshot.type !== 'match-snapshot') {
+    throw new Error(`Command ${requestId} has no snapshot.`)
+  }
+
+  return snapshot
+}
+
+async function submitRoundPlan(
+  client: TestClient,
+  requestId: string,
+) {
+  send(client, {
+    version: 1,
+    requestId,
+    type: 'submit-round-plan',
+    payload: {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    },
+  })
+  const result = await client.waitFor(
+    (message) =>
+      message.type === 'command-result' &&
+      message.requestId === requestId,
+  )
+
+  expect(result).toMatchObject({
+    type: 'command-result',
+    payload: { ok: true },
+  })
+
+  if (
+    result.type !== 'command-result' ||
+    !result.payload.ok
+  ) {
+    throw new Error(`Round plan ${requestId} was rejected.`)
+  }
+
+  const snapshot = await client.waitFor(
+    (message) =>
+      message.type === 'match-snapshot' &&
+      message.payload.revision === result.payload.revision,
+  )
+
+  if (snapshot.type !== 'match-snapshot') {
+    throw new Error(`Round plan ${requestId} has no snapshot.`)
+  }
+
+  return snapshot
+}
+
 function closeClient(client: TestClient) {
   if (
     client.socket.readyState === WebSocket.CLOSED ||
@@ -337,6 +498,421 @@ describe('Lokaler WebSocket-Spielserver', () => {
     } finally {
       await closeClient(host)
       await closeClient(guest)
+      await server.close()
+    }
+  })
+
+  it('spielt mit zwei Clients eine vollständige Multiplayer-Smoke-Runde', async () => {
+    const matchClock = new FakeMatchClock()
+    const server = createWebSocketGameServer({
+      host: '127.0.0.1',
+      port: 0,
+      lobbyId: 'smoke-round',
+      seed: 23,
+      matchOptions: { clock: matchClock },
+    })
+    const address = await server.listen()
+    const url = formatWebSocketUrl(address)
+    const host = await openClient(url)
+    const guest = await openClient(url)
+    let resumedGuest: TestClient | null = null
+
+    try {
+      send(host, {
+        version: 1,
+        requestId: 'smoke-join-host',
+        type: 'join-lobby',
+        payload: { displayName: 'Alex' },
+      })
+      const hostSession = await host.waitFor(
+        (message) => message.type === 'session-established',
+      )
+      expect(hostSession).toMatchObject({
+        payload: { participantId: 'agima' },
+      })
+
+      send(guest, {
+        version: 1,
+        requestId: 'smoke-join-guest',
+        type: 'join-lobby',
+        payload: { displayName: 'Bea' },
+      })
+      const guestSession = await guest.waitFor(
+        (message) => message.type === 'session-established',
+      )
+
+      if (guestSession.type !== 'session-established') {
+        throw new Error('Expected an established guest session.')
+      }
+
+      expect(guestSession.payload.participantId).toBe('orion')
+      const guestReconnectToken =
+        guestSession.payload.reconnectToken
+
+      send(host, {
+        version: 1,
+        requestId: 'smoke-ready-host',
+        type: 'set-ready',
+        payload: { ready: true },
+      })
+      send(guest, {
+        version: 1,
+        requestId: 'smoke-ready-guest',
+        type: 'set-ready',
+        payload: { ready: true },
+      })
+      await host.waitFor(
+        (message) =>
+          message.type === 'lobby-snapshot' &&
+          message.payload.seats.agima.kind === 'human' &&
+          message.payload.seats.agima.ready &&
+          message.payload.seats.orion.kind === 'human' &&
+          message.payload.seats.orion.ready,
+      )
+
+      send(host, {
+        version: 1,
+        requestId: 'smoke-start',
+        type: 'start-match',
+        payload: {},
+      })
+      let latestSnapshot = await host.waitFor(
+        (message) => message.type === 'match-snapshot',
+      )
+      await guest.waitFor(
+        (message) => message.type === 'match-snapshot',
+      )
+
+      if (latestSnapshot.type !== 'match-snapshot') {
+        throw new Error('Expected the initial match snapshot.')
+      }
+
+      expect(latestSnapshot.payload.state.round).toBe(1)
+      expect(
+        latestSnapshot.payload.state.match.participants,
+      ).toMatchObject({
+        agima: {
+          controller: { kind: 'human', input: 'remote' },
+        },
+        orion: {
+          controller: { kind: 'human', input: 'remote' },
+        },
+        nova: { controller: { kind: 'ai' } },
+        vega: { controller: { kind: 'ai' } },
+      })
+
+      const hostColony =
+        latestSnapshot.payload.state.colonies.agima
+      const harvesterTileId = hostColony.ownedTileIds.find(
+        (tileId) =>
+          hostColony.harvesterAssignments[tileId] === undefined,
+      )
+
+      if (!harvesterTileId) {
+        throw new Error('Expected a free host harvester tile.')
+      }
+
+      latestSnapshot = await submitGameCommand(
+        host,
+        'smoke-assign-harvester',
+        {
+          version: 1,
+          commandId: 'smoke-assign-harvester',
+          participantId: 'agima',
+          expectedRound: 1,
+          type: 'assign-harvester',
+          payload: {
+            tileId: harvesterTileId,
+            production: 'food',
+          },
+        },
+      )
+      expect(
+        latestSnapshot.payload.state.colonies.agima
+          .harvesterAssignments[harvesterTileId],
+      ).toMatchObject({ production: 'food' })
+      const stateAfterHarvester = latestSnapshot.payload.state
+
+      const allOwnedTileIds = new Set(
+        participantIds.flatMap(
+          (participantId) =>
+            stateAfterHarvester.colonies[participantId]
+              .ownedTileIds,
+        ),
+      )
+      const opponentOwnedTileIds = new Set(
+        participantIds
+          .filter((participantId) => participantId !== 'agima')
+          .flatMap(
+            (participantId) =>
+              stateAfterHarvester.colonies[participantId]
+                .ownedTileIds,
+          ),
+      )
+      const landTile = targetPlanetMap.tiles.find(
+        (tile) =>
+          tile.id !== targetPlanetMap.hqTileId &&
+          !allOwnedTileIds.has(tile.id) &&
+          tile.neighborIds.some((tileId) =>
+            hostColony.ownedTileIds.includes(tileId),
+          ) &&
+          !tile.neighborIds.some((tileId) =>
+            opponentOwnedTileIds.has(tileId),
+          ),
+      )
+
+      if (!landTile) {
+        throw new Error('Expected a legal uncontested land tile.')
+      }
+
+      latestSnapshot = await submitGameCommand(
+        host,
+        'smoke-place-land-bid',
+        {
+          version: 1,
+          commandId: 'smoke-place-land-bid',
+          participantId: 'agima',
+          expectedRound: 1,
+          type: 'place-land-bid',
+          payload: { tileId: landTile.id, amount: 25 },
+        },
+      )
+      expect(latestSnapshot.payload.state.pendingLandBid).toMatchObject({
+        tileId: landTile.id,
+        bids: { agima: 25 },
+      })
+
+      const marketResources: MarketResource[] = [
+        'food',
+        'energy',
+        'ore',
+        'crystals',
+      ]
+      const marketTiming = getMarketTiming(1)
+
+      for (const resource of marketResources) {
+        latestSnapshot = await submitGameCommand(
+          host,
+          `smoke-${resource}-initiate`,
+          {
+            version: 1,
+            commandId: `smoke-${resource}-initiate`,
+            participantId: 'agima',
+            expectedRound: 1,
+            type: 'initiate-resource-market',
+            payload: { resource },
+          },
+        )
+        expect(
+          Object.keys(
+            latestSnapshot.payload.state.activeResourceMarket
+              ?.roles ?? {},
+          ),
+        ).toEqual([...participantIds])
+
+        matchClock.advanceBy(
+          marketTiming.introductionSeconds * 1000,
+        )
+        latestSnapshot = (await host.waitFor(
+          (message) =>
+            message.type === 'match-snapshot' &&
+            message.payload.state.activeResourceMarket
+              ?.resource === resource &&
+            message.payload.state.activeResourceMarket.phase ===
+              'declaration',
+        )) as MatchSnapshotMessage
+
+        await submitGameCommand(
+          host,
+          `smoke-${resource}-host-role`,
+          {
+            version: 1,
+            commandId: `smoke-${resource}-host-role`,
+            participantId: 'agima',
+            expectedRound: 1,
+            type: 'set-market-role',
+            payload: { resource, role: 'seller' },
+          },
+        )
+        await submitGameCommand(
+          guest,
+          `smoke-${resource}-guest-role`,
+          {
+            version: 1,
+            commandId: `smoke-${resource}-guest-role`,
+            participantId: 'orion',
+            expectedRound: 1,
+            type: 'set-market-role',
+            payload: { resource, role: 'buyer' },
+          },
+        )
+
+        matchClock.advanceBy(
+          marketTiming.declarationSeconds * 1000,
+        )
+        latestSnapshot = (await host.waitFor(
+          (message) =>
+            message.type === 'match-snapshot' &&
+            message.payload.state.activeResourceMarket
+              ?.resource === resource &&
+            message.payload.state.activeResourceMarket.phase ===
+              'auction',
+        )) as MatchSnapshotMessage
+        const tradePrice =
+          latestSnapshot.payload.state.market[resource]
+            .referencePrice
+
+        await submitGameCommand(
+          host,
+          `smoke-${resource}-host-offer`,
+          {
+            version: 1,
+            commandId: `smoke-${resource}-host-offer`,
+            participantId: 'agima',
+            expectedRound: 1,
+            type: 'set-market-offer',
+            payload: {
+              resource,
+              active: true,
+              price: tradePrice,
+            },
+          },
+        )
+        const beforeTrade = await submitGameCommand(
+          guest,
+          `smoke-${resource}-guest-offer`,
+          {
+            version: 1,
+            commandId: `smoke-${resource}-guest-offer`,
+            participantId: 'orion',
+            expectedRound: 1,
+            type: 'set-market-offer',
+            payload: {
+              resource,
+              active: true,
+              price: tradePrice,
+            },
+          },
+        )
+        const hostResourceBefore =
+          beforeTrade.payload.state.colonies.agima.resources[
+            resource
+          ]
+        const guestResourceBefore =
+          beforeTrade.payload.state.colonies.orion.resources[
+            resource
+          ]
+
+        const afterTrade = await submitGameCommand(
+          guest,
+          `smoke-${resource}-trade`,
+          {
+            version: 1,
+            commandId: `smoke-${resource}-trade`,
+            participantId: 'orion',
+            expectedRound: 1,
+            type: 'execute-market-trade',
+            payload: {
+              resource,
+              direction: 'buy',
+              price: tradePrice,
+              counterparty: 'agima',
+            },
+          },
+        )
+        expect(
+          afterTrade.payload.state.colonies.agima.resources[
+            resource
+          ],
+        ).toBe(hostResourceBefore - 1)
+        expect(
+          afterTrade.payload.state.colonies.orion.resources[
+            resource
+          ],
+        ).toBe(guestResourceBefore + 1)
+
+        matchClock.advanceBy(
+          marketTiming.auctionSeconds * 1000,
+        )
+        latestSnapshot = (await host.waitFor(
+          (message) =>
+            message.type === 'match-snapshot' &&
+            message.payload.state.activeResourceMarket
+              ?.resource === resource &&
+            message.payload.state.activeResourceMarket.phase ===
+              'finished',
+        )) as MatchSnapshotMessage
+        latestSnapshot = await submitGameCommand(
+          host,
+          `smoke-${resource}-complete`,
+          {
+            version: 1,
+            commandId: `smoke-${resource}-complete`,
+            participantId: 'agima',
+            expectedRound: 1,
+            type: 'complete-resource-market',
+            payload: { resource },
+          },
+        )
+        expect(
+          latestSnapshot.payload.state.activeResourceMarket,
+        ).toBeNull()
+      }
+
+      expect(
+        latestSnapshot.payload.state.initiatedMarketResources,
+      ).toEqual(marketResources)
+
+      await submitRoundPlan(host, 'smoke-host-round-plan')
+      latestSnapshot = await submitRoundPlan(
+        guest,
+        'smoke-guest-round-plan',
+      )
+      expect(latestSnapshot.payload.state.round).toBe(2)
+      expect(
+        latestSnapshot.payload.state.colonies.agima.ownedTileIds,
+      ).toContain(landTile.id)
+      expect(
+        latestSnapshot.payload.state.colonies.agima
+          .harvesterAssignments[harvesterTileId],
+      ).toBeDefined()
+
+      await closeClient(guest)
+      resumedGuest = await openClient(url)
+      send(resumedGuest, {
+        version: 1,
+        requestId: 'smoke-resume-guest',
+        type: 'resume-session',
+        payload: { reconnectToken: guestReconnectToken },
+      })
+      await resumedGuest.waitFor(
+        (message) =>
+          message.type === 'session-established' &&
+          message.payload.participantId === 'orion',
+      )
+      const resumedSnapshot = await resumedGuest.waitFor(
+        (message) => message.type === 'match-snapshot',
+      )
+      expect(resumedSnapshot).toMatchObject({
+        payload: {
+          state: {
+            round: 2,
+            colonies: {
+              agima: {
+                ownedTileIds: expect.arrayContaining([
+                  landTile.id,
+                ]),
+              },
+            },
+          },
+        },
+      })
+    } finally {
+      await closeClient(host)
+      await closeClient(guest)
+      if (resumedGuest) {
+        await closeClient(resumedGuest)
+      }
       await server.close()
     }
   })

@@ -348,8 +348,15 @@ verbundenen Spieler gemeinsam in der Lobby landen.
 
 Der lokale WebSocket-Adapter ist durch echte Transporttests für
 Matchstart, Disconnect und Reconnect sowie zwei parallele Lobbycodes
-abgesichert. Der Isolationstest belegt getrennte Hostsitze und weist
-die Verwendung eines Reconnect-Tokens im falschen Raum zurück. Ein
+abgesichert. Ein vollständiger Zwei-Client-Smoke-Test führt zusätzlich
+Harvesterzuweisung, Grundstücksgebot, direkte Geschäfte auf allen vier
+Ressourcenmärkten und die gemeinsame erste Rundenabrechnung über das
+JSON-Protokoll aus und verbindet den zweiten Sitz in Runde 2 erneut.
+Die autoritative Spieluhr kann dafür ausschließlich über die bestehende
+Match-Options-Grenze bis zum Server injiziert werden; ohne Option bleibt
+die reale Systemzeit aktiv. Der Isolationstest belegt getrennte
+Hostsitze und weist die Verwendung eines Reconnect-Tokens im falschen
+Raum zurück. Ein
 deterministischer Lifecycle-Test deckt außerdem Schonfrist,
 Abbruch bei Reconnect und endgültige Token-Ungültigkeit nach der
 Bereinigung ab. Token-Erzeugung und Sitzbindung verbleiben auf der
