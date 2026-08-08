@@ -407,6 +407,10 @@ werden.
 - die Multiplayer-Karte startet auf dem eigenen Grundstück; der
   mobile Harvester-Button bleibt oberhalb der Browserbedienelemente
   sichtbar und nennt die Zahl der freien Harvester
+- Käufer- und Verkäuferlimits im Mehrspieler-Markt starten beim
+  jeweils sofort handelbaren HQ-Lagerpreis; der Kristallmarkt zeigt
+  außerdem Gebot und Restkapazität des interstellaren Käufers und
+  erlaubt Verkäufern eine eigene Einzeltransaktion mit ihm
 - nach jeder gemeinsamen Abrechnung erhält jeder menschliche Sitz
   ausschließlich seinen eigenen Rundenbericht mit Produktion,
   Versorgung, Bevölkerung, Grundstücksausgang, neuen Harvestern und

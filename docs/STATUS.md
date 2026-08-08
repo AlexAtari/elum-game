@@ -187,6 +187,14 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Startgrundstück; mobile Harvesteraktionen sind oberhalb des
   Browser-Sicherheitsbereichs fest verankert, kontrastreich sichtbar
   und zeigen die Anzahl freier Harvester
+- persönliche Mehrspieler-Marktangebote sind für Käufer mit dem
+  HQ-Verkaufspreis und für Verkäufer mit dem HQ-Ankaufspreis
+  vorbelegt, sodass das unveränderte Standardlimit direkt handelbar
+  ist
+- der Mehrspieler-Kristallmarkt zeigt das aktuelle Gebot und die
+  verbleibende Rundenkapazität des interstellaren Käufers; aktive
+  Verkäufer können ihm über eine eigene Schaltfläche einen Kristall
+  verkaufen, sofern Bestand, Kapazität und persönliches Limit passen
 - teilnehmerbezogene Multiplayer-Rundenbriefings zeigen Produktion,
   Versorgung, Bevölkerung, Grundstücksausgang, neue Harvester und
   abgeschlossene Kristallexplorationen; Explorationsergebnisse

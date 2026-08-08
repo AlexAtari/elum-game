@@ -11,6 +11,7 @@ import {
   parseGameCommand,
   type GameCommand,
 } from './gameCommands'
+import { getInterstellarCrystalBuyerOffer } from './interstellarCrystalBuyer'
 
 function createCommand(
   command: Omit<
@@ -509,6 +510,105 @@ describe('UI-unabhängige Spielkommandos', () => {
     ).toBe('finished')
     expect(completed.ok).toBe(true)
     expect(completed.state.activeResourceMarket).toBeNull()
+  })
+
+  it('verkauft Kristalle im entfernten Markt an den interstellaren Käufer', () => {
+    const initialState = createPlayableInitialGameState()
+    const interstellarOffer =
+      getInterstellarCrystalBuyerOffer(
+        initialState.round,
+        initialState.market.crystals.referencePrice,
+        initialState.interstellarCrystalPurchases ?? 0,
+      )
+    const commands: GameCommand[] = [
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'initiate-resource-market',
+          payload: { resource: 'crystals' },
+        },
+        'crystal-market-init',
+      ),
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'advance-resource-market-phase',
+          payload: {
+            resource: 'crystals',
+            expectedPhase: 'announcement',
+          },
+        },
+        'crystal-market-declaration',
+      ),
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'set-market-role',
+          payload: {
+            resource: 'crystals',
+            role: 'seller',
+          },
+        },
+        'crystal-market-seller',
+      ),
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'advance-resource-market-phase',
+          payload: {
+            resource: 'crystals',
+            expectedPhase: 'declaration',
+          },
+        },
+        'crystal-market-auction',
+      ),
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'set-market-offer',
+          payload: {
+            resource: 'crystals',
+            active: true,
+            price: interstellarOffer.offerPrice,
+          },
+        },
+        'crystal-market-offer',
+      ),
+    ]
+    const preparedState = commands.reduce(
+      (state, command) =>
+        executeGameCommand(state, command).state,
+      initialState,
+    )
+    const traded = executeGameCommand(
+      preparedState,
+      createCommand(
+        {
+          participantId: 'orion',
+          type: 'execute-market-trade',
+          payload: {
+            resource: 'crystals',
+            direction: 'sell',
+            price: interstellarOffer.offerPrice,
+            counterparty: 'interstellar-buyer',
+          },
+        },
+        'crystal-market-interstellar-trade',
+      ),
+    )
+
+    expect(traded.ok).toBe(true)
+    expect(traded.state.colonies.orion.credits).toBe(
+      initialState.colonies.orion.credits +
+        interstellarOffer.offerPrice,
+    )
+    expect(traded.state.colonies.orion.resources.crystals).toBe(
+      initialState.colonies.orion.resources.crystals - 1,
+    )
+    expect(traded.state.interstellarCrystalPurchases).toBe(1)
+    expect(traded.state.market.crystals.warehouseStock).toBe(
+      initialState.market.crystals.warehouseStock,
+    )
   })
 
   it('validiert direkte Marktangebote beider Teilnehmer vor dem Handel', () => {

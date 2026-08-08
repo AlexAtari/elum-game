@@ -385,5 +385,13 @@ export const en = {
     'Buy 1 unit from warehouse · {{price}} credits',
   'multiplayerGame.sellWarehouse':
     'Sell 1 unit to warehouse · {{price}} credits',
+  'multiplayerGame.interstellarBuyer':
+    'Interstellar crystal buyer',
+  'multiplayerGame.interstellarBuyerStatus':
+    'Offer: {{price}} credits · Capacity: {{remaining}} of {{capacity}} available',
+  'multiplayerGame.sellInterstellar':
+    'Sell 1 crystal to interstellar buyer · {{price}} credits',
+  'multiplayerGame.interstellarLimitTooHigh':
+    'Lower your personal limit to {{price}} credits or less to accept this offer.',
   'multiplayerGame.closeMarket': 'Close market',
 } satisfies Record<TranslationKey, string>

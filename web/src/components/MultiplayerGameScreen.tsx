@@ -27,6 +27,8 @@ import type {
   MultiplayerClientMessage,
 } from '../multiplayerProtocol'
 import type { AuthoritativeMatchSnapshot } from '../authoritativeMatch'
+import { getInterstellarCrystalBuyerOffer } from '../interstellarCrystalBuyer'
+import { getDefaultMultiplayerMarketOfferPrice } from '../multiplayerMarket'
 import HexMap from './HexMap'
 import LocalEventNotice from './LocalEventNotice'
 import MultiplayerLeaderboard from './MultiplayerLeaderboard'
@@ -206,10 +208,19 @@ function MultiplayerGameScreen({
     activeMarket && marketPrices
       ? marketOfferDraft?.resource === activeMarket.resource
         ? marketOfferDraft.price
-        : marketRole === 'seller'
-          ? marketPrices.sellPrice
-          : marketPrices.buyPrice
+        : getDefaultMultiplayerMarketOfferPrice(
+            marketRole,
+            marketPrices,
+          )
       : 1
+  const interstellarBuyerOffer =
+    activeMarket?.resource === 'crystals' && marketState
+      ? getInterstellarCrystalBuyerOffer(
+          state.round,
+          marketState.referencePrice,
+          state.interstellarCrystalPurchases ?? 0,
+        )
+      : null
   const supplyPreview = calculateColonySupplyPreview(
     state,
     participantId,
@@ -370,6 +381,22 @@ function MultiplayerGameScreen({
             })}
           </p>
 
+          {interstellarBuyerOffer ? (
+            <div className="network-interstellar-buyer">
+              <strong>
+                {t('multiplayerGame.interstellarBuyer')}
+              </strong>
+              <span>
+                {t('multiplayerGame.interstellarBuyerStatus', {
+                  price: interstellarBuyerOffer.offerPrice,
+                  remaining:
+                    interstellarBuyerOffer.remainingCapacity,
+                  capacity: interstellarBuyerOffer.capacity,
+                })}
+              </span>
+            </div>
+          ) : null}
+
           {activeMarket.phase === 'declaration' ? (
             <div className="network-role-actions">
               {(['neutral', 'buyer', 'seller'] as const).map(
@@ -435,35 +462,87 @@ function MultiplayerGameScreen({
               </button>
 
               {marketOffer?.active ? (
-                <button
-                  className="network-trade-button"
-                  type="button"
-                  onClick={() =>
-                    sendAction({
-                      type: 'execute-market-trade',
-                      payload: {
-                        resource: activeMarket.resource,
-                        direction:
-                          marketRole === 'buyer'
-                            ? 'buy'
-                            : 'sell',
-                        price:
-                          marketRole === 'buyer'
-                            ? marketPrices.sellPrice
-                            : marketPrices.buyPrice,
-                        counterparty: 'warehouse',
-                      },
-                    })
-                  }
-                >
-                  {marketRole === 'buyer'
-                    ? t('multiplayerGame.buyWarehouse', {
-                        price: marketPrices.sellPrice,
+                <div className="network-market-trade-actions">
+                  <button
+                    className="network-trade-button"
+                    type="button"
+                    onClick={() =>
+                      sendAction({
+                        type: 'execute-market-trade',
+                        payload: {
+                          resource: activeMarket.resource,
+                          direction:
+                            marketRole === 'buyer'
+                              ? 'buy'
+                              : 'sell',
+                          price:
+                            marketRole === 'buyer'
+                              ? marketPrices.sellPrice
+                              : marketPrices.buyPrice,
+                          counterparty: 'warehouse',
+                        },
                       })
-                    : t('multiplayerGame.sellWarehouse', {
-                        price: marketPrices.buyPrice,
-                      })}
-                </button>
+                    }
+                  >
+                    {marketRole === 'buyer'
+                      ? t('multiplayerGame.buyWarehouse', {
+                          price: marketPrices.sellPrice,
+                        })
+                      : t('multiplayerGame.sellWarehouse', {
+                          price: marketPrices.buyPrice,
+                        })}
+                  </button>
+
+                  {interstellarBuyerOffer &&
+                  marketRole === 'seller' ? (
+                    <button
+                      className="network-trade-button is-interstellar"
+                      type="button"
+                      disabled={
+                        !interstellarBuyerOffer.isAvailable ||
+                        colony.resources.crystals < 1 ||
+                        marketOffer.price >
+                          interstellarBuyerOffer.offerPrice
+                      }
+                      onClick={() =>
+                        sendAction({
+                          type: 'execute-market-trade',
+                          payload: {
+                            resource: 'crystals',
+                            direction: 'sell',
+                            price:
+                              interstellarBuyerOffer.offerPrice,
+                            counterparty:
+                              'interstellar-buyer',
+                          },
+                        })
+                      }
+                    >
+                      {t(
+                        'multiplayerGame.sellInterstellar',
+                        {
+                          price:
+                            interstellarBuyerOffer.offerPrice,
+                        },
+                      )}
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {interstellarBuyerOffer &&
+              marketRole === 'seller' &&
+              marketOffer?.active &&
+              marketOffer.price >
+                interstellarBuyerOffer.offerPrice ? (
+                <small className="network-market-hint">
+                  {t(
+                    'multiplayerGame.interstellarLimitTooHigh',
+                    {
+                      price: interstellarBuyerOffer.offerPrice,
+                    },
+                  )}
+                </small>
               ) : null}
             </>
           ) : null}

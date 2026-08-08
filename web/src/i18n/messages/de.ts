@@ -385,6 +385,14 @@ export const de = {
     '1 Einheit vom Lager kaufen · {{price}} Credits',
   'multiplayerGame.sellWarehouse':
     '1 Einheit ans Lager verkaufen · {{price}} Credits',
+  'multiplayerGame.interstellarBuyer':
+    'Interstellarer Kristallkäufer',
+  'multiplayerGame.interstellarBuyerStatus':
+    'Gebot: {{price}} Credits · Kapazität: {{remaining}} von {{capacity}} frei',
+  'multiplayerGame.sellInterstellar':
+    '1 Kristall interstellar verkaufen · {{price}} Credits',
+  'multiplayerGame.interstellarLimitTooHigh':
+    'Senke dein persönliches Limit auf höchstens {{price}} Credits, um dieses Gebot anzunehmen.',
   'multiplayerGame.closeMarket': 'Markt abschließen',
 } as const
 

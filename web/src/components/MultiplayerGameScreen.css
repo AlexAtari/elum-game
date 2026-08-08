@@ -229,7 +229,45 @@
 
 .network-trade-button {
   display: block;
+}
+
+.network-market-trade-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-top: 12px;
+}
+
+.network-trade-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.network-trade-button.is-interstellar {
+  border-color: rgba(151, 190, 255, 0.38);
+  color: #e3edff;
+  background: rgba(92, 132, 211, 0.13);
+}
+
+.network-interstellar-buyer {
+  display: grid;
+  gap: 5px;
+  margin-top: 16px;
+  padding: 13px 15px;
+  border: 1px solid rgba(151, 190, 255, 0.24);
+  border-radius: 12px;
+  color: #e3edff;
+  background: rgba(92, 132, 211, 0.09);
+}
+
+.network-interstellar-buyer span,
+.network-market-hint {
+  color: #aebbd3;
+}
+
+.network-market-hint {
+  display: block;
+  margin-top: 9px;
 }
 
 .network-leave-button {
