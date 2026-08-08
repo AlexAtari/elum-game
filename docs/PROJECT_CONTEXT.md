@@ -258,12 +258,13 @@ werden.
   2,2-fachem Nahzoom; der Planet liegt leicht unterhalb der
   Bildschirmmitte und die Kolonieüberschrift ist ausgeblendet; das
   mobile HUD hält alle sieben Statuswerte einschließlich Kristallen
-  vollständig sichtbar; nahezu ungefüllte Konturaktionen öffnen
-  Harvesterplatzierung, -verwaltung oder Grundstücksgebot
+  vollständig sichtbar; die holografische Grundstücksübersicht
+  enthält die jeweils legale Harvester- oder Gebotsaktion, unter dem
+  Planeten gibt es keine getrennte Aktionsleiste mehr
 - die kompakte holografische Feldkarte wird an der tatsächlich
   gerenderten Bildschirmposition der Auswahl verankert und bewegt sich mit
-  Rotation und Zoom; feine Linien verbinden sie und verfügbare
-  Aktionen mit dem Grundstück, komplexe Eingaben öffnen weiterhin
+  Rotation und Zoom; eine feine Linie verbindet sie mit dem
+  Grundstück, komplexe Eingaben öffnen weiterhin
   eine größere temporäre Glasfläche
 - entdeckte Kristallvorkommen bieten Kristallproduktion in der mobilen
   Harvester-Auswahl sichtbar an erster Stelle und zeigen alle vier

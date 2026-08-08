@@ -40,10 +40,6 @@
   gap: 20px;
 }
 
-.mobile-map-actions {
-  display: none;
-}
-
 .hex-map-viewport {
   position: relative;
   height: clamp(500px, 58vw, 680px);
@@ -469,62 +465,6 @@
   text-shadow: 0 2px 7px #000;
 }
 
-.immersive-planet-screen .mobile-map-actions {
-  position: fixed;
-  z-index: 12;
-  bottom: max(76px, calc(env(safe-area-inset-bottom) + 66px));
-  left: 50%;
-  display: flex;
-  width: max-content;
-  max-width: calc(100% - 120px);
-  gap: 12px;
-  transform: translateX(-50%);
-}
-
-.immersive-planet-screen .mobile-map-actions:empty {
-  display: none;
-}
-
-.immersive-planet-screen
-  .map-layout
-  .mobile-map-actions.is-action-open {
-  display: none;
-}
-
-.immersive-planet-screen .mobile-map-action-button {
-  min-height: 46px;
-  padding: 10px 17px;
-  cursor: pointer;
-  border: 1px solid rgba(177, 244, 224, 0.88);
-  border-radius: 999px;
-  color: #e9fff8;
-  background: rgba(3, 14, 21, 0.2);
-  box-shadow:
-    0 0 22px rgba(69, 205, 165, 0.28),
-    0 5px 18px rgba(0, 0, 0, 0.3),
-    inset 0 0 12px rgba(116, 244, 205, 0.06);
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 800;
-  text-shadow: 0 2px 6px #000;
-  backdrop-filter: blur(10px);
-}
-
-.immersive-planet-screen .mobile-map-action-button[aria-expanded='true'] {
-  border-color: #b9ffe8;
-  color: #caffed;
-  background: rgba(63, 174, 140, 0.08);
-  box-shadow: 0 0 30px rgba(86, 225, 181, 0.3);
-}
-
-.immersive-planet-screen .mobile-map-action-button:disabled {
-  display: none;
-}
-
-.immersive-planet-screen .harvester-launch-button {
-  display: none;
-}
-
 .immersive-planet-screen .tile-details {
   position: absolute;
   z-index: 7;
@@ -564,6 +504,42 @@
 .immersive-planet-screen .tile-details .detail-row {
   padding: 7px 0;
   font-size: 0.8rem;
+}
+
+.immersive-planet-screen .field-overview-actions {
+  display: grid;
+  margin-top: 12px;
+}
+
+.immersive-planet-screen .field-overview-action-button {
+  min-height: 40px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid rgba(177, 244, 224, 0.76);
+  border-radius: 10px;
+  color: #e9fff8;
+  background: rgba(63, 174, 140, 0.07);
+  box-shadow:
+    0 0 18px rgba(69, 205, 165, 0.18),
+    inset 0 0 10px rgba(116, 244, 205, 0.04);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-shadow: 0 2px 6px #000;
+}
+
+.immersive-planet-screen .field-overview-action-button:hover,
+.immersive-planet-screen .field-overview-action-button:focus-visible {
+  border-color: #b9ffe8;
+  background: rgba(63, 174, 140, 0.14);
+}
+
+.immersive-planet-screen .field-overview-action-button:disabled {
+  display: none;
+}
+
+.immersive-planet-screen .tile-details.is-action-open .field-overview-actions {
+  display: none;
 }
 
 .immersive-planet-screen .tile-details:not(.is-action-open) .land-bid-panel,
@@ -609,11 +585,6 @@
   stroke-width: 1;
   stroke-dasharray: 4 6;
   filter: drop-shadow(0 0 4px rgba(92, 225, 207, 0.42));
-}
-
-.immersive-planet-screen .field-hologram-connectors .field-action-connector {
-  stroke: rgba(177, 244, 224, 0.58);
-  stroke-dasharray: 5 7;
 }
 
 .immersive-planet-screen .field-hologram-connectors circle {
@@ -889,6 +860,31 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+.field-overview-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.field-overview-action-button {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border: 1px solid rgba(121, 221, 185, 0.42);
+  border-radius: 11px;
+  color: #dff8ef;
+  background: rgba(121, 221, 185, 0.1);
+  font: inherit;
+  font-weight: 750;
+}
+
+.field-overview-action-button:disabled {
+  cursor: not-allowed;
+  color: #778196;
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .build-harvester-button {
   width: 100%;
   margin-top: 20px;
@@ -1061,42 +1057,6 @@
     height: clamp(430px, 68vh, 620px);
   }
 
-  .mobile-map-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .mobile-map-action-button {
-    min-height: 48px;
-    padding: 11px 8px;
-    cursor: pointer;
-    border: 1px solid rgba(121, 221, 185, 0.32);
-    border-radius: 11px;
-    color: #dff8ef;
-    background: rgba(121, 221, 185, 0.09);
-    font: inherit;
-    font-size: 0.88rem;
-    font-weight: 750;
-  }
-
-  .mobile-map-action-button[aria-expanded='true'] {
-    border-color: rgba(121, 221, 185, 0.82);
-    color: #07110d;
-    background: #79ddb9;
-  }
-
-  .mobile-map-action-button:disabled {
-    cursor: not-allowed;
-    border-color: rgba(255, 255, 255, 0.08);
-    color: #6f7a8e;
-    background: rgba(255, 255, 255, 0.035);
-  }
-
-  .harvester-launch-button {
-    display: none;
-  }
-
   .land-bid-panel {
     display: none;
   }
@@ -1208,34 +1168,24 @@
     line-height: 1;
   }
 
-  .immersive-planet-screen .mobile-map-actions {
-    bottom: max(
-      144px,
-      calc(env(safe-area-inset-bottom) + 132px)
-    );
-    display: flex;
-    width: auto;
-    max-width: calc(100% - 36px);
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .immersive-planet-screen .mobile-map-action-button {
-    width: auto;
-    min-height: 44px;
-    padding: 9px 14px;
-    font-size: 0.8rem;
-  }
-
   .immersive-planet-screen .tile-details {
     display: block;
     width: 230px;
-    max-height: 190px;
+    max-height: 230px;
     padding: 11px 13px;
     border-radius: 12px;
     overflow-y: auto;
-    pointer-events: none;
+    pointer-events: auto;
+  }
+
+  .immersive-planet-screen .field-overview-actions {
+    margin-top: 9px;
+  }
+
+  .immersive-planet-screen .field-overview-action-button {
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 0.72rem;
   }
 
   .immersive-planet-screen .tile-details.is-action-open {

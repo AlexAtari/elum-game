@@ -426,10 +426,6 @@ function HexMap({
     !isLandBidBlocked &&
     selectedIsAdjacentToPlayer &&
     credits >= minimumBid
-  const hasSelectedFieldAction =
-    canOpenHarvesterMenu ||
-    canOpenLandBidMenu ||
-    (selectedIsPlayerOwned && selectedHarvester !== undefined)
   const selectedFieldIsVisible =
     selectedTile.owner !== 'hq' &&
     selectedCell.points.length >= 3 &&
@@ -1378,71 +1374,8 @@ function HexMap({
               cy={selectedFieldPoint.y}
               r="3"
             />
-            {hasSelectedFieldAction &&
-              mobileMapAction === null &&
-              !isChoosingProduction && (
-                <line
-                  className="field-action-connector"
-                  x1={selectedFieldPoint.x}
-                  y1={selectedFieldPoint.y}
-                  x2={viewportSize.width / 2}
-                  y2={
-                    viewportSize.height -
-                    (isCompactViewport ? 166 : 100)
-                  }
-                />
-              )}
           </svg>
         )}
-
-        <div
-          className={`mobile-map-actions ${
-            mobileMapAction !== null || isChoosingProduction
-              ? 'is-action-open'
-              : ''
-          }`}
-          aria-label={t('map.mobileActions')}
-        >
-          {canOpenHarvesterMenu && (
-            <button
-              className="mobile-map-action-button"
-              type="button"
-              aria-expanded={mobileMapAction === 'harvester'}
-              aria-controls="harvester-production-menu"
-              onClick={toggleMobileHarvesterMenu}
-            >
-              {t('map.deployHarvester', {
-                count: freeHarvesters,
-              })}
-            </button>
-          )}
-          {canOpenLandBidMenu && (
-            <button
-              className="mobile-map-action-button"
-              type="button"
-              aria-expanded={mobileMapAction === 'land-bid'}
-              aria-controls="land-bid-menu"
-              onClick={toggleMobileLandBidMenu}
-            >
-              {t('map.placeBid')}
-            </button>
-          )}
-          {selectedIsPlayerOwned && selectedHarvester && (
-            <button
-              className="mobile-map-action-button"
-              type="button"
-              aria-expanded={isChoosingProduction}
-              aria-controls="harvester-production-menu"
-              disabled={isRetoolingBlocked}
-              onClick={() => {
-                setMobileMapAction(null)
-                setIsChoosingProduction((current) => !current)
-              }}
-            >
-              {t('map.manageHarvester')}
-            </button>
-          )}
-        </div>
 
         <aside
           className={`tile-details ${
@@ -1554,6 +1487,64 @@ function HexMap({
                     Der Einschlagsort ist öffentlich. Seine genaue
                     Kristallaufwertung bleibt verdeckt.
                   </span>
+                </div>
+              )}
+
+              {(canOpenHarvesterMenu ||
+                canOpenLandBidMenu ||
+                (selectedIsPlayerOwned && selectedHarvester)) && (
+                <div
+                  className="field-overview-actions"
+                  aria-label={t('map.mobileActions')}
+                >
+                  {canOpenHarvesterMenu && (
+                    <button
+                      className="field-overview-action-button"
+                      type="button"
+                      aria-expanded={
+                        mobileMapAction === 'harvester'
+                      }
+                      aria-controls="harvester-production-menu"
+                      onClick={toggleMobileHarvesterMenu}
+                    >
+                      {t('map.deployHarvester', {
+                        count: freeHarvesters,
+                      })}
+                    </button>
+                  )}
+
+                  {canOpenLandBidMenu && (
+                    <button
+                      className="field-overview-action-button"
+                      type="button"
+                      aria-expanded={
+                        mobileMapAction === 'land-bid'
+                      }
+                      aria-controls="land-bid-menu"
+                      onClick={toggleMobileLandBidMenu}
+                    >
+                      {t('map.placeBid')}
+                    </button>
+                  )}
+
+                  {selectedIsPlayerOwned &&
+                    selectedHarvester && (
+                      <button
+                        className="field-overview-action-button"
+                        type="button"
+                        aria-expanded={isChoosingProduction}
+                        aria-controls="harvester-production-menu"
+                        disabled={isRetoolingBlocked}
+                        onClick={() => {
+                          setMobileMapAction(null)
+                          setIsChoosingProduction(
+                            (current) => !current,
+                          )
+                        }}
+                      >
+                        {t('map.manageHarvester')}
+                      </button>
+                    )}
                 </div>
               )}
 
@@ -1687,24 +1678,6 @@ function HexMap({
                       Abbrechen
                     </button>
                   </div>
-                )}
-
-              {selectedIsPlayerOwned &&
-                !selectedProduction &&
-                !selectedHarvester &&
-                !isChoosingProduction && (
-                  <button
-                    className="field-button harvester-launch-button"
-                    type="button"
-                    disabled={freeHarvesters === 0}
-                    onClick={() =>
-                      setIsChoosingProduction(true)
-                    }
-                  >
-                    {freeHarvesters > 0
-                      ? 'Harvester einsetzen'
-                      : 'Keine freien Harvester'}
-                  </button>
                 )}
 
               {selectedIsPlayerOwned &&

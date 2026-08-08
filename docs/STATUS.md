@@ -292,17 +292,17 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   erscheinen Nahrung, Energie und Erz mehrzeilig auf dem Feld; ihre
   Schrift wächst proportional mit dem Planetenzoom bis zum 2,2-fachen
   Nahzoom, entdeckte eigene Kristalle zusätzlich
-- kontextabhängige, transparente Aktionsbuttons schweben unter dem
-  Planeten und erscheinen nur für legale Grundstücksgebote,
-  Harvesterplatzierung oder Harvesterverwaltung; das HQ wird direkt
-  über sein Planetenfeld geöffnet; die frühere HQ-beschriftete
-  Zentriertaste verwendet ein neutrales Zielsymbol und die Aktionen
-  besitzen nur noch eine sehr schwache transparente Füllung
+- kontextabhängige Aktionsbuttons erscheinen direkt in der
+  holografischen Grundstücksübersicht und nur für legale
+  Grundstücksgebote, Harvesterplatzierung oder Harvesterverwaltung;
+  unter dem Planeten bleibt keine getrennte Aktionsleiste, das HQ
+  wird direkt über sein Planetenfeld geöffnet und die frühere
+  HQ-beschriftete Zentriertaste verwendet ein neutrales Zielsymbol
 - die ausgewählte sichtbare Parzelle erhält eine kompakte
   holografische Detailkarte mit Name, Besitzer und Ressourcenwerten;
   ihre Position wird an der tatsächlich gerenderten Feldposition
-  verankert und folgt beim Drehen und Zoomen, während feine Leuchtlinien
-  Detailkarte und verfügbare Aktionen mit dem Feld verbinden
+  verankert und folgt beim Drehen und Zoomen, während eine feine
+  Leuchtlinie die Detailkarte mit dem Feld verbindet
 - Produktionswahl und Gebotshöhe lösen sich beim Öffnen aus der
   Feldkarte und erscheinen als größere, gut lesbare temporäre
   Glasfläche; auf Smartphones bleibt die normale Feldkarte kompakt
