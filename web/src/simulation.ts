@@ -55,6 +55,9 @@ export type SimulationParticipantSnapshot = {
   resources: Resources
   harvesters: number
   ownedTiles: number
+  maximumOwnedTileDistance: number
+  ownsFarZoneTile: boolean
+  ownsNaturalCrystalVein: boolean
   wealth: number
   settlementWealth: number
   remainingResources: number
@@ -1063,7 +1066,8 @@ export function createBalancedSimulationStartingLand(
   const candidateTiles = tiles.filter(
     (tile) =>
       tile.id !== 'HQ' &&
-      getTileDistance(tile) <= 3,
+      getTileDistance(tile) <= 3 &&
+      (targetCrystalRatings[tile.id] ?? 0) === 0,
   )
   const groups = new Map<
     string,
@@ -1425,6 +1429,12 @@ function createParticipantSnapshot(
   colony: RivalColonyState,
   crystalReferencePrice: number,
 ): SimulationParticipantSnapshot {
+  const ownedTileIds = new Set(
+    colony.ownedTileIds ?? [],
+  )
+  const ownedMapTiles = tiles.filter((tile) =>
+    ownedTileIds.has(tile.id),
+  )
   const base = {
     id,
     name: id === 'agima' ? 'Agima' : colony.name,
@@ -1432,7 +1442,20 @@ function createParticipantSnapshot(
     credits: colony.credits,
     resources: cloneResources(colony.resources),
     harvesters: colony.harvesters,
-    ownedTiles: colony.ownedTileIds?.length ?? 0,
+    ownedTiles: ownedTileIds.size,
+    maximumOwnedTileDistance: Math.max(
+      0,
+      ...ownedMapTiles.map(
+        (tile) => tile.distanceFromHq,
+      ),
+    ),
+    ownsFarZoneTile: ownedMapTiles.some(
+      (tile) => tile.distanceFromHq >= 5,
+    ),
+    ownsNaturalCrystalVein: ownedMapTiles.some(
+      (tile) =>
+        (targetCrystalRatings[tile.id] ?? 0) > 0,
+    ),
   }
 
   return {

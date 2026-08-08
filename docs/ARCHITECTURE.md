@@ -641,6 +641,11 @@ Browser-Spielimplementierung.
 - Die Seriensimulation zählt zusätzlich die Gründe abgelehnter
   Harvesterbauten, erfolgreiche Baurunden sowie die erste
   Harvester- und Grundstückserweiterung jeder Kolonie.
+- Für die Folgeexpansion erfasst sie außerdem die größte erreichte
+  HQ-Distanz, den Anteil erreichter Fernzonen und natürlicher
+  Kristalladern sowie die jeweilige erste Zugriffs-Runde. Die
+  simulierten Startfeldpaare werden dabei wie im Browser explizit auf
+  kristallfreie Kartenfelder begrenzt.
 
 Die gemeinsame Agentenplanung besitzt für einen brachliegenden
 Harvester ein enges Infrastruktursicherheitsfenster: Der Landkauf

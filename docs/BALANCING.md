@@ -40,17 +40,17 @@ lexikografischen Wertung wie im Browser bestimmt.
 
 | Kolonie | Siegquote | Ø Rang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 38,5 % | 2,06 | 19,6 | 107,3 |
-| Vega | 28,5 % | 2,36 | 19,2 | 77,8 |
-| Agima | 19,5 % | 2,64 | 17,5 | 215,0 |
-| Orion | 13,5 % | 2,93 | 17,3 | 224,0 |
+| Nova | 34,0 % | 2,14 | 18,1 | 106,2 |
+| Agima | 24,3 % | 2,51 | 17,3 | 219,2 |
+| Orion | 21,8 % | 2,57 | 17,1 | 222,1 |
+| Vega | 20,0 % | 2,79 | 17,1 | 114,9 |
 
 Der breitere Ökonomiewert aus Ressourcen, Bevölkerung, Harvestern und
 Land dient ausschließlich der Diagnose. Er ist kein
 Gleichstandskriterium.
 
-Der Lauf erzeugt durchschnittlich 143,9 Markttransaktionen und 9,27
-Versorgungssignale je Partie. 2,4 % des Volumens sind direkte
+Der Lauf erzeugt durchschnittlich 147,4 Markttransaktionen und 11,20
+Versorgungssignale je Partie. 1,6 % des Volumens sind direkte
 Geschäfte zwischen Kolonien.
 
 Die Versorgungssignale bestätigen einen auffälligen Schwellenwert:
@@ -58,7 +58,7 @@ Bei normaler Versorgung verdoppelt der elfte Einwohner durch die
 zweite angefangene Zehnergruppe den HQ-Bedarf sofort von zwei auf vier
 Nahrung und Energie. Zusammen mit zwei aktiven Harvestern steigt der
 gesamte Energiebedarf damit von vier auf sechs. Im aktuellen Lauf
-treten 573 Bevölkerungsrückgänge, 490 leere Nahrungs- und 149 leere
+treten 595 Bevölkerungsrückgänge, 527 leere Nahrungs- und 132 leere
 Energiebestände auf. Eine Zahlenänderung ist daraus noch nicht
 abgeleitet; als nächster Vergleich sind eine geglättete
 Versorgungsschwelle und behutsam höhere Grundproduktion getrennt zu
@@ -70,8 +70,12 @@ sie zunächst. Dadurch übernimmt der interstellare Käufer im
 Referenzlauf durchschnittlich 1,0 Kristall je Partie. Die Probe stammt
 nicht von einem Startgrundstück; alle Startfelder bleiben
 kristallfrei. Pro Partie entstehen weiterhin durchschnittlich
-2,4 Meteore. Natürliche Adern in der Fernzone werden noch nicht
-zuverlässig erreicht.
+2,4 Meteore. Die Seriensimulation vergibt jetzt ausschließlich
+kristallfreie Startgrundstücke und misst die Folgeexpansion direkt:
+Keine Kolonie erreicht bisher die Fernzone, und nur 12,5 bis
+17,5 Prozent der Partien erschließen überhaupt einen natürlichen
+Aderausläufer. Die durchschnittlich größte HQ-Distanz liegt lediglich
+zwischen 2,7 und 2,8.
 
 Für den Ausbau von zwei auf drei Harvester gilt ein gemeinsames,
 profilunabhängiges Sicherheitsfenster. Die Kolonie muss die

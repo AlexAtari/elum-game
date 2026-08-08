@@ -494,10 +494,10 @@ Aktueller 200-Partien-Stand mit 20 Runden, Markt und den Seeds
 
 | Kolonie | Siegquote | Durchschnittsrang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 38,5 % | 2,06 | 19,6 | 107,3 |
-| Vega | 28,5 % | 2,36 | 19,2 | 77,8 |
-| Agima | 19,5 % | 2,64 | 17,5 | 215,0 |
-| Orion | 13,5 % | 2,93 | 17,3 | 224,0 |
+| Nova | 34,0 % | 2,14 | 18,1 | 106,2 |
+| Agima | 24,3 % | 2,51 | 17,3 | 219,2 |
+| Orion | 21,8 % | 2,57 | 17,1 | 222,1 |
+| Vega | 20,0 % | 2,79 | 17,1 | 114,9 |
 
 Die Seriensimulation verwendet jetzt dieselbe lexikografische
 Schlusswertung wie die Browserpartie: Bevölkerung,
@@ -507,16 +507,16 @@ entscheidet keine Partie.
 
 Systemische Beobachtungen aus dem aktuellen Lauf:
 
-- 142 unterschiedliche Endergebnisse
-- 143,9 Markttransaktionen je Partie
-- 3,5 direkte Spielertransaktionen je Partie
-- direkter Handelsanteil 2,4 %
-- 139,3 HQ-Lagertransaktionen je Partie
+- 145 unterschiedliche Endergebnisse
+- 147,4 Markttransaktionen je Partie
+- 2,4 direkte Spielertransaktionen je Partie
+- direkter Handelsanteil 1,6 %
+- 144,1 HQ-Lagertransaktionen je Partie
 - 1,0 Verkauf an den interstellaren Käufer je Partie
 - durchschnittlich 2,4 Meteore je Partie
-- 9,27 Versorgungssignale je Partie
-- davon 573 Bevölkerungsrückgänge, 490 leere Nahrungs- und
-  149 leere Energiebestände
+- 11,20 Versorgungssignale je Partie
+- davon 595 Bevölkerungsrückgänge, 527 leere Nahrungs- und
+  132 leere Energiebestände
 
 Der Versorgungssprung am elften Einwohner ist als wahrscheinlichster
 systemischer Engpass identifiziert: normale HQ-Versorgung steigt dort
@@ -542,12 +542,16 @@ Kristallmarkt schon vor dem Erreichen einer natürlichen Ader
 wirtschaftlich relevant, ohne die kristallfreien Startgrundstücke zu
 verändern.
 
-Im Referenzlauf enden die Kolonien mit durchschnittlich 2,9 bis
-3,1 Harvestern und 2,9 bis 3,0 Grundstücken. Die erste
+Im Referenzlauf enden die Kolonien mit durchschnittlich 3,0
+Harvestern und 2,9 bis 3,0 Grundstücken. Die erste
 Harvestererweiterung liegt im Mittel um Runde 3,0; das erste
-zusätzliche Grundstück je nach Kolonie zwischen Runde 4,09 und 5,67.
-Die natürlichen Fernzonenadern werden weiterhin nicht zuverlässig
-erreicht.
+zusätzliche Grundstück je nach Kolonie zwischen Runde 4,24 und 6,23.
+Die Seriensimulation vergibt nun ausschließlich kristallfreie
+Startgrundstücke und misst Folgeexpansion, Fernzonen und natürliche
+Adern getrennt. Die durchschnittlich größte HQ-Distanz liegt nur
+zwischen 2,7 und 2,8; keine Kolonie erreicht die Fernzone. Einen
+natürlichen Aderausläufer erschließen je nach Kolonie nur 12,5 bis
+17,5 Prozent der Partien.
 
 ## Aktuelle UI-Akzeptanzkriterien
 

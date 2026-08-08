@@ -84,6 +84,21 @@ describe('Balancing-Seriensimulation', () => {
         participant.averageOwnedTiles,
       ).toBeGreaterThanOrEqual(0)
       expect(
+        participant.averageMaximumOwnedTileDistance,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.farZoneReachRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.farZoneReachRate,
+      ).toBeLessThanOrEqual(100)
+      expect(
+        participant.naturalCrystalVeinReachRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.naturalCrystalVeinReachRate,
+      ).toBeLessThanOrEqual(100)
+      expect(
         participant.winRate,
       ).toBeGreaterThanOrEqual(0)
       expect(

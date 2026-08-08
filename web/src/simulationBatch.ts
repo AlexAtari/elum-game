@@ -31,8 +31,13 @@ export type SimulationBatchParticipantStats = {
   averageCrystals: number
   averageHarvesters: number
   averageOwnedTiles: number
+  averageMaximumOwnedTileDistance: number
+  farZoneReachRate: number
+  naturalCrystalVeinReachRate: number
   averageFirstHarvesterExpansionRound: number | null
   averageFirstLandExpansionRound: number | null
+  averageFirstFarZoneRound: number | null
+  averageFirstNaturalCrystalVeinRound: number | null
   averageWarnings: number
 }
 
@@ -81,10 +86,17 @@ type MutableParticipantStats = {
   crystalsTotal: number
   harvestersTotal: number
   ownedTilesTotal: number
+  maximumOwnedTileDistanceTotal: number
+  farZoneReachCount: number
+  naturalCrystalVeinReachCount: number
   firstHarvesterExpansionRoundTotal: number
   firstHarvesterExpansionCount: number
   firstLandExpansionRoundTotal: number
   firstLandExpansionCount: number
+  firstFarZoneRoundTotal: number
+  firstFarZoneCount: number
+  firstNaturalCrystalVeinRoundTotal: number
+  firstNaturalCrystalVeinCount: number
   warningTotal: number
 }
 
@@ -159,10 +171,17 @@ function createMutableStats():
       crystalsTotal: 0,
       harvestersTotal: 0,
       ownedTilesTotal: 0,
+      maximumOwnedTileDistanceTotal: 0,
+      farZoneReachCount: 0,
+      naturalCrystalVeinReachCount: 0,
       firstHarvesterExpansionRoundTotal: 0,
       firstHarvesterExpansionCount: 0,
       firstLandExpansionRoundTotal: 0,
       firstLandExpansionCount: 0,
+      firstFarZoneRoundTotal: 0,
+      firstFarZoneCount: 0,
+      firstNaturalCrystalVeinRoundTotal: 0,
+      firstNaturalCrystalVeinCount: 0,
       warningTotal: 0,
     },
     orion: {
@@ -180,10 +199,17 @@ function createMutableStats():
       crystalsTotal: 0,
       harvestersTotal: 0,
       ownedTilesTotal: 0,
+      maximumOwnedTileDistanceTotal: 0,
+      farZoneReachCount: 0,
+      naturalCrystalVeinReachCount: 0,
       firstHarvesterExpansionRoundTotal: 0,
       firstHarvesterExpansionCount: 0,
       firstLandExpansionRoundTotal: 0,
       firstLandExpansionCount: 0,
+      firstFarZoneRoundTotal: 0,
+      firstFarZoneCount: 0,
+      firstNaturalCrystalVeinRoundTotal: 0,
+      firstNaturalCrystalVeinCount: 0,
       warningTotal: 0,
     },
     nova: {
@@ -201,10 +227,17 @@ function createMutableStats():
       crystalsTotal: 0,
       harvestersTotal: 0,
       ownedTilesTotal: 0,
+      maximumOwnedTileDistanceTotal: 0,
+      farZoneReachCount: 0,
+      naturalCrystalVeinReachCount: 0,
       firstHarvesterExpansionRoundTotal: 0,
       firstHarvesterExpansionCount: 0,
       firstLandExpansionRoundTotal: 0,
       firstLandExpansionCount: 0,
+      firstFarZoneRoundTotal: 0,
+      firstFarZoneCount: 0,
+      firstNaturalCrystalVeinRoundTotal: 0,
+      firstNaturalCrystalVeinCount: 0,
       warningTotal: 0,
     },
     vega: {
@@ -222,10 +255,17 @@ function createMutableStats():
       crystalsTotal: 0,
       harvestersTotal: 0,
       ownedTilesTotal: 0,
+      maximumOwnedTileDistanceTotal: 0,
+      farZoneReachCount: 0,
+      naturalCrystalVeinReachCount: 0,
       firstHarvesterExpansionRoundTotal: 0,
       firstHarvesterExpansionCount: 0,
       firstLandExpansionRoundTotal: 0,
       firstLandExpansionCount: 0,
+      firstFarZoneRoundTotal: 0,
+      firstFarZoneCount: 0,
+      firstNaturalCrystalVeinRoundTotal: 0,
+      firstNaturalCrystalVeinCount: 0,
       warningTotal: 0,
     },
   }
@@ -354,6 +394,14 @@ export function runHeadlessSimulationBatch(
         participant.resources.crystals
       stats.harvestersTotal += participant.harvesters
       stats.ownedTilesTotal += participant.ownedTiles
+      stats.maximumOwnedTileDistanceTotal +=
+        participant.maximumOwnedTileDistance
+      if (participant.ownsFarZoneTile) {
+        stats.farZoneReachCount += 1
+      }
+      if (participant.ownsNaturalCrystalVein) {
+        stats.naturalCrystalVeinReachCount += 1
+      }
       const firstHarvesterExpansion =
         result.history.find(
           (snapshot) =>
@@ -366,6 +414,17 @@ export function runHeadlessSimulationBatch(
             snapshot.participants[participantId]
               .ownedTiles > 2,
         )
+      const firstFarZone = result.history.find(
+        (snapshot) =>
+          snapshot.participants[participantId]
+            .ownsFarZoneTile,
+      )
+      const firstNaturalCrystalVein =
+        result.history.find(
+          (snapshot) =>
+            snapshot.participants[participantId]
+              .ownsNaturalCrystalVein,
+        )
       if (firstHarvesterExpansion) {
         stats.firstHarvesterExpansionRoundTotal +=
           firstHarvesterExpansion.round
@@ -375,6 +434,16 @@ export function runHeadlessSimulationBatch(
         stats.firstLandExpansionRoundTotal +=
           firstLandExpansion.round
         stats.firstLandExpansionCount += 1
+      }
+      if (firstFarZone) {
+        stats.firstFarZoneRoundTotal +=
+          firstFarZone.round
+        stats.firstFarZoneCount += 1
+      }
+      if (firstNaturalCrystalVein) {
+        stats.firstNaturalCrystalVeinRoundTotal +=
+          firstNaturalCrystalVein.round
+        stats.firstNaturalCrystalVeinCount += 1
       }
       stats.warningTotal += participantWarnings
     }
@@ -470,6 +539,16 @@ export function runHeadlessSimulationBatch(
           averageOwnedTiles: round(
             stats.ownedTilesTotal / games,
           ),
+          averageMaximumOwnedTileDistance: round(
+            stats.maximumOwnedTileDistanceTotal / games,
+          ),
+          farZoneReachRate: round(
+            (stats.farZoneReachCount / games) * 100,
+          ),
+          naturalCrystalVeinReachRate: round(
+            (stats.naturalCrystalVeinReachCount / games) *
+              100,
+          ),
           averageFirstHarvesterExpansionRound:
             stats.firstHarvesterExpansionCount > 0
               ? round(
@@ -482,6 +561,20 @@ export function runHeadlessSimulationBatch(
               ? round(
                   stats.firstLandExpansionRoundTotal /
                     stats.firstLandExpansionCount,
+                )
+              : null,
+          averageFirstFarZoneRound:
+            stats.firstFarZoneCount > 0
+              ? round(
+                  stats.firstFarZoneRoundTotal /
+                    stats.firstFarZoneCount,
+                )
+              : null,
+          averageFirstNaturalCrystalVeinRound:
+            stats.firstNaturalCrystalVeinCount > 0
+              ? round(
+                  stats.firstNaturalCrystalVeinRoundTotal /
+                    stats.firstNaturalCrystalVeinCount,
                 )
               : null,
           averageWarnings: round(

@@ -146,6 +146,19 @@ export function formatSimulationBatchReport(
         `Land R${participant.averageFirstLandExpansionRound ?? '–'}`,
     )
     .join(' · ')
+  const explorationSummary = Object.values(
+    result.participants,
+  )
+    .map(
+      (participant) =>
+        `${participant.name}: Ø Distanz ` +
+        `${participant.averageMaximumOwnedTileDistance.toFixed(1)}, ` +
+        `Fernzone ${participant.farZoneReachRate.toFixed(1)} % ` +
+        `(R${participant.averageFirstFarZoneRound ?? '–'}), ` +
+        `Ader ${participant.naturalCrystalVeinReachRate.toFixed(1)} % ` +
+        `(R${participant.averageFirstNaturalCrystalVeinRound ?? '–'})`,
+    )
+    .join(' · ')
 
   return [
     '',
@@ -181,6 +194,9 @@ export function formatSimulationBatchReport(
     harvesterDecisionSummary,
     `Baurunden: ${harvesterBuildRoundSummary || 'keine'}`,
     `Erste Expansion: ${expansionSummary}`,
+    '',
+    'FERNZONEN UND KRISTALLADERN',
+    explorationSummary,
     '=========================================================================',
     '',
   ].join('\n')
@@ -208,6 +224,11 @@ describe('Terminalbericht der Seriensimulation', () => {
     expect(report).toContain('HARVESTERBAU')
     expect(report).toContain('Baurunden:')
     expect(report).toContain('Erste Expansion:')
+    expect(report).toContain(
+      'FERNZONEN UND KRISTALLADERN',
+    )
+    expect(report).toContain('Fernzone')
+    expect(report).toContain('Ader')
     expect(report).toContain('Agima')
     expect(report).toContain('Orion')
     expect(report).toContain('Nova')

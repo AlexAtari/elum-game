@@ -304,11 +304,15 @@ HQ-Lager noch dessen Nettofluss und garantieren wegen der begrenzten
 Kapazität keinen Verkauf.
 
 Die Headless-Simulation bildet Käufer und Meteore reproduzierbar ab.
-Im aktuellen 200-Partien-Referenzlauf entstehen 2,4 Meteore, aber keine
-Verkäufe an den Käufer, weil die Agenten nicht über ihre beiden
-Startgrundstücke hinaus expandieren. Käuferpreis und Kapazität bleiben
-deshalb unverändert; zuerst muss der Zugang zu Fernzonen getestet
-werden.
+Die simulierten Startfeldpaare sind wie die Browserkorridore
+ausdrücklich kristallfrei. Die Seriensimulation weist größte
+HQ-Distanz, Fernzonenquote und Zugriff auf natürliche Adern deshalb
+getrennt aus. Im aktuellen 200-Partien-Referenzlauf entstehen
+2,4 Meteore und durchschnittlich 1,0 Verkäufe an den Käufer aus den
+mitgebrachten Kristallproben. Keine Kolonie erreicht bislang die
+Fernzone; natürliche Aderausläufer werden je nach Kolonie nur in
+12,5 bis 17,5 Prozent der Partien erreicht. Die Folgeexpansion bleibt
+deshalb der nächste Balancing-Schritt.
 
 Verkaufte Kristalle werden von spezialisierten
 Hochsicherheits-Raumschiffen abgeholt. Diese Werttransporter:

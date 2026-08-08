@@ -523,21 +523,24 @@ werden.
 4. später optional eine alternative grafische Polyederentfaltung
 
 Die 20-Runden-Seriensimulation wertet inzwischen nach derselben
-Reihenfolge wie die Browserpartie. Der Referenzlauf mit 200 Partien
-liegt zwischen 13,5 % und 38,5 % Siegen. Die gemeinsame erste
+Reihenfolge wie die Browserpartie. Der korrigierte Referenzlauf mit
+200 Partien und ausschließlich kristallfreien Startgrundstücken liegt
+zwischen 20,0 % und 34,0 % Siegen. Die gemeinsame erste
 Expansion baut bei sicherer Folgerunde von zwei auf drei Harvester und
 schützt nach Bau beziehungsweise Mindestgebot 20 Credits. Im Mittel
-enden die Kolonien mit 2,9 bis 3,1 Harvestern und 2,9 bis 3,0
+enden die Kolonien mit 3,0 Harvestern und 2,9 bis 3,0
 Grundstücken.
 
 Kristalle sind inzwischen eine gemeinsame vierte
 Harvesterproduktion; Meteore und der interstellare Käufer laufen auch
 in der Headless-Simulation. Jede Kolonie startet mit einer
 Kristallprobe. Der 200-Partien-Lauf erzeugt 2,4 Meteore und
-1,0 interstellare Käufertransaktion je Partie. Natürliche
-Fernzonenadern werden noch nicht zuverlässig erreicht.
+1,0 interstellare Käufertransaktion je Partie. Die neue
+Expansionsdiagnose misst eine durchschnittlich größte HQ-Distanz von
+2,7 bis 2,8, keine erreichte Fernzone und nur 12,5 bis 17,5 Prozent
+Partien mit Zugriff auf einen natürlichen Aderausläufer.
 
-Die aktuelle Serie erzeugt 9,27 Versorgungssignale je Partie. Der
+Die aktuelle Serie erzeugt 11,20 Versorgungssignale je Partie. Der
 Sprung von einer auf zwei angefangene Bevölkerungsgruppen beim elften
 Einwohner ist der auffälligste Engpass; Verbrauchsglättung und höhere
 Grundproduktion sind vor einer Regeländerung getrennt zu simulieren.

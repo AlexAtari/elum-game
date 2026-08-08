@@ -9,6 +9,7 @@ import {
   createBalancedSimulationStartingLand,
   runHeadlessEconomicSimulation,
 } from './simulation'
+import { targetCrystalRatings } from './planetMap'
 
 describe('Interne Wirtschaftssimulation', () => {
   it('simuliert eine vollständige Partie ohne Oberfläche', () => {
@@ -256,6 +257,24 @@ describe('Interne Wirtschaftssimulation', () => {
         ),
       ).size,
     ).toBe(1)
+  })
+
+  it('hält simulierte Startgrundstücke für alle Seeds kristallfrei', () => {
+    for (let seed = 1; seed <= 200; seed += 1) {
+      const startingLand =
+        createBalancedSimulationStartingLand(seed)
+
+      for (const allocation of Object.values(
+        startingLand,
+      )) {
+        expect(
+          allocation.tileIds.every(
+            (tileId) =>
+              (targetCrystalRatings[tileId] ?? 0) === 0,
+          ),
+        ).toBe(true)
+      }
+    }
   })
 
   it('startet alle vier Kolonien mit Land und gleichem Vermögen', () => {
