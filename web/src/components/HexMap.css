@@ -339,6 +339,16 @@
   text-shadow: 0 2px 10px #000, 0 0 18px rgba(8, 17, 32, 0.96);
 }
 
+.immersive-planet-screen > .game-header > div:first-child,
+.immersive-planet-screen > .network-game-header > div:first-child {
+  display: none;
+}
+
+.immersive-planet-screen > .game-header,
+.immersive-planet-screen > .network-game-header {
+  justify-content: flex-end;
+}
+
 .immersive-planet-screen .round-badge {
   padding: 4px 0;
   border: 0;
@@ -394,10 +404,17 @@
 }
 
 .immersive-planet-screen .hex-map-viewport {
+  --planet-vertical-offset: clamp(24px, 5dvh, 52px);
   width: 100%;
   height: 100dvh;
   border: 0;
   border-radius: 0;
+}
+
+.immersive-planet-screen .space-celestial-layer,
+.immersive-planet-screen .planet-surface-canvas,
+.immersive-planet-screen .hex-map {
+  transform: translateY(var(--planet-vertical-offset));
 }
 
 .immersive-planet-screen .space-backdrop {
@@ -475,16 +492,11 @@
   border: 1px solid rgba(177, 244, 224, 0.88);
   border-radius: 999px;
   color: #e9fff8;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(29, 83, 72, 0.9),
-      rgba(9, 28, 31, 0.94)
-    );
+  background: rgba(3, 14, 21, 0.2);
   box-shadow:
-    0 0 26px rgba(69, 205, 165, 0.32),
-    0 8px 24px rgba(0, 0, 0, 0.38),
-    inset 0 0 18px rgba(116, 244, 205, 0.1);
+    0 0 22px rgba(69, 205, 165, 0.28),
+    0 5px 18px rgba(0, 0, 0, 0.3),
+    inset 0 0 12px rgba(116, 244, 205, 0.06);
   font: inherit;
   font-size: 0.88rem;
   font-weight: 800;
@@ -495,7 +507,7 @@
 .immersive-planet-screen .mobile-map-action-button[aria-expanded='true'] {
   border-color: #b9ffe8;
   color: #caffed;
-  background: rgba(63, 174, 140, 0.12);
+  background: rgba(63, 174, 140, 0.08);
   box-shadow: 0 0 30px rgba(86, 225, 181, 0.3);
 }
 

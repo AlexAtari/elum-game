@@ -27,6 +27,7 @@ export const de = {
   'map.deployHarvester': 'Harvester einsetzen ({{count}})',
   'map.placeBid': 'Gebot abgeben',
   'map.manageHarvester': 'Harvester verwalten',
+  'map.centerPlanet': 'Planet auf Ausgangsposition zentrieren',
 
   'supply.none': 'Keine Versorgung',
   'supply.minimum': 'Mindestversorgung',

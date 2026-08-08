@@ -744,9 +744,10 @@ function HexMap({
             <button
               className="map-center-button"
               type="button"
+              aria-label={t('map.centerPlanet')}
               onClick={() => updateCamera(INITIAL_MAP_CAMERA)}
             >
-              HQ
+              ◎
             </button>
           </div>
 

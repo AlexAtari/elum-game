@@ -255,10 +255,11 @@ werden.
   Kugeloberfläche
 - immersive Vollbild-Kolonieansicht mit vergrößertem Planeten,
   randlosem Weltraum, frei schwebendem Status-HUD und bis zu
-  2,2-fachem Nahzoom; das mobile HUD hält alle sieben Statuswerte
-  einschließlich Kristallen vollständig sichtbar; kontextabhängige
-  transparente Aktionen öffnen Harvesterplatzierung, -verwaltung
-  oder Grundstücksgebot
+  2,2-fachem Nahzoom; der Planet liegt leicht unterhalb der
+  Bildschirmmitte und die Kolonieüberschrift ist ausgeblendet; das
+  mobile HUD hält alle sieben Statuswerte einschließlich Kristallen
+  vollständig sichtbar; nahezu ungefüllte Konturaktionen öffnen
+  Harvesterplatzierung, -verwaltung oder Grundstücksgebot
 - entdeckte Kristallvorkommen bieten Kristallproduktion in der mobilen
   Harvester-Auswahl sichtbar an erster Stelle und zeigen alle vier
   Produktionsarten in einem scrollbar abgesicherten 2×2-Raster

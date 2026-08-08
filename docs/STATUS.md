@@ -281,8 +281,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
   auf dem Zielgraphen
 - immersive Kolonieansicht ohne Kartenrahmen: Weltraum und ein
-  vergrößerter Planet füllen den gesamten Bildschirm, während Runde,
-  Rang und Kolonievorräte ohne einfarbige Leiste darüber schweben;
+  vergrößerter, leicht unterhalb der Bildschirmmitte platzierter
+  Planet füllen den gesamten Bildschirm; die Kolonieüberschrift ist
+  entfernt, während Runde, Rang und Kolonievorräte ohne einfarbige
+  Leiste darüber schweben;
   auf Smartphones hält ein festes Sieben-Spalten-Raster auch den
   Kristallvorrat vollständig im sichtbaren Bereich
 - jedes sichtbare Grundstück zeigt direkt seine stärkste normale
@@ -293,7 +295,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - kontextabhängige, transparente Aktionsbuttons schweben unter dem
   Planeten und erscheinen nur für legale Grundstücksgebote,
   Harvesterplatzierung oder Harvesterverwaltung; das HQ wird direkt
-  über sein Planetenfeld geöffnet
+  über sein Planetenfeld geöffnet; die frühere HQ-beschriftete
+  Zentriertaste verwendet ein neutrales Zielsymbol und die Aktionen
+  besitzen nur noch eine sehr schwache transparente Füllung
 - durchgehende fotorealistische, marsartige Oberflächentextur aus
   Rostboden, Terrakotta, Ocker und dunklem Basalt ohne gezeichnete
   Ressourcenmotive oder harte Biome
