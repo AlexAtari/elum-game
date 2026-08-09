@@ -43,12 +43,18 @@ export const en = {
   'supply.harvesterEnergy': 'Harvester energy',
   'supply.roundConsumption': 'Consumption this round',
   'supply.production': 'Production',
+  'supply.stockBeforeRound': 'Stock before round',
   'supply.stockAfterRound': 'Stock after round',
   'supply.expectedPopulation': 'Expected population',
+  'supply.harvesterOverview': 'Harvester energy',
+  'supply.harvesterCounts':
+    '{{active}} active · {{paused}} paused · {{total}} total',
   'supply.previewNote':
     'Preview before round settlement. Completed market trades are included.',
   'supply.shortage':
     '⚠️ Your stock is insufficient for the selected supply.',
+  'supply.harvesterEnergyShortage':
+    '⚠️ After supplying the population, there is not enough energy for every deployed harvester.',
   'supply.inactiveHarvesters':
     '⚠️ Without production this round: {{ids}}',
   'supply.pausedRetooling':

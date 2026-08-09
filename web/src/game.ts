@@ -3342,6 +3342,16 @@ export function calculateSupplyPreview(
   )
 }
 
+export function hasHarvesterEnergyShortage(
+  supplyPreview: SupplyPreview,
+  assignedHarvesterCount: number,
+) {
+  return (
+    assignedHarvesterCount >
+    supplyPreview.remainingEnergyBeforeHarvesters
+  )
+}
+
 export function calculateColonySupplyPreview(
   currentState: GameState,
   participantId: ParticipantId,

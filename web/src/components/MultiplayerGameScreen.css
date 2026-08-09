@@ -152,16 +152,6 @@
   accent-color: #79ddb9;
 }
 
-.network-supply-preview {
-  display: grid;
-  gap: 7px;
-  margin-bottom: 16px;
-  padding: 13px;
-  border-radius: 12px;
-  color: #aeb8cb;
-  background: rgba(255, 255, 255, 0.04);
-}
-
 .network-primary-button {
   cursor: pointer;
   padding: 13px 18px;

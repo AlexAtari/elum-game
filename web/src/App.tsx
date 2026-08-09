@@ -14,6 +14,7 @@ import MultiplayerLobbyScreen from './components/MultiplayerLobbyScreen'
 import MarketLauncher from './components/MarketLauncher'
 import MarketPanel from './components/MarketPanel'
 import RoundBriefingPanel from './components/RoundBriefingPanel'
+import SupplyRoundOverview from './components/SupplyRoundOverview'
 import { applyAutonomousRivalLandPurchases } from './rivalAutonomousLand'
 import { applyStrategicOrionBid } from './orionLandBid'
 import {
@@ -24,6 +25,7 @@ import {
   calculateSupplyPreview,
   createLeaderboardEntries,
   getRoundsUntilSupplyShip,
+  hasHarvesterEnergyShortage,
   isGameFinished,
   getHarvesterCreditCost,
   isHarvesterBuildBlocked,
@@ -933,86 +935,23 @@ function App() {
             }
           />
 
-          <div className="supply-preview">
-            <p className="eyebrow">
-              {t('supply.previewRound', {
-                round: gameState.round,
-              })}
-            </p>
-
-            <div className="supply-preview-grid">
-              <div className="supply-preview-item">
-                <span>{t('supply.roundConsumption')}</span>
-                <strong>
-                  🌾 {supplyPreview.consumedFood} · ⚡{' '}
-                  {supplyPreview.consumedEnergyByHq +
-                    plannedRound.report.consumedEnergyByHarvesters}{' '}
-                  · Σ{' '}
-                  {supplyPreview.consumedFood +
-                    supplyPreview.consumedEnergyByHq +
-                    plannedRound.report.consumedEnergyByHarvesters}
-                </strong>
-              </div>
-
-              <div className="supply-preview-item">
-                <span>{t('supply.production')}</span>
-                <strong>
-                  🌾 {plannedRound.report.produced.food} · ⚡{' '}
-                  {plannedRound.report.produced.energy} · ⛏{' '}
-                  {plannedRound.report.produced.ore} · 💎{' '}
-                  {plannedRound.report.produced.crystals}
-                </strong>
-              </div>
-
-              <div className="supply-preview-item">
-                <span>{t('supply.stockAfterRound')}</span>
-                <strong>
-                  🌾 {plannedLocalColony.resources.food} · ⚡{' '}
-                  {plannedLocalColony.resources.energy} · ⛏{' '}
-                  {plannedLocalColony.resources.ore}
-                </strong>
-              </div>
-
-              <div className="supply-preview-item">
-                <span>{t('supply.expectedPopulation')}</span>
-                <strong>
-                  {localColony.population} →{' '}
-                  {plannedLocalColony.population}
-                </strong>
-              </div>
-            </div>
-
-            <p className="supply-preview-note">
-              {t('supply.previewNote')}
-            </p>
-
-            {supplyPreview.hasShortage && (
-              <p className="supply-warning">
-                {t('supply.shortage')}
-              </p>
-            )}
-
-            {plannedRound.report.inactiveHarvesterIds.length >
-              0 && (
-              <p className="supply-warning">
-                {t('supply.inactiveHarvesters', {
-                  ids: plannedRound.report.inactiveHarvesterIds.join(
-                    ', ',
-                  ),
-                })}
-              </p>
-            )}
-
-            {plannedRound.report.pausedRetoolingIds.length > 0 && (
-              <p className="supply-warning">
-                {t('supply.pausedRetooling', {
-                  ids: plannedRound.report.pausedRetoolingIds.join(
-                    ', ',
-                  ),
-                })}
-              </p>
-            )}
-          </div>
+          <SupplyRoundOverview
+            round={gameState.round}
+            currentResources={localColony.resources}
+            nextResources={plannedLocalColony.resources}
+            report={plannedRound.report}
+            populationBefore={localColony.population}
+            populationAfter={plannedLocalColony.population}
+            totalHarvesters={localColony.harvesters}
+            assignedHarvesters={Object.keys(harvesters).length}
+            supplyShortage={supplyPreview.hasShortage}
+            harvesterEnergyShortage={
+              hasHarvesterEnergyShortage(
+                supplyPreview,
+                Object.keys(harvesters).length,
+              )
+            }
+          />
                   </section>
                 )}
 

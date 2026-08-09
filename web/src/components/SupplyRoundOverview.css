@@ -1,0 +1,111 @@
+.supply-round-overview {
+  margin: 8px 0 16px;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.supply-round-overview > .eyebrow {
+  margin: 0 0 14px;
+}
+
+.supply-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.supply-flow-grid article {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.supply-flow-grid article > span,
+.supply-operation-grid span,
+.supply-preview-note {
+  color: #aeb8cb;
+}
+
+.supply-flow-grid .is-consumption {
+  border-color: rgba(255, 174, 102, 0.2);
+  background: rgba(255, 145, 78, 0.065);
+}
+
+.supply-flow-grid .is-production {
+  border-color: rgba(121, 221, 185, 0.2);
+  background: rgba(121, 221, 185, 0.06);
+}
+
+.supply-resource-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.supply-operation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.supply-operation-grid > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 13px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.supply-alerts {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.supply-alerts p {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 166, 83, 0.34);
+  border-radius: 10px;
+  color: #ffe0a8;
+  background: rgba(164, 67, 26, 0.2);
+  box-shadow: 0 0 18px rgba(255, 132, 67, 0.08);
+  font-weight: 750;
+}
+
+.supply-round-overview .supply-preview-note {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 820px) {
+  .supply-flow-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .supply-round-overview {
+    padding: 13px;
+  }
+
+  .supply-flow-grid,
+  .supply-operation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .supply-operation-grid > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}

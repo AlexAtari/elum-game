@@ -6,6 +6,7 @@ import {
   applyLocalEvent,
   beginLandTieBreak,
   calculateColonySupplyPreview,
+  hasHarvesterEnergyShortage,
   cancelLandBid,
   completeRoundAfterMarket,
   completeResourceMarket,
@@ -1815,6 +1816,30 @@ describe('Versorgung und Bevölkerung', () => {
     expect(preview.consumedFood).toBe(3)
     expect(preview.consumedEnergyByHq).toBe(4)
     expect(preview.populationChange).toBe(0)
+  })
+
+  it('warnt, wenn die Restenergie nicht für alle eingesetzten Harvester reicht', () => {
+    const state = createInitialGameState()
+    const preview = calculateColonySupplyPreview(
+      {
+        ...state,
+        colonies: {
+          ...state.colonies,
+          agima: {
+            ...state.colonies.agima,
+            resources: {
+              ...state.colonies.agima.resources,
+              energy: 3,
+            },
+          },
+        },
+      },
+      'agima',
+      normalSupply,
+    )
+
+    expect(hasHarvesterEnergyShortage(preview, 2)).toBe(true)
+    expect(hasHarvesterEnergyShortage(preview, 1)).toBe(false)
   })
 
   it('verbraucht die geplante Versorgung und erhöht die Bevölkerung', () => {

@@ -4,10 +4,9 @@ import {
   calculateColonySupplyPreview,
   createParticipantLeaderboardEntries,
   getColonyLocalEvent,
-  getGlobalEventAmount,
   getHarvesterCreditCost,
-  getLocalEventAmount,
   getWarehousePrices,
+  hasHarvesterEnergyShortage,
   isColonyHarvesterBuildBlocked,
   isColonyHarvesterRelocationBlocked,
   isColonyHarvesterRetoolingBlocked,
@@ -30,6 +29,7 @@ import type {
   MultiplayerClientMessage,
 } from '../multiplayerProtocol'
 import type { AuthoritativeMatchSnapshot } from '../authoritativeMatch'
+import { previewParticipantRound } from '../multiplayerRound'
 import { getInterstellarCrystalBuyerOffer } from '../interstellarCrystalBuyer'
 import {
   getDefaultMultiplayerMarketOfferPrice,
@@ -39,6 +39,7 @@ import HexMap from './HexMap'
 import LocalEventNotice from './LocalEventNotice'
 import MultiplayerLeaderboard from './MultiplayerLeaderboard'
 import RoundBriefingPanel from './RoundBriefingPanel'
+import SupplyRoundOverview from './SupplyRoundOverview'
 import './MultiplayerGameScreen.css'
 
 type MultiplayerGameScreenProps = {
@@ -238,27 +239,21 @@ function MultiplayerGameScreen({
       energyLevel: energySupplyLevel,
     },
   )
-  const plannedHarvesterFailures =
-    (state.activeGlobalEvent === 'planetary-quake'
-      ? getGlobalEventAmount(
-          state.activeGlobalEvent,
-          state.round,
-        ) ?? 0
-      : 0) +
-    (localEvent === 'harvester-breakdown'
-      ? getLocalEventAmount(localEvent, state.round) ?? 0
-      : 0)
-  const plannedHarvesterEnergy = Math.max(
-    0,
-    Math.min(
-      Object.keys(harvesters).length,
-      supplyPreview.remainingEnergyBeforeHarvesters,
-    ) - plannedHarvesterFailures,
+  const plannedRound = useMemo(
+    () =>
+      previewParticipantRound(state, participantId, {
+        supplyPlan: {
+          foodLevel: foodSupplyLevel,
+          energyLevel: energySupplyLevel,
+        },
+      }),
+    [
+      state,
+      participantId,
+      foodSupplyLevel,
+      energySupplyLevel,
+    ],
   )
-  const plannedEnergyConsumption =
-    supplyPreview.consumedEnergyByHq + plannedHarvesterEnergy
-  const plannedTotalConsumption =
-    supplyPreview.consumedFood + plannedEnergyConsumption
   const actionsBlocked =
     ready ||
     activeMarket !== null ||
@@ -1074,35 +1069,25 @@ function MultiplayerGameScreen({
                 setEnergySupplyLevel(Number(event.target.value))
               }
             />
-            <div className="network-supply-preview">
-              <span>
-                {t('supply.roundConsumption')}{' '}
-                <strong>
-                  🌾 {number(supplyPreview.consumedFood)} · ⚡{' '}
-                  {number(plannedEnergyConsumption)} · Σ{' '}
-                  {number(plannedTotalConsumption)}
-                </strong>
-              </span>
-              <span>
-                {t('supply.expectedPopulation')}{' '}
-                <strong>
-                  {number(
-                    Math.max(
-                      1,
-                      colony.population +
-                        supplyPreview.populationChange,
-                    ),
-                  )}
-                </strong>
-              </span>
-              <span>
-                {t('supply.stockAfterRound')} · 🌾{' '}
-                {number(supplyPreview.remainingFood)} · ⚡{' '}
-                {number(
-                  supplyPreview.remainingEnergyBeforeHarvesters,
-                )}
-              </span>
-            </div>
+            <SupplyRoundOverview
+              round={state.round}
+              currentResources={colony.resources}
+              nextResources={plannedRound.nextColony.resources}
+              report={plannedRound.report}
+              populationBefore={colony.population}
+              populationAfter={
+                plannedRound.nextColony.population
+              }
+              totalHarvesters={colony.harvesters}
+              assignedHarvesters={Object.keys(harvesters).length}
+              supplyShortage={supplyPreview.hasShortage}
+              harvesterEnergyShortage={
+                hasHarvesterEnergyShortage(
+                  supplyPreview,
+                  Object.keys(harvesters).length,
+                )
+              }
+            />
             <button
               className="network-primary-button"
               disabled={ready}

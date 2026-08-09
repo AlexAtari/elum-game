@@ -316,6 +316,11 @@ werden.
   Untermenü „Auktionen“ sowie Versorgung, zusammengefasster
   Rundenverbrauch, Vorschau und Rundenabschluss im Untermenü „Lager“
   liegen
+- die gemeinsame Lagerkomponente vergleicht Vorräte vor und nach der
+  Runde mit Verbrauch und Produktion, zeigt aktive, pausierte und
+  gesamte Harvester und warnt getrennt vor Versorgungs- sowie
+  Harvesterenergieengpässen; die Mehrspielervorschau verwendet dafür
+  dieselbe teilnehmerbezogene Ökonomie wie die Serverabrechnung
 - 91 feste Londoner U-Bahn-Stationsnamen als sichtbare
   Grundstücksnamen; stabile Feld-IDs bleiben die interne
   Regelgrundlage

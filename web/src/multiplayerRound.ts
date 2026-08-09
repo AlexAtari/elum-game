@@ -130,6 +130,23 @@ function runParticipantEconomy(
   )
 }
 
+export function previewParticipantRound(
+  state: GameState,
+  participantId: ParticipantId,
+  plan: ParticipantRoundPlan,
+) {
+  const result = runParticipantEconomy(
+    state,
+    participantId,
+    plan,
+  )
+
+  return {
+    nextColony: result.nextState.colonies.agima,
+    report: result.report,
+  }
+}
+
 function createParticipantLandAuctionReport(
   state: GameState,
   participantId: ParticipantId,

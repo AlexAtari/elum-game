@@ -145,8 +145,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Verbindungs-IDs und sauberes Disconnect-/Shutdown-Verhalten sind
   implementiert
 - echte Transporttests decken zwei Clients, gemeinsamen Matchstart,
-  Sitzübernahme per Reconnect-Token und eine vollständige erste
-  Smoke-Runde ab; diese setzt einen Harvester, reserviert ein
+  Sitzübernahme per Reconnect-Token, eine vollständige erste
+  Smoke-Runde und den gemeinsamen Abschluss einer zweiten Runde nach
+  dem Reconnect ab; die erste setzt einen Harvester, reserviert ein
   Grundstücksgebot, führt direkte Geschäfte auf allen vier Märkten
   aus, rechnet beide menschlichen Pläne gemeinsam ab und prüft den
   fortgesetzten Rundenzustand nach dem Reconnect
@@ -384,6 +385,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - die Lagervorschau fasst Bevölkerungsversorgung und
   Harvesterenergie als „Verbrauch in dieser Runde“ zusammen und zeigt
   Nahrung, gesamte Energie sowie den Gesamtverbrauch
+- eine gemeinsame Lagerübersicht stellt für Einzel- und Mehrspieler
+  Vorrat vor der Runde, Verbrauch, Produktion und erwarteten Vorrat
+  danach einschließlich Kristallen direkt gegenüber; Bevölkerung
+  sowie aktive, pausierte und insgesamt vorhandene Harvester stehen
+  darunter, Versorgungs- und Harvesterenergieengpässe erscheinen als
+  hervorgehobene Warnungen
 - Harvesterbau und mehrere parallele Bauaufträge
 - Harvesterplatzierung, Produktion, Umrüstung und Versetzung
 - Energiebedarf der Harvester

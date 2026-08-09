@@ -41,12 +41,18 @@ export const de = {
   'supply.harvesterEnergy': 'Harvesterenergie',
   'supply.roundConsumption': 'Verbrauch in dieser Runde',
   'supply.production': 'Produktion',
+  'supply.stockBeforeRound': 'Vorrat vor der Runde',
   'supply.stockAfterRound': 'Danach im Vorrat',
   'supply.expectedPopulation': 'Erwartete Bevölkerung',
+  'supply.harvesterOverview': 'Harvesterenergie',
+  'supply.harvesterCounts':
+    '{{active}} aktiv · {{paused}} pausiert · {{total}} gesamt',
   'supply.previewNote':
     'Vorschau vor der Rundenabrechnung. Bereits abgeschlossene Marktgeschäfte sind enthalten.',
   'supply.shortage':
     '⚠️ Die Vorräte reichen nicht für die gewählte Versorgung.',
+  'supply.harvesterEnergyShortage':
+    '⚠️ Nach der Versorgung bleibt nicht genug Energie für alle eingesetzten Harvester.',
   'supply.inactiveHarvesters':
     '⚠️ In dieser Runde ohne Produktion: {{ids}}',
   'supply.pausedRetooling':

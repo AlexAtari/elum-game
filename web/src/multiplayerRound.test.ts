@@ -6,6 +6,7 @@ import {
 } from './game'
 import {
   createConservativeRoundPlan,
+  previewParticipantRound,
   runMultiplayerRound,
 } from './multiplayerRound'
 
@@ -29,6 +30,40 @@ function withRemoteOrion(state: GameState): GameState {
 }
 
 describe('Gemeinsame Multiplayer-Rundenabrechnung', () => {
+  it('verwendet für die Vorschau dieselbe Teilnehmerökonomie wie für die Abrechnung', () => {
+    const state = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const plan = {
+      supplyPlan: { foodLevel: 2, energyLevel: 2 },
+    }
+    const preview = previewParticipantRound(
+      state,
+      'orion',
+      plan,
+    )
+    const result = runMultiplayerRound(state, {
+      agima: plan,
+      orion: plan,
+    })
+
+    expect(result.reports.orion).toMatchObject({
+      consumedFood: preview.report.consumedFood,
+      consumedEnergyByHq:
+        preview.report.consumedEnergyByHq,
+      consumedEnergyByHarvesters:
+        preview.report.consumedEnergyByHarvesters,
+      produced: preview.report.produced,
+      populationChange: preview.report.populationChange,
+    })
+    expect(result.nextState.colonies.orion.resources).toEqual(
+      preview.nextColony.resources,
+    )
+    expect(result.nextState.colonies.orion.population).toBe(
+      preview.nextColony.population,
+    )
+  })
+
   it('wählt höchstens die gemeinsam bezahlbare Normalversorgung', () => {
     const initialState = createPlayableInitialGameState()
 

@@ -907,6 +907,16 @@ describe('Lokaler WebSocket-Spielserver', () => {
           },
         },
       })
+
+      await submitRoundPlan(host, 'smoke-host-round-two')
+      latestSnapshot = await submitRoundPlan(
+        resumedGuest,
+        'smoke-guest-round-two',
+      )
+      expect(latestSnapshot.payload.state.round).toBe(3)
+      expect(latestSnapshot.payload.lastRoundReport).toMatchObject({
+        roundPlayed: 2,
+      })
     } finally {
       await closeClient(host)
       await closeClient(guest)

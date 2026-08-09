@@ -842,7 +842,11 @@ Kolonieansicht rendert Kugel und Grundstücksdetails. Die HQ-Hauptseite
 enthält Koloniestatus und Harvesterbau, `auctions` die Marktstarter
 und `storage` Versorgungsplanung, zusammengefassten Rundenverbrauch,
 Rundenvorschau und Rundenabschluss. Die gemeinsamen Spieldaten bleiben
-davon unberührt. `RoundReport`
+davon unberührt. `SupplyRoundOverview` rendert in beiden Modi dieselbe
+Vorher-Verbrauch-Produktion-Nachher-Übersicht. Der Mehrspielerclient
+bezieht seine Werte über `previewParticipantRound`, das intern
+denselben teilnehmerbezogenen `runParticipantEconomy`-Pfad wie die
+autoritative Abrechnung verwendet. `RoundReport`
 transportiert abgeschlossene Explorationen mit Feld-ID und
 effektivem Kristallwert; `RoundBriefingPanel` löst erst bei der
 Anzeige den Stationsnamen auf. Ein Ergebnis-Button übergibt die
