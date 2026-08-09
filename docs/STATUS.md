@@ -303,12 +303,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   unter dem Planeten bleibt keine getrennte Aktionsleiste, das HQ
   wird direkt über sein Planetenfeld geöffnet und die frühere
   HQ-beschriftete Zentriertaste verwendet ein neutrales Zielsymbol
-- die ausgewählte sichtbare Parzelle erhält eine kompakte
+- die ausgewählte sichtbare Parzelle erhält eine
   holografische Detailkarte mit Name, Besitzer und Ressourcenwerten;
-  die verkleinerte Karte weicht abhängig von der Feldposition immer
-  an den gegenüberliegenden linken oder rechten Bildschirmrand aus,
-  während eine feine Leuchtlinie sie mit dem tatsächlich gerenderten
-  Feld verbindet
+  sie verwendet wieder ihre ursprüngliche Breite, Höhe, Schrift und
+  Innenabstände und weicht abhängig vom Feldquadranten immer in die
+  diagonal gegenüberliegende der vier bildschirmsicheren Ecken aus;
+  eine feine Leuchtlinie verbindet sie mit dem tatsächlich
+  gerenderten Feld
 - Produktionswahl und Gebotshöhe lösen sich beim Öffnen aus der
   Feldkarte und erscheinen als größere, gut lesbare temporäre
   Glasfläche; auf Smartphones bleibt die normale Feldkarte kompakt

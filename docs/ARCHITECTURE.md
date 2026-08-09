@@ -790,7 +790,10 @@ SVG-Raum. Zellen am Horizont werden gegen die Vorderseite der Kugel
 geschnitten; Rückseitenfelder werden nicht interaktiv gerendert.
 `HexMap.tsx` zeichnet daraus unsichtbare, zusammenhängende Hexagon-
 und Pentagonzellen und verwaltet Touch-Drehung, Zoom sowie
-HQ-Zentrierung. Dieselbe Komponente rendert für Einzel- und
+HQ-Zentrierung. `fieldHologramLayout.ts` ordnet die ausgewählte
+Feldposition rein und testbar der diagonal gegenüberliegenden
+bildschirmsicheren Ecke samt Verbindungspunkt zu. Dieselbe Komponente
+rendert für Einzel- und
 Mehrspieler die zoomabhängigen Ressourcenreadouts und nur die für das
 ausgewählte Feld legalen schwebenden Aktionen. Die beiden äußeren
 Spielansichten aktivieren dafür denselben

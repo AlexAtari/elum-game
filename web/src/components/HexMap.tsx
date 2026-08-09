@@ -37,6 +37,7 @@ import {
   targetPlanetMap,
 } from '../planetMap'
 import { useI18n } from '../i18n/I18nContext'
+import { createFieldHologramLayout } from '../fieldHologramLayout'
 import {
   createCelestialPositions,
   createSpaceBackdropStyle,
@@ -450,35 +451,22 @@ function HexMap({
   const selectedFieldPoint =
     selectedRenderedPoint ?? projectedSelectedFieldPoint
   const isCompactViewport = viewportSize.width <= 820
-  const hologramWidth = isCompactViewport ? 204 : 240
-  const hologramHeight = isCompactViewport ? 178 : 286
-  const hologramOpensLeft =
-    selectedFieldPoint.x > viewportSize.width / 2
-  const hologramLeft = hologramOpensLeft
-    ? 12
-    : Math.max(12, viewportSize.width - hologramWidth - 12)
-  const hologramTop = Math.max(
-    isCompactViewport ? 118 : 132,
-    Math.min(
-      viewportSize.height - hologramHeight - 82,
-      selectedFieldPoint.y - hologramHeight / 2,
-    ),
-  )
-  const hologramConnectorPoint = {
-    x: hologramOpensLeft
-      ? hologramLeft + hologramWidth
-      : hologramLeft,
-    y: Math.max(
-      hologramTop + 24,
-      Math.min(
-        hologramTop + hologramHeight - 24,
-        selectedFieldPoint.y,
-      ),
-    ),
-  }
+  const hologramWidth = isCompactViewport ? 230 : 280
+  const hologramHeight = isCompactViewport ? 230 : 330
+  const hologramLayout = createFieldHologramLayout({
+    fieldPoint: selectedFieldPoint,
+    viewport: viewportSize,
+    hologram: {
+      width: hologramWidth,
+      height: hologramHeight,
+    },
+    topInset: isCompactViewport ? 118 : 132,
+    bottomInset: isCompactViewport ? 126 : 82,
+  })
+  const hologramConnectorPoint = hologramLayout.connectorPoint
   const hologramStyle = {
-    '--hologram-left': `${hologramLeft}px`,
-    '--hologram-top': `${hologramTop}px`,
+    '--hologram-left': `${hologramLayout.left}px`,
+    '--hologram-top': `${hologramLayout.top}px`,
     '--hologram-width': `${hologramWidth}px`,
   } as CSSProperties
   const spaceBackgroundStyle = createSpaceBackdropStyle(

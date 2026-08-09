@@ -261,11 +261,12 @@ werden.
   vollständig sichtbar; die holografische Grundstücksübersicht
   enthält die jeweils legale Harvester- oder Gebotsaktion, unter dem
   Planeten gibt es keine getrennte Aktionsleiste mehr
-- die verkleinerte holografische Feldkarte liegt abhängig von der
-  Auswahl stets am gegenüberliegenden linken oder rechten
-  Bildschirmrand; eine feine Linie verbindet sie mit der tatsächlich
-  gerenderten Feldposition, komplexe Eingaben öffnen weiterhin eine
-  größere temporäre Glasfläche
+- die holografische Feldkarte verwendet ihre vollständige
+  ursprüngliche Größe und liegt abhängig vom Feldquadranten stets in
+  der diagonal gegenüberliegenden der vier bildschirmsicheren Ecken;
+  eine feine Linie verbindet sie mit der tatsächlich gerenderten
+  Feldposition, komplexe Eingaben öffnen weiterhin eine größere
+  temporäre Glasfläche
 - entdeckte Kristallvorkommen bieten Kristallproduktion in der mobilen
   Harvester-Auswahl sichtbar an erster Stelle und zeigen alle vier
   Produktionsarten in einem scrollbar abgesicherten 2×2-Raster
