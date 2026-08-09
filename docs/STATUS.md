@@ -537,6 +537,17 @@ nehmen vollständig leere Nahrungslager von 259 auf 433 zu und Vegas
 durchschnittliche Credits fallen auf 36,8. Die Variante ist daher ein
 Diagnoseergebnis und noch keine übernommene Regeländerung.
 
+Als zweite isolierte Variante behält `boosted` die Gruppenversorgung
+bei und gibt ausschließlich Nahrungs- und Energieharvestern in jeder
+zweiten Runde eine zusätzliche Einheit. Im 200-Partien-Vergleich
+sinken die Versorgungssignale auf 3,91, Nahrungsleerstände auf 195 und
+Energieleerstände auf 10. Direkter Handel steigt auf 3,8 Prozent und
+die Fernzonenquote auf 24,5 bis 42,5 Prozent. Die Endbevölkerung liegt
+jedoch bereits bei 22,9 bis 24,1 und die Siegquote zwischen 14,5 und
+33,0 Prozent. Auch diese Variante bleibt deshalb vorerst auf die
+Headless-Analyse begrenzt; Browser und Multiplayer verwenden das
+Produktionsmodell `current`.
+
 Die gemeinsame Agentenregel erlaubt die erste Expansion von zwei auf
 drei Harvester bereits bei sicherer Versorgung der unmittelbar
 folgenden Runde. Baukosten und ein gemeinsamer Restpuffer von

@@ -83,6 +83,23 @@ Mittel nur noch mit 36,8 Credits, und die Siegquote reicht von
 Versorgungssprung als Expansionsbremse, ist in dieser Form aber noch
 nicht als neue Spielregel freigegeben.
 
+### Isolierter Vergleich: höhere Grundproduktion
+
+Eine zweite Headless-Variante lässt die Gruppenversorgung unverändert
+und erhöht stattdessen in jeder zweiten Runde die Produktion jedes
+aktiven Nahrungs- oder Energieharvesters um eine Einheit. Erz und
+Kristalle erhalten keinen Bonus. Das entspricht im Mittel einer
+halben zusätzlichen Einheit je geeignetem Harvester und Runde.
+
+Über dieselben 200 Seeds sinken die Versorgungssignale von 8,70 auf
+3,91. Leere Nahrungslager gehen von 259 auf 195, leere Energielager
+von 137 auf 10 zurück. Der direkte Handelsanteil steigt von 1,5 auf
+3,8 Prozent, und die Fernzonenquote erreicht 24,5 bis 42,5 Prozent.
+Gleichzeitig steigt die mittlere Endbevölkerung von 16,9–17,6 auf
+22,9–24,1, während sich die Siegquoten auf 14,5 bis 33,0 Prozent
+spreizen. Die Variante ist damit der bessere Versorgungskandidat,
+aber noch keine freigegebene Browser- oder Multiplayer-Regel.
+
 Jede Kolonie startet mit einer Kristallprobe im Lager. Agenten mit
 Kristallreserve 0 dürfen sie anbieten; Agenten mit Reserve 1 behalten
 sie zunächst. Dadurch übernimmt der interstellare Käufer im

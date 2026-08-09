@@ -4,6 +4,7 @@ import {
   runHeadlessEconomicSimulation,
   type SimulationParticipantId,
   type SimulationParticipantSnapshot,
+  type SimulationProductionModel,
   type SimulationSupplyDemandModel,
   type SimulationWarning,
 } from './simulation'
@@ -15,6 +16,7 @@ export type SimulationBatchOptions = {
   includeMarket?: boolean
   seedStart?: number
   supplyDemandModel?: SimulationSupplyDemandModel
+  productionModel?: SimulationProductionModel
 }
 
 export type SimulationBatchParticipantStats = {
@@ -49,6 +51,7 @@ export type SimulationBatchResult = {
   includeMarket: boolean
   seedStart: number
   supplyDemandModel: SimulationSupplyDemandModel
+  productionModel: SimulationProductionModel
   uniqueOutcomes: number
   participants: Record<
     SimulationParticipantId,
@@ -299,6 +302,8 @@ export function runHeadlessSimulationBatch(
     options.includeMarket ?? true
   const supplyDemandModel =
     options.supplyDemandModel ?? 'grouped'
+  const productionModel =
+    options.productionModel ?? 'current'
   const mutableStats = createMutableStats()
   const warningCounts = Object.fromEntries(
     warningKinds.map((kind) => [kind, 0]),
@@ -332,6 +337,7 @@ export function runHeadlessSimulationBatch(
       includeMarket,
       seed,
       supplyDemandModel,
+      productionModel,
     })
     const finalParticipants = Object.fromEntries(
       result.finalStandings.map(
@@ -600,6 +606,7 @@ export function runHeadlessSimulationBatch(
     includeMarket,
     seedStart,
     supplyDemandModel,
+    productionModel,
     uniqueOutcomes: outcomeSignatures.size,
     participants,
     averages: {

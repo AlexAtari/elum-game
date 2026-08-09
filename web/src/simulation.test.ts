@@ -55,6 +55,30 @@ describe('Interne Wirtschaftssimulation', () => {
     ).toEqual(smoothed)
   })
 
+  it('führt den alternierenden Produktionsbonus als getrennte Analysevariante aus', () => {
+    const current = runHeadlessEconomicSimulation({
+      rounds: 8,
+      seed: 17,
+      productionModel: 'current',
+    })
+    const boosted = runHeadlessEconomicSimulation({
+      rounds: 8,
+      seed: 17,
+      productionModel: 'boosted',
+    })
+
+    expect(current.productionModel).toBe('current')
+    expect(boosted.productionModel).toBe('boosted')
+    expect(boosted).not.toEqual(current)
+    expect(
+      runHeadlessEconomicSimulation({
+        rounds: 8,
+        seed: 17,
+        productionModel: 'boosted',
+      }),
+    ).toEqual(boosted)
+  })
+
   it('simuliert eine vollständige Partie ohne Oberfläche', () => {
     const result = runHeadlessEconomicSimulation()
 

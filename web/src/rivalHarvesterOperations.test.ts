@@ -90,6 +90,48 @@ describe('Gemeinsame Harvesterlogik der Rivalen', () => {
     }
   })
 
+  it('wendet einen Analysebonus nur auf Nahrung und Energie an', () => {
+    const createState = () => {
+      const state = createInitialGameState()
+      const foodTile = tiles.find(
+        (tile) =>
+          tile.owner === 'free' &&
+          (tile.food ?? 0) > 0,
+      )!
+      const orion = state.colonies.orion
+
+      orion.credits = 0
+      orion.resources.energy = 20
+      orion.ownedTileIds = [foodTile.id]
+      orion.lastLandPurchaseRound = 1
+      orion.harvesterAssignments = {
+        [foodTile.id]: 'food',
+      }
+
+      return state
+    }
+    const currentState = createState()
+    const boostedState = createState()
+    const current = advanceRivalColonies(
+      currentState.colonies,
+      3,
+    )
+    const boosted = advanceRivalColonies(
+      boostedState.colonies,
+      3,
+      null,
+      [],
+      { basicProductionBonus: 1 },
+    )
+
+    expect(boosted.orion.resources.food).toBe(
+      current.orion.resources.food + 1,
+    )
+    expect(boosted.orion.resources.ore).toBe(
+      current.orion.resources.ore,
+    )
+  })
+
   it('rüstet auch Vega bei kritischem Nahrungsmangel um', () => {
     const state = createInitialGameState()
     const foodTile = tiles.find(

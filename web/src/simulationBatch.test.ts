@@ -147,6 +147,23 @@ describe('Balancing-Seriensimulation', () => {
     expect(smoothed).not.toEqual(grouped)
   })
 
+  it('hält höhere Grundproduktion als explizite Analysevariante getrennt', () => {
+    const current = runHeadlessSimulationBatch({
+      games: 8,
+      seedStart: 40,
+      productionModel: 'current',
+    })
+    const boosted = runHeadlessSimulationBatch({
+      games: 8,
+      seedStart: 40,
+      productionModel: 'boosted',
+    })
+
+    expect(current.productionModel).toBe('current')
+    expect(boosted.productionModel).toBe('boosted')
+    expect(boosted).not.toEqual(current)
+  })
+
   it('erzeugt mit anderen Seed-Bereichen andere Ergebnisse', () => {
     const first = runHeadlessSimulationBatch({
       games: 8,

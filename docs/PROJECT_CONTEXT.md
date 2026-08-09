@@ -547,8 +547,13 @@ Eine isolierte Headless-Variante glättet den Normalbedarf bei 11–15
 Einwohnern auf drei Einheiten und senkt die Signale auf 4,20; zugleich
 steigen leere Nahrungslager von 259 auf 433 und Vegas mittlere Credits
 fallen auf 36,8. Browser und Multiplayer bleiben deshalb unverändert
-bei der Gruppenregel. Als nächster Vergleich ist eine behutsam höhere
-Grundproduktion getrennt zu prüfen.
+bei der Gruppenregel. Eine getrennte Produktionsvariante mit einer
+zusätzlichen Nahrungs- oder Energieeinheit in jeder zweiten Runde
+senkt die Versorgungssignale auf 3,91, beide Arten leerer Lager und
+erhöht die Fernzonenquote auf 24,5 bis 42,5 Prozent. Sie treibt die
+Endbevölkerung aber auf 22,9 bis 24,1 und bleibt deshalb ebenfalls
+eine reine Headless-Analyse. Als nächstes ist eine noch kleinere oder
+gezielter ausgelöste Produktionshilfe zu vergleichen.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

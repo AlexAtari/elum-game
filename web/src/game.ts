@@ -1406,6 +1406,7 @@ function getRivalProduction(
   roundPlayed: number,
   globalEvent: GlobalEventId | null = null,
   meteorImpacts: MeteorImpact[] = [],
+  basicProductionBonus: number = 0,
 ): Record<ProductionType, number> {
   if (
     rival.harvesterAssignments &&
@@ -1422,7 +1423,7 @@ function getRivalProduction(
       ),
     )
 
-    return calculateRivalAssignedProduction(
+    const production = calculateRivalAssignedProduction(
       discoveredAssignments,
       tiles,
       (production) =>
@@ -1433,6 +1434,16 @@ function getRivalProduction(
         ),
       meteorImpacts,
     )
+
+    for (const resource of Object.values(
+      discoveredAssignments,
+    )) {
+      if (resource === 'food' || resource === 'energy') {
+        production[resource] += basicProductionBonus
+      }
+    }
+
+    return production
   }
 
 
@@ -1478,6 +1489,10 @@ function getRivalProduction(
     production[productionType] += Math.max(
       0,
       3 +
+        (productionType === 'food' ||
+        productionType === 'energy'
+          ? basicProductionBonus
+          : 0) +
         getGlobalProductionModifier(
           globalEvent,
           productionType,
@@ -1496,6 +1511,7 @@ export function advanceRivalColonies(
   meteorImpacts: MeteorImpact[] = [],
   options: {
     normalSupplyDemand?: (population: number) => number
+    basicProductionBonus?: number
   } = {},
 ): RivalColonies {
   return Object.fromEntries(
@@ -1584,6 +1600,10 @@ export function advanceRivalColonies(
         roundPlayed,
         globalEvent,
         meteorImpacts,
+        Math.max(
+          0,
+          Math.trunc(options.basicProductionBonus ?? 0),
+        ),
       )
       const hasNormalSupply =
         consumedFood === plannedFood &&

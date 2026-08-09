@@ -651,6 +651,11 @@ Browser-Spielimplementierung.
   `grouped` bleibt Standard und entspricht Browser sowie Multiplayer;
   `smoothed` wird nur durch eine bewusst gesetzte Simulationsoption
   aktiviert und verändert keinen normalen Spielstart.
+- Ebenso kann das Produktionsmodell `boosted` ausschließlich im
+  Headless-Lauf aktiviert werden. Es ergänzt in jeder zweiten Runde
+  je aktivem Nahrungs- oder Energieharvester eine Einheit; Erz und
+  Kristalle bleiben unverändert. Ohne Option gilt `current`, sodass
+  Browser und Multiplayer dieselbe bisherige Produktion behalten.
 
 Die gemeinsame Agentenplanung besitzt für einen brachliegenden
 Harvester ein enges Infrastruktursicherheitsfenster: Der Landkauf
