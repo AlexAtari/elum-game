@@ -93,9 +93,11 @@ direkt an; ab Zoom 1,24 oder bei Auswahl stehen Nahrung, Energie und
 Erz mehrzeilig auf dem Feld. Die Schriftgröße der normalen Ressourcen
 und eigener entdeckter Kristalle wächst proportional mit dem
 Planetenzoom, ohne die bestehende Explorationsgrenze zu umgehen.
-Nur aktuell legale Kartenaktionen schweben transparent unter dem
-Planeten; komplexere Auswahl- und Gebotsmenüs öffnen vorübergehend
-eine kompakte Fokusfläche.
+Nur aktuell legale Kartenaktionen erscheinen in der verkleinerten
+holografischen Grundstücksinformation. Diese liegt abhängig vom
+gewählten Feld am gegenüberliegenden linken oder rechten Rand und ist
+über eine feine Linie mit dem Feld verbunden. Komplexere Auswahl- und
+Gebotsmenüs öffnen vorübergehend eine kompakte Fokusfläche.
 
 Alle Grundstücke sind wirtschaftlich gleich große Spieleinheiten.
 Sichtbare Größenunterschiede beeinflussen weder Produktion noch Preis.

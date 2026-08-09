@@ -75,6 +75,7 @@ type PendingRound = {
 }
 
 type PlanningView = 'colony' | 'headquarters'
+type HeadquartersView = 'main' | 'auctions' | 'storage'
 
 let clientCommandSequence = 0
 
@@ -111,6 +112,8 @@ function App() {
     useState<LocalEventId | null>(null)
   const [planningView, setPlanningView] =
     useState<PlanningView>('colony')
+  const [headquartersView, setHeadquartersView] =
+    useState<HeadquartersView>('main')
   const [focusedTileId, setFocusedTileId] =
     useState<string | null>(null)
 
@@ -731,9 +734,10 @@ function App() {
               isRelocationBlocked={harvesterRelocationBlocked}
               onBuildHarvester={buildHarvester}
               focusTileId={focusedTileId}
-              onOpenHeadquarters={() =>
+              onOpenHeadquarters={() => {
+                setHeadquartersView('main')
                 setPlanningView('headquarters')
-              }
+              }}
               onPlaceLandBid={submitLandBid}
               onCancelLandOrder={cancelLandOrder}
               onAssignHarvester={assignHarvester}
@@ -747,9 +751,10 @@ function App() {
                   <button
                     className="headquarters-button"
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      setHeadquartersView('main')
                       setPlanningView('headquarters')
-                    }
+                    }}
                   >
                     🏚️ Zum Hauptquartier
                   </button>
@@ -760,16 +765,33 @@ function App() {
                 </section>
               </>
             ) : (
-              <section className="headquarters-panel">
+              <>
+                <section className="headquarters-panel">
                 <button
-                  className="headquarters-back-button"
+                  className={
+                    headquartersView === 'main'
+                      ? 'headquarters-exit-button'
+                      : 'headquarters-back-button'
+                  }
                   type="button"
-                  onClick={() => setPlanningView('colony')}
+                  onClick={() => {
+                    if (headquartersView === 'main') {
+                      setPlanningView('colony')
+                      return
+                    }
+
+                    setHeadquartersView('main')
+                  }}
                 >
-                  ← Zur Kolonieübersicht
+                  ←{' '}
+                  {headquartersView === 'main'
+                    ? t('headquarters.leave')
+                    : t('headquarters.back')}
                 </button>
 
-                <div className="headquarters-intro">
+                {headquartersView === 'main' && (
+                  <>
+                    <div className="headquarters-intro">
                   <figure className="headquarters-image-frame">
                     <img
                       src={headquartersImage}
@@ -788,9 +810,9 @@ function App() {
                       werden von hier aus gesteuert.
                     </p>
                   </div>
-                </div>
+                    </div>
 
-                <div className="headquarters-stats">
+                    <div className="headquarters-stats">
                   <span>
                     👥 Bevölkerung{' '}
                     <strong>{number(localColony.population)}</strong>
@@ -805,9 +827,9 @@ function App() {
                       {localColony.harvestersInConstruction}
                     </strong>
                   </span>
-                </div>
+                    </div>
 
-                <button
+                    <button
                   className="build-harvester-button"
                   type="button"
                   disabled={
@@ -825,27 +847,50 @@ function App() {
                           HARVESTER_ORE_COST
                       ? 'Harvester bauen'
                       : 'Ressourcen reichen nicht'}
-                </button>
-                <p className="build-cost">
+                    </button>
+                    <p className="build-cost">
                   Kosten: {harvesterCreditCost} Credits +{' '}
                   {HARVESTER_ORE_COST} Erz. Fertig zu Beginn der
                   nächsten Runde.
-                </p>
-              </section>
-            )}
+                    </p>
 
-            {planningView === 'headquarters' && (
-            <MarketLauncher
-              initiatedResources={
-                gameState.initiatedMarketResources
-              }
-              isBlocked={marketInitiationBlocked}
-              onInitiate={initiateMarket}
-            />
-            )}
+                    <nav
+                  className="headquarters-navigation"
+                  aria-label={t('headquarters.navigation')}
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHeadquartersView('auctions')
+                    }
+                  >
+                    {t('headquarters.toAuctions')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHeadquartersView('storage')
+                    }
+                  >
+                    {t('headquarters.toStorage')}
+                  </button>
+                    </nav>
+                  </>
+                )}
+                </section>
 
-            {planningView === 'headquarters' && (
-            <section className="supply-panel">
+                {headquartersView === 'auctions' && (
+                  <MarketLauncher
+                    initiatedResources={
+                      gameState.initiatedMarketResources
+                    }
+                    isBlocked={marketInitiationBlocked}
+                    onInitiate={initiateMarket}
+                  />
+                )}
+
+                {headquartersView === 'storage' && (
+                  <section className="supply-panel">
           <h2>{t('supply.plan')}</h2>
 
           <label htmlFor="food-supply">
@@ -897,19 +942,15 @@ function App() {
 
             <div className="supply-preview-grid">
               <div className="supply-preview-item">
-                <span>{t('supply.supply')}</span>
+                <span>{t('supply.roundConsumption')}</span>
                 <strong>
-                  🌾 {supplyPreview.consumedFood}/
-                  {supplyPreview.plannedFood} · ⚡{' '}
-                  {supplyPreview.consumedEnergyByHq}/
-                  {supplyPreview.plannedEnergy}
-                </strong>
-              </div>
-
-              <div className="supply-preview-item">
-                <span>{t('supply.harvesterEnergy')}</span>
-                <strong>
-                  ⚡ {plannedRound.report.consumedEnergyByHarvesters}
+                  🌾 {supplyPreview.consumedFood} · ⚡{' '}
+                  {supplyPreview.consumedEnergyByHq +
+                    plannedRound.report.consumedEnergyByHarvesters}{' '}
+                  · Σ{' '}
+                  {supplyPreview.consumedFood +
+                    supplyPreview.consumedEnergyByHq +
+                    plannedRound.report.consumedEnergyByHarvesters}
                 </strong>
               </div>
 
@@ -972,11 +1013,11 @@ function App() {
               </p>
             )}
           </div>
-            </section>
-            )}
+                  </section>
+                )}
 
-            {planningView === 'headquarters' && (
-            <section className="round-actions">
+                {headquartersView === 'storage' && (
+                  <section className="round-actions">
               <button
                 className="round-button"
                 type="button"
@@ -991,7 +1032,9 @@ function App() {
                   energy: energySupplyLevel,
                 })}
               </p>
-            </section>
+                  </section>
+                )}
+              </>
             )}
           </>
         )}

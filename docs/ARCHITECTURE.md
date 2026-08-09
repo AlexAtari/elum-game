@@ -835,11 +835,14 @@ gemeinsame Anzeigegrenze für Karte, Auktionen, Infosheet und
 Meteorberichte; Regeln und serialisierte Zustände verwenden weiterhin
 die IDs.
 
-`App.tsx` hält die reine Planungsnavigation als lokalen Zustand
-`colony | headquarters`. Die Kolonieansicht rendert Kugel und
-Grundstücksdetails, während das HQ Marktstarter, Versorgungsplanung,
-Rundenvorschau, Harvesterbau und Rundenabschluss enthält. Die
-gemeinsamen Spieldaten bleiben davon unberührt. `RoundReport`
+`App.tsx` und `MultiplayerGameScreen.tsx` halten die reine
+Planungsnavigation als lokalen Zustand `colony | headquarters` und
+unterteilen das HQ zusätzlich in `main | auctions | storage`. Die
+Kolonieansicht rendert Kugel und Grundstücksdetails. Die HQ-Hauptseite
+enthält Koloniestatus und Harvesterbau, `auctions` die Marktstarter
+und `storage` Versorgungsplanung, zusammengefassten Rundenverbrauch,
+Rundenvorschau und Rundenabschluss. Die gemeinsamen Spieldaten bleiben
+davon unberührt. `RoundReport`
 transportiert abgeschlossene Explorationen mit Feld-ID und
 effektivem Kristallwert; `RoundBriefingPanel` löst erst bei der
 Anzeige den Stationsnamen auf. Ein Ergebnis-Button übergibt die

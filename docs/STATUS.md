@@ -304,9 +304,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   HQ-beschriftete Zentriertaste verwendet ein neutrales Zielsymbol
 - die ausgewählte sichtbare Parzelle erhält eine kompakte
   holografische Detailkarte mit Name, Besitzer und Ressourcenwerten;
-  ihre Position wird an der tatsächlich gerenderten Feldposition
-  verankert und folgt beim Drehen und Zoomen, während eine feine
-  Leuchtlinie die Detailkarte mit dem Feld verbindet
+  die verkleinerte Karte weicht abhängig von der Feldposition immer
+  an den gegenüberliegenden linken oder rechten Bildschirmrand aus,
+  während eine feine Leuchtlinie sie mit dem tatsächlich gerenderten
+  Feld verbindet
 - Produktionswahl und Gebotshöhe lösen sich beim Öffnen aus der
   Feldkarte und erscheinen als größere, gut lesbare temporäre
   Glasfläche; auf Smartphones bleibt die normale Feldkarte kompakt
@@ -373,10 +374,16 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   automatisch darauf
 - aufgeräumte Planungsoberfläche mit kompakter Statuszeile samt
   aktuellem Rang: Karte und Grundstücksdetails liegen in der
-  Kolonieübersicht, Markt, Versorgungsvorschau, Rundenabschluss und
-  Harvesterbau im separat betretbaren HQ
-- eigener Rückweg vom HQ zur Kolonieübersicht; Antippen des
-  HQ-Markers öffnet die Verwaltungsansicht ebenfalls
+  Kolonieübersicht; das separat betretbare HQ zeigt zunächst nur
+  Koloniestatus, Harvesterbau sowie die Einstiege „Zu den Auktionen“
+  und „Zum Lager“; Marktstarter beziehungsweise Versorgungsvorschau
+  und Rundenabschluss liegen in diesen Untermenüs
+- grüner Rückweg „Hauptquartier verlassen“ zur Kolonieübersicht und
+  eigener Rückweg aus jedem Untermenü zum HQ; Antippen des HQ-Markers
+  öffnet die Verwaltungsansicht ebenfalls
+- die Lagervorschau fasst Bevölkerungsversorgung und
+  Harvesterenergie als „Verbrauch in dieser Runde“ zusammen und zeigt
+  Nahrung, gesamte Energie sowie den Gesamtverbrauch
 - Harvesterbau und mehrere parallele Bauaufträge
 - Harvesterplatzierung, Produktion, Umrüstung und Versetzung
 - Energiebedarf der Harvester

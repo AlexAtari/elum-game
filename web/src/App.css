@@ -238,7 +238,8 @@ button {
 }
 
 .headquarters-button,
-.headquarters-back-button {
+.headquarters-back-button,
+.headquarters-exit-button {
   cursor: pointer;
   border: 0;
   border-radius: 12px;
@@ -256,6 +257,30 @@ button {
   padding: 10px 14px;
   color: #e9edf7;
   background: rgba(255, 255, 255, 0.08);
+}
+
+.headquarters-exit-button {
+  padding: 10px 14px;
+  color: #07110d;
+  background: #79ddb9;
+}
+
+.headquarters-navigation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.headquarters-navigation button {
+  min-height: 46px;
+  cursor: pointer;
+  border: 1px solid rgba(121, 221, 185, 0.36);
+  border-radius: 12px;
+  color: #dff8ef;
+  background: rgba(121, 221, 185, 0.09);
+  font: inherit;
+  font-weight: 800;
 }
 
 .headquarters-intro {
@@ -398,6 +423,10 @@ button {
   }
 
   .headquarters-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .headquarters-navigation {
     grid-template-columns: 1fr;
   }
 }

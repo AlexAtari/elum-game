@@ -39,6 +39,7 @@ export const de = {
   'supply.previewRound': 'Vorschau Runde {{round}}',
   'supply.supply': 'Versorgung',
   'supply.harvesterEnergy': 'Harvesterenergie',
+  'supply.roundConsumption': 'Verbrauch in dieser Runde',
   'supply.production': 'Produktion',
   'supply.stockAfterRound': 'Danach im Vorrat',
   'supply.expectedPopulation': 'Erwartete Bevölkerung',
@@ -345,6 +346,15 @@ export const de = {
     'Alle Änderungen werden vom gemeinsamen Server bestätigt.',
   'multiplayerGame.toHeadquarters': 'Zum Hauptquartier',
   'multiplayerGame.toColony': 'Zur Kolonieübersicht',
+  'headquarters.leave': 'Hauptquartier verlassen',
+  'headquarters.back': 'Zurück zum Hauptquartier',
+  'headquarters.navigation': 'Bereiche des Hauptquartiers',
+  'headquarters.toAuctions': 'Zu den Auktionen',
+  'headquarters.toStorage': 'Zum Lager',
+  'headquarters.buildHarvester': 'Harvester bauen',
+  'headquarters.buildBlocked': 'Harvesterbau gesperrt',
+  'headquarters.resourcesInsufficient':
+    'Ressourcen reichen nicht',
   'multiplayerGame.networkPlanning': 'Netzwerkplanung',
   'multiplayerGame.headquarters': 'Hauptquartier',
   'multiplayerGame.headquartersHint':

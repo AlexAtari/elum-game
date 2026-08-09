@@ -450,20 +450,13 @@ function HexMap({
   const selectedFieldPoint =
     selectedRenderedPoint ?? projectedSelectedFieldPoint
   const isCompactViewport = viewportSize.width <= 820
-  const hologramWidth = isCompactViewport ? 230 : 280
-  const hologramHeight = isCompactViewport ? 190 : 330
-  const hologramGap = isCompactViewport ? 52 : 84
+  const hologramWidth = isCompactViewport ? 204 : 240
+  const hologramHeight = isCompactViewport ? 178 : 286
   const hologramOpensLeft =
     selectedFieldPoint.x > viewportSize.width / 2
-  const hologramLeft = Math.max(
-    12,
-    Math.min(
-      viewportSize.width - hologramWidth - 12,
-      hologramOpensLeft
-        ? selectedFieldPoint.x - hologramWidth - hologramGap
-        : selectedFieldPoint.x + hologramGap,
-    ),
-  )
+  const hologramLeft = hologramOpensLeft
+    ? 12
+    : Math.max(12, viewportSize.width - hologramWidth - 12)
   const hologramTop = Math.max(
     isCompactViewport ? 118 : 132,
     Math.min(
@@ -486,6 +479,7 @@ function HexMap({
   const hologramStyle = {
     '--hologram-left': `${hologramLeft}px`,
     '--hologram-top': `${hologramTop}px`,
+    '--hologram-width': `${hologramWidth}px`,
   } as CSSProperties
   const spaceBackgroundStyle = createSpaceBackdropStyle(
     cameraState,

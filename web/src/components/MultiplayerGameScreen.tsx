@@ -4,7 +4,9 @@ import {
   calculateColonySupplyPreview,
   createParticipantLeaderboardEntries,
   getColonyLocalEvent,
+  getGlobalEventAmount,
   getHarvesterCreditCost,
+  getLocalEventAmount,
   getWarehousePrices,
   isColonyHarvesterBuildBlocked,
   isColonyHarvesterRelocationBlocked,
@@ -12,6 +14,7 @@ import {
   isColonyLandBidBlocked,
   isColonyMarketInitiationBlocked,
   isGameFinished,
+  HARVESTER_ORE_COST,
   selectColonyHarvesterAssignments,
   selectOtherColonyTileIds,
   type MarketResource,
@@ -49,6 +52,7 @@ type MultiplayerGameScreenProps = {
 }
 
 type PlanningView = 'colony' | 'headquarters'
+type HeadquartersView = 'main' | 'auctions' | 'storage'
 
 const supplyLabelKeys = [
   'supply.none',
@@ -89,6 +93,8 @@ function MultiplayerGameScreen({
   const colony = state.colonies[participantId]
   const [planningView, setPlanningView] =
     useState<PlanningView>('colony')
+  const [headquartersView, setHeadquartersView] =
+    useState<HeadquartersView>('main')
   const [foodSupplyLevel, setFoodSupplyLevel] = useState(2)
   const [energySupplyLevel, setEnergySupplyLevel] = useState(2)
   const [dismissedReportRound, setDismissedReportRound] =
@@ -232,6 +238,27 @@ function MultiplayerGameScreen({
       energyLevel: energySupplyLevel,
     },
   )
+  const plannedHarvesterFailures =
+    (state.activeGlobalEvent === 'planetary-quake'
+      ? getGlobalEventAmount(
+          state.activeGlobalEvent,
+          state.round,
+        ) ?? 0
+      : 0) +
+    (localEvent === 'harvester-breakdown'
+      ? getLocalEventAmount(localEvent, state.round) ?? 0
+      : 0)
+  const plannedHarvesterEnergy = Math.max(
+    0,
+    Math.min(
+      Object.keys(harvesters).length,
+      supplyPreview.remainingEnergyBeforeHarvesters,
+    ) - plannedHarvesterFailures,
+  )
+  const plannedEnergyConsumption =
+    supplyPreview.consumedEnergyByHq + plannedHarvesterEnergy
+  const plannedTotalConsumption =
+    supplyPreview.consumedFood + plannedEnergyConsumption
   const actionsBlocked =
     ready ||
     activeMarket !== null ||
@@ -839,9 +866,10 @@ function MultiplayerGameScreen({
                 payload: {},
               })
             }
-            onOpenHeadquarters={() =>
+            onOpenHeadquarters={() => {
+              setHeadquartersView('main')
               setPlanningView('headquarters')
-            }
+            }}
             onPlaceLandBid={(tileId, amount) =>
               sendAction({
                 type: 'place-land-bid',
@@ -883,7 +911,10 @@ function MultiplayerGameScreen({
             <button
               className="headquarters-button"
               type="button"
-              onClick={() => setPlanningView('headquarters')}
+              onClick={() => {
+                setHeadquartersView('main')
+                setPlanningView('headquarters')
+              }}
             >
               🏚️ {t('multiplayerGame.toHeadquarters')}
             </button>
@@ -893,13 +924,29 @@ function MultiplayerGameScreen({
       ) : (
         <section className="network-headquarters">
           <button
-            className="headquarters-back-button"
+            className={
+              headquartersView === 'main'
+                ? 'headquarters-exit-button'
+                : 'headquarters-back-button'
+            }
             type="button"
-            onClick={() => setPlanningView('colony')}
+            onClick={() => {
+              if (headquartersView === 'main') {
+                setPlanningView('colony')
+                return
+              }
+
+              setHeadquartersView('main')
+            }}
           >
-            ← {t('multiplayerGame.toColony')}
+            ←{' '}
+            {headquartersView === 'main'
+              ? t('headquarters.leave')
+              : t('headquarters.back')}
           </button>
-          <div className="network-hq-intro">
+          {headquartersView === 'main' ? (
+            <>
+              <div className="network-hq-intro">
             <img
               src={headquartersImage}
               alt={t('multiplayerGame.headquartersImageAlt')}
@@ -911,14 +958,58 @@ function MultiplayerGameScreen({
               <h2>{t('multiplayerGame.headquarters')}</h2>
               <p>{t('multiplayerGame.headquartersHint')}</p>
             </div>
-          </div>
+              </div>
 
-          <MultiplayerLeaderboard
-            entries={leaderboardEntries}
-            mode="headquarters"
-          />
+              <MultiplayerLeaderboard
+                entries={leaderboardEntries}
+                mode="headquarters"
+              />
 
-          <div className="network-market-launcher">
+              <button
+            className="build-harvester-button"
+            type="button"
+            disabled={
+              actionsBlocked ||
+              isColonyHarvesterBuildBlocked(state, participantId) ||
+              colony.credits < getHarvesterCreditCost(state) ||
+              colony.resources.ore < HARVESTER_ORE_COST
+            }
+            onClick={() =>
+              sendAction({
+                type: 'order-harvester-build',
+                payload: {},
+              })
+            }
+          >
+            {actionsBlocked ||
+            isColonyHarvesterBuildBlocked(state, participantId)
+              ? t('headquarters.buildBlocked')
+              : colony.credits >= getHarvesterCreditCost(state) &&
+                  colony.resources.ore >= HARVESTER_ORE_COST
+                ? t('headquarters.buildHarvester')
+                : t('headquarters.resourcesInsufficient')}
+              </button>
+
+              <nav
+            className="headquarters-navigation"
+            aria-label={t('headquarters.navigation')}
+          >
+            <button
+              type="button"
+              onClick={() => setHeadquartersView('auctions')}
+            >
+              {t('headquarters.toAuctions')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setHeadquartersView('storage')}
+            >
+              {t('headquarters.toStorage')}
+            </button>
+              </nav>
+            </>
+          ) : headquartersView === 'auctions' ? (
+            <div className="network-market-launcher">
             <h3>{t('multiplayerGame.resourceMarkets')}</h3>
             <div>
               {(
@@ -948,9 +1039,9 @@ function MultiplayerGameScreen({
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="network-supply-panel">
+            </div>
+          ) : (
+            <div className="network-supply-panel">
             <h3>{t('supply.plan')}</h3>
             <p className="network-round-time-hint">
               {t('multiplayerGame.roundTimeHint')}
@@ -985,6 +1076,14 @@ function MultiplayerGameScreen({
             />
             <div className="network-supply-preview">
               <span>
+                {t('supply.roundConsumption')}{' '}
+                <strong>
+                  🌾 {number(supplyPreview.consumedFood)} · ⚡{' '}
+                  {number(plannedEnergyConsumption)} · Σ{' '}
+                  {number(plannedTotalConsumption)}
+                </strong>
+              </span>
+              <span>
                 {t('supply.expectedPopulation')}{' '}
                 <strong>
                   {number(
@@ -1014,7 +1113,8 @@ function MultiplayerGameScreen({
                 ? t('multiplayerGame.readyWaiting')
                 : t('multiplayerGame.finishPlanning')}
             </button>
-          </div>
+            </div>
+          )}
         </section>
       )}
 

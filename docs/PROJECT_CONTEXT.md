@@ -261,11 +261,11 @@ werden.
   vollständig sichtbar; die holografische Grundstücksübersicht
   enthält die jeweils legale Harvester- oder Gebotsaktion, unter dem
   Planeten gibt es keine getrennte Aktionsleiste mehr
-- die kompakte holografische Feldkarte wird an der tatsächlich
-  gerenderten Bildschirmposition der Auswahl verankert und bewegt sich mit
-  Rotation und Zoom; eine feine Linie verbindet sie mit dem
-  Grundstück, komplexe Eingaben öffnen weiterhin
-  eine größere temporäre Glasfläche
+- die verkleinerte holografische Feldkarte liegt abhängig von der
+  Auswahl stets am gegenüberliegenden linken oder rechten
+  Bildschirmrand; eine feine Linie verbindet sie mit der tatsächlich
+  gerenderten Feldposition, komplexe Eingaben öffnen weiterhin eine
+  größere temporäre Glasfläche
 - entdeckte Kristallvorkommen bieten Kristallproduktion in der mobilen
   Harvester-Auswahl sichtbar an erster Stelle und zeigen alle vier
   Produktionsarten in einem scrollbar abgesicherten 2×2-Raster
@@ -311,8 +311,11 @@ werden.
   Runde N+2 mit Stationsname und Kristallwert; Ergebnisse öffnen
   antippbar das Grundstück und zentrieren es auf der Kugel
 - Planungs-UI in Kolonieübersicht und HQ getrennt: Karte,
-  Grundstücksdetails und kompakter Rangstatus außen; Märkte,
-  Versorgung, Vorschau, Harvesterbau und Rundenabschluss im HQ
+  Grundstücksdetails und kompakter Rangstatus außen; das HQ enthält
+  Koloniestatus, Harvesterbau und zwei Einstiege, während Märkte im
+  Untermenü „Auktionen“ sowie Versorgung, zusammengefasster
+  Rundenverbrauch, Vorschau und Rundenabschluss im Untermenü „Lager“
+  liegen
 - 91 feste Londoner U-Bahn-Stationsnamen als sichtbare
   Grundstücksnamen; stabile Feld-IDs bleiben die interne
   Regelgrundlage

@@ -471,9 +471,9 @@
   top: var(--hologram-top);
   right: auto;
   left: var(--hologram-left);
-  width: 280px;
-  max-height: 330px;
-  padding: 16px 18px;
+  width: var(--hologram-width, 240px);
+  max-height: 286px;
+  padding: 12px 14px;
   overflow: auto;
   border: 1px solid rgba(153, 232, 255, 0.25);
   border-radius: 14px;
@@ -496,24 +496,24 @@
 }
 
 .immersive-planet-screen .tile-details h3 {
-  margin: 4px 0 10px;
-  font-size: 1.3rem;
+  margin: 3px 0 7px;
+  font-size: 1.08rem;
 }
 
 .immersive-planet-screen .tile-details .resource-rating,
 .immersive-planet-screen .tile-details .detail-row {
-  padding: 7px 0;
-  font-size: 0.8rem;
+  padding: 5px 0;
+  font-size: 0.73rem;
 }
 
 .immersive-planet-screen .field-overview-actions {
   display: grid;
-  margin-top: 12px;
+  margin-top: 9px;
 }
 
 .immersive-planet-screen .field-overview-action-button {
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 36px;
+  padding: 7px 10px;
   cursor: pointer;
   border: 1px solid rgba(177, 244, 224, 0.76);
   border-radius: 10px;
@@ -523,7 +523,7 @@
     0 0 18px rgba(69, 205, 165, 0.18),
     inset 0 0 10px rgba(116, 244, 205, 0.04);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 800;
   text-shadow: 0 2px 6px #000;
 }
@@ -1170,8 +1170,8 @@
 
   .immersive-planet-screen .tile-details {
     display: block;
-    width: 230px;
-    max-height: 230px;
+    width: var(--hologram-width, 204px);
+    max-height: 178px;
     padding: 11px 13px;
     border-radius: 12px;
     overflow-y: auto;
