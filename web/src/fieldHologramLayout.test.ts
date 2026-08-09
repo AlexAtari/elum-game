@@ -24,4 +24,20 @@ describe('Eckenposition der Gebietsinformation', () => {
       ).toMatchObject({ corner, left, top })
     },
   )
+
+  it('nutzt auf dem Smartphone den Platz bis knapp vor der Steuerung', () => {
+    expect(
+      createFieldHologramLayout({
+        fieldPoint: { x: 100, y: 200 },
+        viewport: { width: 390, height: 844 },
+        hologram: { width: 230, height: 230 },
+        topInset: 118,
+        bottomInset: 45,
+      }),
+    ).toMatchObject({
+      corner: 'bottom-right',
+      left: 148,
+      top: 569,
+    })
+  })
 })

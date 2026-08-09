@@ -461,7 +461,7 @@ function HexMap({
       height: hologramHeight,
     },
     topInset: isCompactViewport ? 118 : 132,
-    bottomInset: isCompactViewport ? 126 : 82,
+    bottomInset: isCompactViewport ? 45 : 82,
   })
   const hologramConnectorPoint = hologramLayout.connectorPoint
   const hologramStyle = {

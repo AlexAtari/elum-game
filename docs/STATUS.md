@@ -308,6 +308,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   sie verwendet wieder ihre ursprüngliche Breite, Höhe, Schrift und
   Innenabstände und weicht abhängig vom Feldquadranten immer in die
   diagonal gegenüberliegende der vier bildschirmsicheren Ecken aus;
+  die beiden unteren Smartphone-Ecken reichen bis knapp oberhalb der
+  Zoomsteuerung und nutzen den zuvor freien Raum;
   eine feine Leuchtlinie verbindet sie mit dem tatsächlich
   gerenderten Feld
 - Produktionswahl und Gebotshöhe lösen sich beim Öffnen aus der

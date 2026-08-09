@@ -96,7 +96,8 @@ Planetenzoom, ohne die bestehende Explorationsgrenze zu umgehen.
 Nur aktuell legale Kartenaktionen erscheinen in der holografischen
 Grundstücksinformation. Diese verwendet ihre vollständige Größe,
 liegt abhängig vom gewählten Feld in der diagonal gegenüberliegenden
-der vier bildschirmsicheren Ecken und ist über eine feine Linie mit
+der vier bildschirmsicheren Ecken; unten nutzt sie den Raum bis knapp
+vor der Smartphone-Zoomsteuerung und ist über eine feine Linie mit
 dem Feld verbunden. Komplexere Auswahl- und Gebotsmenüs öffnen
 vorübergehend eine kompakte Fokusfläche.
 

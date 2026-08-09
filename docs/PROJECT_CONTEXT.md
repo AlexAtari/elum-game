@@ -264,6 +264,7 @@ werden.
 - die holografische Feldkarte verwendet ihre vollständige
   ursprüngliche Größe und liegt abhängig vom Feldquadranten stets in
   der diagonal gegenüberliegenden der vier bildschirmsicheren Ecken;
+  die unteren Smartphone-Ecken enden knapp vor der Zoomsteuerung;
   eine feine Linie verbindet sie mit der tatsächlich gerenderten
   Feldposition, komplexe Eingaben öffnen weiterhin eine größere
   temporäre Glasfläche

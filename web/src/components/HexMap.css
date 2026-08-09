@@ -1171,6 +1171,7 @@
   .immersive-planet-screen .tile-details {
     display: block;
     width: var(--hologram-width, 230px);
+    min-height: 200px;
     max-height: 230px;
     padding: 11px 13px;
     border-radius: 12px;
