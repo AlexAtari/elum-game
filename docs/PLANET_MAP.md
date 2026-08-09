@@ -309,10 +309,14 @@ ausdrücklich kristallfrei. Die Seriensimulation weist größte
 HQ-Distanz, Fernzonenquote und Zugriff auf natürliche Adern deshalb
 getrennt aus. Im aktuellen 200-Partien-Referenzlauf entstehen
 2,4 Meteore und durchschnittlich 1,0 Verkäufe an den Käufer aus den
-mitgebrachten Kristallproben. Keine Kolonie erreicht bislang die
-Fernzone; natürliche Aderausläufer werden je nach Kolonie nur in
-12,5 bis 17,5 Prozent der Partien erreicht. Die Folgeexpansion bleibt
-deshalb der nächste Balancing-Schritt.
+mitgebrachten Kristallproben. Nach dem dritten Harvester dürfen
+Agentenkolonien bis zu zwei unbewirtschaftete Prospektionsfelder zum
+Mindestgebot als äußere Route erwerben. Akute Versorgungskrisen
+sperren den Kauf, und 10 Credits bleiben geschützt. Damit erreichen
+die Kolonien die Fernzone je nach Profil in 11,0 bis 20,5 Prozent und
+natürliche Aderausläufer in 32,5 bis 40,5 Prozent der Partien. Die
+Folgeexpansion funktioniert damit erstmals, ist aber noch nicht
+zuverlässig genug und bleibt ein Balancingthema.
 
 Verkaufte Kristalle werden von spezialisierten
 Hochsicherheits-Raumschiffen abgeholt. Diese Werttransporter:

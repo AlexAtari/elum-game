@@ -91,11 +91,14 @@ describe('Orions selbstständiger Grundstückskauf', () => {
     ).toBeNull()
   })
 
-  it('kauft nicht mehr Grundstücke als vorhandene Harvester', () => {
+  it('besitzt höchstens zwei Prospektionsfelder mehr als Harvester', () => {
     const state = createRoundTwoState()
     const freeTileIds = tiles
       .filter((tile) => tile.owner === 'free')
-      .slice(0, state.colonies.orion.harvesters)
+      .slice(
+        0,
+        state.colonies.orion.harvesters + 2,
+      )
       .map((tile) => tile.id)
 
     state.colonies.orion.ownedTileIds = freeTileIds

@@ -43,6 +43,7 @@ export type AgentLandCandidate = {
   energy: number
   ore: number
   adjacencyBonus?: number
+  distanceFromHq?: number
 }
 
 export type AgentLegalActions = {
@@ -52,6 +53,7 @@ export type AgentLegalActions = {
   }
   harvesterEnergyCost?: number
   hasIdleHarvester?: boolean
+  canExpandFrontier?: boolean
   landCandidates?: AgentLandCandidate[]
 }
 
@@ -209,6 +211,7 @@ const marketResources: AgentMarketResource[] = [
 ]
 
 const INITIAL_EXPANSION_CASH_RESERVE = 20
+const FRONTIER_EXPANSION_CASH_RESERVE = 10
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
@@ -520,15 +523,24 @@ function decideHarvesterBuild(
 function scoreLandCandidate(
   candidate: AgentLandCandidate,
   profile: AgentProfile,
+  prioritizeFrontier: boolean,
 ) {
   const productionScore =
     candidate.food * profile.productionWeights.food +
     candidate.energy * profile.productionWeights.energy +
     candidate.ore * profile.productionWeights.ore
+  const frontierScore = prioritizeFrontier
+    ? Math.max(
+        0,
+        (candidate.distanceFromHq ?? 0) - 2,
+      ) *
+      3
+    : 0
 
   return (
     productionScore +
-    (candidate.adjacencyBonus ?? 0) * profile.expansionBias
+    (candidate.adjacencyBonus ?? 0) * profile.expansionBias +
+    frontierScore
   )
 }
 
@@ -539,10 +551,16 @@ function decideLandBid(
 ): AgentLandDecision | null {
   const canUseInitialExpansionWindow =
     context.legalActions?.hasIdleHarvester === true
+  const canExpandFrontier =
+    context.legalActions?.canExpandFrontier === true
+  const canUseInfrastructureWindow =
+    canUseInitialExpansionWindow || canExpandFrontier
 
   if (
-    emergency.suspendInvestments &&
-    !canUseInitialExpansionWindow
+    (emergency.level === 'critical' &&
+      !canUseInitialExpansionWindow) ||
+    (emergency.suspendInvestments &&
+      !canUseInfrastructureWindow)
   ) {
     return null
   }
@@ -550,6 +568,8 @@ function decideLandBid(
   const candidates = context.legalActions?.landCandidates ?? []
   const cashReserve = canUseInitialExpansionWindow
     ? INITIAL_EXPANSION_CASH_RESERVE
+    : canExpandFrontier
+    ? FRONTIER_EXPANSION_CASH_RESERVE
     : profile.cashReserve
   const availableCredits = Math.max(
     0,
@@ -564,7 +584,7 @@ function decideLandBid(
         )
       : 0
   const absoluteBidLimit = Math.floor(
-    canUseInitialExpansionWindow
+    canUseInfrastructureWindow
       ? initialExpansionBidLimit
       : context.colony.credits *
           profile.maximumLandBidShare,
@@ -575,7 +595,11 @@ function decideLandBid(
     candidates
       .filter((candidate) => candidate.minimumBid <= bidLimit)
       .map((candidate) => {
-        const score = scoreLandCandidate(candidate, profile)
+        const score = scoreLandCandidate(
+          candidate,
+          profile,
+          canUseInfrastructureWindow,
+        )
         const valuePremium = 1 + profile.expansionBias * 0.5
 
         return {

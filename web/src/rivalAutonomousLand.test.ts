@@ -162,6 +162,35 @@ describe('Selbstständige Grundstückskäufe aller Rivalen', () => {
     ).toHaveLength(3)
   })
 
+  it('begrenzt die Prospektionsroute auf zwei Grundstücke ohne Harvester', () => {
+    let state = createRoundTwoState()
+
+    for (const round of [2, 3, 4]) {
+      state = {
+        ...state,
+        round,
+      }
+      state = applyAutonomousRivalLandPurchase(
+        state,
+        'nova',
+      )
+    }
+
+    expect(state.colonies.nova.harvesters).toBe(3)
+    expect(
+      state.colonies.nova.ownedTileIds,
+    ).toHaveLength(5)
+
+    state = {
+      ...state,
+      round: 5,
+    }
+
+    expect(
+      getAutonomousRivalLandDecision(state, 'nova'),
+    ).toBeNull()
+  })
+
   it('greift während eines Spielergebots überhaupt nicht ein', () => {
     const state = createRoundTwoState()
     state.pendingLandBid = {

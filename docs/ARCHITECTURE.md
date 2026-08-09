@@ -652,6 +652,11 @@ Harvester ein enges Infrastruktursicherheitsfenster: Der Landkauf
 bleibt auf das Mindestgebot und einen Restpuffer von 20 Credits
 begrenzt. Die Rivalen ermitteln Kandidaten ausschließlich im
 92-Felder-Zielgraphen und prüfen echte Nachbarschaft zu eigenem Land.
+Nach dem dritten Harvester kann dieselbe UI-unabhängige Planung bis zu
+zwei unbewirtschaftete Prospektionsfelder als äußere Route erwerben.
+Diese Käufe bleiben auf Mindestgebot, 10 Credits Restreserve und
+nichtkritische Versorgung begrenzt; die Entfernung zum HQ fließt nur
+in diesem Infrastrukturfenster zusätzlich in die Feldbewertung ein.
 
 Wichtige Grenze:
 

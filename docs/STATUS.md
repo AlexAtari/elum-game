@@ -494,10 +494,10 @@ Aktueller 200-Partien-Stand mit 20 Runden, Markt und den Seeds
 
 | Kolonie | Siegquote | Durchschnittsrang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 34,0 % | 2,14 | 18,1 | 106,2 |
-| Agima | 24,3 % | 2,51 | 17,3 | 219,2 |
-| Orion | 21,8 % | 2,57 | 17,1 | 222,1 |
-| Vega | 20,0 % | 2,79 | 17,1 | 114,9 |
+| Agima | 33,0 % | 2,46 | 17,2 | 190,9 |
+| Orion | 30,0 % | 2,43 | 17,2 | 185,6 |
+| Nova | 21,0 % | 2,21 | 17,6 | 90,7 |
+| Vega | 16,0 % | 2,91 | 16,9 | 114,7 |
 
 Die Seriensimulation verwendet jetzt dieselbe lexikografische
 Schlusswertung wie die Browserpartie: Bevölkerung,
@@ -507,16 +507,16 @@ entscheidet keine Partie.
 
 Systemische Beobachtungen aus dem aktuellen Lauf:
 
-- 145 unterschiedliche Endergebnisse
-- 147,4 Markttransaktionen je Partie
-- 2,4 direkte Spielertransaktionen je Partie
-- direkter Handelsanteil 1,6 %
-- 144,1 HQ-Lagertransaktionen je Partie
+- 154 unterschiedliche Endergebnisse
+- 140,9 Markttransaktionen je Partie
+- 2,1 direkte Spielertransaktionen je Partie
+- direkter Handelsanteil 1,5 %
+- 137,8 HQ-Lagertransaktionen je Partie
 - 1,0 Verkauf an den interstellaren Käufer je Partie
 - durchschnittlich 2,4 Meteore je Partie
-- 11,20 Versorgungssignale je Partie
-- davon 595 Bevölkerungsrückgänge, 527 leere Nahrungs- und
-  132 leere Energiebestände
+- 8,70 Versorgungssignale je Partie
+- davon 372 Bevölkerungsrückgänge, 259 leere Nahrungs- und
+  137 leere Energiebestände
 
 Der Versorgungssprung am elften Einwohner ist als wahrscheinlichster
 systemischer Engpass identifiziert: normale HQ-Versorgung steigt dort
@@ -535,6 +535,12 @@ brachliegender Harvester darf ein angrenzendes Grundstück zum
 Mindestgebot erschließen, solange derselbe Kreditpuffer erhalten
 bleibt. Optionale höhere Gebote bleiben gesperrt.
 
+Nach dem dritten Harvester darf die Agentenplanung bis zu zwei weitere
+unbewirtschaftete Prospektionsfelder als äußere Route kaufen. Dafür
+gilt ausschließlich das Mindestgebot, eine Restreserve von 10 Credits
+und eine Sperre bei akuter Versorgungskrise. Die HQ-Distanz ergänzt in
+diesem Infrastrukturfenster den Ressourcenwert des Feldes.
+
 Jede Kolonie startet zusätzlich mit einer mitgebrachten
 Kristallprobe. Profile mit Kristallreserve 0 bieten sie am Markt an;
 Profile mit Reserve 1 behalten sie zunächst. Damit ist der
@@ -543,15 +549,16 @@ wirtschaftlich relevant, ohne die kristallfreien Startgrundstücke zu
 verändern.
 
 Im Referenzlauf enden die Kolonien mit durchschnittlich 3,0
-Harvestern und 2,9 bis 3,0 Grundstücken. Die erste
+Harvestern und 3,3 bis 3,5 Grundstücken. Die erste
 Harvestererweiterung liegt im Mittel um Runde 3,0; das erste
-zusätzliche Grundstück je nach Kolonie zwischen Runde 4,24 und 6,23.
-Die Seriensimulation vergibt nun ausschließlich kristallfreie
+zusätzliche Grundstück je nach Kolonie zwischen Runde 4,24 und 5,52.
+Die Seriensimulation vergibt ausschließlich kristallfreie
 Startgrundstücke und misst Folgeexpansion, Fernzonen und natürliche
-Adern getrennt. Die durchschnittlich größte HQ-Distanz liegt nur
-zwischen 2,7 und 2,8; keine Kolonie erreicht die Fernzone. Einen
-natürlichen Aderausläufer erschließen je nach Kolonie nur 12,5 bis
-17,5 Prozent der Partien.
+Adern getrennt. Die durchschnittlich größte HQ-Distanz steigt auf
+3,6 bis 3,9. Je nach Kolonie wird die Fernzone in 11,0 bis 20,5
+Prozent und ein natürlicher Aderausläufer in 32,5 bis 40,5 Prozent der
+Partien erreicht. Das ist ein messbarer Fortschritt, aber noch keine
+zuverlässige Fernzonenerschließung.
 
 ## Aktuelle UI-Akzeptanzkriterien
 

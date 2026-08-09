@@ -40,17 +40,17 @@ lexikografischen Wertung wie im Browser bestimmt.
 
 | Kolonie | Siegquote | Ø Rang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Nova | 34,0 % | 2,14 | 18,1 | 106,2 |
-| Agima | 24,3 % | 2,51 | 17,3 | 219,2 |
-| Orion | 21,8 % | 2,57 | 17,1 | 222,1 |
-| Vega | 20,0 % | 2,79 | 17,1 | 114,9 |
+| Agima | 33,0 % | 2,46 | 17,2 | 190,9 |
+| Orion | 30,0 % | 2,43 | 17,2 | 185,6 |
+| Nova | 21,0 % | 2,21 | 17,6 | 90,7 |
+| Vega | 16,0 % | 2,91 | 16,9 | 114,7 |
 
 Der breitere Ökonomiewert aus Ressourcen, Bevölkerung, Harvestern und
 Land dient ausschließlich der Diagnose. Er ist kein
 Gleichstandskriterium.
 
-Der Lauf erzeugt durchschnittlich 147,4 Markttransaktionen und 11,20
-Versorgungssignale je Partie. 1,6 % des Volumens sind direkte
+Der Lauf erzeugt durchschnittlich 140,9 Markttransaktionen und 8,70
+Versorgungssignale je Partie. 1,5 % des Volumens sind direkte
 Geschäfte zwischen Kolonien.
 
 Die Versorgungssignale bestätigen einen auffälligen Schwellenwert:
@@ -58,7 +58,7 @@ Bei normaler Versorgung verdoppelt der elfte Einwohner durch die
 zweite angefangene Zehnergruppe den HQ-Bedarf sofort von zwei auf vier
 Nahrung und Energie. Zusammen mit zwei aktiven Harvestern steigt der
 gesamte Energiebedarf damit von vier auf sechs. Im aktuellen Lauf
-treten 595 Bevölkerungsrückgänge, 527 leere Nahrungs- und 132 leere
+treten 372 Bevölkerungsrückgänge, 259 leere Nahrungs- und 137 leere
 Energiebestände auf. Eine Zahlenänderung ist daraus noch nicht
 abgeleitet; als nächster Vergleich sind eine geglättete
 Versorgungsschwelle und behutsam höhere Grundproduktion getrennt zu
@@ -72,10 +72,14 @@ nicht von einem Startgrundstück; alle Startfelder bleiben
 kristallfrei. Pro Partie entstehen weiterhin durchschnittlich
 2,4 Meteore. Die Seriensimulation vergibt jetzt ausschließlich
 kristallfreie Startgrundstücke und misst die Folgeexpansion direkt:
-Keine Kolonie erreicht bisher die Fernzone, und nur 12,5 bis
-17,5 Prozent der Partien erschließen überhaupt einen natürlichen
-Aderausläufer. Die durchschnittlich größte HQ-Distanz liegt lediglich
-zwischen 2,7 und 2,8.
+Nach dem dritten Harvester dürfen Agenten bis zu zwei zusätzliche
+Prospektionsfelder zum Mindestgebot erschließen. Diese Route ist bei
+akuter Versorgungskrise gesperrt, hält 10 Credits Restreserve und
+bewertet äußere angrenzende Felder stärker, ohne deren Ressourcenwert
+zu ignorieren. Dadurch erreichen die Kolonien die Fernzone nun in
+11,0 bis 20,5 Prozent und natürliche Aderausläufer in 32,5 bis
+40,5 Prozent der Partien. Die durchschnittlich größte HQ-Distanz
+steigt auf 3,6 bis 3,9.
 
 Für den Ausbau von zwei auf drei Harvester gilt ein gemeinsames,
 profilunabhängiges Sicherheitsfenster. Die Kolonie muss die
@@ -90,6 +94,13 @@ setzen, sofern der gemeinsame Kreditpuffer von 20 Credits erhalten
 bleibt. Das ist notwendige Produktionsinfrastruktur, keine optionale
 Überbietung. Alle weiteren Harvester und höheren Landgebote verwenden
 wieder die profilabhängigen Mehr-Runden- und Kreditreserven.
+
+Nach dieser ersten Produktionsausweitung darf eine Kolonie höchstens
+zwei weitere unbewirtschaftete Prospektionsfelder besitzen. Sie bietet
+dort ebenfalls nur den Mindestpreis, behält mindestens 10 Credits und
+startet keinen Kauf bei akut unzureichender Versorgung. Diese Felder
+bilden eine äußere Route; sie erzeugen ohne Harvester noch keinen
+Ertrag.
 
 ---
 

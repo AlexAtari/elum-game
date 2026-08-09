@@ -278,6 +278,85 @@ describe('Wirtschaftsagenten', () => {
     expect(withIdleHarvester.landBid).not.toBeNull()
   })
 
+  it('erschließt nach dem dritten Harvester höchstens zum Mindestgebot die äußere Route', () => {
+    const warningColony = {
+      ...createContext().colony,
+      credits: 35,
+      resources: {
+        ...createContext().colony.resources,
+        food: 2,
+        energy: 5,
+      },
+      harvesters: 3,
+    }
+    const plan = createAgentPlan(
+      createContext({
+        colony: warningColony,
+        legalActions: {
+          ...createContext().legalActions,
+          hasIdleHarvester: false,
+          canExpandFrontier: true,
+          landCandidates: [
+            {
+              tileId: 'INNER',
+              minimumBid: 25,
+              food: 3,
+              energy: 3,
+              ore: 3,
+              distanceFromHq: 3,
+            },
+            {
+              tileId: 'OUTER',
+              minimumBid: 25,
+              food: 3,
+              energy: 3,
+              ore: 3,
+              distanceFromHq: 4,
+            },
+          ],
+        },
+      }),
+    )
+
+    expect(plan.landBid).toEqual({
+      tileId: 'OUTER',
+      maximumBid: 25,
+      score: 14.4,
+    })
+  })
+
+  it('sperrt Prospektionsland bei akuter Versorgungskrise', () => {
+    const plan = createAgentPlan(
+      createContext({
+        colony: {
+          ...createContext().colony,
+          resources: {
+            ...createContext().colony.resources,
+            food: 1,
+          },
+          harvesters: 3,
+        },
+        legalActions: {
+          ...createContext().legalActions,
+          hasIdleHarvester: false,
+          canExpandFrontier: true,
+          landCandidates: [
+            {
+              tileId: 'OUTER',
+              minimumBid: 25,
+              food: 3,
+              energy: 3,
+              ore: 3,
+              distanceFromHq: 4,
+            },
+          ],
+        },
+      }),
+    )
+
+    expect(plan.landBid).toBeNull()
+  })
+
   it('liefert bei identischem Zustand dieselbe Entscheidung', () => {
     const context = createContext()
 

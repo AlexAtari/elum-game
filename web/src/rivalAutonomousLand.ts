@@ -52,6 +52,12 @@ function createAgentContext(
       harvesterEnergyCost: 1,
       hasIdleHarvester:
         rival.harvesters > (rival.ownedTileIds?.length ?? 0),
+      canExpandFrontier:
+        rival.harvesters >= 3 &&
+        (rival.ownedTileIds?.length ?? 0) >=
+          rival.harvesters &&
+        (rival.ownedTileIds?.length ?? 0) <
+          rival.harvesters + 2,
       landCandidates,
     },
   }
@@ -83,7 +89,7 @@ export function getAutonomousRivalLandDecision(
     currentState.landAuctionTie !== null ||
     isLandBidBlocked(currentState) ||
     rival.lastLandPurchaseRound === currentState.round ||
-    rivalTileIds.length >= rival.harvesters
+    rivalTileIds.length >= rival.harvesters + 2
   ) {
     return null
   }
@@ -113,6 +119,7 @@ export function getAutonomousRivalLandDecision(
       food: tile.food ?? 0,
       energy: tile.energy ?? 0,
       ore: tile.ore ?? 0,
+      distanceFromHq: tile.distanceFromHq,
       adjacencyBonus: rivalTiles.filter(
         (ownedTile) =>
           areTilesAdjacent(
