@@ -64,6 +64,25 @@ abgeleitet; als nächster Vergleich sind eine geglättete
 Versorgungsschwelle und behutsam höhere Grundproduktion getrennt zu
 simulieren.
 
+### Isolierter Vergleich: geglätteter Normalbedarf
+
+Die Headless-Simulation kann neben dem unveränderten Standardmodell
+`grouped` eine reine Analysevariante `smoothed` ausführen. Dort bleibt
+der Normalbedarf bis zehn Einwohner bei zwei Einheiten und steigt
+anschließend alle fünf Einwohner um eine Einheit: 11–15 Einwohner
+benötigen drei, 16–20 wieder vier Einheiten Nahrung und HQ-Energie.
+Browser und Multiplayer verwenden weiterhin ausschließlich die
+Gruppenregel.
+
+Im Vergleich derselben 200 Seeds reduziert die geglättete Variante
+die Versorgungssignale von 8,70 auf 4,20 und erhöht die Fernzonenquote
+von 11,0–20,5 Prozent auf 29,0–55,0 Prozent. Gleichzeitig steigen
+vollständig leere Nahrungslager von 259 auf 433 Fälle, Vega endet im
+Mittel nur noch mit 36,8 Credits, und die Siegquote reicht von
+18,0 bis 37,0 Prozent. Die Glättung bestätigt damit den
+Versorgungssprung als Expansionsbremse, ist in dieser Form aber noch
+nicht als neue Spielregel freigegeben.
+
 Jede Kolonie startet mit einer Kristallprobe im Lager. Agenten mit
 Kristallreserve 0 dürfen sie anbieten; Agenten mit Reserve 1 behalten
 sie zunächst. Dadurch übernimmt der interstellare Käufer im

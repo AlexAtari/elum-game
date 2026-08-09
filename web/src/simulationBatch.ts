@@ -4,6 +4,7 @@ import {
   runHeadlessEconomicSimulation,
   type SimulationParticipantId,
   type SimulationParticipantSnapshot,
+  type SimulationSupplyDemandModel,
   type SimulationWarning,
 } from './simulation'
 import type { AgentHarvesterDecision } from './agents'
@@ -13,6 +14,7 @@ export type SimulationBatchOptions = {
   rounds?: number
   includeMarket?: boolean
   seedStart?: number
+  supplyDemandModel?: SimulationSupplyDemandModel
 }
 
 export type SimulationBatchParticipantStats = {
@@ -46,6 +48,7 @@ export type SimulationBatchResult = {
   rounds: number
   includeMarket: boolean
   seedStart: number
+  supplyDemandModel: SimulationSupplyDemandModel
   uniqueOutcomes: number
   participants: Record<
     SimulationParticipantId,
@@ -294,6 +297,8 @@ export function runHeadlessSimulationBatch(
   )
   const includeMarket =
     options.includeMarket ?? true
+  const supplyDemandModel =
+    options.supplyDemandModel ?? 'grouped'
   const mutableStats = createMutableStats()
   const warningCounts = Object.fromEntries(
     warningKinds.map((kind) => [kind, 0]),
@@ -326,6 +331,7 @@ export function runHeadlessSimulationBatch(
       rounds,
       includeMarket,
       seed,
+      supplyDemandModel,
     })
     const finalParticipants = Object.fromEntries(
       result.finalStandings.map(
@@ -593,6 +599,7 @@ export function runHeadlessSimulationBatch(
     rounds,
     includeMarket,
     seedStart,
+    supplyDemandModel,
     uniqueOutcomes: outcomeSignatures.size,
     participants,
     averages: {

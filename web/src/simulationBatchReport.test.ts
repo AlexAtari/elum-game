@@ -168,6 +168,7 @@ export function formatSimulationBatchReport(
     `Partien: ${result.games} · Runden: ${result.rounds} · Seeds: ` +
       `${result.seedStart}–${result.seedStart + result.games - 1}`,
     `Markt einbezogen: ${result.includeMarket ? 'ja' : 'nein'}`,
+    `Versorgungsmodell: ${result.supplyDemandModel}`,
     `Unterschiedliche Endergebnisse: ${result.uniqueOutcomes}`,
     'Wertung: Bevölkerung → Abrechnungsvermögen → Restressourcen → Harvester',
     '',
@@ -210,6 +211,11 @@ describe('Terminalbericht der Seriensimulation', () => {
       seedStart: 1,
       includeMarket:
         environment.ELUM_SIMULATION_MARKET !== '0',
+      supplyDemandModel:
+        environment.ELUM_SIMULATION_SUPPLY ===
+        'smoothed'
+          ? 'smoothed'
+          : 'grouped',
     })
     const report =
       formatSimulationBatchReport(result)
@@ -220,6 +226,7 @@ describe('Terminalbericht der Seriensimulation', () => {
     )
     expect(report).toContain('Siegquote')
     expect(report).toContain('Wertung:')
+    expect(report).toContain('Versorgungsmodell:')
     expect(report).toContain('Spielerhandel')
     expect(report).toContain('HARVESTERBAU')
     expect(report).toContain('Baurunden:')

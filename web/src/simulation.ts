@@ -47,6 +47,10 @@ export type SimulationParticipantId =
   | 'agima'
   | RivalId
 
+export type SimulationSupplyDemandModel =
+  | 'grouped'
+  | 'smoothed'
+
 export type SimulationParticipantSnapshot = {
   id: SimulationParticipantId
   name: string
@@ -155,6 +159,7 @@ export type HeadlessSimulationResult = {
   mode: 'headless-economic-v6'
   roundsPlayed: number
   marketIncluded: boolean
+  supplyDemandModel: SimulationSupplyDemandModel
   history: SimulationRoundSnapshot[]
   warnings: SimulationWarning[]
   finalStandings: SimulationParticipantSnapshot[]
@@ -169,6 +174,7 @@ export type HeadlessSimulationOptions = {
   includeMarket?: boolean
   seed?: number
   initialCrystalStock?: number
+  supplyDemandModel?: SimulationSupplyDemandModel
 }
 
 export type SimulationStartingLand = {
@@ -191,6 +197,7 @@ type InternalSimulationState = {
   game: GameState
   agima: RivalColonyState
   seed: number
+  supplyDemandModel: SimulationSupplyDemandModel
   market: SimulationMarketState
   marketTransactions: SimulationMarketTransaction[]
   lastRoundMarketTransactions: SimulationMarketTransaction[]
@@ -203,6 +210,33 @@ const participantIds: SimulationParticipantId[] = [
   'nova',
   'vega',
 ]
+
+export function getSimulationNormalSupplyDemand(
+  population: number,
+  model: SimulationSupplyDemandModel = 'grouped',
+): number {
+  const normalizedPopulation = Math.max(
+    1,
+    Math.trunc(population),
+  )
+
+  return model === 'smoothed'
+    ? Math.max(
+        2,
+        Math.ceil(normalizedPopulation / 5),
+      )
+    : Math.ceil(normalizedPopulation / 10) * 2
+}
+
+function getStateNormalSupplyDemand(
+  state: InternalSimulationState,
+  population: number,
+): number {
+  return getSimulationNormalSupplyDemand(
+    population,
+    state.supplyDemandModel,
+  )
+}
 
 function normalizeSimulationSeed(
   seed: number | undefined,
@@ -362,6 +396,10 @@ function createSimulationMarketIntent(
         oreCost: HARVESTER_ORE_COST,
       },
       harvesterEnergyCost: 1,
+      normalSupplyDemand: getStateNormalSupplyDemand(
+        state,
+        colony.population,
+      ),
     },
   })
 
@@ -1261,6 +1299,7 @@ function advanceAgima(
   agima: RivalColonyState,
   round: number,
   meteorImpacts: MeteorImpact[] = [],
+  supplyDemandModel: SimulationSupplyDemandModel = 'grouped',
 ): RivalColonyState {
   const shadowColonies: RivalColonies = {
     orion: {
@@ -1284,6 +1323,13 @@ function advanceAgima(
     round,
     null,
     meteorImpacts,
+    {
+      normalSupplyDemand: (population) =>
+        getSimulationNormalSupplyDemand(
+          population,
+          supplyDemandModel,
+        ),
+    },
   ).orion
 }
 
@@ -1347,6 +1393,10 @@ function applyAgimaLandPurchase(
   const decision = getAutonomousRivalLandDecision(
     decisionState,
     'orion',
+    getStateNormalSupplyDemand(
+      state,
+      state.agima.population,
+    ),
   )
 
   if (
@@ -1591,6 +1641,7 @@ function collectRoundWarnings(
 function createInitialSimulationState(
   seed: number,
   initialCrystalStock: number = STARTING_CRYSTALS,
+  supplyDemandModel: SimulationSupplyDemandModel = 'grouped',
 ): InternalSimulationState {
   const baseGame =
     createPlayableInitialGameState(seed)
@@ -1682,6 +1733,7 @@ function createInitialSimulationState(
       ),
     ),
     seed,
+    supplyDemandModel,
     market,
     marketTransactions: [],
     lastRoundMarketTransactions: [],
@@ -1703,7 +1755,11 @@ function advanceSimulationRound(
     activeLocalEvent: null,
   }
   const withRivalLand =
-    applyAutonomousRivalLandPurchases(gameAtRound)
+    applyAutonomousRivalLandPurchases(
+      gameAtRound,
+      (population) =>
+        getStateNormalSupplyDemand(state, population),
+    )
   const withAgimaLand = applyAgimaLandPurchase({
     ...state,
     game: withRivalLand,
@@ -1723,11 +1779,19 @@ function advanceSimulationRound(
     round,
     null,
     withMarket.game.meteorImpacts,
+    {
+      normalSupplyDemand: (population) =>
+        getStateNormalSupplyDemand(
+          withMarket,
+          population,
+        ),
+    },
   )
   const nextAgima = advanceAgima(
     withMarket.agima,
     round,
     withMarket.game.meteorImpacts,
+    withMarket.supplyDemandModel,
   )
 
   return applySimulationMeteorImpact({
@@ -1779,9 +1843,12 @@ export function runHeadlessEconomicSimulation(
   const seed = normalizeSimulationSeed(
     options.seed,
   )
+  const supplyDemandModel =
+    options.supplyDemandModel ?? 'grouped'
   let state = createInitialSimulationState(
     seed,
     options.initialCrystalStock ?? STARTING_CRYSTALS,
+    supplyDemandModel,
   )
   const history: SimulationRoundSnapshot[] = [
     createRoundSnapshot(0, state),
@@ -1825,6 +1892,7 @@ export function runHeadlessEconomicSimulation(
     mode: 'headless-economic-v6',
     roundsPlayed,
     marketIncluded: includeMarket,
+    supplyDemandModel,
     history,
     warnings,
     finalStandings,

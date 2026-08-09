@@ -37,6 +37,7 @@ function createAgentContext(
   currentState: GameState,
   rivalId: RivalId,
   landCandidates: AgentLandCandidate[],
+  normalSupplyDemand?: number,
 ): AgentContext {
   const rival = selectRivalColonies(currentState)[rivalId]
 
@@ -50,6 +51,7 @@ function createAgentContext(
         oreCost: HARVESTER_ORE_COST,
       },
       harvesterEnergyCost: 1,
+      normalSupplyDemand,
       hasIdleHarvester:
         rival.harvesters > (rival.ownedTileIds?.length ?? 0),
       canExpandFrontier:
@@ -78,6 +80,7 @@ export function getAutonomousRivalPurchaseOrder(
 export function getAutonomousRivalLandDecision(
   currentState: GameState,
   rivalId: RivalId,
+  normalSupplyDemand?: number,
 ): AgentSealedLandBidDecision | null {
   const rival = selectRivalColonies(currentState)[rivalId]
   const rivalTileIds = rival.ownedTileIds ?? []
@@ -138,6 +141,7 @@ export function getAutonomousRivalLandDecision(
     currentState,
     rivalId,
     candidates,
+    normalSupplyDemand,
   )
   const selectedLand = createAgentPlan(context).landBid
 
@@ -163,10 +167,12 @@ export function getAutonomousRivalLandDecision(
 export function applyAutonomousRivalLandPurchase(
   currentState: GameState,
   rivalId: RivalId,
+  normalSupplyDemand?: number,
 ): GameState {
   const decision = getAutonomousRivalLandDecision(
     currentState,
     rivalId,
+    normalSupplyDemand,
   )
 
   if (!decision) {
@@ -216,6 +222,7 @@ export function applyAutonomousRivalLandPurchase(
 
 export function applyAutonomousRivalLandPurchases(
   currentState: GameState,
+  normalSupplyDemand?: (population: number) => number,
 ): GameState {
   return getAutonomousRivalPurchaseOrder(
     currentState.round,
@@ -224,6 +231,10 @@ export function applyAutonomousRivalLandPurchases(
       applyAutonomousRivalLandPurchase(
         state,
         rivalId,
+        normalSupplyDemand?.(
+          selectRivalColonies(state)[rivalId]
+            .population,
+        ),
       ),
     currentState,
   )

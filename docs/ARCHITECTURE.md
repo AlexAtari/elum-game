@@ -646,6 +646,11 @@ Browser-Spielimplementierung.
   Kristalladern sowie die jeweilige erste Zugriffs-Runde. Die
   simulierten Startfeldpaare werden dabei wie im Browser explizit auf
   kristallfreie Kartenfelder begrenzt.
+- Der Headless-Aufruf kann den normalen Versorgungsbedarf zusätzlich
+  als explizites Analysemodell `grouped` oder `smoothed` berechnen.
+  `grouped` bleibt Standard und entspricht Browser sowie Multiplayer;
+  `smoothed` wird nur durch eine bewusst gesetzte Simulationsoption
+  aktiviert und verändert keinen normalen Spielstart.
 
 Die gemeinsame Agentenplanung besitzt für einen brachliegenden
 Harvester ein enges Infrastruktursicherheitsfenster: Der Landkauf

@@ -7,11 +7,54 @@ import {
   calculateSimulationWealth,
   compareSimulationFinalScores,
   createBalancedSimulationStartingLand,
+  getSimulationNormalSupplyDemand,
   runHeadlessEconomicSimulation,
 } from './simulation'
 import { targetCrystalRatings } from './planetMap'
 
 describe('Interne Wirtschaftssimulation', () => {
+  it('glättet den Normalbedarf nur im gewählten Analysemodell', () => {
+    expect(
+      getSimulationNormalSupplyDemand(10, 'grouped'),
+    ).toBe(2)
+    expect(
+      getSimulationNormalSupplyDemand(11, 'grouped'),
+    ).toBe(4)
+    expect(
+      getSimulationNormalSupplyDemand(11, 'smoothed'),
+    ).toBe(3)
+    expect(
+      getSimulationNormalSupplyDemand(15, 'smoothed'),
+    ).toBe(3)
+    expect(
+      getSimulationNormalSupplyDemand(16, 'smoothed'),
+    ).toBe(4)
+  })
+
+  it('führt beide Versorgungsmodelle reproduzierbar und getrennt aus', () => {
+    const grouped = runHeadlessEconomicSimulation({
+      rounds: 8,
+      seed: 17,
+      supplyDemandModel: 'grouped',
+    })
+    const smoothed = runHeadlessEconomicSimulation({
+      rounds: 8,
+      seed: 17,
+      supplyDemandModel: 'smoothed',
+    })
+
+    expect(grouped.supplyDemandModel).toBe('grouped')
+    expect(smoothed.supplyDemandModel).toBe('smoothed')
+    expect(smoothed).not.toEqual(grouped)
+    expect(
+      runHeadlessEconomicSimulation({
+        rounds: 8,
+        seed: 17,
+        supplyDemandModel: 'smoothed',
+      }),
+    ).toEqual(smoothed)
+  })
+
   it('simuliert eine vollständige Partie ohne Oberfläche', () => {
     const result = runHeadlessEconomicSimulation()
 

@@ -542,10 +542,13 @@ Expansionsdiagnose misst eine durchschnittlich größte HQ-Distanz von
 3,6 bis 3,9, 11,0 bis 20,5 Prozent Partien mit erreichter Fernzone und
 32,5 bis 40,5 Prozent mit Zugriff auf einen natürlichen Aderausläufer.
 
-Die aktuelle Serie erzeugt 8,70 Versorgungssignale je Partie. Der
-Sprung von einer auf zwei angefangene Bevölkerungsgruppen beim elften
-Einwohner ist der auffälligste Engpass; Verbrauchsglättung und höhere
-Grundproduktion sind vor einer Regeländerung getrennt zu simulieren.
+Die aktuelle Standardserie erzeugt 8,70 Versorgungssignale je Partie.
+Eine isolierte Headless-Variante glättet den Normalbedarf bei 11–15
+Einwohnern auf drei Einheiten und senkt die Signale auf 4,20; zugleich
+steigen leere Nahrungslager von 259 auf 433 und Vegas mittlere Credits
+fallen auf 36,8. Browser und Multiplayer bleiben deshalb unverändert
+bei der Gruppenregel. Als nächster Vergleich ist eine behutsam höhere
+Grundproduktion getrennt zu prüfen.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

@@ -1494,6 +1494,9 @@ export function advanceRivalColonies(
   roundPlayed: number,
   globalEvent: GlobalEventId | null = null,
   meteorImpacts: MeteorImpact[] = [],
+  options: {
+    normalSupplyDemand?: (population: number) => number
+  } = {},
 ): RivalColonies {
   return Object.fromEntries(
     Object.entries(rivals).map(([id, rival]) => {
@@ -1532,11 +1535,25 @@ export function advanceRivalColonies(
               lastHarvesterRetoolCost: 0,
             }),
       }
-      const populationGroups = Math.ceil(
-        operatingRival.population / 10,
+      const defaultSupplyDemand =
+        Math.ceil(operatingRival.population / 10) * 2
+      const configuredSupplyDemand =
+        options.normalSupplyDemand?.(
+          operatingRival.population,
+        )
+      const normalSupplyDemand = Number.isFinite(
+        configuredSupplyDemand,
       )
-      const plannedFood = populationGroups * 2
-      const plannedEnergy = populationGroups * 2
+        ? Math.max(
+            0,
+            Math.trunc(
+              configuredSupplyDemand ??
+                defaultSupplyDemand,
+            ),
+          )
+        : defaultSupplyDemand
+      const plannedFood = normalSupplyDemand
+      const plannedEnergy = normalSupplyDemand
       const consumedFood = Math.min(
         operatingRival.resources.food,
         plannedFood,
@@ -1647,6 +1664,10 @@ export function advanceRivalColonies(
             oreCost: HARVESTER_ORE_COST,
           },
           harvesterEnergyCost: 1,
+          normalSupplyDemand:
+            options.normalSupplyDemand?.(
+              nextColony.population,
+            ),
         },
       })
 

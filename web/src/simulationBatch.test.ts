@@ -130,6 +130,23 @@ describe('Balancing-Seriensimulation', () => {
     )
   })
 
+  it('hält geglättete Versorgung als explizite Analysevariante getrennt', () => {
+    const grouped = runHeadlessSimulationBatch({
+      games: 8,
+      seedStart: 30,
+      supplyDemandModel: 'grouped',
+    })
+    const smoothed = runHeadlessSimulationBatch({
+      games: 8,
+      seedStart: 30,
+      supplyDemandModel: 'smoothed',
+    })
+
+    expect(grouped.supplyDemandModel).toBe('grouped')
+    expect(smoothed.supplyDemandModel).toBe('smoothed')
+    expect(smoothed).not.toEqual(grouped)
+  })
+
   it('erzeugt mit anderen Seed-Bereichen andere Ergebnisse', () => {
     const first = runHeadlessSimulationBatch({
       games: 8,

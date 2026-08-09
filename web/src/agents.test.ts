@@ -58,6 +58,28 @@ describe('Wirtschaftsagenten', () => {
     })
   })
 
+  it('verwendet einen expliziten Simulationsbedarf ohne die Standardregel zu ändern', () => {
+    const plan = createAgentPlan(
+      createContext({
+        colony: {
+          ...createContext().colony,
+          population: 11,
+        },
+        legalActions: {
+          ...createContext().legalActions,
+          normalSupplyDemand: 3,
+        },
+      }),
+    )
+
+    expect(plan.supply).toEqual({
+      foodUnits: 3,
+      energyUnits: 5,
+      targetFoodReserve: 6,
+      targetEnergyReserve: 10,
+    })
+  })
+
   it('priorisiert und kauft eine akut fehlende Ressource', () => {
     const context = createContext({
       colony: {

@@ -526,6 +526,17 @@ sechs Einheiten. Geglättete Verbrauchsschwellen und höhere
 Grundproduktion müssen als getrennte Zahlenvarianten simuliert werden,
 bevor eine Balancingänderung übernommen wird.
 
+Die Seriensimulation besitzt inzwischen eine ausdrücklich isolierte
+Versorgungsvariante `smoothed`: Bei 11–15 Einwohnern benötigt die
+Normalversorgung drei statt sofort vier Einheiten Nahrung und
+HQ-Energie; ab 16 Einwohnern gelten wieder vier. Browser und
+Multiplayer bleiben unverändert im Modell `grouped`. Über dieselben
+200 Seeds sinken die Versorgungssignale in der Variante von 8,70 auf
+4,20 und die Fernzonenquote steigt auf 29,0 bis 55,0 Prozent. Zugleich
+nehmen vollständig leere Nahrungslager von 259 auf 433 zu und Vegas
+durchschnittliche Credits fallen auf 36,8. Die Variante ist daher ein
+Diagnoseergebnis und noch keine übernommene Regeländerung.
+
 Die gemeinsame Agentenregel erlaubt die erste Expansion von zwei auf
 drei Harvester bereits bei sicherer Versorgung der unmittelbar
 folgenden Runde. Baukosten und ein gemeinsamer Restpuffer von

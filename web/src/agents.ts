@@ -52,6 +52,7 @@ export type AgentLegalActions = {
     oreCost: number
   }
   harvesterEnergyCost?: number
+  normalSupplyDemand?: number
   hasIdleHarvester?: boolean
   canExpandFrontier?: boolean
   landCandidates?: AgentLandCandidate[]
@@ -217,8 +218,20 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value))
 }
 
-function getRoundDemand(population: number) {
-  const populationGroups = Math.ceil(population / 10)
+function getRoundDemand(context: AgentContext) {
+  const configuredDemand =
+    context.legalActions?.normalSupplyDemand
+
+  if (
+    Number.isFinite(configuredDemand) &&
+    configuredDemand !== undefined
+  ) {
+    return Math.max(0, Math.trunc(configuredDemand))
+  }
+
+  const populationGroups = Math.ceil(
+    context.colony.population / 10,
+  )
   return populationGroups * 2
 }
 
@@ -283,7 +296,7 @@ export function createAgentEmergencyAssessment(
   context: AgentContext,
   profile: AgentProfile = agentProfiles[context.colony.id],
 ): AgentEmergencyAssessment {
-  const demand = getRoundDemand(context.colony.population)
+  const demand = getRoundDemand(context)
   const immediateFoodNeed = demand
   const immediateEnergyNeed =
     demand + getHarvesterEnergyDemand(context)
@@ -477,9 +490,7 @@ function decideHarvesterBuild(
     0,
     context.legalActions?.harvesterEnergyCost ?? 1,
   )
-  const immediateFoodNeed = getRoundDemand(
-    context.colony.population,
-  )
+  const immediateFoodNeed = getRoundDemand(context)
   const immediateEnergyNeed =
     immediateFoodNeed +
     getHarvesterEnergyDemand(context) +
@@ -626,7 +637,7 @@ export function createAgentPlan(
   context: AgentContext,
   profile: AgentProfile = agentProfiles[context.colony.id],
 ): AgentPlan {
-  const demand = getRoundDemand(context.colony.population)
+  const demand = getRoundDemand(context)
   const emergency = createAgentEmergencyAssessment(context, profile)
   const targetFoodReserve = Math.ceil(demand * profile.reserveRounds)
   const energyUnits =
