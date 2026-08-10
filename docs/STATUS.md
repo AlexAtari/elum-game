@@ -43,6 +43,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   mit einer zusammenhängenden, planetenverankerten Wolkendecke;
   Ressourcen, Besitz, Harvester, Felddetails und Aktionen bleiben dort
   verborgen und die Felder sind nicht auswählbar
+- autoritative Multiplayer-Snapshots begrenzen fremden Besitz,
+  Harvesterzuweisungen und feldbezogene Harvester-IDs auf die vom
+  empfangenden Sitz bereits aufgedeckten Felder; fremde
+  Aufdeckungslisten und Kristallexplorationen werden vollständig
+  entfernt, während eigene Daten sowie öffentliche Auktionen und
+  Meteoriteneinschläge erhalten bleiben
 - frühere Agima-Wirtschaftsfelder auf der Spielzustandswurzel, der
   separate `rivals`-Record und die gespeicherte
   `opponentTileIds`-Kopie sind entfernt; Gegnerbesitz wird abgeleitet
@@ -103,8 +109,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Markt- und Grundstückszeiten und führt fällige Phasenkommandos
   selbst aus
 - Zustandsabonnements erhalten nach jedem erfolgreichen Kommando
-  sowie jedem serverseitigen Phasenwechsel den vollständigen
-  Snapshot einschließlich autoritativem `deadlineAt`
+  sowie jedem serverseitigen Phasenwechsel einen neuen Stand;
+  verbundene Clients erhalten daraus ihren personalisierten Snapshot
+  einschließlich autoritativem `deadlineAt`
 - versioniertes JSON-Nachrichtenprotokoll für Lobbybeitritt,
   Wiederaufnahme, Bereitschaft, Matchstart, Matchneustart und
   Spielkommandos mit
@@ -658,21 +665,19 @@ Patchdateien sind nicht automatisch Teil des Projektstands.
 
 Nach UI- und Dokumentationsarbeiten:
 
-1. autoritative Multiplayer-Snapshots pro Teilnehmer auf dessen
-   aufgedeckte Karteninformationen filtern,
-2. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
+1. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
-3. Produktions- und Marktentscheidungen stärker differenzieren,
+2. Produktions- und Marktentscheidungen stärker differenzieren,
    damit Angebot und Nachfrage nicht synchron verlaufen,
-4. die durch das höhere Startlager verstärkte Bevorzugung von Nova
+3. die durch das höhere Startlager verstärkte Bevorzugung von Nova
    und Vega in den Agentenentscheidungen ausgleichen,
-5. die Harvester-Energie-Notfalllogik untersuchen, um Ausfälle zu
+4. die Harvester-Energie-Notfalllogik untersuchen, um Ausfälle zu
    reduzieren, ohne Produktion, Bevölkerung oder HQ-Sicherheitsnetz
    pauschal zu vergrößern,
-6. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
+5. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
    dass Kristalladern
    innerhalb von 20 Runden tatsächlich erreichbar werden,
-7. Karten- und Ereignisbalancing mit Playtests prüfen.
+6. Karten- und Ereignisbalancing mit Playtests prüfen.
 
 ## Später, nicht Teil des aktuellen Kerns
 

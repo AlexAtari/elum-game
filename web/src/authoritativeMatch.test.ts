@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createPlayableInitialGameState,
   getSeededLocalEventDelay,
+  selectColonyRevealedTileIds,
   selectSeededGlobalEvent,
   selectSeededLocalEvent,
   type GameState,
@@ -106,6 +107,97 @@ function withRemoteOrion(state: GameState): GameState {
 }
 
 describe('Autoritativer Match-Serverkern', () => {
+  it('liefert jedem Sitz nur seinen aufgedeckten dynamischen Feldzustand', () => {
+    const initialState = withRemoteOrion(
+      createPlayableInitialGameState(),
+    )
+    const agimaRevealedTileIds = new Set(
+      selectColonyRevealedTileIds(initialState, 'agima'),
+    )
+    const hiddenOrionTileId =
+      initialState.colonies.orion.ownedTileIds.find(
+        (tileId) => !agimaRevealedTileIds.has(tileId),
+      )
+    const visibleNeutralTileId = [
+      ...agimaRevealedTileIds,
+    ].find(
+      (tileId) =>
+        !Object.values(initialState.colonies).some((colony) =>
+          colony.ownedTileIds.includes(tileId),
+        ),
+    )
+
+    expect(hiddenOrionTileId).toBeDefined()
+    expect(visibleNeutralTileId).toBeDefined()
+
+    const state: GameState = {
+      ...initialState,
+      colonies: {
+        ...initialState.colonies,
+        orion: {
+          ...initialState.colonies.orion,
+          ownedTileIds: [
+            ...initialState.colonies.orion.ownedTileIds,
+            visibleNeutralTileId!,
+          ],
+          revealedTileIds: [
+            ...initialState.colonies.orion.revealedTileIds,
+            'private-orion-discovery',
+          ],
+          crystalDiscoveryRoundByTileId: {
+            [hiddenOrionTileId!]: 1,
+          },
+          harvesterAssignments: {
+            ...initialState.colonies.orion.harvesterAssignments,
+            [hiddenOrionTileId!]: 'ore',
+            [visibleNeutralTileId!]: 'food',
+          },
+          inactiveHarvesterIds: [
+            hiddenOrionTileId!,
+            visibleNeutralTileId!,
+          ],
+          lastRetooledHarvesterId: hiddenOrionTileId!,
+        },
+      },
+    }
+    const match = createAuthoritativeMatch(state)
+    const publicSnapshot = match.getSnapshot()
+    const agimaSnapshot = match.getSnapshot('agima')
+    const orionSnapshot = match.getSnapshot('orion')
+
+    expect(
+      publicSnapshot.state.colonies.orion.ownedTileIds,
+    ).toContain(hiddenOrionTileId)
+    expect(agimaSnapshot.state.colonies.agima).toEqual(
+      state.colonies.agima,
+    )
+    expect(
+      agimaSnapshot.state.colonies.orion.ownedTileIds,
+    ).toEqual([visibleNeutralTileId])
+    expect(
+      agimaSnapshot.state.colonies.orion.harvesterAssignments,
+    ).toEqual({ [visibleNeutralTileId!]: 'food' })
+    expect(
+      agimaSnapshot.state.colonies.orion.inactiveHarvesterIds,
+    ).toEqual([visibleNeutralTileId])
+    expect(
+      agimaSnapshot.state.colonies.orion.revealedTileIds,
+    ).toEqual([])
+    expect(
+      agimaSnapshot.state.colonies.orion
+        .crystalDiscoveryRoundByTileId,
+    ).toEqual({})
+    expect(
+      agimaSnapshot.state.colonies.orion.lastRetooledHarvesterId,
+    ).toBeUndefined()
+    expect(orionSnapshot.state.colonies.orion).toEqual(
+      state.colonies.orion,
+    )
+    expect(
+      orionSnapshot.state.colonies.agima.revealedTileIds,
+    ).toEqual([])
+  })
+
   it('exportiert private Matchdaten ohne Prozess-Sitzungen oder Timer-Handles', () => {
     const clock = new FakeClock()
     const initialState = withRemoteOrion(

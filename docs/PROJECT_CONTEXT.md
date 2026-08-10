@@ -184,7 +184,8 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
   Live-Regel freigegeben.
 - Nicht entdeckte Planetengebiete sind durch mitrotierende Wolken
   verdeckt und in der gemeinsamen Einzel-/Mehrspielerkarte gesperrt;
-  die serverseitige Geheimhaltung folgt noch.
+  personalisierte Multiplayer-Snapshots entfernen zusätzlich
+  fremden dynamischen Feldzustand außerhalb der eigenen Sicht.
 - Die mobile Rangliste wird auf feste Karten-Slots und ruhige
   Aufdeckung optimiert.
 - Dokumentation wird als dauerhafte Übergabebasis ausgebaut.

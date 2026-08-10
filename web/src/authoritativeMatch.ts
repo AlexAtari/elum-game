@@ -9,6 +9,7 @@ import {
   LAND_AUCTION_TIMING,
   localEventIds,
   resolveLandTieBreak,
+  selectColonyRevealedTileIds,
   selectSeededGlobalEvent,
   selectSeededLocalEvent,
   type GameState,
@@ -215,6 +216,66 @@ const defaultClock: MatchClock = {
     ),
 }
 
+function filterTileRecord<
+  RecordType extends object,
+>(
+  record: RecordType,
+  revealedTileIds: ReadonlySet<string>,
+) {
+  return Object.fromEntries(
+    Object.entries(record).filter(([tileId]) =>
+      revealedTileIds.has(tileId),
+    ),
+  ) as RecordType
+}
+
+function personalizeFieldState(
+  state: GameState,
+  participantId?: ParticipantId,
+): GameState['colonies'] {
+  if (!participantId) {
+    return state.colonies
+  }
+
+  const revealedTileIds = new Set(
+    selectColonyRevealedTileIds(state, participantId),
+  )
+
+  return Object.fromEntries(
+    participantIds.map((colonyId) => {
+      const colony = state.colonies[colonyId]
+
+      if (colonyId === participantId) {
+        return [colonyId, colony]
+      }
+
+      return [
+        colonyId,
+        {
+          ...colony,
+          ownedTileIds: colony.ownedTileIds.filter((tileId) =>
+            revealedTileIds.has(tileId),
+          ),
+          revealedTileIds: [],
+          crystalDiscoveryRoundByTileId: {},
+          harvesterAssignments: filterTileRecord(
+            colony.harvesterAssignments,
+            revealedTileIds,
+          ),
+          inactiveHarvesterIds: colony.inactiveHarvesterIds?.filter(
+            (tileId) => revealedTileIds.has(tileId),
+          ),
+          lastRetooledHarvesterId:
+            colony.lastRetooledHarvesterId &&
+            revealedTileIds.has(colony.lastRetooledHarvesterId)
+              ? colony.lastRetooledHarvesterId
+              : undefined,
+        },
+      ]
+    }),
+  ) as GameState['colonies']
+}
+
 function copySnapshot(
   revision: number,
   finished: boolean,
@@ -230,6 +291,7 @@ function copySnapshot(
     : null
   const personalizedState: GameState = {
     ...state,
+    colonies: personalizeFieldState(state, participantId),
     activeLocalEvent:
       participantId === 'agima' ? localEvent : null,
     activeLocalEvents:
@@ -805,7 +867,7 @@ export class AuthoritativeMatch {
       return {
         ok: false,
         error: 'match-finished',
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -815,7 +877,7 @@ export class AuthoritativeMatch {
       return {
         ok: false,
         error: 'invalid-command',
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -824,7 +886,7 @@ export class AuthoritativeMatch {
         ok: false,
         command,
         error: 'participant-mismatch',
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -833,7 +895,7 @@ export class AuthoritativeMatch {
         ok: false,
         command,
         error: 'server-controlled-action',
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -842,7 +904,7 @@ export class AuthoritativeMatch {
         ok: false,
         command,
         error: 'participant-ready',
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -851,7 +913,7 @@ export class AuthoritativeMatch {
     if (!result.ok) {
       return {
         ...result,
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -860,7 +922,7 @@ export class AuthoritativeMatch {
     return {
       ok: true,
       command,
-      snapshot: this.getSnapshot(),
+      snapshot: this.getSnapshot(participantId),
     }
   }
 
@@ -891,7 +953,7 @@ export class AuthoritativeMatch {
       return {
         ok: false,
         error: 'match-finished',
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -901,7 +963,7 @@ export class AuthoritativeMatch {
       return {
         ok: false,
         error: 'invalid-round-plan',
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -909,7 +971,7 @@ export class AuthoritativeMatch {
       return {
         ok: false,
         error: 'round-action-active',
-        snapshot: this.getSnapshot(),
+        snapshot: this.getSnapshot(participantId),
       }
     }
 
@@ -922,7 +984,7 @@ export class AuthoritativeMatch {
 
     return {
       ok: true,
-      snapshot: this.getSnapshot(),
+      snapshot: this.getSnapshot(participantId),
     }
   }
 

@@ -707,6 +707,52 @@ describe('Multiplayer-Lobby', () => {
     expect(
       findMessages(emitted, 'match-snapshot', 'guest'),
     ).toHaveLength(1)
+
+    const hostMatchMessage = findMessages(
+      emitted,
+      'match-snapshot',
+      'host',
+    ).at(-1)?.message
+    const guestMatchMessage = findMessages(
+      emitted,
+      'match-snapshot',
+      'guest',
+    ).at(-1)?.message
+
+    if (
+      hostMatchMessage?.type !== 'match-snapshot' ||
+      guestMatchMessage?.type !== 'match-snapshot'
+    ) {
+      throw new Error('Expected personalized match snapshots.')
+    }
+
+    const internalState = lobby.getMatchSnapshot()!.state
+    expect(
+      hostMatchMessage.payload.state.colonies.agima.ownedTileIds,
+    ).toEqual(internalState.colonies.agima.ownedTileIds)
+    expect(
+      guestMatchMessage.payload.state.colonies.orion.ownedTileIds,
+    ).toEqual(internalState.colonies.orion.ownedTileIds)
+    expect(
+      hostMatchMessage.payload.state.colonies.orion.ownedTileIds,
+    ).toEqual(
+      internalState.colonies.orion.ownedTileIds.filter((tileId) =>
+        internalState.colonies.agima.revealedTileIds.includes(tileId),
+      ),
+    )
+    expect(
+      guestMatchMessage.payload.state.colonies.agima.ownedTileIds,
+    ).toEqual(
+      internalState.colonies.agima.ownedTileIds.filter((tileId) =>
+        internalState.colonies.orion.revealedTileIds.includes(tileId),
+      ),
+    )
+    expect(
+      hostMatchMessage.payload.state.colonies.orion.revealedTileIds,
+    ).toEqual([])
+    expect(
+      guestMatchMessage.payload.state.colonies.agima.revealedTileIds,
+    ).toEqual([])
   })
 
   it('nimmt eine laufende Sitzung wieder auf und akzeptiert danach Kommandos', () => {

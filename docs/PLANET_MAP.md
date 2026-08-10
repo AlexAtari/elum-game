@@ -223,10 +223,13 @@ keine Ressourcen, Besitzer, Harvester, Details oder Aktionen und sind
 weder per Touch noch Tastatur auswählbar. Öffentliche
 Meteoritenmarkierungen bleiben davon unabhängig.
 
-Noch nicht implementiert ist die teilnehmerspezifische Filterung
-autoritativ übertragener Multiplayer-Snapshots. Die gemeinsame UI
-zeigt zwar nur die Sicht des aktiven Sitzes, der Client erhält intern
-aber vorerst weiterhin den vollständigen Serverzustand.
+Autoritativ übertragene Multiplayer-Snapshots verwenden dieselbe
+Sichtgrenze. Eigener Feldzustand bleibt vollständig; fremder Besitz,
+Harvesterzustand und feldbezogene Sperren werden nur für bereits
+aufgedeckte IDs übertragen. Fremde Aufdeckungslisten und
+Kristallexplorationen werden entfernt. Der vollständige dynamische
+Kartenstand bleibt dadurch beim Server. Öffentliche Auktionen und
+Meteoritenmarkierungen bleiben davon unabhängig.
 
 ## 6. Entfernungszonen
 

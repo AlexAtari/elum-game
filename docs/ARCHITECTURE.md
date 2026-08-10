@@ -187,9 +187,10 @@ jedem Kommando die gebundene Identität mit dessen `participantId`.
 Der Kommandoinhalt selbst gilt damit nicht als Identitätsnachweis.
 
 Erfolgreiche Kommandos erhöhen eine monotone Snapshot-Revision.
-Abonnenten erhalten vollständige, strukturierte Kopien aus
+Interne Abonnenten erhalten vollständige, strukturierte Kopien aus
 `GameState`, Revision, endgültigem Matchstatus und optionaler
-autoritativer Phasenfrist.
+autoritativer Phasenfrist. Die Lobby erzeugt daraus für jede
+verbundene Verbindung einen teilnehmerspezifischen Snapshot.
 Fehlerhafte, fremde oder nicht authentifizierte Kommandos verändern
 weder Zustand noch Revision und werden nicht verteilt. Fehler eines
 einzelnen Abonnenten können die Zustandsmaschine nicht unterbrechen.
@@ -535,6 +536,15 @@ Snapshot enthält keinen lokalen Ereigniseintrag. Die sichtbare
 `LocalEventNotice` darf nach sechs Sekunden geschlossen werden,
 während die kanonische Wirkung beziehungsweise Sperre bis zur
 Rundenabrechnung erhalten bleibt.
+
+Dieselbe Personalisierungsgrenze schützt den dynamischen
+Kartenstand. Die eigene Kolonie bleibt vollständig erhalten. Bei
+fremden Kolonien werden Besitz und Harvesterzustand auf Felder
+begrenzt, die der empfangende Sitz bereits aufgedeckt hat;
+fremder Erkundungs- und Kristallfortschritt wird vollständig
+entfernt. Der unpersonalisierte Zustand bleibt ausschließlich für
+Serverlogik und Persistenz vollständig. Öffentliche Grundstücks-
+auktionen und Meteoriteneinschläge werden nicht gefiltert.
 
 Die Harvester-Gesamtzahl, freie Spieler-Harvester und deren
 Feldzuweisungen gehören jetzt zum `GameState`. Einsetzen, Umrüsten und
