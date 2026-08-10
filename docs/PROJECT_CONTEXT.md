@@ -184,6 +184,8 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
   Live-Regel freigegeben.
 - Nicht entdeckte Planetengebiete sind durch mitrotierende Wolken
   verdeckt und in der gemeinsamen Einzel-/Mehrspielerkarte gesperrt;
+  mehrere hundert weiche Wolkenpolygone und eine auslaufende
+  Randmaske vermeiden harte Feld- und Planetenkanten;
   personalisierte Multiplayer-Snapshots entfernen zusätzlich
   fremden dynamischen Feldzustand außerhalb der eigenen Sicht.
 - Die mobile Rangliste wird auf feste Karten-Slots und ruhige

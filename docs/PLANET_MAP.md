@@ -217,11 +217,16 @@ identisch.
 
 Die gemeinsame Kugelkarte stellt nicht aufgedeckte Gebiete als
 zusammenhängende, organisch texturierte Wolkendecke dar. Diese wird
-aus denselben projizierten Zellen wie die Oberfläche gebildet und
-dreht sowie zoomt deshalb mit dem Planeten. Verborgene Felder zeigen
-keine Ressourcen, Besitzer, Harvester, Details oder Aktionen und sind
-weder per Touch noch Tastatur auswählbar. Öffentliche
-Meteoritenmarkierungen bleiben davon unabhängig.
+aus mehreren hundert kleinen, unregelmäßigen Wolkenpolygonen über den
+projizierten Zellen gebildet. Überlappung, großräumiges Rauschen und
+weiche Verformung erzeugen Nebelbänke statt sichtbarer
+Grundstücksflächen. Eine radiale Sichtmaske blendet den Dunst am
+Planetenrand weich aus und öffnet aufgedeckte Regionen ohne harte
+Sechseckkanten. Die Geometrie dreht und zoomt mit dem Planeten.
+Verborgene Felder zeigen keine Ressourcen, Besitzer, Harvester,
+Details oder Aktionen und sind weder per Touch noch Tastatur
+auswählbar. Öffentliche Meteoritenmarkierungen bleiben davon
+unabhängig.
 
 Autoritativ übertragene Multiplayer-Snapshots verwenden dieselbe
 Sichtgrenze. Eigener Feldzustand bleibt vollständig; fremder Besitz,

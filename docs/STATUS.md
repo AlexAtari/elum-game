@@ -40,9 +40,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Grundstückserwerb deckt das neue Feld und dessen Nachbarn dauerhaft
   ausschließlich für den Käufer auf
 - Einzel- und Mehrspielerkarten verdecken nicht aufgedeckte Gebiete
-  mit einer zusammenhängenden, planetenverankerten Wolkendecke;
-  Ressourcen, Besitz, Harvester, Felddetails und Aktionen bleiben dort
-  verborgen und die Felder sind nicht auswählbar
+  mit mehreren hundert kleinen, überlappenden und organisch
+  verformten Wolkenpolygonen; eine weiche Maske öffnet entdeckte
+  Regionen ohne harte Sechseckkanten und lässt den Nebel am
+  Planetenrand natürlich auslaufen; Ressourcen, Besitz, Harvester,
+  Felddetails und Aktionen bleiben darunter verborgen und die Felder
+  sind nicht auswählbar
 - autoritative Multiplayer-Snapshots begrenzen fremden Besitz,
   Harvesterzuweisungen und feldbezogene Harvester-IDs auf die vom
   empfangenden Sitz bereits aufgedeckten Felder; fremde

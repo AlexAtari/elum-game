@@ -194,6 +194,29 @@ function formatPolygonPath(
     .join(' L ')} Z`
 }
 
+function createFogPuffPath(
+  center: Point,
+  radiusX: number,
+  radiusY: number,
+  seed: number,
+) {
+  const pointCount = 10
+  const points = Array.from({ length: pointCount }, (_, index) => {
+    const angle = (index / pointCount) * Math.PI * 2
+    const wobble =
+      0.82 +
+      Math.sin(seed * 1.73 + index * 2.41) * 0.1 +
+      Math.cos(seed * 0.91 + index * 1.37) * 0.08
+
+    return {
+      x: center.x + Math.cos(angle) * radiusX * wobble,
+      y: center.y + Math.sin(angle) * radiusY * wobble,
+    }
+  })
+
+  return formatPolygonPath(points)
+}
+
 function formatStars(value = 0) {
   return `${'★'.repeat(value)}${'☆'.repeat(5 - value)}`
 }
@@ -379,6 +402,77 @@ function HexMap({
       formatPolygonPath(projectedCells[tile.id].points),
     )
     .join(' ')
+  const revealedFogClearPath = visibleTiles
+    .filter((tile) => revealedTileIdSet.has(tile.id))
+    .map((tile) =>
+      formatPolygonPath(projectedCells[tile.id].points),
+    )
+    .join(' ')
+  const unexploredFogPuffs = visibleTiles
+    .filter((tile) => !revealedTileIdSet.has(tile.id))
+    .flatMap((tile, tileIndex) => {
+      const points = projectedCells[tile.id].points
+      const center = points.reduce(
+        (sum, point) => ({
+          x: sum.x + point.x / points.length,
+          y: sum.y + point.y / points.length,
+        }),
+        { x: 0, y: 0 },
+      )
+      const width =
+        Math.max(...points.map((point) => point.x)) -
+        Math.min(...points.map((point) => point.x))
+      const height =
+        Math.max(...points.map((point) => point.y)) -
+        Math.min(...points.map((point) => point.y))
+      const anchors = Array.from({ length: 13 }, (_, index) => {
+        if (index === 0) {
+          return center
+        }
+
+        const ringIndex = index > 6 ? 1 : 0
+        const sectorIndex = (index - 1) % 6
+        const angle =
+          (sectorIndex / 6) * Math.PI * 2 +
+          ringIndex * 0.34 +
+          Math.sin(tileIndex * 2.17 + index) * 0.16
+        const ringRadius = ringIndex === 0 ? 0.24 : 0.42
+
+        return {
+          x: center.x + Math.cos(angle) * width * ringRadius,
+          y: center.y + Math.sin(angle) * height * ringRadius,
+        }
+      })
+
+      return anchors.map((anchor, anchorIndex) => {
+        const isCenter = anchorIndex === 0
+        const isOuterRing = anchorIndex > 6
+        const seed = tileIndex * 11 + anchorIndex * 5 + 23
+        const radiusFactor = isCenter
+          ? 0.4
+          : isOuterRing
+            ? 0.27
+            : 0.32
+
+        return {
+          key: `${tile.id}-${anchorIndex}`,
+          path: createFogPuffPath(
+            anchor,
+            Math.max(
+              13 * cameraState.zoom,
+              width * radiusFactor,
+            ),
+            Math.max(
+              10 * cameraState.zoom,
+              height * radiusFactor,
+            ),
+            seed,
+          ),
+          opacity:
+            0.16 + ((seed * 17) % 23) / 100,
+        }
+      })
+    })
   const meteorBonuses = combineMeteorBonuses(meteorImpacts)
   const meteorCenterIds = new Set(
     meteorImpacts.map((impact) => impact.centerTileId),
@@ -926,43 +1020,124 @@ function HexMap({
                 x2={PLANET_RADIUS * cameraState.zoom}
                 y2={PLANET_RADIUS * cameraState.zoom}
               >
-                <stop offset="0" stopColor="#dbe9ed" />
-                <stop offset="0.42" stopColor="#94adb8" />
-                <stop offset="0.72" stopColor="#506b7b" />
-                <stop offset="1" stopColor="#233746" />
+                <stop offset="0" stopColor="#a8bec3" />
+                <stop offset="0.42" stopColor="#718b94" />
+                <stop offset="0.72" stopColor="#405967" />
+                <stop offset="1" stopColor="#1e303d" />
               </linearGradient>
+              <radialGradient
+                id="unexplored-cloud-puff"
+                gradientUnits="userSpaceOnUse"
+                cx={-PLANET_RADIUS * cameraState.zoom * 0.32}
+                cy={-PLANET_RADIUS * cameraState.zoom * 0.36}
+                r={PLANET_RADIUS * cameraState.zoom * 1.7}
+              >
+                <stop
+                  offset="0"
+                  stopColor="#f2f8f5"
+                  stopOpacity="0.64"
+                />
+                <stop
+                  offset="0.58"
+                  stopColor="#bdced0"
+                  stopOpacity="0.46"
+                />
+                <stop
+                  offset="1"
+                  stopColor="#718791"
+                  stopOpacity="0.2"
+                />
+              </radialGradient>
+              <radialGradient id="unexplored-fog-limb-mask">
+                <stop offset="0" stopColor="white" />
+                <stop offset="0.86" stopColor="white" />
+                <stop
+                  offset="0.95"
+                  stopColor="white"
+                  stopOpacity="0.72"
+                />
+                <stop
+                  offset="1"
+                  stopColor="white"
+                  stopOpacity="0.08"
+                />
+              </radialGradient>
               <filter
                 id="unexplored-cloud-filter"
-                x="-8%"
-                y="-8%"
-                width="116%"
-                height="116%"
+                x="-16%"
+                y="-16%"
+                width="132%"
+                height="132%"
               >
                 <feTurbulence
                   type="fractalNoise"
-                  baseFrequency="0.014 0.022"
-                  numOctaves="3"
+                  baseFrequency="0.011 0.019"
+                  numOctaves="4"
                   seed="23"
                   result="cloud-noise"
+                />
+                <feDisplacementMap
+                  in="SourceGraphic"
+                  in2="cloud-noise"
+                  scale={18 * cameraState.zoom}
+                  xChannelSelector="R"
+                  yChannelSelector="G"
+                  result="displaced-clouds"
+                />
+                <feGaussianBlur
+                  in="displaced-clouds"
+                  stdDeviation={3.1 * cameraState.zoom}
+                  result="soft-clouds"
                 />
                 <feColorMatrix
                   in="cloud-noise"
                   type="matrix"
-                  values="1 0 0 0 0.18  0 1 0 0 0.24  0 0 1 0 0.28  0 0 0 0.72 0"
+                  values="1 0 0 0 0.06  0 1 0 0 0.09  0 0 1 0 0.11  0 0 0 0.36 0"
                   result="cloud-color"
                 />
                 <feComposite
                   in="cloud-color"
-                  in2="SourceGraphic"
+                  in2="soft-clouds"
                   operator="in"
                   result="clipped-clouds"
                 />
                 <feBlend
-                  in="SourceGraphic"
+                  in="soft-clouds"
                   in2="clipped-clouds"
                   mode="screen"
                 />
               </filter>
+              <filter
+                id="unexplored-fog-clear-blur"
+                x="-12%"
+                y="-12%"
+                width="124%"
+                height="124%"
+              >
+                <feGaussianBlur
+                  stdDeviation={7 * cameraState.zoom}
+                />
+              </filter>
+              <mask
+                id="unexplored-fog-visibility-mask"
+                maskUnits="userSpaceOnUse"
+                x={-PLANET_RADIUS * cameraState.zoom}
+                y={-PLANET_RADIUS * cameraState.zoom}
+                width={PLANET_RADIUS * cameraState.zoom * 2}
+                height={PLANET_RADIUS * cameraState.zoom * 2}
+              >
+                <circle
+                  r={PLANET_RADIUS * cameraState.zoom}
+                  fill="url(#unexplored-fog-limb-mask)"
+                />
+                {revealedFogClearPath && (
+                  <path
+                    d={revealedFogClearPath}
+                    fill="black"
+                    filter="url(#unexplored-fog-clear-blur)"
+                  />
+                )}
+              </mask>
               <radialGradient
                 id="planet-lighting"
                 gradientUnits="userSpaceOnUse"
@@ -1409,15 +1584,22 @@ function HexMap({
                 <g
                   className="planet-fog-layer"
                   aria-hidden="true"
+                  mask="url(#unexplored-fog-visibility-mask)"
                 >
                   <path
                     className="planet-fog-base"
                     d={unexploredFogPath}
                   />
-                  <path
-                    className="planet-fog-sheen"
-                    d={unexploredFogPath}
-                  />
+                  <g className="planet-fog-cloud-bank">
+                    {unexploredFogPuffs.map((puff) => (
+                      <path
+                        key={puff.key}
+                        className="planet-fog-puff"
+                        d={puff.path}
+                        opacity={puff.opacity}
+                      />
+                    ))}
+                  </g>
                 </g>
               )}
 

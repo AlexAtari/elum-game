@@ -612,14 +612,15 @@
 
 .planet-fog-base {
   fill: url('#unexplored-fog-surface');
-  opacity: 0.9;
+  opacity: 0.42;
+}
+
+.planet-fog-cloud-bank {
   filter: url('#unexplored-cloud-filter');
 }
 
-.planet-fog-sheen {
-  fill: rgba(222, 242, 244, 0.18);
-  opacity: 0.78;
-  filter: blur(3px);
+.planet-fog-puff {
+  fill: url('#unexplored-cloud-puff');
 }
 
 .hex-tile.pentagon .hex-border {
