@@ -15,6 +15,7 @@ import {
   isGameFinished,
   HARVESTER_ORE_COST,
   selectColonyHarvesterAssignments,
+  selectColonyRevealedTileIds,
   selectOtherColonyTileIds,
   type MarketResource,
   type ProductionType,
@@ -819,6 +820,10 @@ function MultiplayerGameScreen({
             credits={colony.credits}
             ore={colony.resources.ore}
             ownedTileIds={colony.ownedTileIds}
+            revealedTileIds={selectColonyRevealedTileIds(
+              state,
+              participantId,
+            )}
             opponentTileIds={opponentTileIds}
             colonies={state.colonies}
             meteorImpacts={state.meteorImpacts ?? []}

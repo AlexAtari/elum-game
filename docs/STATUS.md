@@ -39,6 +39,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Startbesitz und direkte Nachbarn sind anfangs aufgedeckt; jeder
   Grundstückserwerb deckt das neue Feld und dessen Nachbarn dauerhaft
   ausschließlich für den Käufer auf
+- Einzel- und Mehrspielerkarten verdecken nicht aufgedeckte Gebiete
+  mit einer zusammenhängenden, planetenverankerten Wolkendecke;
+  Ressourcen, Besitz, Harvester, Felddetails und Aktionen bleiben dort
+  verborgen und die Felder sind nicht auswählbar
 - frühere Agima-Wirtschaftsfelder auf der Spielzustandswurzel, der
   separate `rivals`-Record und die gespeicherte
   `opponentTileIds`-Kopie sind entfernt; Gegnerbesitz wird abgeleitet
@@ -654,23 +658,21 @@ Patchdateien sind nicht automatisch Teil des Projektstands.
 
 Nach UI- und Dokumentationsarbeiten:
 
-1. nicht aufgedeckte Gebiete durch planetenverankerte Wolken
-   verdecken und ihre Feldinformationen sowie Interaktion sperren,
-2. autoritative Multiplayer-Snapshots pro Teilnehmer auf dessen
+1. autoritative Multiplayer-Snapshots pro Teilnehmer auf dessen
    aufgedeckte Karteninformationen filtern,
-3. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
+2. Spielaktionen als validierte, UI-unabhängige Befehle abbilden und
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
-4. Produktions- und Marktentscheidungen stärker differenzieren,
+3. Produktions- und Marktentscheidungen stärker differenzieren,
    damit Angebot und Nachfrage nicht synchron verlaufen,
-5. die durch das höhere Startlager verstärkte Bevorzugung von Nova
+4. die durch das höhere Startlager verstärkte Bevorzugung von Nova
    und Vega in den Agentenentscheidungen ausgleichen,
-6. die Harvester-Energie-Notfalllogik untersuchen, um Ausfälle zu
+5. die Harvester-Energie-Notfalllogik untersuchen, um Ausfälle zu
    reduzieren, ohne Produktion, Bevölkerung oder HQ-Sicherheitsnetz
    pauschal zu vergrößern,
-7. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
+6. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
    dass Kristalladern
    innerhalb von 20 Runden tatsächlich erreichbar werden,
-8. Karten- und Ereignisbalancing mit Playtests prüfen.
+7. Karten- und Ereignisbalancing mit Playtests prüfen.
 
 ## Später, nicht Teil des aktuellen Kerns
 

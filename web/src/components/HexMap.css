@@ -601,6 +601,27 @@
   outline: none;
 }
 
+.hex-tile.unexplored {
+  cursor: grab;
+  pointer-events: none;
+}
+
+.planet-fog-layer {
+  pointer-events: none;
+}
+
+.planet-fog-base {
+  fill: url('#unexplored-fog-surface');
+  opacity: 0.9;
+  filter: url('#unexplored-cloud-filter');
+}
+
+.planet-fog-sheen {
+  fill: rgba(222, 242, 244, 0.18);
+  opacity: 0.78;
+  filter: blur(3px);
+}
+
 .hex-tile.pentagon .hex-border {
   fill: rgba(117, 86, 139, 0.08);
   stroke: transparent;

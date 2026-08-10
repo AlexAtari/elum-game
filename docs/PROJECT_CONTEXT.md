@@ -182,6 +182,9 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
 - Die Mittelspielmessung lokalisiert den Engpass bei der Energie für
   eingesetzte Harvester; Produktionsboni sind noch nicht als
   Live-Regel freigegeben.
+- Nicht entdeckte Planetengebiete sind durch mitrotierende Wolken
+  verdeckt und in der gemeinsamen Einzel-/Mehrspielerkarte gesperrt;
+  die serverseitige Geheimhaltung folgt noch.
 - Die mobile Rangliste wird auf feste Karten-Slots und ruhige
   Aufdeckung optimiert.
 - Dokumentation wird als dauerhafte Übergabebasis ausgebaut.

@@ -116,7 +116,10 @@ Die UI-unabhängige Kartenregel initialisiert sie aus Startbesitz und
 direkten Nachbarn und erweitert sie beim Grundstückserwerb dauerhaft.
 Dieser kanonische Zustand ist die Grundlage für den späteren
 Wolken-Layer und teilnehmerspezifisch gefilterte
-Multiplayer-Snapshots; die Filterung selbst ist noch nicht aktiv.
+Multiplayer-Snapshots. `HexMap.tsx` verwendet ihn bereits für einen
+gemeinsamen, planetenverankerten Wolkenpfad und entfernt verborgene
+Felder aus Touch-, Maus- und Tastaturinteraktion. Die serverseitige
+Snapshot-Filterung selbst ist noch nicht aktiv.
 
 `ColonyEconomyState` definiert die gemeinsamen Wirtschaftsfelder.
 `selectColonies`, `selectLocalColony` und `selectRivalColonies`

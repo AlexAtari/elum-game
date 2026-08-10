@@ -59,6 +59,7 @@ type HexMapProps = {
   credits: number
   ore: number
   ownedTileIds: string[]
+  revealedTileIds: string[]
   opponentTileIds: string[]
   colonies: ColoniesState
   meteorImpacts: MeteorImpact[]
@@ -181,6 +182,18 @@ function formatPolygonPoints(
     .join(' ')
 }
 
+function formatPolygonPath(
+  points: Array<{ x: number; y: number }>,
+) {
+  if (points.length < 3) {
+    return ''
+  }
+
+  return `M ${points
+    .map((point) => `${point.x} ${point.y}`)
+    .join(' L ')} Z`
+}
+
 function formatStars(value = 0) {
   return `${'★'.repeat(value)}${'☆'.repeat(5 - value)}`
 }
@@ -204,6 +217,7 @@ function HexMap({
   credits,
   ore,
   ownedTileIds,
+  revealedTileIds,
   opponentTileIds,
   colonies,
   meteorImpacts,
@@ -323,6 +337,10 @@ function HexMap({
       ),
     [colonies],
   )
+  const revealedTileIdSet = useMemo(
+    () => new Set(revealedTileIds),
+    [revealedTileIds],
+  )
 
   const selectedTile =
     tiles.find((tile) => tile.id === selectedId) ?? tiles[0]!
@@ -355,6 +373,12 @@ function HexMap({
           projectedTiles[second.id].depth ||
         first.id.localeCompare(second.id),
     )
+  const unexploredFogPath = visibleTiles
+    .filter((tile) => !revealedTileIdSet.has(tile.id))
+    .map((tile) =>
+      formatPolygonPath(projectedCells[tile.id].points),
+    )
+    .join(' ')
   const meteorBonuses = combineMeteorBonuses(meteorImpacts)
   const meteorCenterIds = new Set(
     meteorImpacts.map((impact) => impact.centerTileId),
@@ -379,6 +403,9 @@ function HexMap({
     participantId,
   )
   const selectedIsPlayerOwned = ownedTileIds.includes(
+    selectedTile.id,
+  )
+  const selectedIsRevealed = revealedTileIdSet.has(
     selectedTile.id,
   )
   const selectedIsOpponentOwned = opponentTileIds.includes(
@@ -428,6 +455,7 @@ function HexMap({
     selectedIsAdjacentToPlayer &&
     credits >= minimumBid
   const selectedFieldIsVisible =
+    selectedIsRevealed &&
     selectedTile.owner !== 'hq' &&
     selectedCell.points.length >= 3 &&
     viewportSize.width > 0 &&
@@ -673,6 +701,10 @@ function HexMap({
       return
     }
 
+    if (!revealedTileIdSet.has(tileId)) {
+      return
+    }
+
     setSelectedId(tileId)
     setIsChoosingProduction(false)
     setMobileMapAction(null)
@@ -886,6 +918,51 @@ function HexMap({
                 <stop offset="0.55" stopColor="#132e50" />
                 <stop offset="1" stopColor="#07111f" />
               </radialGradient>
+              <linearGradient
+                id="unexplored-fog-surface"
+                gradientUnits="userSpaceOnUse"
+                x1={-PLANET_RADIUS * cameraState.zoom}
+                y1={-PLANET_RADIUS * cameraState.zoom}
+                x2={PLANET_RADIUS * cameraState.zoom}
+                y2={PLANET_RADIUS * cameraState.zoom}
+              >
+                <stop offset="0" stopColor="#dbe9ed" />
+                <stop offset="0.42" stopColor="#94adb8" />
+                <stop offset="0.72" stopColor="#506b7b" />
+                <stop offset="1" stopColor="#233746" />
+              </linearGradient>
+              <filter
+                id="unexplored-cloud-filter"
+                x="-8%"
+                y="-8%"
+                width="116%"
+                height="116%"
+              >
+                <feTurbulence
+                  type="fractalNoise"
+                  baseFrequency="0.014 0.022"
+                  numOctaves="3"
+                  seed="23"
+                  result="cloud-noise"
+                />
+                <feColorMatrix
+                  in="cloud-noise"
+                  type="matrix"
+                  values="1 0 0 0 0.18  0 1 0 0 0.24  0 0 1 0 0.28  0 0 0 0.72 0"
+                  result="cloud-color"
+                />
+                <feComposite
+                  in="cloud-color"
+                  in2="SourceGraphic"
+                  operator="in"
+                  result="clipped-clouds"
+                />
+                <feBlend
+                  in="SourceGraphic"
+                  in2="clipped-clouds"
+                  mode="screen"
+                />
+              </filter>
               <radialGradient
                 id="planet-lighting"
                 gradientUnits="userSpaceOnUse"
@@ -938,6 +1015,25 @@ function HexMap({
                 const polygonPoints = formatPolygonPoints(
                   cell.points,
                 )
+                const isRevealed = revealedTileIdSet.has(
+                  tile.id,
+                )
+
+                if (!isRevealed) {
+                  return (
+                    <g
+                      key={tile.id}
+                      className="hex-tile unexplored"
+                      aria-hidden="true"
+                    >
+                      <polygon
+                        className="hex-landscape"
+                        points={polygonPoints}
+                      />
+                    </g>
+                  )
+                }
+
                 const cellXs = cell.points.map((point) => point.x)
                 const cellYs = cell.points.map((point) => point.y)
                 const cellBounds = {
@@ -1309,7 +1405,43 @@ function HexMap({
                 )
               })}
 
+              {unexploredFogPath && (
+                <g
+                  className="planet-fog-layer"
+                  aria-hidden="true"
+                >
+                  <path
+                    className="planet-fog-base"
+                    d={unexploredFogPath}
+                  />
+                  <path
+                    className="planet-fog-sheen"
+                    d={unexploredFogPath}
+                  />
+                </g>
+              )}
+
+              {visibleTiles
+                .filter(
+                  (tile) =>
+                    !revealedTileIdSet.has(tile.id) &&
+                    meteorCenterIds.has(tile.id),
+                )
+                .map((tile) => (
+                  <text
+                    key={`fog-meteor-${tile.id}`}
+                    className="hex-meteor-label"
+                    x={projectedTiles[tile.id].x}
+                    y={projectedTiles[tile.id].y}
+                    textAnchor="middle"
+                    aria-label="Meteoritenkrater in den Wolken"
+                  >
+                    ☄
+                  </text>
+                ))}
+
               {hoveredTile &&
+                revealedTileIdSet.has(hoveredTile.id) &&
                 hoveredCell &&
                 hoveredCell.points.length >= 3 &&
                 hoveredTile.id !== selectedTile.id && (
@@ -1321,7 +1453,8 @@ function HexMap({
                   />
                 )}
 
-              {selectedCell.points.length >= 3 && (
+              {selectedIsRevealed &&
+                selectedCell.points.length >= 3 && (
                 <polygon
                   className="hex-interaction-outline is-selected"
                   points={formatPolygonPoints(

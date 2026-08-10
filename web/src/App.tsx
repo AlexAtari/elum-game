@@ -36,6 +36,7 @@ import {
   resolveLandTieBreak,
   runRound,
   selectColonies,
+  selectColonyRevealedTileIds,
   selectLocalColony,
   selectOpponentTileIds,
   selectRivalColonies,
@@ -719,6 +720,10 @@ function App() {
               credits={localColony.credits}
               ore={localColony.resources.ore}
               ownedTileIds={localColony.ownedTileIds}
+              revealedTileIds={selectColonyRevealedTileIds(
+                gameState,
+                'agima',
+              )}
               opponentTileIds={opponentTileIds}
               colonies={colonies}
               meteorImpacts={gameState.meteorImpacts ?? []}

@@ -215,11 +215,18 @@ werden nie wieder verborgen. Diese Regel ist im kanonischen
 Koloniezustand implementiert und gilt für Menschen und Agenten
 identisch.
 
-Noch nicht implementiert sind die Wolkendarstellung, die Sperre von
-Feldinformationen und Interaktionen auf nicht aufgedeckten Gebieten
-sowie die teilnehmerspezifische Filterung autoritativer
-Multiplayer-Snapshots. Bis diese Pakete folgen, verändert der neue
-Zustand die sichtbare Karte noch nicht.
+Die gemeinsame Kugelkarte stellt nicht aufgedeckte Gebiete als
+zusammenhängende, organisch texturierte Wolkendecke dar. Diese wird
+aus denselben projizierten Zellen wie die Oberfläche gebildet und
+dreht sowie zoomt deshalb mit dem Planeten. Verborgene Felder zeigen
+keine Ressourcen, Besitzer, Harvester, Details oder Aktionen und sind
+weder per Touch noch Tastatur auswählbar. Öffentliche
+Meteoritenmarkierungen bleiben davon unabhängig.
+
+Noch nicht implementiert ist die teilnehmerspezifische Filterung
+autoritativ übertragener Multiplayer-Snapshots. Die gemeinsame UI
+zeigt zwar nur die Sicht des aktiven Sitzes, der Client erhält intern
+aber vorerst weiterhin den vollständigen Serverzustand.
 
 ## 6. Entfernungszonen
 
