@@ -382,7 +382,7 @@ describe('Ereignisse', () => {
     expect(
       applyLocalEvent(roundSevenState, 'ore-cache').colonies.agima
         .resources.ore,
-    ).toBe(9)
+    ).toBe(10)
     expect(
       applyLocalEvent(roundThirteenState, 'new-settlers')
         .colonies.agima.population,
@@ -793,7 +793,7 @@ describe('Markthandel', () => {
     )
 
     expect(state.colonies.agima.credits).toBe(92)
-    expect(state.colonies.agima.resources.food).toBe(11)
+    expect(state.colonies.agima.resources.food).toBe(16)
   })
 
   it('verkauft eine Einheit und erhält den Handelspreis', () => {
@@ -805,7 +805,7 @@ describe('Markthandel', () => {
     )
 
     expect(state.colonies.agima.credits).toBe(108)
-    expect(state.colonies.agima.resources.food).toBe(9)
+    expect(state.colonies.agima.resources.food).toBe(14)
   })
 
   it('verhindert Handel ohne Geld oder Vorrat', () => {
@@ -835,7 +835,7 @@ describe('Markthandel', () => {
       'warehouse',
     )
 
-    expect(state.colonies.agima.resources.food).toBe(9)
+    expect(state.colonies.agima.resources.food).toBe(14)
     expect(state.colonies.agima.credits).toBe(105)
     expect(state.market.food.warehouseStock).toBe(21)
     expect(state.market.food.netWarehouseFlow).toBe(1)
@@ -894,7 +894,7 @@ describe('Markthandel', () => {
       'energy',
     )
 
-    expect(tradedState.colonies.agima.resources.energy).toBe(11)
+    expect(tradedState.colonies.agima.resources.energy).toBe(16)
     expect(tradedState.market.energy.warehouseStock).toBe(19)
     expect(nextState.market.energy.referencePrice).toBe(9)
   })
@@ -913,7 +913,7 @@ describe('Markthandel', () => {
     )
 
     expect(tradedState.colonies.agima.credits).toBe(80)
-    expect(tradedState.colonies.agima.resources.ore).toBe(6)
+    expect(tradedState.colonies.agima.resources.ore).toBe(7)
     expect(tradedState.market.ore.warehouseStock).toBe(19)
     expect(nextState.market.ore.referencePrice).toBe(16)
   })
@@ -1247,14 +1247,18 @@ describe('Harvesterbau', () => {
     const state = orderHarvesterBuild(createInitialGameState())
 
     expect(state.colonies.agima.credits).toBe(70)
-    expect(state.colonies.agima.resources.ore).toBe(2)
+    expect(state.colonies.agima.resources.ore).toBe(3)
     expect(state.colonies.agima.harvestersInConstruction).toBe(1)
   })
 
   it('verhindert einen Auftrag bei unzureichenden Ressourcen', () => {
-    const firstOrder = orderHarvesterBuild(
-      createInitialGameState(),
-    )
+    const baseState = createInitialGameState()
+    const firstOrder = orderHarvesterBuild(withAgima(baseState, {
+      resources: {
+        ...baseState.colonies.agima.resources,
+        ore: 5,
+      },
+    }))
     const secondOrder = orderHarvesterBuild(firstOrder)
 
     expect(secondOrder).toBe(firstOrder)
@@ -1850,8 +1854,8 @@ describe('Versorgung und Bevölkerung', () => {
     )
 
     expect(result.nextState.colonies.agima.population).toBe(11)
-    expect(result.nextState.colonies.agima.resources.food).toBe(8)
-    expect(result.nextState.colonies.agima.resources.energy).toBe(8)
+    expect(result.nextState.colonies.agima.resources.food).toBe(13)
+    expect(result.nextState.colonies.agima.resources.energy).toBe(13)
     expect(result.report.populationChange).toBe(1)
   })
 
@@ -1927,7 +1931,7 @@ describe('Harvesterproduktion', () => {
 
     expect(result.report.produced.energy).toBe(4)
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
-    expect(result.nextState.colonies.agima.resources.energy).toBe(11)
+    expect(result.nextState.colonies.agima.resources.energy).toBe(16)
     expect(result.nextHarvesters[secondStartTileId]).toEqual({
       production: 'energy',
       isNew: false,

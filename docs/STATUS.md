@@ -21,6 +21,9 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 
 ## Implementiert
 
+- alle vier Kolonien starten wirtschaftlich gleich mit 15 Nahrung,
+  15 Energie, 6 Erz, einer Kristallprobe, 150 Credits und zwei
+  Harvestern
 - serialisierbare Match-Konfiguration mit vier gleichartigen
   Teilnehmersitzen für Agima, Orion, Nova und Vega
 - je Sitz getrennt konfigurierbare menschliche lokale, menschliche
@@ -511,10 +514,10 @@ Aktueller 200-Partien-Stand mit 20 Runden, Markt und den Seeds
 
 | Kolonie | Siegquote | Durchschnittsrang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Agima | 33,0 % | 2,46 | 17,2 | 190,9 |
-| Orion | 30,0 % | 2,43 | 17,2 | 185,6 |
-| Nova | 21,0 % | 2,21 | 17,6 | 90,7 |
-| Vega | 16,0 % | 2,91 | 16,9 | 114,7 |
+| Agima | 10,0 % | 2,85 | 19,6 | 209,5 |
+| Orion | 8,5 % | 2,98 | 19,1 | 213,9 |
+| Nova | 34,0 % | 1,94 | 21,5 | 59,2 |
+| Vega | 47,5 % | 1,85 | 22,4 | 24,6 |
 
 Die Seriensimulation verwendet jetzt dieselbe lexikografische
 Schlusswertung wie die Browserpartie: Bevölkerung,
@@ -524,16 +527,22 @@ entscheidet keine Partie.
 
 Systemische Beobachtungen aus dem aktuellen Lauf:
 
-- 154 unterschiedliche Endergebnisse
-- 140,9 Markttransaktionen je Partie
-- 2,1 direkte Spielertransaktionen je Partie
-- direkter Handelsanteil 1,5 %
-- 137,8 HQ-Lagertransaktionen je Partie
+- 129 unterschiedliche Endergebnisse
+- 164,2 Markttransaktionen je Partie
+- 4,1 direkte Spielertransaktionen je Partie
+- direkter Handelsanteil 2,5 %
+- 159,1 HQ-Lagertransaktionen je Partie
 - 1,0 Verkauf an den interstellaren Käufer je Partie
 - durchschnittlich 2,4 Meteore je Partie
-- 8,70 Versorgungssignale je Partie
-- davon 372 Bevölkerungsrückgänge, 259 leere Nahrungs- und
-  137 leere Energiebestände
+- 2,67 Versorgungssignale je Partie
+- davon 240 Bevölkerungsrückgänge, 266 leere Nahrungs- und
+  9 leere Energiebestände
+
+Diese aktuelle Referenz verwendet das erhöhte gemeinsame Startlager
+von 15 Nahrung, 15 Energie und 6 Erz. Es löst die frühen
+Energieengpässe deutlich, verschiebt die Siegquote aber zugunsten von
+Nova und Vega auf eine Spanne von 8,5 bis 47,5 Prozent. Diese
+Profilverschiebung ist der wichtigste offene Balancingpunkt.
 
 Der Versorgungssprung am elften Einwohner ist als wahrscheinlichster
 systemischer Engpass identifiziert: normale HQ-Versorgung steigt dort
@@ -543,7 +552,9 @@ sechs Einheiten. Geglättete Verbrauchsschwellen und höhere
 Grundproduktion müssen als getrennte Zahlenvarianten simuliert werden,
 bevor eine Balancingänderung übernommen wird.
 
-Die Seriensimulation besitzt inzwischen eine ausdrücklich isolierte
+Die folgenden isolierten Varianten wurden noch mit dem früheren
+Startlager von 10 Nahrung, 10 Energie und 5 Erz verglichen. Die
+Seriensimulation besitzt eine ausdrücklich isolierte
 Versorgungsvariante `smoothed`: Bei 11–15 Einwohnern benötigt die
 Normalversorgung drei statt sofort vier Einheiten Nahrung und
 HQ-Energie; ab 16 Einwohnern gelten wieder vier. Browser und
@@ -568,11 +579,13 @@ Produktionsmodell `current`.
 Die Batchauswertung misst zusätzlich das Mittelspiel der Runden 5–12
 je Agentenprofil: Produktion und Verbrauch, Lagerstände,
 Harvester-Energieausfälle, freie Harvester, Marktaktivität und
-Versorgungssignale. Im unveränderten Modell stehen durchschnittlich
-nur 0,03 bis 0,23 Harvester ungenutzt bereit, während in 52,4 bis
-67,7 Prozent der Mittelspielrunden mindestens ein eingesetzter
-Harvester wegen Energie ausfällt. Nahrung und Energie werden im
-Mittel leicht unter dem laufenden Bedarf produziert.
+Versorgungssignale. Mit dem früheren Startlager standen
+durchschnittlich nur 0,03 bis
+0,23 Harvester ungenutzt bereit, während in 52,4 bis 67,7 Prozent der
+Mittelspielrunden mindestens ein eingesetzter Harvester wegen Energie
+ausfiel. Mit dem neuen Startlager sinkt die Ausfallquote auf 22,3 bis
+54,1 Prozent; freie Harvester bleiben mit höchstens 0,01 weiterhin
+praktisch bedeutungslos.
 
 Die isolierte Analysevariante `energy-boosted` erhöht nur die
 Energieproduktion in jeder zweiten Runde. Sie reduziert leere
@@ -581,7 +594,8 @@ Mittelspiel auf 27,6 bis 48,7 Prozent. Weil zugleich
 Nahrungsleerstände auf 282 steigen, die Endbevölkerung auf 21,6 bis
 22,5 wächst und die Siegquote auf 13,5 bis 35,5 Prozent auseinander
 geht, bleibt auch diese Variante aus Browser und Multiplayer
-ausgeschlossen. Die implementierten Spielregeln bleiben unverändert.
+ausgeschlossen. Produktions- und Verbrauchsregeln bleiben dadurch
+unverändert.
 
 Die gemeinsame Agentenregel erlaubt die erste Expansion von zwei auf
 drei Harvester bereits bei sicherer Versorgung der unmittelbar
@@ -605,17 +619,17 @@ Kristallmarkt schon vor dem Erreichen einer natürlichen Ader
 wirtschaftlich relevant, ohne die kristallfreien Startgrundstücke zu
 verändern.
 
-Im Referenzlauf enden die Kolonien mit durchschnittlich 3,0
-Harvestern und 3,3 bis 3,5 Grundstücken. Die erste
+Im Referenzlauf enden die Kolonien mit durchschnittlich 3,0 bis 3,1
+Harvestern und 4,2 bis 4,8 Grundstücken. Die erste
 Harvestererweiterung liegt im Mittel um Runde 3,0; das erste
-zusätzliche Grundstück je nach Kolonie zwischen Runde 4,24 und 5,52.
+zusätzliche Grundstück je nach Kolonie zwischen Runde 2,66 und 4,0.
 Die Seriensimulation vergibt ausschließlich kristallfreie
 Startgrundstücke und misst Folgeexpansion, Fernzonen und natürliche
-Adern getrennt. Die durchschnittlich größte HQ-Distanz steigt auf
-3,6 bis 3,9. Je nach Kolonie wird die Fernzone in 11,0 bis 20,5
-Prozent und ein natürlicher Aderausläufer in 32,5 bis 40,5 Prozent der
-Partien erreicht. Das ist ein messbarer Fortschritt, aber noch keine
-zuverlässige Fernzonenerschließung.
+Adern getrennt. Die durchschnittlich größte HQ-Distanz liegt bei
+4,4 bis 4,7. Je nach Kolonie wird die Fernzone in 44,5 bis 68,5
+Prozent und ein natürlicher Aderausläufer in 44,5 bis 50,5 Prozent der
+Partien erreicht. Die Erschließung ist damit deutlich häufiger,
+profitiert aber ebenfalls ungleich vom höheren Startlager.
 
 ## Aktuelle UI-Akzeptanzkriterien
 
@@ -640,13 +654,15 @@ Nach UI- und Dokumentationsarbeiten:
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
 2. Produktions- und Marktentscheidungen stärker differenzieren,
    damit Angebot und Nachfrage nicht synchron verlaufen,
-3. die Harvester-Energie-Notfalllogik untersuchen, um Ausfälle zu
+3. die durch das höhere Startlager verstärkte Bevorzugung von Nova
+   und Vega in den Agentenentscheidungen ausgleichen,
+4. die Harvester-Energie-Notfalllogik untersuchen, um Ausfälle zu
    reduzieren, ohne Produktion, Bevölkerung oder HQ-Sicherheitsnetz
    pauschal zu vergrößern,
-4. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
+5. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
    dass Kristalladern
    innerhalb von 20 Runden tatsächlich erreichbar werden,
-5. Karten- und Ereignisbalancing mit Playtests prüfen.
+6. Karten- und Ereignisbalancing mit Playtests prüfen.
 
 ## Später, nicht Teil des aktuellen Kerns
 

@@ -1999,11 +1999,18 @@ export function getHexDistanceFromHq(tile: Tile) {
   return tile.distanceFromHq
 }
 
+export const STARTING_CREDITS = 150
+export const STARTING_HARVESTERS = 2
+export const STARTING_FOOD = 15
+export const STARTING_ENERGY = 15
+export const STARTING_ORE = 6
+export const STARTING_CRYSTALS = 1
+
 export function createInitialGameState(): GameState {
   const emptyResources = {
-    food: 10,
-    energy: 10,
-    ore: 5,
+    food: STARTING_FOOD,
+    energy: STARTING_ENERGY,
+    ore: STARTING_ORE,
     crystals: 0,
   }
 
@@ -2123,10 +2130,6 @@ export function createInitialGameState(): GameState {
     },
   }
 }
-
-export const STARTING_CREDITS = 150
-export const STARTING_HARVESTERS = 2
-export const STARTING_CRYSTALS = 1
 
 export function createPlayableInitialGameState(
   meteorSeed: number = 1,

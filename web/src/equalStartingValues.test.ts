@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   STARTING_CREDITS,
   STARTING_CRYSTALS,
+  STARTING_ENERGY,
+  STARTING_FOOD,
   STARTING_HARVESTERS,
+  STARTING_ORE,
   createPlayableInitialGameState,
   selectOpponentTileIds,
 } from './game'
@@ -24,16 +27,22 @@ describe('Gleiche Startwerte aller Spieler', () => {
     }
   })
 
-  it('verwendet 150 Credits, zwei Harvester und eine Kristallprobe', () => {
+  it('verwendet die gemeinsamen wirtschaftlichen Startwerte', () => {
     expect(STARTING_CREDITS).toBe(150)
     expect(STARTING_HARVESTERS).toBe(2)
+    expect(STARTING_FOOD).toBe(15)
+    expect(STARTING_ENERGY).toBe(15)
+    expect(STARTING_ORE).toBe(6)
     expect(STARTING_CRYSTALS).toBe(1)
 
     const state = createPlayableInitialGameState()
 
-    expect(state.colonies.agima.resources.crystals).toBe(
-      STARTING_CRYSTALS,
-    )
+    expect(state.colonies.agima.resources).toEqual({
+      food: STARTING_FOOD,
+      energy: STARTING_ENERGY,
+      ore: STARTING_ORE,
+      crystals: STARTING_CRYSTALS,
+    })
     for (const rival of Object.values(state.colonies)) {
       expect(rival.resources.crystals).toBe(
         STARTING_CRYSTALS,

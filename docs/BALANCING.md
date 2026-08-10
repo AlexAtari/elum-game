@@ -40,33 +40,32 @@ lexikografischen Wertung wie im Browser bestimmt.
 
 | Kolonie | Siegquote | Ø Rang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Agima | 33,0 % | 2,46 | 17,2 | 190,9 |
-| Orion | 30,0 % | 2,43 | 17,2 | 185,6 |
-| Nova | 21,0 % | 2,21 | 17,6 | 90,7 |
-| Vega | 16,0 % | 2,91 | 16,9 | 114,7 |
+| Agima | 10,0 % | 2,85 | 19,6 | 209,5 |
+| Orion | 8,5 % | 2,98 | 19,1 | 213,9 |
+| Nova | 34,0 % | 1,94 | 21,5 | 59,2 |
+| Vega | 47,5 % | 1,85 | 22,4 | 24,6 |
 
 Der breitere Ökonomiewert aus Ressourcen, Bevölkerung, Harvestern und
 Land dient ausschließlich der Diagnose. Er ist kein
 Gleichstandskriterium.
 
-Der Lauf erzeugt durchschnittlich 140,9 Markttransaktionen und 8,70
-Versorgungssignale je Partie. 1,5 % des Volumens sind direkte
+Der Lauf erzeugt durchschnittlich 164,2 Markttransaktionen und 2,67
+Versorgungssignale je Partie. 2,5 % des Volumens sind direkte
 Geschäfte zwischen Kolonien.
 
-Die Versorgungssignale bestätigen einen auffälligen Schwellenwert:
-Bei normaler Versorgung verdoppelt der elfte Einwohner durch die
-zweite angefangene Zehnergruppe den HQ-Bedarf sofort von zwei auf vier
-Nahrung und Energie. Zusammen mit zwei aktiven Harvestern steigt der
-gesamte Energiebedarf damit von vier auf sechs. Im aktuellen Lauf
-treten 372 Bevölkerungsrückgänge, 259 leere Nahrungs- und 137 leere
-Energiebestände auf. Eine Zahlenänderung ist daraus noch nicht
-abgeleitet; als nächster Vergleich sind eine geglättete
-Versorgungsschwelle und behutsam höhere Grundproduktion getrennt zu
-simulieren.
+Das auf 15 Nahrung, 15 Energie und 6 Erz erhöhte Startlager reduziert
+die frühen Engpässe deutlich. Im aktuellen Lauf treten 240
+Bevölkerungsrückgänge, 266 leere Nahrungs- und nur noch 9 leere
+Energiebestände auf. Gleichzeitig profitieren die expansiven Profile
+überproportional: Die Siegquote reicht nun von 8,5 bis 47,5 Prozent.
+Die Startreserve ist als Spielregel übernommen; die dadurch sichtbar
+gewordene Profilverschiebung bleibt ein offener Balancingpunkt.
 
 ### Isolierter Vergleich: geglätteter Normalbedarf
 
-Die Headless-Simulation kann neben dem unveränderten Standardmodell
+Die folgenden Varianten wurden noch gegen den früheren Startbestand
+von 10 Nahrung, 10 Energie und 5 Erz gemessen. Die
+Headless-Simulation kann neben dem unveränderten Standardmodell
 `grouped` eine reine Analysevariante `smoothed` ausführen. Dort bleibt
 der Normalbedarf bis zehn Einwohner bei zwei Einheiten und steigt
 anschließend alle fünf Einwohner um eine Einheit: 11–15 Einwohner
@@ -109,7 +108,8 @@ Harvester, Marktteilnahmen und Versorgungssignale. Die Produktion
 wird aus Lageränderung, tatsächlichem Verbrauch und dem Marktfluss
 derselben Runde rekonstruiert.
 
-Im unveränderten Referenzlauf liegt die Nahrungsproduktion im
+Im früheren Referenzlauf mit 10 Nahrung, 10 Energie und 5 Erz liegt
+die Nahrungsproduktion im
 Mittelspiel je nach Kolonie bei 2,9–3,4 Einheiten gegenüber 3,5–4,0
 Verbrauch. Energie liegt bei 4,0–4,6 Produktion gegenüber 4,4–5,2
 Gesamtverbrauch. Harvester fallen deshalb in 52,4–67,7 Prozent der
@@ -142,10 +142,10 @@ Nach dem dritten Harvester dürfen Agenten bis zu zwei zusätzliche
 Prospektionsfelder zum Mindestgebot erschließen. Diese Route ist bei
 akuter Versorgungskrise gesperrt, hält 10 Credits Restreserve und
 bewertet äußere angrenzende Felder stärker, ohne deren Ressourcenwert
-zu ignorieren. Dadurch erreichen die Kolonien die Fernzone nun in
-11,0 bis 20,5 Prozent und natürliche Aderausläufer in 32,5 bis
-40,5 Prozent der Partien. Die durchschnittlich größte HQ-Distanz
-steigt auf 3,6 bis 3,9.
+zu ignorieren. Mit dem erhöhten Startlager erreichen die Kolonien die
+Fernzone nun in 44,5 bis 68,5 Prozent und natürliche Aderausläufer in
+44,5 bis 50,5 Prozent der Partien. Die durchschnittlich größte
+HQ-Distanz liegt bei 4,4 bis 4,7.
 
 Für den Ausbau von zwei auf drei Harvester gilt ein gemeinsames,
 profilunabhängiges Sicherheitsfenster. Die Kolonie muss die
@@ -179,9 +179,9 @@ Ertrag.
 | Grundstücke | 2 |
 | Credits | 150 |
 | Bevölkerung | 10 |
-| Nahrung | 10 |
-| Energie | 10 |
-| Erz | 5 |
+| Nahrung | 15 |
+| Energie | 15 |
+| Erz | 6 |
 | Kristalle | 1 |
 
 Der Startkristall ist eine mitgebrachte Probe im Lager und kein Ertrag

@@ -79,7 +79,7 @@ vermischt werden.
 - Erz
 - Kristalle
 - Credits
-- Startlager jeder Kolonie: 10 Nahrung, 10 Energie, 5 Erz und eine
+- Startlager jeder Kolonie: 15 Nahrung, 15 Energie, 6 Erz und eine
   mitgebrachte Kristallprobe; die zwei Startfelder bleiben
   kristallfrei
 
@@ -173,7 +173,8 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
 
 ## Aktuelle Schwerpunktlage
 
-- Agentensiegquoten sind ausgeglichen.
+- Das erhöhte Startlager reduziert frühe Versorgungssignale deutlich,
+  begünstigt in der aktuellen Seriensimulation aber Nova und Vega.
 - Direkter Handel ist im Vergleich zum HQ-Lager zu selten.
 - Versorgungswarnungen treten zu häufig auf.
 - Die Mittelspielmessung lokalisiert den Engpass bei der Energie für
@@ -536,15 +537,15 @@ werden.
 4. später optional eine alternative grafische Polyederentfaltung
 
 Die 20-Runden-Seriensimulation wertet inzwischen nach derselben
-Reihenfolge wie die Browserpartie. Der korrigierte Referenzlauf mit
-200 Partien und ausschließlich kristallfreien Startgrundstücken liegt
-zwischen 16,0 % und 33,0 % Siegen. Die gemeinsame erste
+Reihenfolge wie die Browserpartie. Der aktuelle Referenzlauf mit
+200 Partien, kristallfreien Startgrundstücken und dem erhöhten
+Startlager liegt zwischen 8,5 % und 47,5 % Siegen. Die gemeinsame erste
 Expansion baut bei sicherer Folgerunde von zwei auf drei Harvester und
 schützt nach Bau beziehungsweise Mindestgebot 20 Credits. Nach dem
 dritten Harvester dürfen Agenten bis zu zwei unbewirtschaftete
 Prospektionsfelder zum Mindestgebot erschließen; akute Versorgung
 sperrt den Kauf, und 10 Credits bleiben geschützt. Im Mittel enden die
-Kolonien mit 3,0 Harvestern und 3,3 bis 3,5 Grundstücken.
+Kolonien mit 3,0 bis 3,1 Harvestern und 4,2 bis 4,8 Grundstücken.
 
 Kristalle sind inzwischen eine gemeinsame vierte
 Harvesterproduktion; Meteore und der interstellare Käufer laufen auch
@@ -552,11 +553,12 @@ in der Headless-Simulation. Jede Kolonie startet mit einer
 Kristallprobe. Der 200-Partien-Lauf erzeugt 2,4 Meteore und
 1,0 interstellare Käufertransaktion je Partie. Die neue
 Expansionsdiagnose misst eine durchschnittlich größte HQ-Distanz von
-3,6 bis 3,9, 11,0 bis 20,5 Prozent Partien mit erreichter Fernzone und
-32,5 bis 40,5 Prozent mit Zugriff auf einen natürlichen Aderausläufer.
+4,4 bis 4,7, 44,5 bis 68,5 Prozent Partien mit erreichter Fernzone und
+44,5 bis 50,5 Prozent mit Zugriff auf einen natürlichen Aderausläufer.
 
-Die aktuelle Standardserie erzeugt 8,70 Versorgungssignale je Partie.
-Eine isolierte Headless-Variante glättet den Normalbedarf bei 11–15
+Die aktuelle Standardserie erzeugt 2,67 Versorgungssignale je Partie.
+Die folgenden isolierten Varianten stammen noch vom früheren
+Startlager: Eine Headless-Variante glättet den Normalbedarf bei 11–15
 Einwohnern auf drei Einheiten und senkt die Signale auf 4,20; zugleich
 steigen leere Nahrungslager von 259 auf 433 und Vegas mittlere Credits
 fallen auf 36,8. Browser und Multiplayer bleiben deshalb unverändert
@@ -565,8 +567,9 @@ zusätzlichen Nahrungs- oder Energieeinheit in jeder zweiten Runde
 senkt die Versorgungssignale auf 3,91, beide Arten leerer Lager und
 erhöht die Fernzonenquote auf 24,5 bis 42,5 Prozent. Sie treibt die
 Endbevölkerung aber auf 22,9 bis 24,1 und bleibt deshalb ebenfalls
-eine reine Headless-Analyse. Als nächstes ist eine noch kleinere oder
-gezielter ausgelöste Produktionshilfe zu vergleichen.
+eine reine Headless-Analyse. Als nächstes ist die durch das erhöhte
+Startlager sichtbar gewordene Bevorzugung von Nova und Vega zu
+untersuchen.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->
