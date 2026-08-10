@@ -8,6 +8,7 @@ import {
   STARTING_HARVESTERS,
   advanceRivalColonies,
   createPlayableInitialGameState,
+  getRevealedTileIdsForColony,
   playableMarketResources,
   selectLocalColony,
   selectRivalColonies,
@@ -339,6 +340,10 @@ function toCanonicalRival(
     harvestersInConstruction:
       colony.harvestersInConstruction ?? 0,
     ownedTileIds: colony.ownedTileIds ?? [],
+    revealedTileIds: getRevealedTileIdsForColony(
+      colony.ownedTileIds ?? [],
+      colony.revealedTileIds ?? [],
+    ),
     crystalDiscoveryRoundByTileId:
       colony.crystalDiscoveryRoundByTileId ?? {},
     harvesterAssignments:
@@ -1276,6 +1281,10 @@ function applyStartingLand(
   return {
     ...colony,
     ownedTileIds: [...startingLand.tileIds],
+    revealedTileIds: getRevealedTileIdsForColony(
+      startingLand.tileIds,
+      colony.revealedTileIds ?? [],
+    ),
     crystalDiscoveryRoundByTileId: Object.fromEntries(
       startingLand.tileIds.map((tileId) => [tileId, 1]),
     ),
@@ -1462,6 +1471,13 @@ function applyAgimaLandPurchase(
             ...state.game.colonies.agima.ownedTileIds,
             decision.tileId,
           ],
+          revealedTileIds: getRevealedTileIdsForColony(
+            [
+              ...state.game.colonies.agima.ownedTileIds,
+              decision.tileId,
+            ],
+            state.game.colonies.agima.revealedTileIds,
+          ),
           crystalDiscoveryRoundByTileId: {
             ...state.game.colonies.agima
               .crystalDiscoveryRoundByTileId,
@@ -1478,6 +1494,13 @@ function applyAgimaLandPurchase(
         ...(state.agima.ownedTileIds ?? []),
         decision.tileId,
       ],
+      revealedTileIds: getRevealedTileIdsForColony(
+        [
+          ...(state.agima.ownedTileIds ?? []),
+          decision.tileId,
+        ],
+        state.agima.revealedTileIds ?? [],
+      ),
       crystalDiscoveryRoundByTileId: {
         ...(state.agima.crystalDiscoveryRoundByTileId ?? {}),
         [decision.tileId]: state.game.round + 2,

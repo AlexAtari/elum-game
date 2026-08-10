@@ -199,6 +199,14 @@ drehbaren Kugelprojektion. Alle Felder sind durch Drehen erreichbar
 und auswählbar. Eine mögliche spätere Polyederentfaltung würde
 denselben Graphen verwenden.
 
+Jede Kolonie beginnt mit Sicht auf ihre beiden Startgrundstücke und
+deren direkte Nachbarn. Beim Erwerb eines Grundstücks werden dieses
+Feld und seine direkten Nachbarn dauerhaft aufgedeckt; einmal
+bekannte Gebiete verschwinden nicht wieder im Nebel. Nicht
+aufgedeckte Gebiete zeigen weder Ressourcen noch Feldinformationen
+oder Aktionen. Der verdeckte Kristallwert folgt unabhängig davon
+weiterhin seiner eigenen Explorationsregel.
+
 Der Planet verwendet eine gemeinsame fotorealistische, marsartige
 Oberflächentextur aus oxidiertem Rostboden, Terrakotta, staubigem
 Ocker und dunklem Basalt. Feiner Regolith, Sedimentschichten,

@@ -200,7 +200,28 @@ der Besitzübertragung erneut.
 Mehrere unabhängige Konflikte können mehrere nacheinander ausgeführte
 Grundstücksauktionen erzeugen.
 
-## 5. Entfernungszonen
+## 5. Gebietsentdeckung
+
+Jede Kolonie führt eine eigene, dauerhaft gespeicherte Liste
+aufgedeckter Feld-IDs. Zu Spielbeginn enthält sie:
+
+- die zwei eigenen Startgrundstücke,
+- sämtliche direkten Nachbarn dieser beiden Grundstücke,
+- dadurch auch das angrenzende gemeinsame HQ.
+
+Beim Erwerb eines weiteren Grundstücks werden das neue Feld und alle
+seine direkten Nachbarn dauerhaft ergänzt. Bereits aufgedeckte Felder
+werden nie wieder verborgen. Diese Regel ist im kanonischen
+Koloniezustand implementiert und gilt für Menschen und Agenten
+identisch.
+
+Noch nicht implementiert sind die Wolkendarstellung, die Sperre von
+Feldinformationen und Interaktionen auf nicht aufgedeckten Gebieten
+sowie die teilnehmerspezifische Filterung autoritativer
+Multiplayer-Snapshots. Bis diese Pakete folgen, verändert der neue
+Zustand die sichtbare Karte noch nicht.
+
+## 6. Entfernungszonen
 
 Die Zonen werden über die kürzeste Zahl von Feldschritten zum HQ
 bestimmt. Es gibt keinen Kartenrand.
@@ -224,7 +245,7 @@ Damit wird kein Distanzring künstlich geteilt. Die gegenüber dem alten
 Zielwert größere Fernzone entsteht wie vorgesehen zulasten der inneren
 Zone und wird später in Simulationen überprüft.
 
-## 6. Natürliche Kristalladern
+## 7. Natürliche Kristalladern
 
 Die Karte enthält vier deterministisch erzeugte natürliche
 Kristalladern. Jede Ader umfasst in der ersten Implementierung zehn
@@ -271,7 +292,7 @@ kontrastunterlegte Maschinenmarkierung gezeigt. Der Koloniename bleibt
 zusätzlich sichtbar, damit ein Harvester die Besitzinformation nicht
 verdeckt.
 
-## 7. Kristallmarkt und Transporte
+## 8. Kristallmarkt und Transporte
 
 Die Kristallauktion funktioniert grundsätzlich wie die Märkte für
 Nahrung, Energie und Erz. Spieler können als Käufer oder Verkäufer
@@ -332,7 +353,7 @@ Hochsicherheits-Raumschiffen abgeholt. Diese Werttransporter:
 - bringen keine Versorgungsgüter oder Personen,
 - sind unabhängig vom Versorgungsschiff.
 
-## 8. Versorgungsschiff und Spielende
+## 9. Versorgungsschiff und Spielende
 
 Die Standardpartie umfasst 20 vollständig abgerechnete Runden.
 
@@ -353,7 +374,7 @@ Kristall. Eine einzelne Transaktion setzt ihn nicht direkt. Gab es in
 einer Runde keinen Kristallhandel, bleibt der Kurs unverändert; gab es
 in der gesamten Partie keinen, gilt der Referenzkurs von 40 Credits.
 
-## 9. Meteoriten
+## 10. Meteoriten
 
 ### Häufigkeit
 
@@ -423,7 +444,7 @@ Seiteneffekte. Die Zwischenrangliste meldet das öffentliche Zentrum,
 und die Karte markiert es dauerhaft als Krater. Auf freien und
 gegnerischen Feldern bleiben die exakten Werte verborgen.
 
-## 10. Pentagone
+## 11. Pentagone
 
 Pentagone sind normale erwerbbare Grundstücke. Der einzige feste
 Unterschied ist ihre Nachbarschaft:
@@ -441,7 +462,7 @@ Vorläufig ausgeschlossen sind:
 - natürliche 5-Sterne-Kerne auf Pentagonen,
 - Meteorzentren auf Pentagonen.
 
-## 11. Umsetzungsreihenfolge
+## 12. Umsetzungsreihenfolge
 
 Abgeschlossen:
 

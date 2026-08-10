@@ -130,6 +130,8 @@ vermischt werden.
   Match-Konfiguration als Multiplayer-Grundlage
 - `web/src/planetMap.ts`: Kartengraph, Graphdistanzen und getrennte
   Layoutpositionen; enthält Prototyp- und 92-Felder-Zielgraph
+- `GameState.colonies[*].revealedTileIds`: dauerhafter individueller
+  Sichtfortschritt aus eigenen Feldern und deren direkten Nachbarn
 - `web/src/App.tsx`: sichtbarer Ablauf
 - `web/src/components/`: UI
 - `web/src/agents.ts`: gemeinsame Agentenlogik

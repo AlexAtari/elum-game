@@ -13,6 +13,7 @@ import {
   placeLandBid,
   removePlayerHarvester,
   runRound,
+  selectColonyRevealedTileIds,
   selectColonies,
   selectOpponentTileIds,
   selectRivalColonies,
@@ -71,6 +72,33 @@ describe('Gemeinsame Kolonieansicht', () => {
       expect(colony.harvesters).toBe(STARTING_HARVESTERS)
       expect(colony.harvestersInConstruction).toBe(0)
       expect(colony.ownedTileIds).toHaveLength(2)
+      expect(colony.revealedTileIds).toEqual(
+        selectColonyRevealedTileIds(state, participantId),
+      )
+    }
+  })
+
+  it('deckt zu Beginn eigene Grundstücke und deren direkte Nachbarn auf', () => {
+    const state = createPlayableInitialGameState()
+
+    for (const participantId of participantIds) {
+      const colony = state.colonies[participantId]
+      const expectedTileIds = new Set(
+        colony.ownedTileIds.flatMap((tileId) => {
+          const tile = tiles.find(
+            (candidate) => candidate.id === tileId,
+          )!
+
+          return [tileId, ...tile.neighborIds]
+        }),
+      )
+
+      expect(new Set(colony.revealedTileIds)).toEqual(
+        expectedTileIds,
+      )
+      expect(colony.revealedTileIds.length).toBeLessThan(
+        tiles.length,
+      )
     }
   })
 
@@ -141,6 +169,35 @@ describe('Gemeinsame Kolonieansicht', () => {
     )
     expect(selectOpponentTileIds(withNovaLand)).not.toContain(
       'TEST-AGIMA',
+    )
+  })
+
+  it('deckt beim Grundstückserwerb dessen Nachbarn dauerhaft nur für den Käufer auf', () => {
+    const state = createPlayableInitialGameState()
+    const tileId = getFreeAdjacentTileId(state)
+    const tile = tiles.find(
+      (candidate) => candidate.id === tileId,
+    )!
+    const previousRevealedTileIds = new Set(
+      state.colonies.agima.revealedTileIds,
+    )
+    const previousNovaRevealedTileIds =
+      state.colonies.nova.revealedTileIds
+    const next = addColonyOwnedTile(
+      state,
+      'agima',
+      tileId,
+    )
+
+    expect(next.colonies.agima.revealedTileIds).toEqual(
+      expect.arrayContaining([
+        tileId,
+        ...tile.neighborIds,
+        ...previousRevealedTileIds,
+      ]),
+    )
+    expect(next.colonies.nova.revealedTileIds).toEqual(
+      previousNovaRevealedTileIds,
     )
   })
 

@@ -111,6 +111,13 @@ dort teilnehmerbezogen. Frühere Agima-Felder auf der Wurzel,
 `opponentTileIds` und der separate `rivals`-Record wurden entfernt.
 Gegnerischer Besitz wird bei Bedarf aus der Kolonie-Map abgeleitet.
 
+Jede Kolonie speichert zusätzlich ihre eigenen `revealedTileIds`.
+Die UI-unabhängige Kartenregel initialisiert sie aus Startbesitz und
+direkten Nachbarn und erweitert sie beim Grundstückserwerb dauerhaft.
+Dieser kanonische Zustand ist die Grundlage für den späteren
+Wolken-Layer und teilnehmerspezifisch gefilterte
+Multiplayer-Snapshots; die Filterung selbst ist noch nicht aktiv.
+
 `ColonyEconomyState` definiert die gemeinsamen Wirtschaftsfelder.
 `selectColonies`, `selectLocalColony` und `selectRivalColonies`
 stellen gezielte Leseansichten auf der kanonischen Map bereit.

@@ -131,6 +131,7 @@ export type ColonyState = ColonyEconomyState & {
   icon: string
   harvestersInConstruction: number
   ownedTileIds: string[]
+  revealedTileIds: string[]
   crystalDiscoveryRoundByTileId: Record<string, number>
   harvesterAssignments:
     | HarvesterAssignments
@@ -152,6 +153,7 @@ export type RivalColonyState = ColonyEconomyState & {
   icon: string
   harvestersInConstruction?: number
   ownedTileIds?: string[]
+  revealedTileIds?: string[]
   crystalDiscoveryRoundByTileId?: Record<string, number>
   harvesterAssignments?: Partial<
     Record<string, ProductionType>
@@ -1267,6 +1269,42 @@ export function selectOtherColonyTileIds(
   )
 }
 
+export function getRevealedTileIdsForColony(
+  ownedTileIds: readonly string[],
+  previouslyRevealedTileIds: readonly string[] = [],
+): string[] {
+  const revealedTileIds = new Set([
+    ...previouslyRevealedTileIds,
+    ...ownedTileIds,
+  ])
+  const tilesById = new Map(
+    targetPlanetMap.tiles.map((tile) => [tile.id, tile]),
+  )
+
+  for (const ownedTileId of ownedTileIds) {
+    for (const neighborId of
+      tilesById.get(ownedTileId)?.neighborIds ?? []) {
+      revealedTileIds.add(neighborId)
+    }
+  }
+
+  return targetPlanetMap.tiles
+    .map((tile) => tile.id)
+    .filter((tileId) => revealedTileIds.has(tileId))
+}
+
+export function selectColonyRevealedTileIds(
+  currentState: GameState,
+  participantId: ParticipantId,
+): string[] {
+  const colony = currentState.colonies[participantId]
+
+  return getRevealedTileIdsForColony(
+    colony.ownedTileIds,
+    colony.revealedTileIds ?? [],
+  )
+}
+
 export function isColonyLandTargetAdjacent(
   currentState: GameState,
   participantId: ParticipantId,
@@ -1328,14 +1366,25 @@ export function addColonyOwnedTile(
   return updateColony(
     currentState,
     participantId,
-    (currentColony) => ({
-      ...currentColony,
-      ownedTileIds: [...currentColony.ownedTileIds, tileId],
-      crystalDiscoveryRoundByTileId: {
-        ...currentColony.crystalDiscoveryRoundByTileId,
-        [tileId]: currentState.round + 2,
-      },
-    }),
+    (currentColony) => {
+      const ownedTileIds = [
+        ...currentColony.ownedTileIds,
+        tileId,
+      ]
+
+      return {
+        ...currentColony,
+        ownedTileIds,
+        revealedTileIds: getRevealedTileIdsForColony(
+          ownedTileIds,
+          currentColony.revealedTileIds ?? [],
+        ),
+        crystalDiscoveryRoundByTileId: {
+          ...currentColony.crystalDiscoveryRoundByTileId,
+          [tileId]: currentState.round + 2,
+        },
+      }
+    },
   )
 }
 
@@ -2031,6 +2080,9 @@ export function createInitialGameState(): GameState {
         resources: { ...emptyResources },
         harvestersInConstruction: 0,
         ownedTileIds: [...PLAYER_START_TILE_IDS],
+        revealedTileIds: getRevealedTileIdsForColony(
+          PLAYER_START_TILE_IDS,
+        ),
         crystalDiscoveryRoundByTileId: Object.fromEntries(
           PLAYER_START_TILE_IDS.map((tileId) => [tileId, 1]),
         ),
@@ -2052,6 +2104,7 @@ export function createInitialGameState(): GameState {
         harvesters: 2,
         harvestersInConstruction: 0,
         ownedTileIds: [],
+        revealedTileIds: [],
         crystalDiscoveryRoundByTileId: {},
         harvesterAssignments: {},
         freeHarvesterPool: [],
@@ -2071,6 +2124,7 @@ export function createInitialGameState(): GameState {
         harvesters: 2,
         harvestersInConstruction: 0,
         ownedTileIds: [],
+        revealedTileIds: [],
         crystalDiscoveryRoundByTileId: {},
         harvesterAssignments: {},
         freeHarvesterPool: [],
@@ -2090,6 +2144,7 @@ export function createInitialGameState(): GameState {
         harvesters: 3,
         harvestersInConstruction: 0,
         ownedTileIds: [],
+        revealedTileIds: [],
         crystalDiscoveryRoundByTileId: {},
         harvesterAssignments: {},
         freeHarvesterPool: [],
@@ -2175,6 +2230,9 @@ export function createPlayableInitialGameStateForMatch(
             ownedTileIds: [
               ...match.participants[participantId].startTileIds,
             ],
+            revealedTileIds: getRevealedTileIdsForColony(
+              match.participants[participantId].startTileIds,
+            ),
             crystalDiscoveryRoundByTileId:
               Object.fromEntries(
                 match.participants[
