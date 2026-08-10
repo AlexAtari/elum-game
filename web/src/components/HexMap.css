@@ -619,6 +619,10 @@
   filter: url('#unexplored-cloud-filter');
 }
 
+.hex-map.is-interacting .planet-fog-cloud-bank {
+  filter: none;
+}
+
 .planet-fog-puff {
   fill: url('#unexplored-cloud-puff');
 }

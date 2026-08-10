@@ -13,7 +13,7 @@ import {
   targetPlanetMap,
 } from '../planetMap'
 import {
-  unprojectPlanetViewPosition,
+  createPlanetViewUnprojector,
   type PlanetRotation,
 } from '../planetProjection'
 import {
@@ -49,6 +49,7 @@ const TINT_TEXTURE_WIDTH = 512
 const TINT_TEXTURE_HEIGHT = 256
 const TINT_NEUTRAL_VALUE = 128
 const MAX_RENDER_SIZE = 620
+const MAX_MOBILE_RENDER_SIZE = 420
 
 function clampByte(value: number) {
   return Math.round(Math.min(255, Math.max(0, value)))
@@ -238,9 +239,14 @@ export function PlanetSurface({
 
     const updateSize = () => {
       const bounds = canvas.getBoundingClientRect()
+      const maximumRenderSize = window.matchMedia(
+        '(max-width: 680px)',
+      ).matches
+        ? MAX_MOBILE_RENDER_SIZE
+        : MAX_RENDER_SIZE
       const outputScale = Math.min(
         window.devicePixelRatio || 1,
-        MAX_RENDER_SIZE /
+        maximumRenderSize /
           Math.max(bounds.width, bounds.height, 1),
       )
 
@@ -335,6 +341,10 @@ export function PlanetSurface({
       canvas.height - 1,
       Math.ceil(centerY + planetRadius),
     )
+    const unprojectViewPosition = createPlanetViewUnprojector(
+      targetPlanetMap,
+      rotation,
+    )
 
     for (let y = minimumY; y <= maximumY; y += 1) {
       const viewY = (y + 0.5 - centerY) / planetRadius
@@ -349,15 +359,11 @@ export function PlanetSurface({
           continue
         }
 
-        const world = unprojectPlanetViewPosition(
-          targetPlanetMap,
-          rotation,
-          {
-            x: viewX,
-            y: viewY,
-            depth: Math.sqrt(1 - radialDistance),
-          },
-        )
+        const world = unprojectViewPosition({
+          x: viewX,
+          y: viewY,
+          depth: Math.sqrt(1 - radialDistance),
+        })
         const longitude = Math.atan2(world.z, world.x)
         const latitude = Math.asin(world.y)
         const horizontalPosition =

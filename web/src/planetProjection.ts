@@ -178,6 +178,13 @@ export function unprojectPlanetViewPosition(
   rotation: PlanetRotation,
   position: NormalizedViewPosition,
 ): SpherePosition {
+  return createPlanetViewUnprojector(map, rotation)(position)
+}
+
+export function createPlanetViewUnprojector(
+  map: PlanetMap,
+  rotation: PlanetRotation,
+) {
   const positions = map.spherePositions
   const forward = positions?.[map.hqTileId]
 
@@ -197,22 +204,33 @@ export function unprojectPlanetViewPosition(
   const sinYaw = Math.sin(rotation.yaw)
   const cosPitch = Math.cos(rotation.pitch)
   const sinPitch = Math.sin(rotation.pitch)
-  const rotatedY = -position.y
-  const localY =
-    rotatedY * cosPitch + position.depth * sinPitch
-  const yawZ =
-    -rotatedY * sinPitch + position.depth * cosPitch
-  const localX =
-    position.x * cosYaw - yawZ * sinYaw
-  const localZ =
-    position.x * sinYaw + yawZ * cosYaw
 
-  return normalize(
-    add(
-      add(scale(right, localX), scale(up, localY)),
-      scale(forward, localZ),
-    ),
-  )
+  return (position: NormalizedViewPosition): SpherePosition => {
+    const rotatedY = -position.y
+    const localY =
+      rotatedY * cosPitch + position.depth * sinPitch
+    const yawZ =
+      -rotatedY * sinPitch + position.depth * cosPitch
+    const localX =
+      position.x * cosYaw - yawZ * sinYaw
+    const localZ =
+      position.x * sinYaw + yawZ * cosYaw
+
+    return {
+      x:
+        right.x * localX +
+        up.x * localY +
+        forward.x * localZ,
+      y:
+        right.y * localX +
+        up.y * localY +
+        forward.y * localZ,
+      z:
+        right.z * localX +
+        up.z * localY +
+        forward.z * localZ,
+    }
+  }
 }
 
 function createTileTangentAxes(

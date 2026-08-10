@@ -46,6 +46,11 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Planetenrand natürlich auslaufen; Ressourcen, Besitz, Harvester,
   Felddetails und Aktionen bleiben darunter verborgen und die Felder
   sind nicht auswählbar
+- mobile Planetendrehung bündelt diese Wolken in acht SVG-Pfade,
+  verarbeitet Zeigerbewegungen höchstens einmal je Bildschirmframe,
+  deaktiviert die teure Wolkenverformung nur während der Geste und
+  berechnet die auf 420 Pixel begrenzte mobile Oberflächentextur mit
+  vorberechneter Kameramathematik; Desktop behält 620 Renderpixel
 - autoritative Multiplayer-Snapshots begrenzen fremden Besitz,
   Harvesterzuweisungen und feldbezogene Harvester-IDs auf die vom
   empfangenden Sitz bereits aufgedeckten Felder; fremde

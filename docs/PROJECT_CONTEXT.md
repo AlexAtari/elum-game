@@ -185,7 +185,9 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
 - Nicht entdeckte Planetengebiete sind durch mitrotierende Wolken
   verdeckt und in der gemeinsamen Einzel-/Mehrspielerkarte gesperrt;
   mehrere hundert weiche Wolkenpolygone und eine auslaufende
-  Randmaske vermeiden harte Feld- und Planetenkanten;
+  Randmaske vermeiden harte Feld- und Planetenkanten; acht gebündelte
+  SVG-Pfade, frameweise Kameraupdates und eine reduzierte mobile
+  Canvas-Auflösung halten die Touch-Drehung flüssig;
   personalisierte Multiplayer-Snapshots entfernen zusätzlich
   fremden dynamischen Feldzustand außerhalb der eigenen Sicht.
 - Die mobile Rangliste wird auf feste Karten-Slots und ruhige

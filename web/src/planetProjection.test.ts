@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { targetPlanetMap } from './planetMap'
 import {
+  createPlanetViewUnprojector,
   createRotationForTile,
   createPlanetSurfaceCells,
   projectPlanetMap,
@@ -102,6 +103,29 @@ describe('Kugelprojektion der Planetenkarte', () => {
     expect(restored.x).toBeCloseTo(source!.x)
     expect(restored.y).toBeCloseTo(source!.y)
     expect(restored.z).toBeCloseTo(source!.z)
+  })
+
+  it('verwendet eine vorberechnete Rückprojektion für Bildserien', () => {
+    const rotation = { yaw: 0.7, pitch: -0.35 }
+    const unproject = createPlanetViewUnprojector(
+      targetPlanetMap,
+      rotation,
+    )
+    const positions = [
+      { x: 0, y: 0, depth: 1 },
+      { x: 0.3, y: -0.4, depth: Math.sqrt(0.75) },
+      { x: -0.6, y: 0.2, depth: Math.sqrt(0.6) },
+    ]
+
+    for (const position of positions) {
+      expect(unproject(position)).toEqual(
+        unprojectPlanetViewPosition(
+          targetPlanetMap,
+          rotation,
+          position,
+        ),
+      )
+    }
   })
 
   it('erzeugt lückenlose gemeinsame Zellkanten', () => {

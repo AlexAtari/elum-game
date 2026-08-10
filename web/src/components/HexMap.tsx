@@ -112,6 +112,16 @@ const PLANET_RADIUS = 340
 const MIN_MAP_ZOOM = 0.72
 const MAX_MAP_ZOOM = 2.2
 const MAX_MAP_PITCH = Math.PI * 0.48
+const FOG_PUFF_LAYER_OPACITIES = [
+  0.18,
+  0.21,
+  0.24,
+  0.27,
+  0.3,
+  0.33,
+  0.36,
+  0.39,
+] as const
 const INITIAL_MAP_CAMERA: MapCamera = {
   yaw: 0,
   pitch: 0,
@@ -295,6 +305,17 @@ function HexMap({
   const pointerPositions = useRef(new Map<number, Point>())
   const gesture = useRef<MapGesture | null>(null)
   const didMoveMap = useRef(false)
+  const pendingCamera = useRef<MapCamera | null>(null)
+  const cameraAnimationFrame = useRef<number | null>(null)
+
+  useEffect(
+    () => () => {
+      if (cameraAnimationFrame.current !== null) {
+        cancelAnimationFrame(cameraAnimationFrame.current)
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     const viewport = viewportRef.current
@@ -455,7 +476,6 @@ function HexMap({
             : 0.32
 
         return {
-          key: `${tile.id}-${anchorIndex}`,
           path: createFogPuffPath(
             anchor,
             Math.max(
@@ -468,11 +488,20 @@ function HexMap({
             ),
             seed,
           ),
-          opacity:
-            0.16 + ((seed * 17) % 23) / 100,
+          layerIndex:
+            (seed * 17) % FOG_PUFF_LAYER_OPACITIES.length,
         }
       })
     })
+  const unexploredFogPuffLayers = FOG_PUFF_LAYER_OPACITIES.map(
+    (opacity, layerIndex) => ({
+      opacity,
+      path: unexploredFogPuffs
+        .filter((puff) => puff.layerIndex === layerIndex)
+        .map((puff) => puff.path)
+        .join(' '),
+    }),
+  )
   const meteorBonuses = combineMeteorBonuses(meteorImpacts)
   const meteorCenterIds = new Set(
     meteorImpacts.map((impact) => impact.centerTileId),
@@ -611,8 +640,43 @@ function HexMap({
       zoom: clamp(camera.zoom, MIN_MAP_ZOOM, MAX_MAP_ZOOM),
     }
 
+    if (cameraAnimationFrame.current !== null) {
+      cancelAnimationFrame(cameraAnimationFrame.current)
+      cameraAnimationFrame.current = null
+      pendingCamera.current = null
+    }
+
     cameraRef.current = nextCamera
     setCameraState(nextCamera)
+  }
+
+  const scheduleCameraUpdate = (camera: MapCamera) => {
+    const nextCamera = {
+      yaw: normalizeAngle(camera.yaw),
+      pitch: clamp(
+        camera.pitch,
+        -MAX_MAP_PITCH,
+        MAX_MAP_PITCH,
+      ),
+      zoom: clamp(camera.zoom, MIN_MAP_ZOOM, MAX_MAP_ZOOM),
+    }
+
+    cameraRef.current = nextCamera
+    pendingCamera.current = nextCamera
+
+    if (cameraAnimationFrame.current !== null) {
+      return
+    }
+
+    cameraAnimationFrame.current = requestAnimationFrame(() => {
+      cameraAnimationFrame.current = null
+      const scheduledCamera = pendingCamera.current
+      pendingCamera.current = null
+
+      if (scheduledCamera) {
+        setCameraState(scheduledCamera)
+      }
+    })
   }
 
   const clientToMapPoint = (
@@ -656,6 +720,7 @@ function HexMap({
     event: PointerEvent<SVGSVGElement>,
   ) => {
     event.currentTarget.setPointerCapture(event.pointerId)
+    event.currentTarget.classList.add('is-interacting')
 
     const point = clientToMapPoint(
       event.currentTarget,
@@ -722,7 +787,7 @@ function HexMap({
         MAX_MAP_ZOOM,
       )
 
-      updateCamera({
+      scheduleCameraUpdate({
         yaw: currentGesture.camera.yaw,
         pitch: currentGesture.camera.pitch,
         zoom: nextZoom,
@@ -741,7 +806,7 @@ function HexMap({
         didMoveMap.current = true
       }
 
-      updateCamera({
+      scheduleCameraUpdate({
         yaw:
           currentGesture.camera.yaw +
           (points[0].x -
@@ -782,6 +847,10 @@ function HexMap({
           distance: 0,
         }
       : null
+
+    if (!remainingPoint) {
+      event.currentTarget.classList.remove('is-interacting')
+    }
   }
 
   const handleWheel = (event: WheelEvent<SVGSVGElement>) => {
@@ -1591,12 +1660,12 @@ function HexMap({
                     d={unexploredFogPath}
                   />
                   <g className="planet-fog-cloud-bank">
-                    {unexploredFogPuffs.map((puff) => (
+                    {unexploredFogPuffLayers.map((layer) => (
                       <path
-                        key={puff.key}
+                        key={layer.opacity}
                         className="planet-fog-puff"
-                        d={puff.path}
-                        opacity={puff.opacity}
+                        d={layer.path}
+                        opacity={layer.opacity}
                       />
                     ))}
                   </g>

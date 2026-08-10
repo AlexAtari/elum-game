@@ -228,6 +228,14 @@ Details oder Aktionen und sind weder per Touch noch Tastatur
 auswählbar. Öffentliche Meteoritenmarkierungen bleiben davon
 unabhängig.
 
+Für Smartphones werden die mehreren hundert Formen in acht
+zusammengesetzte SVG-Pfade gebündelt. Zeigerbewegungen werden höchstens
+einmal je Bildschirmframe übernommen; während des Ziehens entfällt nur
+die teure Wolkenverformung und kehrt beim Loslassen unmittelbar zurück.
+Die texturierte Kugel verwendet mobil maximal 420 Renderpixel und eine
+pro Kamerastand vorberechnete Rückprojektion. Diese Maßnahmen verändern
+weder Nebelabdeckung noch Kartenregeln.
+
 Autoritativ übertragene Multiplayer-Snapshots verwenden dieselbe
 Sichtgrenze. Eigener Feldzustand bleibt vollständig; fremder Besitz,
 Harvesterzustand und feldbezogene Sperren werden nur für bereits

@@ -116,10 +116,10 @@ Die UI-unabhängige Kartenregel initialisiert sie aus Startbesitz und
 direkten Nachbarn und erweitert sie beim Grundstückserwerb dauerhaft.
 Dieser kanonische Zustand ist die Grundlage für den späteren
 Wolken-Layer und teilnehmerspezifisch gefilterte
-Multiplayer-Snapshots. `HexMap.tsx` verwendet ihn bereits für einen
-gemeinsamen, planetenverankerten Wolkenpfad und entfernt verborgene
-Felder aus Touch-, Maus- und Tastaturinteraktion. Die serverseitige
-Snapshot-Filterung selbst ist noch nicht aktiv.
+Multiplayer-Snapshots. `HexMap.tsx` verwendet ihn für acht
+zusammengesetzte, planetenverankerte Wolkenpfade und entfernt
+verborgene Felder aus Touch-, Maus- und Tastaturinteraktion. Der
+Server filtert dynamischen fremden Feldzustand an derselben Grenze.
 
 `ColonyEconomyState` definiert die gemeinsamen Wirtschaftsfelder.
 `selectColonies`, `selectLocalColony` und `selectRivalColonies`
@@ -844,6 +844,13 @@ dreht sich eine durchgehende Textur ohne Feldnähte mit der Kugel,
 während SVG-Zellen ausschließlich Interaktion, Auswahl und
 Statusmarkierungen tragen. Diese Geometrie bleibt reine Darstellung
 und verändert keine Spielregel.
+Für flüssige Touch-Drehung bündelt `HexMap.tsx` hochfrequente
+Zeigerbewegungen über `requestAnimationFrame`, fasst mehrere hundert
+Wolkenpolygone in acht SVG-Pfade zusammen und setzt den teuren
+Wolkenfilter nur während der aktiven Geste aus. Danach wird die volle
+Textur sofort wiederhergestellt. `PlanetSurface.tsx` verwendet eine
+pro Kamera vorberechnete Rückprojektion und begrenzt den mobilen
+Canvas auf 420 Pixel Maximalauflösung; Desktop behält 620 Pixel.
 Rivalenbesitz wird in `HexMap.tsx` aus den getrennten
 `ownedTileIds` von Orion, Nova und Vega gelesen.
 `createRadialGraphLayout` bleibt als
