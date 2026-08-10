@@ -45,6 +45,21 @@ export type SimulationBatchParticipantStats = {
   averageWarnings: number
 }
 
+export type SimulationBatchWindowParticipantStats = {
+  averagePopulation: number
+  averageFoodStock: number
+  averageEnergyStock: number
+  averageFoodProduction: number
+  averageEnergyProduction: number
+  averageFoodConsumption: number
+  averageHqEnergyConsumption: number
+  averageHarvesterEnergyConsumption: number
+  energyOutageRate: number
+  averageIdleHarvesters: number
+  marketTransactionsPerGame: number
+  supplySignalsPerGame: number
+}
+
 export type SimulationBatchResult = {
   games: number
   rounds: number
@@ -75,6 +90,30 @@ export type SimulationBatchResult = {
     number
   >
   harvesterBuildRoundCounts: Record<string, number>
+  midgame: {
+    roundStart: number
+    roundEnd: number
+    participants: Record<
+      SimulationParticipantId,
+      SimulationBatchWindowParticipantStats
+    >
+  }
+}
+
+type MutableWindowParticipantStats = {
+  samples: number
+  population: number
+  foodStock: number
+  energyStock: number
+  foodProduction: number
+  energyProduction: number
+  foodConsumption: number
+  hqEnergyConsumption: number
+  harvesterEnergyConsumption: number
+  energyOutageRounds: number
+  idleHarvesters: number
+  marketTransactions: number
+  supplySignals: number
 }
 
 type MutableParticipantStats = {
@@ -277,6 +316,35 @@ function createMutableStats():
   }
 }
 
+function createMutableWindowStats(): Record<
+  SimulationParticipantId,
+  MutableWindowParticipantStats
+> {
+  return Object.fromEntries(
+    participantIds.map((participantId) => [
+      participantId,
+      {
+        samples: 0,
+        population: 0,
+        foodStock: 0,
+        energyStock: 0,
+        foodProduction: 0,
+        energyProduction: 0,
+        foodConsumption: 0,
+        hqEnergyConsumption: 0,
+        harvesterEnergyConsumption: 0,
+        energyOutageRounds: 0,
+        idleHarvesters: 0,
+        marketTransactions: 0,
+        supplySignals: 0,
+      },
+    ]),
+  ) as Record<
+    SimulationParticipantId,
+    MutableWindowParticipantStats
+  >
+}
+
 export function runHeadlessSimulationBatch(
   options: SimulationBatchOptions = {},
 ): SimulationBatchResult {
@@ -305,6 +373,10 @@ export function runHeadlessSimulationBatch(
   const productionModel =
     options.productionModel ?? 'current'
   const mutableStats = createMutableStats()
+  const mutableMidgameStats =
+    createMutableWindowStats()
+  const midgameRoundStart = Math.min(5, rounds)
+  const midgameRoundEnd = Math.min(12, rounds)
   const warningCounts = Object.fromEntries(
     warningKinds.map((kind) => [kind, 0]),
   ) as Record<SimulationWarning['kind'], number>
@@ -462,6 +534,86 @@ export function runHeadlessSimulationBatch(
 
     for (const warning of result.warnings) {
       warningCounts[warning.kind] += 1
+      if (
+        warning.round >= midgameRoundStart &&
+        warning.round <= midgameRoundEnd &&
+        warning.participantId !== 'all' &&
+        (warning.kind === 'population-decline' ||
+          warning.kind === 'food-empty' ||
+          warning.kind === 'energy-empty')
+      ) {
+        mutableMidgameStats[
+          warning.participantId
+        ].supplySignals += 1
+      }
+    }
+    for (
+      let round = midgameRoundStart;
+      round <= midgameRoundEnd;
+      round += 1
+    ) {
+      const before = result.history[round - 1]
+      const current = result.history[round]
+      if (!before || !current) {
+        continue
+      }
+
+      for (const participantId of participantIds) {
+        const previousParticipant =
+          before.participants[participantId]
+        const participant =
+          current.participants[participantId]
+        const transactions =
+          result.marketTransactions.filter(
+            (transaction) =>
+              transaction.round === round &&
+              (transaction.buyer === participantId ||
+                transaction.seller === participantId),
+          )
+        const marketDelta = (
+          resource: 'food' | 'energy',
+        ): number =>
+          transactions.reduce((total, transaction) => {
+            if (transaction.resource !== resource) {
+              return total
+            }
+            if (transaction.buyer === participantId) {
+              return total + transaction.quantity
+            }
+            return total - transaction.quantity
+          }, 0)
+        const stats =
+          mutableMidgameStats[participantId]
+
+        stats.samples += 1
+        stats.population += participant.population
+        stats.foodStock += participant.resources.food
+        stats.energyStock += participant.resources.energy
+        stats.foodConsumption += participant.consumedFood
+        stats.hqEnergyConsumption +=
+          participant.consumedEnergyByHq
+        stats.harvesterEnergyConsumption +=
+          participant.consumedEnergyByHarvesters
+        stats.foodProduction += Math.max(
+          0,
+          participant.resources.food -
+            previousParticipant.resources.food -
+            marketDelta('food') +
+            participant.consumedFood,
+        )
+        stats.energyProduction += Math.max(
+          0,
+          participant.resources.energy -
+            previousParticipant.resources.energy -
+            marketDelta('energy') +
+            participant.consumedEnergyByHq +
+            participant.consumedEnergyByHarvesters,
+        )
+        stats.energyOutageRounds +=
+          participant.inactiveHarvesters > 0 ? 1 : 0
+        stats.idleHarvesters += participant.idleHarvesters
+        stats.marketTransactions += transactions.length
+      }
     }
     for (const snapshot of result.history.slice(1)) {
       for (const participant of Object.values(
@@ -599,6 +751,58 @@ export function runHeadlessSimulationBatch(
     SimulationParticipantId,
     SimulationBatchParticipantStats
   >
+  const midgameParticipants = Object.fromEntries(
+    participantIds.map((participantId) => {
+      const stats =
+        mutableMidgameStats[participantId]
+      const samples = Math.max(1, stats.samples)
+
+      return [
+        participantId,
+        {
+          averagePopulation: round(
+            stats.population / samples,
+          ),
+          averageFoodStock: round(
+            stats.foodStock / samples,
+          ),
+          averageEnergyStock: round(
+            stats.energyStock / samples,
+          ),
+          averageFoodProduction: round(
+            stats.foodProduction / samples,
+          ),
+          averageEnergyProduction: round(
+            stats.energyProduction / samples,
+          ),
+          averageFoodConsumption: round(
+            stats.foodConsumption / samples,
+          ),
+          averageHqEnergyConsumption: round(
+            stats.hqEnergyConsumption / samples,
+          ),
+          averageHarvesterEnergyConsumption: round(
+            stats.harvesterEnergyConsumption / samples,
+          ),
+          energyOutageRate: round(
+            (stats.energyOutageRounds / samples) * 100,
+          ),
+          averageIdleHarvesters: round(
+            stats.idleHarvesters / samples,
+          ),
+          marketTransactionsPerGame: round(
+            stats.marketTransactions / games,
+          ),
+          supplySignalsPerGame: round(
+            stats.supplySignals / games,
+          ),
+        },
+      ]
+    }),
+  ) as Record<
+    SimulationParticipantId,
+    SimulationBatchWindowParticipantStats
+  >
 
   return {
     games,
@@ -638,5 +842,10 @@ export function runHeadlessSimulationBatch(
     warningCounts,
     harvesterDecisionCounts,
     harvesterBuildRoundCounts,
+    midgame: {
+      roundStart: midgameRoundStart,
+      roundEnd: midgameRoundEnd,
+      participants: midgameParticipants,
+    },
   }
 }

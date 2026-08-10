@@ -115,6 +115,27 @@ describe('Balancing-Seriensimulation', () => {
     expect(
       result.averages.meteorImpacts,
     ).toBeGreaterThanOrEqual(2)
+    expect(result.midgame.roundStart).toBe(5)
+    expect(result.midgame.roundEnd).toBe(12)
+    for (const participant of Object.values(
+      result.midgame.participants,
+    )) {
+      expect(
+        participant.averageFoodProduction,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.averageEnergyProduction,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.energyOutageRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.energyOutageRate,
+      ).toBeLessThanOrEqual(100)
+      expect(
+        participant.averageIdleHarvesters,
+      ).toBeGreaterThanOrEqual(0)
+    }
   })
 
   it('ist bei gleichen Seeds reproduzierbar', () => {
@@ -162,6 +183,24 @@ describe('Balancing-Seriensimulation', () => {
     expect(current.productionModel).toBe('current')
     expect(boosted.productionModel).toBe('boosted')
     expect(boosted).not.toEqual(current)
+  })
+
+  it('hält den Energiebonus als explizite Analysevariante getrennt', () => {
+    const current = runHeadlessSimulationBatch({
+      games: 8,
+      seedStart: 40,
+      productionModel: 'current',
+    })
+    const energyBoosted = runHeadlessSimulationBatch({
+      games: 8,
+      seedStart: 40,
+      productionModel: 'energy-boosted',
+    })
+
+    expect(energyBoosted.productionModel).toBe(
+      'energy-boosted',
+    )
+    expect(energyBoosted).not.toEqual(current)
   })
 
   it('erzeugt mit anderen Seed-Bereichen andere Ergebnisse', () => {

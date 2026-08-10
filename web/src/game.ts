@@ -158,6 +158,7 @@ export type RivalColonyState = ColonyEconomyState & {
   >
   freeHarvesterPool?: FreeHarvester[]
   lastLandPurchaseRound?: number
+  lastConsumedFood?: number
   lastConsumedEnergyByHq?: number
   lastConsumedEnergyByHarvesters?: number
   inactiveHarvesterIds?: string[]
@@ -1407,6 +1408,7 @@ function getRivalProduction(
   globalEvent: GlobalEventId | null = null,
   meteorImpacts: MeteorImpact[] = [],
   basicProductionBonus: number = 0,
+  basicEnergyProductionBonus: number = 0,
 ): Record<ProductionType, number> {
   if (
     rival.harvesterAssignments &&
@@ -1440,6 +1442,9 @@ function getRivalProduction(
     )) {
       if (resource === 'food' || resource === 'energy') {
         production[resource] += basicProductionBonus
+      }
+      if (resource === 'energy') {
+        production.energy += basicEnergyProductionBonus
       }
     }
 
@@ -1493,6 +1498,9 @@ function getRivalProduction(
         productionType === 'energy'
           ? basicProductionBonus
           : 0) +
+        (productionType === 'energy'
+          ? basicEnergyProductionBonus
+          : 0) +
         getGlobalProductionModifier(
           globalEvent,
           productionType,
@@ -1512,6 +1520,7 @@ export function advanceRivalColonies(
   options: {
     normalSupplyDemand?: (population: number) => number
     basicProductionBonus?: number
+    basicEnergyProductionBonus?: number
   } = {},
 ): RivalColonies {
   return Object.fromEntries(
@@ -1604,6 +1613,12 @@ export function advanceRivalColonies(
           0,
           Math.trunc(options.basicProductionBonus ?? 0),
         ),
+        Math.max(
+          0,
+          Math.trunc(
+            options.basicEnergyProductionBonus ?? 0,
+          ),
+        ),
       )
       const hasNormalSupply =
         consumedFood === plannedFood &&
@@ -1644,6 +1659,7 @@ export function advanceRivalColonies(
         },
         lastConsumedEnergyByHq:
           consumedEnergyByHq,
+        lastConsumedFood: consumedFood,
         lastConsumedEnergyByHarvesters:
           consumedEnergyByHarvesters,
         inactiveHarvesterIds:

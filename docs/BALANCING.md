@@ -100,6 +100,36 @@ Gleichzeitig steigt die mittlere Endbevölkerung von 16,9–17,6 auf
 spreizen. Die Variante ist damit der bessere Versorgungskandidat,
 aber noch keine freigegebene Browser- oder Multiplayer-Regel.
 
+### Mittelspielmessung und gezielter Energievergleich
+
+Die Seriensimulation wertet die Runden 5–12 jetzt zusätzlich je
+Agentenprofil aus. Gemessen werden Produktion und Verbrauch von
+Nahrung und Energie, Lagerstände, Harvester-Energieausfälle, freie
+Harvester, Marktteilnahmen und Versorgungssignale. Die Produktion
+wird aus Lageränderung, tatsächlichem Verbrauch und dem Marktfluss
+derselben Runde rekonstruiert.
+
+Im unveränderten Referenzlauf liegt die Nahrungsproduktion im
+Mittelspiel je nach Kolonie bei 2,9–3,4 Einheiten gegenüber 3,5–4,0
+Verbrauch. Energie liegt bei 4,0–4,6 Produktion gegenüber 4,4–5,2
+Gesamtverbrauch. Harvester fallen deshalb in 52,4–67,7 Prozent der
+Mittelspielrunden aus. Gleichzeitig stehen nur 0,03–0,23 Harvester
+je Kolonie und Runde ungenutzt bereit. Der Engpass ist damit nicht
+eine allgemein zu hohe Harvesterzahl, sondern die laufende
+Versorgung der eingesetzten Harvester.
+
+Die reine Analysevariante `energy-boosted` gibt ausschließlich
+Energieharvestern in jeder zweiten Runde eine zusätzliche Einheit.
+Über dieselben 200 Seeds sinken leere Energielager von 137 auf 5 und
+die Mittelspiel-Ausfallquote auf 27,6–48,7 Prozent. Der direkte
+Handelsanteil steigt von 1,5 auf 3,0 Prozent. Gleichzeitig wächst die
+Endbevölkerung auf 21,6–22,5, Nahrungsleerstände steigen von 259 auf
+282 und die Siegquote spreizt sich auf 13,5–35,5 Prozent. Daher wird
+auch diese Variante nicht als Browser- oder Multiplayer-Regel
+übernommen. Als nächster Kandidat ist die Energie-Notfalllogik zu
+untersuchen, ohne Produktion oder Bevölkerungswachstum pauschal zu
+erhöhen.
+
 Jede Kolonie startet mit einer Kristallprobe im Lager. Agenten mit
 Kristallreserve 0 dürfen sie anbieten; Agenten mit Reserve 1 behalten
 sie zunächst. Dadurch übernimmt der interstellare Käufer im

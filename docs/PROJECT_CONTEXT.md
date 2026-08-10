@@ -176,6 +176,9 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
 - Agentensiegquoten sind ausgeglichen.
 - Direkter Handel ist im Vergleich zum HQ-Lager zu selten.
 - Versorgungswarnungen treten zu häufig auf.
+- Die Mittelspielmessung lokalisiert den Engpass bei der Energie für
+  eingesetzte Harvester; Produktionsboni sind noch nicht als
+  Live-Regel freigegeben.
 - Die mobile Rangliste wird auf feste Karten-Slots und ruhige
   Aufdeckung optimiert.
 - Dokumentation wird als dauerhafte Übergabebasis ausgebaut.

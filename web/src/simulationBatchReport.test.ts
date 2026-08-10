@@ -159,6 +159,31 @@ export function formatSimulationBatchReport(
         `(R${participant.averageFirstNaturalCrystalVeinRound ?? '–'})`,
     )
     .join(' · ')
+  const midgameSummary = Object.entries(
+    result.midgame.participants,
+  ).map(([participantId, stats]) => {
+    const name =
+      result.participants[
+        participantId as keyof typeof result.participants
+      ].name
+
+    return (
+      `${name}: Bev ${stats.averagePopulation.toFixed(1)}, ` +
+      `Nahrung ${stats.averageFoodProduction.toFixed(1)}/` +
+      `${stats.averageFoodConsumption.toFixed(1)} ` +
+      `(Lager ${stats.averageFoodStock.toFixed(1)}), ` +
+      `Energie ${stats.averageEnergyProduction.toFixed(1)}/` +
+      `${(
+        stats.averageHqEnergyConsumption +
+        stats.averageHarvesterEnergyConsumption
+      ).toFixed(1)} ` +
+      `(Lager ${stats.averageEnergyStock.toFixed(1)}), ` +
+      `Ausfälle ${stats.energyOutageRate.toFixed(1)} %, ` +
+      `freie Harv ${stats.averageIdleHarvesters.toFixed(2)}, ` +
+      `Markt ${stats.marketTransactionsPerGame.toFixed(1)}, ` +
+      `Signale ${stats.supplySignalsPerGame.toFixed(2)}`
+    )
+  })
 
   return [
     '',
@@ -192,6 +217,10 @@ export function formatSimulationBatchReport(
     `Warnungen je Partie: ${result.averages.warnings.toFixed(2)}`,
     warningSummary,
     '',
+    `MITTELSPIEL RUNDE ${result.midgame.roundStart}–${result.midgame.roundEnd}`,
+    'Produktion/Verbrauch und Lager sind Mittelwerte je Kolonie und Runde.',
+    ...midgameSummary,
+    '',
     'HARVESTERBAU',
     harvesterDecisionSummary,
     `Baurunden: ${harvesterBuildRoundSummary || 'keine'}`,
@@ -218,9 +247,11 @@ describe('Terminalbericht der Seriensimulation', () => {
           ? 'smoothed'
           : 'grouped',
       productionModel:
-        environment.ELUM_SIMULATION_PRODUCTION ===
-        'boosted'
+        environment.ELUM_SIMULATION_PRODUCTION === 'boosted'
           ? 'boosted'
+          : environment.ELUM_SIMULATION_PRODUCTION ===
+            'energy-boosted'
+          ? 'energy-boosted'
           : 'current',
     })
     const report =
@@ -235,6 +266,8 @@ describe('Terminalbericht der Seriensimulation', () => {
     expect(report).toContain('Versorgungsmodell:')
     expect(report).toContain('Produktionsmodell:')
     expect(report).toContain('Spielerhandel')
+    expect(report).toContain('MITTELSPIEL RUNDE 5–12')
+    expect(report).toContain('Ausfälle')
     expect(report).toContain('HARVESTERBAU')
     expect(report).toContain('Baurunden:')
     expect(report).toContain('Erste Expansion:')

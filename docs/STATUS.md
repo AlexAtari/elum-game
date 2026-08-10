@@ -565,6 +565,24 @@ jedoch bereits bei 22,9 bis 24,1 und die Siegquote zwischen 14,5 und
 Headless-Analyse begrenzt; Browser und Multiplayer verwenden das
 Produktionsmodell `current`.
 
+Die Batchauswertung misst zusätzlich das Mittelspiel der Runden 5–12
+je Agentenprofil: Produktion und Verbrauch, Lagerstände,
+Harvester-Energieausfälle, freie Harvester, Marktaktivität und
+Versorgungssignale. Im unveränderten Modell stehen durchschnittlich
+nur 0,03 bis 0,23 Harvester ungenutzt bereit, während in 52,4 bis
+67,7 Prozent der Mittelspielrunden mindestens ein eingesetzter
+Harvester wegen Energie ausfällt. Nahrung und Energie werden im
+Mittel leicht unter dem laufenden Bedarf produziert.
+
+Die isolierte Analysevariante `energy-boosted` erhöht nur die
+Energieproduktion in jeder zweiten Runde. Sie reduziert leere
+Energielager über 200 Seeds von 137 auf 5 und die Ausfallquote im
+Mittelspiel auf 27,6 bis 48,7 Prozent. Weil zugleich
+Nahrungsleerstände auf 282 steigen, die Endbevölkerung auf 21,6 bis
+22,5 wächst und die Siegquote auf 13,5 bis 35,5 Prozent auseinander
+geht, bleibt auch diese Variante aus Browser und Multiplayer
+ausgeschlossen. Die implementierten Spielregeln bleiben unverändert.
+
 Die gemeinsame Agentenregel erlaubt die erste Expansion von zwei auf
 drei Harvester bereits bei sicherer Versorgung der unmittelbar
 folgenden Runde. Baukosten und ein gemeinsamer Restpuffer von
@@ -622,7 +640,8 @@ Nach UI- und Dokumentationsarbeiten:
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
 2. Produktions- und Marktentscheidungen stärker differenzieren,
    damit Angebot und Nachfrage nicht synchron verlaufen,
-3. Versorgungssignale reduzieren, ohne das HQ-Sicherheitsnetz
+3. die Harvester-Energie-Notfalllogik untersuchen, um Ausfälle zu
+   reduzieren, ohne Produktion, Bevölkerung oder HQ-Sicherheitsnetz
    pauschal zu vergrößern,
 4. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
    dass Kristalladern

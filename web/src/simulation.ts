@@ -53,6 +53,7 @@ export type SimulationSupplyDemandModel =
 
 export type SimulationProductionModel =
   | 'current'
+  | 'energy-boosted'
   | 'boosted'
 
 export type SimulationParticipantSnapshot = {
@@ -62,6 +63,12 @@ export type SimulationParticipantSnapshot = {
   credits: number
   resources: Resources
   harvesters: number
+  assignedHarvesters: number
+  inactiveHarvesters: number
+  idleHarvesters: number
+  consumedFood: number
+  consumedEnergyByHq: number
+  consumedEnergyByHarvesters: number
   ownedTiles: number
   maximumOwnedTileDistance: number
   ownsFarZoneTile: boolean
@@ -250,6 +257,15 @@ function getSimulationBasicProductionBonus(
   round: number,
 ): number {
   return model === 'boosted' && round % 2 === 0
+    ? 1
+    : 0
+}
+
+function getSimulationEnergyProductionBonus(
+  model: SimulationProductionModel,
+  round: number,
+): number {
+  return model === 'energy-boosted' && round % 2 === 0
     ? 1
     : 0
 }
@@ -1351,6 +1367,11 @@ function advanceAgima(
           productionModel,
           round,
         ),
+      basicEnergyProductionBonus:
+        getSimulationEnergyProductionBonus(
+          productionModel,
+          round,
+        ),
     },
   ).orion
 }
@@ -1507,6 +1528,13 @@ function createParticipantSnapshot(
   const ownedMapTiles = tiles.filter((tile) =>
     ownedTileIds.has(tile.id),
   )
+  const assignedHarvesters = Object.values(
+    colony.harvesterAssignments ?? {},
+  ).filter(
+    (production) => production !== undefined,
+  ).length
+  const inactiveHarvesters =
+    colony.inactiveHarvesterIds?.length ?? 0
   const base = {
     id,
     name: id === 'agima' ? 'Agima' : colony.name,
@@ -1514,6 +1542,17 @@ function createParticipantSnapshot(
     credits: colony.credits,
     resources: cloneResources(colony.resources),
     harvesters: colony.harvesters,
+    assignedHarvesters,
+    inactiveHarvesters,
+    idleHarvesters: Math.max(
+      0,
+      colony.harvesters - assignedHarvesters,
+    ),
+    consumedFood: colony.lastConsumedFood ?? 0,
+    consumedEnergyByHq:
+      colony.lastConsumedEnergyByHq ?? 0,
+    consumedEnergyByHarvesters:
+      colony.lastConsumedEnergyByHarvesters ?? 0,
     ownedTiles: ownedTileIds.size,
     maximumOwnedTileDistance: Math.max(
       0,
@@ -1811,6 +1850,11 @@ function advanceSimulationRound(
         ),
       basicProductionBonus:
         getSimulationBasicProductionBonus(
+          withMarket.productionModel,
+          round,
+        ),
+      basicEnergyProductionBonus:
+        getSimulationEnergyProductionBonus(
           withMarket.productionModel,
           round,
         ),

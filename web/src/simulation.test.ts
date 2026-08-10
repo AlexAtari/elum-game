@@ -79,6 +79,31 @@ describe('Interne Wirtschaftssimulation', () => {
     ).toEqual(boosted)
   })
 
+  it('begrenzt den gezielten Analysebonus auf Energie', () => {
+    const current = runHeadlessEconomicSimulation({
+      rounds: 8,
+      seed: 17,
+      productionModel: 'current',
+    })
+    const energyBoosted = runHeadlessEconomicSimulation({
+      rounds: 8,
+      seed: 17,
+      productionModel: 'energy-boosted',
+    })
+
+    expect(energyBoosted.productionModel).toBe(
+      'energy-boosted',
+    )
+    expect(energyBoosted).not.toEqual(current)
+    expect(
+      runHeadlessEconomicSimulation({
+        rounds: 8,
+        seed: 17,
+        productionModel: 'energy-boosted',
+      }),
+    ).toEqual(energyBoosted)
+  })
+
   it('simuliert eine vollständige Partie ohne Oberfläche', () => {
     const result = runHeadlessEconomicSimulation()
 
