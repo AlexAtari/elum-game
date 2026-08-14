@@ -136,6 +136,93 @@ describe('Balancing-Seriensimulation', () => {
         participant.averageIdleHarvesters,
       ).toBeGreaterThanOrEqual(0)
     }
+    for (const participant of Object.values(
+      result.activity.participants,
+    )) {
+      expect(
+        participant.averageLandPurchasesPerGame,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.harvestingRoundRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.harvestingRoundRate,
+      ).toBeLessThanOrEqual(100)
+      expect(
+        participant.harvesterUtilizationRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.harvesterUtilizationRate,
+      ).toBeLessThanOrEqual(100)
+      expect(
+        participant.allHarvestersPoweredRoundRate,
+      ).toBeLessThanOrEqual(100)
+      expect(
+        participant.emergencyHarvestRoundRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.averageEmergencyHarvestUnitsPerGame,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.productiveRoundRate,
+      ).toBeGreaterThanOrEqual(
+        participant.harvestingRoundRate,
+      )
+      expect(
+        participant.marketAuctionParticipationRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.marketAuctionParticipationRate,
+      ).toBeLessThanOrEqual(100)
+      expect(
+        participant.inactivityRoundRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.inactivityRoundRate,
+      ).toBeLessThanOrEqual(100)
+      expect(
+        participant.maximumInactivityStreak,
+      ).toBeGreaterThanOrEqual(0)
+    }
+    for (const participant of Object.values(
+      result.supply.participants,
+    )) {
+      expect(
+        participant.normalSupplyRoundRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.basicSupplyRoundRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.noSupplyRoundRate,
+      ).toBeGreaterThanOrEqual(0)
+      expect(
+        participant.normalSupplyRoundRate +
+          participant.basicSupplyRoundRate +
+          participant.noSupplyRoundRate,
+      ).toBeCloseTo(100, 1)
+      expect(
+        participant.populationDeclineRoundRate,
+      ).toBeLessThanOrEqual(
+        participant.noSupplyRoundRate,
+      )
+    }
+    expect(
+      Object.values(
+        result.supply.foodDeclineProductionStateCounts,
+      ).reduce((total, count) => total + count, 0),
+    ).toBeLessThanOrEqual(
+      result.supply.populationDeclineReasonCounts.food,
+    )
+    expect(
+      Object.values(
+        result.supply.missingFoodHarvesterReasonCounts,
+      ).reduce((total, count) => total + count, 0),
+    ).toBe(
+      result.supply.foodDeclineProductionStateCounts[
+        'no-food-harvester'
+      ],
+    )
   })
 
   it('ist bei gleichen Seeds reproduzierbar', () => {

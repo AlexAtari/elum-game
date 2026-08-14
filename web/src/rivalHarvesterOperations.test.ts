@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   RIVAL_RETOOL_CREDIT_COST,
   allocateRivalHarvesterEnergy,
+  calculateEmergencyHarvestProduction,
   planRivalHarvesterOperations,
 } from './rivalHarvesterOperations'
 import {
@@ -30,6 +31,39 @@ const rivalIds: RivalId[] = [
 ]
 
 describe('Gemeinsame Harvesterlogik der Rivalen', () => {
+  it('liefert bei Energiemangel automatisch eine Noternte ohne Kristalle', () => {
+    expect(
+      calculateEmergencyHarvestProduction(
+        {
+          A: 'food',
+          B: 'ore',
+          C: 'crystals',
+        },
+        ['A', 'B', 'C'],
+      ),
+    ).toEqual({
+      food: 1,
+      energy: 0,
+      ore: 1,
+      crystals: 0,
+    })
+  })
+
+  it('schließt Umrüstungsfelder von der Noternte aus', () => {
+    expect(
+      calculateEmergencyHarvestProduction(
+        { A: 'energy', B: 'food' },
+        ['A', 'B'],
+        ['A'],
+      ),
+    ).toEqual({
+      food: 1,
+      energy: 0,
+      ore: 0,
+      crystals: 0,
+    })
+  })
+
   it('plant für Nova und Vega konkrete Feldzuweisungen', () => {
     const state = createInitialGameState()
     const freeTile = tiles.find(

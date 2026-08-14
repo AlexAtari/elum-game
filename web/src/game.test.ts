@@ -518,6 +518,12 @@ describe('Ereignisse', () => {
       ore: 0,
       crystals: 0,
     })
+    expect(result.report.emergencyHarvested).toEqual({
+      food: 0,
+      energy: 0,
+      ore: 0,
+      crystals: 0,
+    })
   })
 
   it('verändert globale Produktion für Spieler und KI in derselben Runde', () => {
@@ -1238,7 +1244,7 @@ describe('Rangliste', () => {
 
     expect(result.nextState.colonies.orion.population).toBe(11)
     expect(result.nextState.colonies.nova.population).toBe(10)
-    expect(result.nextState.colonies.vega.population).toBe(12)
+    expect(result.nextState.colonies.vega.population).toBe(11)
   })
 })
 
@@ -1962,9 +1968,10 @@ describe('Harvesterproduktion', () => {
     expect(result.report.inactiveHarvesterIds).toEqual([
       firstStartTileId,
     ])
-    expect(result.report.produced.energy).toBe(4)
+    expect(result.report.produced.energy).toBe(5)
+    expect(result.report.emergencyHarvested.energy).toBe(1)
     expect(result.report.consumedEnergyByHarvesters).toBe(1)
-    expect(result.nextState.colonies.agima.resources.energy).toBe(4)
+    expect(result.nextState.colonies.agima.resources.energy).toBe(5)
   })
 })
 

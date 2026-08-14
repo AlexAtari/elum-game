@@ -1,6 +1,7 @@
 import { GAME_ROUND_LIMIT } from './game'
 import {
   compareSimulationFinalScores,
+  getSimulationNormalSupplyDemand,
   runHeadlessEconomicSimulation,
   type SimulationParticipantId,
   type SimulationParticipantSnapshot,
@@ -8,7 +9,10 @@ import {
   type SimulationSupplyDemandModel,
   type SimulationWarning,
 } from './simulation'
-import type { AgentHarvesterDecision } from './agents'
+import {
+  AGENT_EMERGENCY_RETOOL_CREDIT_RESERVE,
+  type AgentHarvesterDecision,
+} from './agents'
 
 export type SimulationBatchOptions = {
   games?: number
@@ -60,6 +64,66 @@ export type SimulationBatchWindowParticipantStats = {
   supplySignalsPerGame: number
 }
 
+export type SimulationInactivityReason =
+  | 'no-assigned-harvester'
+  | 'energy-shortage'
+
+export type SimulationBatchActivityParticipantStats = {
+  averageLandPurchasesPerGame: number
+  harvestingRoundRate: number
+  harvesterUtilizationRate: number
+  allHarvestersPoweredRoundRate: number
+  emergencyHarvestRoundRate: number
+  averageEmergencyHarvestUnitsPerGame: number
+  productiveRoundRate: number
+  gamesWithHarvestingPauseStreakRate: number
+  averageLongestHarvestingPause: number
+  maximumHarvestingPause: number
+  marketAuctionParticipationRate: number
+  marketSilenceRoundRate: number
+  gamesWithMarketSilenceStreakRate: number
+  averageLongestMarketSilence: number
+  maximumMarketSilence: number
+  transactionRoundRate: number
+  inactivityRoundRate: number
+  gamesWithInactivityStreakRate: number
+  averageLongestInactivityStreak: number
+  maximumInactivityStreak: number
+}
+
+export type SimulationBatchSupplyParticipantStats = {
+  normalSupplyRoundRate: number
+  basicSupplyRoundRate: number
+  noSupplyRoundRate: number
+  populationDeclineRoundRate: number
+}
+
+export type SimulationPopulationDeclineReason =
+  | 'food'
+  | 'energy'
+  | 'food-and-energy'
+
+export type SimulationFoodDeclineProductionState =
+  | 'no-food-harvester'
+  | 'food-harvester-inactive'
+  | 'food-harvester-active'
+
+export type SimulationMissingFoodHarvesterReason =
+  | 'no-assigned-harvester'
+  | 'no-food-capable-field'
+  | 'insufficient-retool-credits-with-ore'
+  | 'insufficient-retool-credits-without-ore'
+  | 'planning-constraint'
+
+export type SimulationInactivityStreak = {
+  seed: number
+  participantId: SimulationParticipantId
+  startRound: number
+  endRound: number
+  length: number
+  reason: SimulationInactivityReason
+}
+
 export type SimulationBatchResult = {
   games: number
   rounds: number
@@ -90,6 +154,39 @@ export type SimulationBatchResult = {
     number
   >
   harvesterBuildRoundCounts: Record<string, number>
+  activity: {
+    participants: Record<
+      SimulationParticipantId,
+      SimulationBatchActivityParticipantStats
+    >
+    inactivityReasonCounts: Record<
+      SimulationInactivityReason,
+      number
+    >
+    harvestingPauseReasonCounts: Record<
+      SimulationInactivityReason,
+      number
+    >
+    longestInactivityStreaks: SimulationInactivityStreak[]
+  }
+  supply: {
+    participants: Record<
+      SimulationParticipantId,
+      SimulationBatchSupplyParticipantStats
+    >
+    populationDeclineReasonCounts: Record<
+      SimulationPopulationDeclineReason,
+      number
+    >
+    foodDeclineProductionStateCounts: Record<
+      SimulationFoodDeclineProductionState,
+      number
+    >
+    missingFoodHarvesterReasonCounts: Record<
+      SimulationMissingFoodHarvesterReason,
+      number
+    >
+  }
   midgame: {
     roundStart: number
     roundEnd: number
@@ -143,6 +240,40 @@ type MutableParticipantStats = {
   firstNaturalCrystalVeinRoundTotal: number
   firstNaturalCrystalVeinCount: number
   warningTotal: number
+}
+
+type MutableActivityParticipantStats = {
+  rounds: number
+  landPurchases: number
+  harvestingRounds: number
+  activeHarvesterTotal: number
+  assignedHarvesterTotal: number
+  allHarvestersPoweredRounds: number
+  emergencyHarvestRounds: number
+  emergencyHarvestUnits: number
+  productiveRounds: number
+  gamesWithHarvestingPauseStreak: number
+  longestHarvestingPauseTotal: number
+  maximumHarvestingPause: number
+  marketAuctionEntries: number
+  marketAuctionOpportunities: number
+  marketSilenceRounds: number
+  gamesWithMarketSilenceStreak: number
+  longestMarketSilenceTotal: number
+  maximumMarketSilence: number
+  transactionRounds: number
+  inactivityRounds: number
+  gamesWithInactivityStreak: number
+  longestInactivityStreakTotal: number
+  maximumInactivityStreak: number
+}
+
+type MutableSupplyParticipantStats = {
+  rounds: number
+  normalSupplyRounds: number
+  basicSupplyRounds: number
+  noSupplyRounds: number
+  populationDeclineRounds: number
 }
 
 const participantIds: SimulationParticipantId[] = [
@@ -345,6 +476,76 @@ function createMutableWindowStats(): Record<
   >
 }
 
+function createMutableActivityStats(): Record<
+  SimulationParticipantId,
+  MutableActivityParticipantStats
+> {
+  return Object.fromEntries(
+    participantIds.map((participantId) => [
+      participantId,
+      {
+        rounds: 0,
+        landPurchases: 0,
+        harvestingRounds: 0,
+        activeHarvesterTotal: 0,
+        assignedHarvesterTotal: 0,
+        allHarvestersPoweredRounds: 0,
+        emergencyHarvestRounds: 0,
+        emergencyHarvestUnits: 0,
+        productiveRounds: 0,
+        gamesWithHarvestingPauseStreak: 0,
+        longestHarvestingPauseTotal: 0,
+        maximumHarvestingPause: 0,
+        marketAuctionEntries: 0,
+        marketAuctionOpportunities: 0,
+        marketSilenceRounds: 0,
+        gamesWithMarketSilenceStreak: 0,
+        longestMarketSilenceTotal: 0,
+        maximumMarketSilence: 0,
+        transactionRounds: 0,
+        inactivityRounds: 0,
+        gamesWithInactivityStreak: 0,
+        longestInactivityStreakTotal: 0,
+        maximumInactivityStreak: 0,
+      },
+    ]),
+  ) as Record<
+    SimulationParticipantId,
+    MutableActivityParticipantStats
+  >
+}
+
+function createMutableSupplyStats(): Record<
+  SimulationParticipantId,
+  MutableSupplyParticipantStats
+> {
+  return Object.fromEntries(
+    participantIds.map((participantId) => [
+      participantId,
+      {
+        rounds: 0,
+        normalSupplyRounds: 0,
+        basicSupplyRounds: 0,
+        noSupplyRounds: 0,
+        populationDeclineRounds: 0,
+      },
+    ]),
+  ) as Record<
+    SimulationParticipantId,
+    MutableSupplyParticipantStats
+  >
+}
+
+function getInactivityReason(
+  assignedHarvesters: number,
+): SimulationInactivityReason {
+  if (assignedHarvesters === 0) {
+    return 'no-assigned-harvester'
+  }
+
+  return 'energy-shortage'
+}
+
 export function runHeadlessSimulationBatch(
   options: SimulationBatchOptions = {},
 ): SimulationBatchResult {
@@ -375,6 +576,9 @@ export function runHeadlessSimulationBatch(
   const mutableStats = createMutableStats()
   const mutableMidgameStats =
     createMutableWindowStats()
+  const mutableActivityStats =
+    createMutableActivityStats()
+  const mutableSupplyStats = createMutableSupplyStats()
   const midgameRoundStart = Math.min(5, rounds)
   const midgameRoundEnd = Math.min(12, rounds)
   const warningCounts = Object.fromEntries(
@@ -390,6 +594,44 @@ export function runHeadlessSimulationBatch(
     number
   >
   const harvesterBuildRoundCounts: Record<string, number> = {}
+  const inactivityReasonCounts: Record<
+    SimulationInactivityReason,
+    number
+  > = {
+    'no-assigned-harvester': 0,
+    'energy-shortage': 0,
+  }
+  const harvestingPauseReasonCounts = {
+    'no-assigned-harvester': 0,
+    'energy-shortage': 0,
+  }
+  const inactivityStreaks: SimulationInactivityStreak[] = []
+  const populationDeclineReasonCounts: Record<
+    SimulationPopulationDeclineReason,
+    number
+  > = {
+    food: 0,
+    energy: 0,
+    'food-and-energy': 0,
+  }
+  const foodDeclineProductionStateCounts: Record<
+    SimulationFoodDeclineProductionState,
+    number
+  > = {
+    'no-food-harvester': 0,
+    'food-harvester-inactive': 0,
+    'food-harvester-active': 0,
+  }
+  const missingFoodHarvesterReasonCounts: Record<
+    SimulationMissingFoodHarvesterReason,
+    number
+  > = {
+    'no-assigned-harvester': 0,
+    'no-food-capable-field': 0,
+    'insufficient-retool-credits-with-ore': 0,
+    'insufficient-retool-credits-without-ore': 0,
+    'planning-constraint': 0,
+  }
   const outcomeSignatures = new Set<string>()
   let warningTotal = 0
   let totalMarketTransactions = 0
@@ -635,6 +877,242 @@ export function runHeadlessSimulationBatch(
         }
       }
     }
+    for (const participantId of participantIds) {
+      const stats = mutableActivityStats[participantId]
+      let activeStreak:
+        | Omit<SimulationInactivityStreak, 'endRound' | 'length'>
+        | null = null
+      let longestGameStreak = 0
+      let harvestingPause = 0
+      let longestHarvestingPause = 0
+      let marketSilence = 0
+      let longestMarketSilence = 0
+
+      const finishStreak = (endRound: number): void => {
+        if (!activeStreak) {
+          return
+        }
+        const streak: SimulationInactivityStreak = {
+          ...activeStreak,
+          endRound,
+          length: endRound - activeStreak.startRound + 1,
+        }
+        longestGameStreak = Math.max(
+          longestGameStreak,
+          streak.length,
+        )
+        if (streak.length >= 2) {
+          inactivityStreaks.push(streak)
+        }
+        activeStreak = null
+      }
+
+      for (const snapshot of result.history.slice(1)) {
+        const participant =
+          snapshot.participants[participantId]
+        const activity = snapshot.activity[participantId]
+        const inactive =
+          activity.activeHarvesters === 0 &&
+          activity.emergencyHarvested === 0 &&
+          activity.marketAuctionEntries === 0 &&
+          !activity.boughtLand
+
+        stats.rounds += 1
+        stats.landPurchases += activity.boughtLand ? 1 : 0
+        stats.harvestingRounds +=
+          activity.activeHarvesters > 0 ? 1 : 0
+        stats.activeHarvesterTotal +=
+          activity.activeHarvesters
+        stats.assignedHarvesterTotal +=
+          participant.assignedHarvesters
+        stats.allHarvestersPoweredRounds +=
+          participant.assignedHarvesters > 0 &&
+          activity.activeHarvesters ===
+            participant.assignedHarvesters
+            ? 1
+            : 0
+        stats.emergencyHarvestRounds +=
+          activity.emergencyHarvested > 0 ? 1 : 0
+        stats.emergencyHarvestUnits +=
+          activity.emergencyHarvested
+        stats.productiveRounds +=
+          activity.activeHarvesters > 0 ||
+          activity.emergencyHarvested > 0
+            ? 1
+            : 0
+        stats.marketAuctionEntries +=
+          activity.marketAuctionEntries
+        stats.marketAuctionOpportunities +=
+          activity.marketAuctionOpportunities
+        const marketSilent =
+          activity.marketAuctionOpportunities > 0 &&
+          activity.marketAuctionEntries === 0
+        stats.marketSilenceRounds += marketSilent ? 1 : 0
+        stats.transactionRounds +=
+          activity.marketTransactions > 0 ? 1 : 0
+        stats.inactivityRounds += inactive ? 1 : 0
+
+        if (activity.activeHarvesters === 0) {
+          harvestingPause += 1
+          const reason =
+            participant.assignedHarvesters === 0
+              ? 'no-assigned-harvester'
+              : 'energy-shortage'
+          harvestingPauseReasonCounts[reason] += 1
+        } else {
+          longestHarvestingPause = Math.max(
+            longestHarvestingPause,
+            harvestingPause,
+          )
+          harvestingPause = 0
+        }
+        if (marketSilent) {
+          marketSilence += 1
+        } else {
+          longestMarketSilence = Math.max(
+            longestMarketSilence,
+            marketSilence,
+          )
+          marketSilence = 0
+        }
+
+        if (!inactive) {
+          finishStreak(snapshot.round - 1)
+          continue
+        }
+
+        const reason = getInactivityReason(
+          participant.assignedHarvesters,
+        )
+        inactivityReasonCounts[reason] += 1
+        if (!activeStreak) {
+          activeStreak = {
+            seed,
+            participantId,
+            startRound: snapshot.round,
+            reason,
+          }
+        }
+      }
+      finishStreak(rounds)
+      longestHarvestingPause = Math.max(
+        longestHarvestingPause,
+        harvestingPause,
+      )
+      longestMarketSilence = Math.max(
+        longestMarketSilence,
+        marketSilence,
+      )
+      stats.longestHarvestingPauseTotal +=
+        longestHarvestingPause
+      stats.maximumHarvestingPause = Math.max(
+        stats.maximumHarvestingPause,
+        longestHarvestingPause,
+      )
+      if (longestHarvestingPause >= 2) {
+        stats.gamesWithHarvestingPauseStreak += 1
+      }
+      stats.longestMarketSilenceTotal +=
+        longestMarketSilence
+      stats.maximumMarketSilence = Math.max(
+        stats.maximumMarketSilence,
+        longestMarketSilence,
+      )
+      if (longestMarketSilence >= 2) {
+        stats.gamesWithMarketSilenceStreak += 1
+      }
+      stats.longestInactivityStreakTotal +=
+        longestGameStreak
+      stats.maximumInactivityStreak = Math.max(
+        stats.maximumInactivityStreak,
+        longestGameStreak,
+      )
+      if (longestGameStreak >= 2) {
+        stats.gamesWithInactivityStreak += 1
+      }
+    }
+    for (
+      let roundNumber = 1;
+      roundNumber < result.history.length;
+      roundNumber += 1
+    ) {
+      const previous = result.history[roundNumber - 1]
+      const current = result.history[roundNumber]
+
+      for (const participantId of participantIds) {
+        const before = previous.participants[participantId]
+        const participant = current.participants[participantId]
+        const stats = mutableSupplyStats[participantId]
+        const populationGroups = Math.max(
+          1,
+          Math.ceil(before.population / 10),
+        )
+        const normalSupplyDemand =
+          getSimulationNormalSupplyDemand(
+            before.population,
+            supplyDemandModel,
+          )
+        const hasNormalSupply =
+          participant.consumedFood >= normalSupplyDemand &&
+          participant.consumedEnergyByHq >=
+            normalSupplyDemand
+        const hasBasicSupply =
+          participant.consumedFood >= populationGroups &&
+          participant.consumedEnergyByHq >= populationGroups
+
+        stats.rounds += 1
+        stats.normalSupplyRounds += hasNormalSupply ? 1 : 0
+        stats.basicSupplyRounds +=
+          !hasNormalSupply && hasBasicSupply ? 1 : 0
+        stats.noSupplyRounds += hasBasicSupply ? 0 : 1
+
+        if (participant.population >= before.population) {
+          continue
+        }
+
+        stats.populationDeclineRounds += 1
+        const constraint =
+          current.activity[participantId]
+            .basicSupplyConstraint
+        const reason: SimulationPopulationDeclineReason =
+          constraint === 'none'
+            ? participant.consumedFood === 0
+              ? 'food'
+              : 'energy'
+            : constraint
+        populationDeclineReasonCounts[reason] += 1
+        if (reason === 'food') {
+          const productionState: SimulationFoodDeclineProductionState =
+            participant.foodHarvesters === 0
+              ? 'no-food-harvester'
+              : participant.inactiveFoodHarvesters >=
+                participant.foodHarvesters
+              ? 'food-harvester-inactive'
+              : 'food-harvester-active'
+
+          foodDeclineProductionStateCounts[
+            productionState
+          ] += 1
+          if (productionState === 'no-food-harvester') {
+            const missingReason: SimulationMissingFoodHarvesterReason =
+              participant.assignedHarvesters === 0
+                ? 'no-assigned-harvester'
+                : participant.foodCapableOwnedTiles === 0
+                ? 'no-food-capable-field'
+                : participant.credits <
+                  AGENT_EMERGENCY_RETOOL_CREDIT_RESERVE
+                ? participant.resources.ore > 0
+                  ? 'insufficient-retool-credits-with-ore'
+                  : 'insufficient-retool-credits-without-ore'
+                : 'planning-constraint'
+
+            missingFoodHarvesterReasonCounts[
+              missingReason
+            ] += 1
+          }
+        }
+      }
+    }
 
     warningTotal += result.warnings.length
     totalMarketTransactions +=
@@ -803,6 +1281,123 @@ export function runHeadlessSimulationBatch(
     SimulationParticipantId,
     SimulationBatchWindowParticipantStats
   >
+  const activityParticipants = Object.fromEntries(
+    participantIds.map((participantId) => {
+      const stats = mutableActivityStats[participantId]
+      const sampledRounds = Math.max(1, stats.rounds)
+
+      return [
+        participantId,
+        {
+          averageLandPurchasesPerGame: round(
+            stats.landPurchases / games,
+          ),
+          harvestingRoundRate: round(
+            (stats.harvestingRounds / sampledRounds) * 100,
+          ),
+          harvesterUtilizationRate:
+            stats.assignedHarvesterTotal > 0
+              ? round(
+                  (stats.activeHarvesterTotal /
+                    stats.assignedHarvesterTotal) *
+                    100,
+                )
+              : 0,
+          allHarvestersPoweredRoundRate: round(
+            (stats.allHarvestersPoweredRounds /
+              sampledRounds) *
+              100,
+          ),
+          emergencyHarvestRoundRate: round(
+            (stats.emergencyHarvestRounds / sampledRounds) *
+              100,
+          ),
+          averageEmergencyHarvestUnitsPerGame: round(
+            stats.emergencyHarvestUnits / games,
+          ),
+          productiveRoundRate: round(
+            (stats.productiveRounds / sampledRounds) * 100,
+          ),
+          gamesWithHarvestingPauseStreakRate: round(
+            (stats.gamesWithHarvestingPauseStreak /
+              games) *
+              100,
+          ),
+          averageLongestHarvestingPause: round(
+            stats.longestHarvestingPauseTotal / games,
+          ),
+          maximumHarvestingPause:
+            stats.maximumHarvestingPause,
+          marketAuctionParticipationRate:
+            stats.marketAuctionOpportunities > 0
+              ? round(
+                  (stats.marketAuctionEntries /
+                    stats.marketAuctionOpportunities) *
+                    100,
+                )
+              : 0,
+          marketSilenceRoundRate: round(
+            (stats.marketSilenceRounds / sampledRounds) *
+              100,
+          ),
+          gamesWithMarketSilenceStreakRate: round(
+            (stats.gamesWithMarketSilenceStreak /
+              games) *
+              100,
+          ),
+          averageLongestMarketSilence: round(
+            stats.longestMarketSilenceTotal / games,
+          ),
+          maximumMarketSilence:
+            stats.maximumMarketSilence,
+          transactionRoundRate: round(
+            (stats.transactionRounds / sampledRounds) * 100,
+          ),
+          inactivityRoundRate: round(
+            (stats.inactivityRounds / sampledRounds) * 100,
+          ),
+          gamesWithInactivityStreakRate: round(
+            (stats.gamesWithInactivityStreak / games) * 100,
+          ),
+          averageLongestInactivityStreak: round(
+            stats.longestInactivityStreakTotal / games,
+          ),
+          maximumInactivityStreak:
+            stats.maximumInactivityStreak,
+        },
+      ]
+    }),
+  ) as Record<
+    SimulationParticipantId,
+    SimulationBatchActivityParticipantStats
+  >
+  const supplyParticipants = Object.fromEntries(
+    participantIds.map((participantId) => {
+      const stats = mutableSupplyStats[participantId]
+      const sampledRounds = Math.max(1, stats.rounds)
+
+      return [
+        participantId,
+        {
+          normalSupplyRoundRate: round(
+            (stats.normalSupplyRounds / sampledRounds) * 100,
+          ),
+          basicSupplyRoundRate: round(
+            (stats.basicSupplyRounds / sampledRounds) * 100,
+          ),
+          noSupplyRoundRate: round(
+            (stats.noSupplyRounds / sampledRounds) * 100,
+          ),
+          populationDeclineRoundRate: round(
+            (stats.populationDeclineRounds / sampledRounds) * 100,
+          ),
+        },
+      ]
+    }),
+  ) as Record<
+    SimulationParticipantId,
+    SimulationBatchSupplyParticipantStats
+  >
 
   return {
     games,
@@ -842,6 +1437,27 @@ export function runHeadlessSimulationBatch(
     warningCounts,
     harvesterDecisionCounts,
     harvesterBuildRoundCounts,
+    activity: {
+      participants: activityParticipants,
+      inactivityReasonCounts,
+      harvestingPauseReasonCounts,
+      longestInactivityStreaks: inactivityStreaks
+        .sort(
+          (first, second) =>
+            second.length - first.length ||
+            first.seed - second.seed ||
+            first.participantId.localeCompare(
+              second.participantId,
+            ),
+        )
+        .slice(0, 8),
+    },
+    supply: {
+      participants: supplyParticipants,
+      populationDeclineReasonCounts,
+      foodDeclineProductionStateCounts,
+      missingFoodHarvesterReasonCounts,
+    },
     midgame: {
       roundStart: midgameRoundStart,
       roundEnd: midgameRoundEnd,

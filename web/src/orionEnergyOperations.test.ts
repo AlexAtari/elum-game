@@ -100,7 +100,71 @@ describe('Orions Harvester-Energie', () => {
     expect(next.orion.inactiveHarvesterIds).toEqual([])
   })
 
-  it('produziert bei Knappheit nur mit versorgten Harvestern', () => {
+  it('senkt die Versorgung vorübergehend, bevor aktive Harvester ausfallen', () => {
+    const state = createInitialGameState()
+    const freeTiles = tiles
+      .filter((tile) => tile.owner === 'free')
+      .slice(0, 2)
+
+    state.colonies.orion.credits = 0
+    state.colonies.orion.population = 11
+    state.colonies.orion.resources.food = 10
+    state.colonies.orion.resources.energy = 5
+    state.colonies.orion.ownedTileIds = freeTiles.map(
+      (tile) => tile.id,
+    )
+    state.colonies.orion.lastLandPurchaseRound = 1
+    state.colonies.orion.harvesterAssignments = {
+      [freeTiles[0].id]: 'food',
+      [freeTiles[1].id]: 'energy',
+    }
+
+    const next = advanceRivalColonies(
+      state.colonies,
+      3,
+      null,
+    )
+
+    expect(next.orion.lastConsumedFood).toBe(2)
+    expect(next.orion.lastConsumedEnergyByHq).toBe(2)
+    expect(
+      next.orion.lastConsumedEnergyByHarvesters,
+    ).toBe(2)
+    expect(next.orion.population).toBe(11)
+    expect(next.orion.inactiveHarvesterIds).toEqual([])
+  })
+
+  it('behält vor Wachstum zwei Grundversorgungsportionen Nahrung zurück', () => {
+    const state = createInitialGameState()
+    const freeTiles = tiles
+      .filter((tile) => tile.owner === 'free')
+      .slice(0, 2)
+
+    state.colonies.orion.credits = 0
+    state.colonies.orion.population = 11
+    state.colonies.orion.resources.food = 6
+    state.colonies.orion.resources.energy = 10
+    state.colonies.orion.ownedTileIds = freeTiles.map(
+      (tile) => tile.id,
+    )
+    state.colonies.orion.lastLandPurchaseRound = 1
+    state.colonies.orion.harvesterAssignments = {
+      [freeTiles[0].id]: 'food',
+      [freeTiles[1].id]: 'energy',
+    }
+
+    const next = advanceRivalColonies(
+      state.colonies,
+      3,
+      null,
+    )
+
+    expect(next.orion.lastConsumedFood).toBe(2)
+    expect(next.orion.lastConsumedEnergyByHq).toBe(2)
+    expect(next.orion.population).toBe(11)
+  })
+
+  it('schützt bei Knappheit die Harvesterenergie durch Grundversorgung', () => {
     const state = createInitialGameState()
     const freeTiles = tiles
       .filter((tile) => tile.owner === 'free')
@@ -133,10 +197,9 @@ describe('Orions Harvester-Energie', () => {
 
     expect(
       next.orion.lastConsumedEnergyByHarvesters,
-    ).toBe(1)
-    expect(next.orion.inactiveHarvesterIds).toEqual([
-      otherTile.id,
-    ])
+    ).toBe(2)
+    expect(next.orion.lastConsumedEnergyByHq).toBe(1)
+    expect(next.orion.inactiveHarvesterIds).toEqual([])
     expect(next.orion.resources.energy).toBe(
       energyTile.energy ?? 0,
     )

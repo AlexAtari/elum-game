@@ -33,6 +33,7 @@ import {
   applyAutonomousRivalLandPurchases,
   getAutonomousRivalLandDecision,
 } from './rivalAutonomousLand'
+import { calculateEmergencyHarvestProduction } from './rivalHarvesterOperations'
 import { getInterstellarCrystalBuyerOffer } from './interstellarCrystalBuyer'
 import {
   createMeteorImpact,
@@ -66,6 +67,10 @@ export type SimulationParticipantSnapshot = {
   harvesters: number
   assignedHarvesters: number
   inactiveHarvesters: number
+  foodHarvesters: number
+  inactiveFoodHarvesters: number
+  foodCapableOwnedTiles: number
+  emergencyHarvested: Record<ProductionType, number>
   idleHarvesters: number
   consumedFood: number
   consumedEnergyByHq: number
@@ -88,7 +93,25 @@ export type SimulationRoundSnapshot = {
     SimulationParticipantId,
     SimulationParticipantSnapshot
   >
+  activity: Record<
+    SimulationParticipantId,
+    SimulationParticipantRoundActivity
+  >
   marketTransactions: number
+}
+
+export type SimulationParticipantRoundActivity = {
+  boughtLand: boolean
+  activeHarvesters: number
+  emergencyHarvested: number
+  marketAuctionEntries: number
+  marketAuctionOpportunities: number
+  marketTransactions: number
+  basicSupplyConstraint:
+    | 'none'
+    | 'food'
+    | 'energy'
+    | 'food-and-energy'
 }
 
 export type SimulationWarning = {
@@ -217,6 +240,10 @@ type InternalSimulationState = {
   marketTransactions: SimulationMarketTransaction[]
   lastRoundMarketTransactions: SimulationMarketTransaction[]
   marketDiagnostics: SimulationMarketDiagnostic[]
+  lastRoundBasicSupplyConstraints: Record<
+    SimulationParticipantId,
+    SimulationParticipantRoundActivity['basicSupplyConstraint']
+  >
 }
 
 const participantIds: SimulationParticipantId[] = [
@@ -1556,8 +1583,25 @@ function createParticipantSnapshot(
   ).filter(
     (production) => production !== undefined,
   ).length
+  const foodHarvesters = Object.values(
+    colony.harvesterAssignments ?? {},
+  ).filter((production) => production === 'food').length
   const inactiveHarvesters =
     colony.inactiveHarvesterIds?.length ?? 0
+  const inactiveFoodHarvesters = (
+    colony.inactiveHarvesterIds ?? []
+  ).filter(
+    (tileId) =>
+      colony.harvesterAssignments?.[tileId] === 'food',
+  ).length
+  const emergencyHarvested =
+    calculateEmergencyHarvestProduction(
+      colony.harvesterAssignments ?? {},
+      colony.inactiveHarvesterIds ?? [],
+      colony.lastRetooledHarvesterId
+        ? [colony.lastRetooledHarvesterId]
+        : [],
+    )
   const base = {
     id,
     name: id === 'agima' ? 'Agima' : colony.name,
@@ -1567,6 +1611,12 @@ function createParticipantSnapshot(
     harvesters: colony.harvesters,
     assignedHarvesters,
     inactiveHarvesters,
+    foodHarvesters,
+    inactiveFoodHarvesters,
+    foodCapableOwnedTiles: ownedMapTiles.filter(
+      (tile) => (tile.food ?? 0) > 0,
+    ).length,
+    emergencyHarvested,
     idleHarvesters: Math.max(
       0,
       colony.harvesters - assignedHarvesters,
@@ -1611,30 +1661,82 @@ function createRoundSnapshot(
   round: number,
   state: InternalSimulationState,
 ): SimulationRoundSnapshot {
+  const colonies: Record<
+    SimulationParticipantId,
+    RivalColonyState
+  > = {
+    agima: state.agima,
+    ...selectRivalColonies(state.game),
+  }
+  const participants = Object.fromEntries(
+    participantIds.map((participantId) => [
+      participantId,
+      createParticipantSnapshot(
+        participantId,
+        colonies[participantId],
+        state.market.prices.crystals,
+      ),
+    ]),
+  ) as Record<
+    SimulationParticipantId,
+    SimulationParticipantSnapshot
+  >
+  const roundMarketDiagnostics =
+    state.marketDiagnostics.filter(
+      (diagnostic) => diagnostic.round === round,
+    )
+  const activity = Object.fromEntries(
+    participantIds.map((participantId) => {
+      const participant = participants[participantId]
+
+      return [
+        participantId,
+        {
+          boughtLand:
+            colonies[participantId]
+              .lastLandPurchaseRound === round,
+          activeHarvesters: Math.max(
+            0,
+            participant.assignedHarvesters -
+              participant.inactiveHarvesters,
+          ),
+          emergencyHarvested: Object.values(
+            participant.emergencyHarvested,
+          ).reduce((total, quantity) => total + quantity, 0),
+          marketAuctionEntries:
+            roundMarketDiagnostics.filter(
+              (diagnostic) =>
+                diagnostic.intents.some(
+                  (intent) =>
+                    intent.participantId ===
+                      participantId &&
+                    intent.role !== 'neutral',
+                ),
+            ).length,
+          marketAuctionOpportunities:
+            roundMarketDiagnostics.length,
+          marketTransactions:
+            state.lastRoundMarketTransactions.filter(
+              (transaction) =>
+                transaction.buyer === participantId ||
+                transaction.seller === participantId,
+            ).length,
+          basicSupplyConstraint:
+            state.lastRoundBasicSupplyConstraints[
+              participantId
+            ],
+        },
+      ]
+    }),
+  ) as Record<
+    SimulationParticipantId,
+    SimulationParticipantRoundActivity
+  >
+
   return {
     round,
-    participants: {
-      agima: createParticipantSnapshot(
-        'agima',
-        state.agima,
-        state.market.prices.crystals,
-      ),
-      orion: createParticipantSnapshot(
-        'orion',
-        selectRivalColonies(state.game).orion,
-        state.market.prices.crystals,
-      ),
-      nova: createParticipantSnapshot(
-        'nova',
-        selectRivalColonies(state.game).nova,
-        state.market.prices.crystals,
-      ),
-      vega: createParticipantSnapshot(
-        'vega',
-        selectRivalColonies(state.game).vega,
-        state.market.prices.crystals,
-      ),
-    },
+    participants,
+    activity,
     marketTransactions:
       state.lastRoundMarketTransactions.length,
   }
@@ -1824,6 +1926,12 @@ function createInitialSimulationState(
     marketTransactions: [],
     lastRoundMarketTransactions: [],
     marketDiagnostics: [],
+    lastRoundBasicSupplyConstraints: {
+      agima: 'none',
+      orion: 'none',
+      nova: 'none',
+      vega: 'none',
+    },
   }
 }
 
@@ -1860,6 +1968,33 @@ function advanceSimulationRound(
         ...withAgimaLand,
         lastRoundMarketTransactions: [],
       }
+  const lastRoundBasicSupplyConstraints =
+    Object.fromEntries(
+      participantIds.map((participantId) => {
+        const colony = getSimulationColony(
+          withMarket,
+          participantId,
+        )
+        const populationGroups = Math.max(
+          1,
+          Math.ceil(colony.population / 10),
+        )
+        const lacksFood =
+          colony.resources.food < populationGroups
+        const lacksEnergy =
+          colony.resources.energy < populationGroups
+        const constraint =
+          lacksFood && lacksEnergy
+            ? 'food-and-energy'
+            : lacksFood
+            ? 'food'
+            : lacksEnergy
+            ? 'energy'
+            : 'none'
+
+        return [participantId, constraint]
+      }),
+    ) as InternalSimulationState['lastRoundBasicSupplyConstraints']
   const nextRivals = advanceRivalColonies(
     selectRivalColonies(withMarket.game),
     round,
@@ -1893,6 +2028,7 @@ function advanceSimulationRound(
 
   return applySimulationMeteorImpact({
     ...withMarket,
+    lastRoundBasicSupplyConstraints,
     game: {
       ...withMarket.game,
       round: Math.min(

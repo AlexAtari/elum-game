@@ -126,7 +126,9 @@ export const de = {
   'briefing.harvestersNone': 'Kein neuer Harvester',
   'briefing.attention': 'Achtung',
   'briefing.inactiveHarvesters':
-    'Ohne Produktion: {{ids}}',
+    'Harvester ohne Energie: {{ids}}',
+  'briefing.emergencyHarvest':
+    'Automatische Noternte: 🌾 {{food}} · ⚡ {{energy}} · ⛏ {{ore}}',
   'briefing.pausedRetooling':
     'Umrüstung pausiert: {{ids}}',
   'briefing.continue': 'Runde jetzt beginnen',

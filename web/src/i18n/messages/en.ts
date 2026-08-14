@@ -129,7 +129,9 @@ export const en = {
   'briefing.harvestersNone': 'No new harvester',
   'briefing.attention': 'Attention',
   'briefing.inactiveHarvesters':
-    'Without production: {{ids}}',
+    'Harvesters without energy: {{ids}}',
+  'briefing.emergencyHarvest':
+    'Automatic emergency harvest: 🌾 {{food}} · ⚡ {{energy}} · ⛏ {{ore}}',
   'briefing.pausedRetooling':
     'Retooling paused: {{ids}}',
   'briefing.continue': 'Start round now',

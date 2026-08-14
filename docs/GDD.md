@@ -124,9 +124,16 @@ Anschließend werden die Harvester mit Energie versorgt. Jeder aktive Harvester 
 
 Reicht die verbleibende Energie nicht für alle Harvester, werden einzelne Harvester automatisch nach der festgelegten Prioritätsregel deaktiviert.
 
+Ein ausschließlich wegen Energiemangels deaktivierter Harvester löst
+automatisch eine Noternte auf seinem Feld aus. Sie benötigt keine
+Energie und erzeugt genau eine Einheit Nahrung, Energie oder Erz.
+Kristalle können nicht per Noternte gefördert werden. Während einer
+Umrüstung oder Versetzung sowie bei ereignisbedingten technischen
+Ausfällen findet keine Noternte statt.
+
 ## 7. Produktion
 
-Alle mit Energie versorgten Harvester produzieren gleichzeitig. Normal arbeitende Harvester produzieren den vollen Ertrag. Harvester in Umrüstung produzieren in der Übergangsrunde die neue Ressource mit halbem Ertrag. Harvester, die nach einer Versetzung auf einem neuen Feld eingerichtet werden, produzieren in der Übergangsrunde nichts.
+Alle mit Energie versorgten Harvester produzieren gleichzeitig. Normal arbeitende Harvester produzieren den vollen Ertrag. Harvester in Umrüstung produzieren in der Übergangsrunde die neue Ressource mit halbem Ertrag. Harvester, die nach einer Versetzung auf einem neuen Feld eingerichtet werden, produzieren in der Übergangsrunde nichts. Eine automatische Noternte wird zur Produktion derselben Runde addiert.
 
 ## 8. Versorgung und Bevölkerungsentwicklung
 
@@ -366,6 +373,11 @@ Jeder aktive Harvester benötigt pro Runde **eine Einheit Energie**.
 Die Versorgung der Kolonie beziehungsweise des HQ hat Vorrang. Nur die danach noch verfügbare Energie kann für Harvester verwendet werden.
 
 Steht nicht genügend Energie für alle Harvester zur Verfügung, werden Harvester automatisch deaktiviert.
+
+Energiebedingt deaktivierte Harvester erzeugen automatisch eine
+Noternte von einer Einheit ihrer eingestellten Ressource. Kristalle,
+Umrüstungen, Versetzungen und technische Ereignisausfälle sind davon
+ausgeschlossen.
 
 Die Deaktivierung erfolgt in folgender Reihenfolge:
 

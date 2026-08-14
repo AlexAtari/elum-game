@@ -40,26 +40,26 @@ lexikografischen Wertung wie im Browser bestimmt.
 
 | Kolonie | Siegquote | Ø Rang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Agima | 10,0 % | 2,85 | 19,6 | 209,5 |
-| Orion | 8,5 % | 2,98 | 19,1 | 213,9 |
-| Nova | 34,0 % | 1,94 | 21,5 | 59,2 |
-| Vega | 47,5 % | 1,85 | 22,4 | 24,6 |
+| Agima | 25,5 % | 2,34 | 21,9 | 98,7 |
+| Orion | 20,5 % | 2,40 | 21,7 | 96,3 |
+| Nova | 26,0 % | 2,71 | 21,6 | 45,7 |
+| Vega | 28,0 % | 2,47 | 22,2 | 17,3 |
 
 Der breitere Ökonomiewert aus Ressourcen, Bevölkerung, Harvestern und
 Land dient ausschließlich der Diagnose. Er ist kein
 Gleichstandskriterium.
 
-Der Lauf erzeugt durchschnittlich 164,2 Markttransaktionen und 2,67
-Versorgungssignale je Partie. 2,5 % des Volumens sind direkte
+Der Lauf erzeugt durchschnittlich 140,6 Markttransaktionen und 0,92
+Warnungen je Partie. 9,2 % des Volumens sind direkte
 Geschäfte zwischen Kolonien.
 
 Das auf 15 Nahrung, 15 Energie und 6 Erz erhöhte Startlager reduziert
-die frühen Engpässe deutlich. Im aktuellen Lauf treten 240
-Bevölkerungsrückgänge, 266 leere Nahrungs- und nur noch 9 leere
-Energiebestände auf. Gleichzeitig profitieren die expansiven Profile
-überproportional: Die Siegquote reicht nun von 8,5 bis 47,5 Prozent.
-Die Startreserve ist als Spielregel übernommen; die dadurch sichtbar
-gewordene Profilverschiebung bleibt ein offener Balancingpunkt.
+die frühen Engpässe deutlich. Zusammen mit der adaptiven
+Agentenversorgung, dem Nahrungspuffer und der automatischen Noternte
+treten im aktuellen Lauf 65 Bevölkerungsrückgänge, 57 leere
+Nahrungs- und keine leeren Energiebestände auf. Die mittlere
+Endbevölkerung liegt zwischen 21,6 und 22,2, und die Siegquote reicht
+von 20,5 bis 28,0 Prozent.
 
 ### Isolierter Vergleich: geglätteter Normalbedarf
 
@@ -108,6 +108,59 @@ Harvester, Marktteilnahmen und Versorgungssignale. Die Produktion
 wird aus Lageränderung, tatsächlichem Verbrauch und dem Marktfluss
 derselben Runde rekonstruiert.
 
+Zusätzlich erfasst die Simulation für jede Kolonie und Runde
+Landkäufe, tatsächlich arbeitende Harvester, aktive Kauf- oder
+Verkaufsabsichten je Ressourcenauktion und persönliche
+Markttransaktionen. Produktionspausen, Auktionspausen und vollständige
+Inaktivität werden als getrennte Serien gemessen. Dadurch gilt eine
+Kolonie mit ausgefallener Produktion nicht fälschlich als aktiv, nur
+weil sie gleichzeitig am Markt handelt.
+
+Im aktuellen Referenzlauf mit dem erhöhten Startlager kaufen die
+Kolonien im Mittel 2,4 bis 3,2 Grundstücke je Partie. In 99,5 bis
+99,7 Prozent aller Runden arbeitet mindestens ein Harvester regulär;
+die Auslastung aller zugewiesenen Harvester liegt bei 93,0 bis
+96,4 Prozent und sämtliche Harvester sind in 83,8 bis 91,4 Prozent
+der Runden mit Energie versorgt. Die Noternte greift in 8,5 bis
+16,0 Prozent der Runden und liefert 1,9 bis 3,8 Einheiten je Partie.
+Dadurch besitzt jede Kolonie in 100 Prozent der Runden wenigstens eine
+reguläre Produktion oder Noternte. Nur 62 Runden besitzen gar keinen
+regulär arbeitenden Harvester; ein vollständiger wirtschaftlicher
+Stillstand tritt nicht auf. Aktive Kauf- oder Verkaufsabsichten liegen
+in 25,1 bis 37,4 Prozent
+der Ressourcenauktionen vor. Keine Kolonie bleibt zwei Runden in Folge
+vollständig ohne Harvesterproduktion, Auktionsabsicht oder Landkauf.
+
+Die adaptive Agentenversorgung verwendet dafür eine bereits reguläre
+Spielentscheidung: Reichen Nahrung und Energie für Normalversorgung,
+zwei weitere Grundversorgungsportionen Nahrung und sämtliche
+zugewiesenen Harvester, bleibt die KI bei Stufe 2.
+Würde diese Wachstumsversorgung Harvester abschalten, wählt sie die
+bezahlbare Grundversorgung der Stufe 1. Erst wenn selbst diese nicht
+bezahlbar ist, fällt die Versorgung auf Stufe 0. Produktions- und
+Verbrauchswerte werden dadurch nicht verändert; menschliche Spieler
+behalten ihre freie Versorgungswahl.
+
+Die zusätzliche Versorgungsdiagnose zeigt 58,5 bis 61,1 Prozent
+Normalversorgungsrunden, 38,8 bis 41,1 Prozent Grundversorgung und 0,1
+bis 0,6 Prozent Stufe 0. Sie prüft die Lager unmittelbar vor der
+Versorgung: Alle 65 Bevölkerungsrückgänge entstehen durch fehlende
+Nahrung; Energie oder ein gleichzeitiger Mangel sind in keinem Fall
+die unmittelbare Ursache. Der verbliebene Versorgungseinbruch ist
+damit weiterhin ein Nahrungsproblem.
+
+Die Agenten halten bei einem kritischen Nahrungskauf 5 Credits für
+eine mögliche Harvesterumrüstung zurück. Zuvor konnten sie ihr
+gesamtes Restguthaben für einzelne Nahrungseinheiten ausgeben und
+danach keine nachhaltige Eigenproduktion mehr einrichten. Die neue
+Notfallstrategie verkauft bei akutem Nahrungsmangel und weniger als
+5 Credits genau eine vorhandene Erzeinheit günstig genug, um die
+Umrüstung zu finanzieren. Die Diagnose zeigt bei den 65
+Rückgangsrunden 36 Fälle ohne Nahrungs-Harvester und 29 Fälle mit
+aktivem Nahrungs-Harvester; ein Energieausfall des
+Nahrungs-Harvesters oder fehlende Umrüstungsliquidität verursacht
+keinen Fall mehr.
+
 Im früheren Referenzlauf mit 10 Nahrung, 10 Energie und 5 Erz liegt
 die Nahrungsproduktion im
 Mittelspiel je nach Kolonie bei 2,9–3,4 Einheiten gegenüber 3,5–4,0
@@ -143,9 +196,9 @@ Prospektionsfelder zum Mindestgebot erschließen. Diese Route ist bei
 akuter Versorgungskrise gesperrt, hält 10 Credits Restreserve und
 bewertet äußere angrenzende Felder stärker, ohne deren Ressourcenwert
 zu ignorieren. Mit dem erhöhten Startlager erreichen die Kolonien die
-Fernzone nun in 44,5 bis 68,5 Prozent und natürliche Aderausläufer in
-44,5 bis 50,5 Prozent der Partien. Die durchschnittlich größte
-HQ-Distanz liegt bei 4,4 bis 4,7.
+Fernzone nun in 55,0 bis 65,5 Prozent und natürliche Aderausläufer in
+47,5 bis 51,5 Prozent der Partien. Die durchschnittlich größte
+HQ-Distanz liegt bei 4,6 bis 4,7.
 
 Für den Ausbau von zwei auf drei Harvester gilt ein gemeinsames,
 profilunabhängiges Sicherheitsfenster. Die Kolonie muss die
@@ -301,6 +354,13 @@ daher vier Nahrung und vier HQ-Energie.
 |---|---:|
 | Energie je aktivem Harvester | 1 |
 
+| Noternte | Wert |
+|---|---:|
+| Ertrag je energiebedingt ausgefallenem Harvester | 1 |
+| zulässige Ressourcen | Nahrung, Energie, Erz |
+| Kristalle | ausgeschlossen |
+| Umrüstung, Versetzung oder Ereignisausfall | keine Noternte |
+
 Versorgungsreihenfolge:
 
 1. HQ-Energie
@@ -308,7 +368,8 @@ Versorgungsreihenfolge:
 3. verbleibende Energie zählt als Überschuss
 
 Bei Energiemangel werden Harvester automatisch nach der im GDD
-festgelegten Prioritätsregel deaktiviert.
+festgelegten Prioritätsregel deaktiviert. Ausschließlich dadurch
+ausgefallene Harvester liefern die oben definierte Noternte.
 
 ---
 
@@ -342,7 +403,8 @@ keine zusätzliche, separat gespeicherte Strafstufe.
 
 - Das HQ wird zuerst versorgt.
 - Danach werden so viele Harvester aktiviert, wie Energie verfügbar ist.
-- Harvester ohne Energie produzieren in dieser Runde nichts.
+- Harvester ohne Energie produzieren statt des vollen Feldertrags nur
+  die automatische Noternte, sofern keiner der Ausschlussgründe gilt.
 
 Grundstücke und Harvester gehen durch normalen Versorgungsmangel nicht verloren.
 

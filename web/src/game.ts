@@ -1,6 +1,6 @@
 import {
   calculateRivalAssignedProduction,
-  
+  calculateEmergencyHarvestProduction,
   allocateRivalHarvesterEnergy,
   planRivalHarvesterOperations,
 } from './rivalHarvesterOperations'
@@ -297,6 +297,7 @@ export type SupplyPreview = {
 export type RoundReport = {
   roundPlayed: number
   produced: Record<ProductionType, number>
+  emergencyHarvested: Record<ProductionType, number>
   consumedFood: number
   consumedEnergyByHq: number
   consumedEnergyByHarvesters: number
@@ -344,6 +345,7 @@ export const LAND_AUCTION_TIMING: LandAuctionTiming = {
 }
 export const HARVESTER_CREDIT_COST = 30
 export const HARVESTER_ORE_COST = 3
+const AGENT_GROWTH_FOOD_RESERVE_ROUNDS = 2
 export const GLOBAL_EVENT_CHANCE = 0.4
 export const LOCAL_EVENT_CHANCE = 0.5
 export const GAME_ROUND_LIMIT = 20
@@ -1626,8 +1628,33 @@ export function advanceRivalColonies(
             ),
           )
         : defaultSupplyDemand
-      const plannedFood = normalSupplyDemand
-      const plannedEnergy = normalSupplyDemand
+      const populationGroups = Math.max(
+        1,
+        Math.ceil(operatingRival.population / 10),
+      )
+      const assignedHarvesterCount = Object.values(
+        operatingRival.harvesterAssignments ?? {},
+      ).filter(
+        (production) => production !== undefined,
+      ).length
+      const foodGrowthReserve =
+        populationGroups *
+        AGENT_GROWTH_FOOD_RESERVE_ROUNDS
+      const canAffordNormalSupply =
+        operatingRival.resources.food >=
+          normalSupplyDemand + foodGrowthReserve &&
+        operatingRival.resources.energy >=
+          normalSupplyDemand + assignedHarvesterCount
+      const canAffordBasicSupply =
+        operatingRival.resources.food >= populationGroups &&
+        operatingRival.resources.energy >= populationGroups
+      const affordableSupplyDemand = canAffordNormalSupply
+        ? normalSupplyDemand
+        : canAffordBasicSupply
+        ? populationGroups
+        : 0
+      const plannedFood = affordableSupplyDemand
+      const plannedEnergy = affordableSupplyDemand
       const consumedFood = Math.min(
         operatingRival.resources.food,
         plannedFood,
@@ -1669,9 +1696,17 @@ export function advanceRivalColonies(
           ),
         ),
       )
+      const emergencyHarvest =
+        calculateEmergencyHarvestProduction(
+          operatingRival.harvesterAssignments ?? {},
+          rivalEnergyAllocation.inactiveHarvesterIds,
+          rivalHarvesterPlan.retooledTileId
+            ? [rivalHarvesterPlan.retooledTileId]
+            : [],
+        )
       const hasNormalSupply =
-        consumedFood === plannedFood &&
-        consumedEnergyByHq === plannedEnergy
+        consumedFood >= normalSupplyDemand &&
+        consumedEnergyByHq >= normalSupplyDemand
       const hasNoSupply =
         consumedFood === 0 || consumedEnergyByHq === 0
       const populationChange = hasNormalSupply
@@ -1694,15 +1729,18 @@ export function advanceRivalColonies(
           food:
             operatingRival.resources.food -
             consumedFood +
-            production.food,
+            production.food +
+            emergencyHarvest.food,
           energy:
             operatingRival.resources.energy -
             consumedEnergyByHq -
             consumedEnergyByHarvesters +
-            production.energy,
+            production.energy +
+            emergencyHarvest.energy,
           ore:
             operatingRival.resources.ore +
-            production.ore,
+            production.ore +
+            emergencyHarvest.ore,
           crystals:
             operatingRival.resources.crystals,
         },
@@ -3668,6 +3706,15 @@ export function runRound(
     ore: 0,
     crystals: 0,
   }
+  const emergencyHarvested =
+    calculateEmergencyHarvestProduction(
+      Object.fromEntries(
+        harvesterTasks
+          .filter((task) => task.kind === 'production')
+          .map((task) => [task.id, task.production]),
+      ),
+      energyInactiveTaskIds,
+    )
 
   for (const task of activeProductionTasks) {
     produced[task.production] += Math.max(
@@ -3680,6 +3727,9 @@ export function runRound(
         ),
     )
   }
+  produced.food += emergencyHarvested.food
+  produced.energy += emergencyHarvested.energy
+  produced.ore += emergencyHarvested.ore
 
   const consumedEnergyByHarvesters = activeTasks.length
 
@@ -3927,6 +3977,7 @@ export function runRound(
     report: {
       roundPlayed: currentState.round,
       produced,
+      emergencyHarvested,
       consumedFood,
       consumedEnergyByHq,
       consumedEnergyByHarvesters,

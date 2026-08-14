@@ -537,10 +537,10 @@ Aktueller 200-Partien-Stand mit 20 Runden, Markt und den Seeds
 
 | Kolonie | Siegquote | Durchschnittsrang | Ø Bevölkerung | Ø Abrechnungsvermögen |
 |---|---:|---:|---:|---:|
-| Agima | 10,0 % | 2,85 | 19,6 | 209,5 |
-| Orion | 8,5 % | 2,98 | 19,1 | 213,9 |
-| Nova | 34,0 % | 1,94 | 21,5 | 59,2 |
-| Vega | 47,5 % | 1,85 | 22,4 | 24,6 |
+| Agima | 25,5 % | 2,34 | 21,9 | 98,7 |
+| Orion | 20,5 % | 2,40 | 21,7 | 96,3 |
+| Nova | 26,0 % | 2,71 | 21,6 | 45,7 |
+| Vega | 28,0 % | 2,47 | 22,2 | 17,3 |
 
 Die Seriensimulation verwendet jetzt dieselbe lexikografische
 Schlusswertung wie die Browserpartie: Bevölkerung,
@@ -550,22 +550,30 @@ entscheidet keine Partie.
 
 Systemische Beobachtungen aus dem aktuellen Lauf:
 
-- 129 unterschiedliche Endergebnisse
-- 164,2 Markttransaktionen je Partie
-- 4,1 direkte Spielertransaktionen je Partie
-- direkter Handelsanteil 2,5 %
-- 159,1 HQ-Lagertransaktionen je Partie
+- 160 unterschiedliche Endergebnisse
+- 140,6 Markttransaktionen je Partie
+- 13,0 direkte Spielertransaktionen je Partie
+- direkter Handelsanteil 9,2 %
+- 126,6 HQ-Lagertransaktionen je Partie
 - 1,0 Verkauf an den interstellaren Käufer je Partie
 - durchschnittlich 2,4 Meteore je Partie
-- 2,67 Versorgungssignale je Partie
-- davon 240 Bevölkerungsrückgänge, 266 leere Nahrungs- und
-  9 leere Energiebestände
+- 0,92 Warnungen je Partie
+- davon 65 Bevölkerungsrückgänge, 57 leere Nahrungs- und
+  keine leeren Energiebestände
 
 Diese aktuelle Referenz verwendet das erhöhte gemeinsame Startlager
-von 15 Nahrung, 15 Energie und 6 Erz. Es löst die frühen
-Energieengpässe deutlich, verschiebt die Siegquote aber zugunsten von
-Nova und Vega auf eine Spanne von 8,5 bis 47,5 Prozent. Diese
-Profilverschiebung ist der wichtigste offene Balancingpunkt.
+von 15 Nahrung, 15 Energie und 6 Erz sowie die adaptive
+Agentenversorgung. Kann eine KI Normalversorgung und alle zugewiesenen
+Harvester nicht gleichzeitig mit Energie decken, wählt sie die
+bezahlbare Grundversorgung. Normalversorgung wird außerdem nur
+gewählt, wenn zwei weitere Grundversorgungsportionen Nahrung als Puffer
+im Lager bleiben. Dadurch bleibt die Bevölkerung häufiger stabil,
+statt für Wachstum Harvester abzuschalten oder das Nahrungslager
+vollständig zu leeren. Energiebedingt ausgefallene Harvester liefern
+automatisch eine Einheit Nahrung, Energie oder Erz; Kristalle,
+Umrüstungen, Versetzungen und technische Ereignisausfälle bleiben
+ausgeschlossen. Die Siegquote liegt aktuell in der Spanne von 20,5
+bis 28,0 Prozent.
 
 Der Versorgungssprung am elften Einwohner ist als wahrscheinlichster
 systemischer Engpass identifiziert: normale HQ-Versorgung steigt dort
@@ -606,9 +614,43 @@ Versorgungssignale. Mit dem früheren Startlager standen
 durchschnittlich nur 0,03 bis
 0,23 Harvester ungenutzt bereit, während in 52,4 bis 67,7 Prozent der
 Mittelspielrunden mindestens ein eingesetzter Harvester wegen Energie
-ausfiel. Mit dem neuen Startlager sinkt die Ausfallquote auf 22,3 bis
-54,1 Prozent; freie Harvester bleiben mit höchstens 0,01 weiterhin
+ausfiel. Mit Startlager, adaptiver Agentenversorgung und Nahrungspuffer
+sinkt die Ausfallquote auf 8,8 bis 28,1 Prozent; freie Harvester bleiben mit
+höchstens 0,01 weiterhin
 praktisch bedeutungslos.
+
+Die Seriensimulation protokolliert darüber hinaus für jede Kolonie
+und Runde Landkäufe, tatsächlich arbeitende Harvester, aktive Kauf-
+oder Verkaufsabsichten je Ressourcenauktion und persönliche
+Markttransaktionen. Zusammenhängende Produktions-, Auktions- und
+vollständige Inaktivitätsphasen werden getrennt ausgewiesen, damit
+Handel einen Produktionsstillstand nicht verdeckt. Im aktuellen
+200-Partien-Lauf besitzt in 99,5 bis 99,7 Prozent aller Runden
+mindestens einen regulär arbeitenden Harvester. Die Auslastung aller
+zugewiesenen Harvester liegt bei 93,0 bis 96,4 Prozent; sämtliche
+Harvester sind in 83,8 bis 91,4 Prozent der Runden mit Energie
+versorgt. Die automatische Noternte greift in 8,5 bis 16,0 Prozent der
+Runden und liefert 1,9 bis 3,8 Einheiten je Kolonie und Partie. Jede
+Kolonie besitzt dadurch in 100 Prozent der Runden wenigstens reguläre
+Produktion oder Noternte. Aktive Kauf- oder Verkaufsabsichten liegen
+je Profil in 25,1 bis 37,4 Prozent der
+Ressourcenauktionen vor; neutrale Teilnahme bleibt gemäß Marktregel
+zulässig.
+
+Die Versorgungsauswertung trennt Normalversorgung, Grundversorgung
+und Stufe 0 sowie den unmittelbar vor der Versorgung fehlenden
+Grundbedarf. Je Profil liegen 58,5 bis 61,1 Prozent der Runden auf
+Normalversorgung, 38,8 bis 41,1 Prozent auf Grundversorgung und nur
+0,1 bis 0,6 Prozent auf Stufe 0. Alle 65 Bevölkerungsrückgänge werden
+durch fehlende Nahrung ausgelöst; Energie oder ein gleichzeitiger
+Mangel sind in keinem Fall die unmittelbare Ursache. Bei 36 dieser
+Rückgänge fehlt ein Nahrungs-Harvester, bei 29 arbeitet einer; kein
+Fall entsteht durch einen Energieausfall des Nahrungs-Harvesters oder
+fehlende Umrüstungsliquidität. Kritische Nahrungskäufe schützen
+5 Credits für eine mögliche Umrüstung. Reicht das Guthaben dennoch
+nicht, verkauft die KI im Nahrungsnotfall genau eine vorhandene
+Erzeinheit zur Finanzierung. Nahrung bleibt der konkrete nächste
+Versorgungsengpass.
 
 Die isolierte Analysevariante `energy-boosted` erhöht nur die
 Energieproduktion in jeder zweiten Runde. Sie reduziert leere
@@ -642,17 +684,17 @@ Kristallmarkt schon vor dem Erreichen einer natürlichen Ader
 wirtschaftlich relevant, ohne die kristallfreien Startgrundstücke zu
 verändern.
 
-Im Referenzlauf enden die Kolonien mit durchschnittlich 3,0 bis 3,1
-Harvestern und 4,2 bis 4,8 Grundstücken. Die erste
+Im Referenzlauf enden die Kolonien mit durchschnittlich 3,0 bis 3,4
+Harvestern und 4,4 bis 5,2 Grundstücken. Die erste
 Harvestererweiterung liegt im Mittel um Runde 3,0; das erste
-zusätzliche Grundstück je nach Kolonie zwischen Runde 2,66 und 4,0.
+zusätzliche Grundstück je nach Kolonie zwischen Runde 2,44 und 4,0.
 Die Seriensimulation vergibt ausschließlich kristallfreie
 Startgrundstücke und misst Folgeexpansion, Fernzonen und natürliche
 Adern getrennt. Die durchschnittlich größte HQ-Distanz liegt bei
-4,4 bis 4,7. Je nach Kolonie wird die Fernzone in 44,5 bis 68,5
-Prozent und ein natürlicher Aderausläufer in 44,5 bis 50,5 Prozent der
+4,6 bis 4,7. Je nach Kolonie wird die Fernzone in 55,0 bis 65,5
+Prozent und ein natürlicher Aderausläufer in 47,5 bis 51,5 Prozent der
 Partien erreicht. Die Erschließung ist damit deutlich häufiger,
-profitiert aber ebenfalls ungleich vom höheren Startlager.
+bleibt zwischen den Profilen aber leicht unterschiedlich.
 
 ## Aktuelle UI-Akzeptanzkriterien
 
@@ -677,11 +719,10 @@ Nach UI- und Dokumentationsarbeiten:
    verbleibenden Kernzufall vollständig seedbasiert ausführen,
 2. Produktions- und Marktentscheidungen stärker differenzieren,
    damit Angebot und Nachfrage nicht synchron verlaufen,
-3. die durch das höhere Startlager verstärkte Bevorzugung von Nova
-   und Vega in den Agentenentscheidungen ausgleichen,
-4. die Harvester-Energie-Notfalllogik untersuchen, um Ausfälle zu
-   reduzieren, ohne Produktion, Bevölkerung oder HQ-Sicherheitsnetz
-   pauschal zu vergrößern,
+3. die verbliebene Siegquotenspanne von 20,5 bis 28,0 Prozent in
+   Playtests und weiteren Seed-Bereichen beobachten,
+4. den verbliebenen Nahrungsengpass in echten Partien prüfen; der
+   Zwei-Runden-Puffer reduziert Rückgänge, beseitigt sie aber nicht,
 5. die Folgeexpansion nach dem dritten Harvester so stabilisieren,
    dass Kristalladern
    innerhalb von 20 Runden tatsächlich erreichbar werden,

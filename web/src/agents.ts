@@ -65,6 +65,9 @@ export type AgentContext = {
   legalActions?: AgentLegalActions
 }
 
+export const AGENT_EMERGENCY_RETOOL_CREDIT_RESERVE = 5
+const AGENT_EMERGENCY_LIQUIDATION_PRICE_FACTOR = 0.8
+
 export type AgentSupplyPlan = {
   foodUnits: number
   energyUnits: number
@@ -369,8 +372,36 @@ function createMarketIntent(
   const urgency = getUrgency(stock, target, immediateNeed)
   const referencePrice = context.referencePrices[resource]
 
+  if (
+    resource === 'ore' &&
+    emergency.foodShortage > 0 &&
+    context.colony.credits <
+      AGENT_EMERGENCY_RETOOL_CREDIT_RESERVE &&
+    stock > 0
+  ) {
+    return {
+      resource,
+      role: 'seller',
+      quantity: 1,
+      limitPrice: Math.max(
+        1,
+        Math.round(
+          referencePrice *
+            AGENT_EMERGENCY_LIQUIDATION_PRICE_FACTOR,
+        ),
+      ),
+      urgency: 100,
+    }
+  }
+
   const cashReserve =
-    resource === 'food' || resource === 'energy'
+    resource === 'food' &&
+    emergency.level === 'critical'
+      ? Math.max(
+          emergency.emergencyCashReserve,
+          AGENT_EMERGENCY_RETOOL_CREDIT_RESERVE,
+        )
+      : resource === 'food' || resource === 'energy'
       ? emergency.emergencyCashReserve
       : profile.cashReserve
   if (stock < target) {

@@ -89,6 +89,10 @@ vermischt werden.
 - produziert genau eine Ressource, einschließlich Kristallen auf
   einem Vorkommen
 - benötigt eine Energie je aktiver Runde
+- liefert bei einem ausschließlich energiebedingten Ausfall
+  automatisch eine Noternte von einer Einheit Nahrung, Energie oder
+  Erz; Kristalle, Umrüstung, Versetzung und technische Ereignisse sind
+  ausgeschlossen
 - neue Harvester kosten aktuell 30 Credits und 3 Erz
 - Umrüstung: Übergangsrunde mit halber neuer Produktion
 - Versetzung: Übergangsrunde ohne Produktion
@@ -175,13 +179,25 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
 
 ## Aktuelle Schwerpunktlage
 
-- Das erhöhte Startlager reduziert frühe Versorgungssignale deutlich,
-  begünstigt in der aktuellen Seriensimulation aber Nova und Vega.
-- Direkter Handel ist im Vergleich zum HQ-Lager zu selten.
-- Versorgungswarnungen treten zu häufig auf.
+- Das erhöhte Startlager und der Zwei-Runden-Nahrungspuffer reduzieren
+  frühe Versorgungssignale und gleichen die Siegquoten der vier
+  Agentenprofile auf 20,5 bis 28,0 Prozent an.
+- Direkter Handel bleibt im Vergleich zum HQ-Lager selten.
+- Verbliebene Versorgungswarnungen entstehen durch Nahrungsknappheit.
 - Die Mittelspielmessung lokalisiert den Engpass bei der Energie für
   eingesetzte Harvester; Produktionsboni sind noch nicht als
   Live-Regel freigegeben.
+- Die Batchsimulation misst je Kolonie und Runde Landkauf, aktive
+  Harvester, Ressourcenauktionsabsichten und Transaktionen sowie
+  zusammenhängende Aktivitätspausen. Eine adaptive KI-Versorgung
+  wechselt bei drohendem Harvesterstillstand von Normal- auf
+  Grundversorgung und hält vor Wachstum zwei Grundversorgungsportionen
+  Nahrung zurück. Die automatische Noternte hält energiebedingt
+  ausgefallene Felder mit einer Einheit Nahrung, Energie oder Erz
+  produktiv. Reguläre
+  Harvester-Auslastung liegt bei 93,0 bis 96,4 Prozent; zusammen mit
+  der Noternte besitzt jede Kolonie in allen gemessenen Runden
+  Produktion.
 - Nicht entdeckte Planetengebiete sind durch mitrotierende Wolken
   verdeckt und in der gemeinsamen Einzel-/Mehrspielerkarte gesperrt;
   mehrere hundert weiche Wolkenpolygone und eine auslaufende
@@ -549,13 +565,14 @@ werden.
 Die 20-Runden-Seriensimulation wertet inzwischen nach derselben
 Reihenfolge wie die Browserpartie. Der aktuelle Referenzlauf mit
 200 Partien, kristallfreien Startgrundstücken und dem erhöhten
-Startlager liegt zwischen 8,5 % und 47,5 % Siegen. Die gemeinsame erste
+Startlager, adaptiver KI-Versorgung, Nahrungspuffer und Noternte liegt
+zwischen 20,5 % und 28,0 % Siegen. Die gemeinsame erste
 Expansion baut bei sicherer Folgerunde von zwei auf drei Harvester und
 schützt nach Bau beziehungsweise Mindestgebot 20 Credits. Nach dem
 dritten Harvester dürfen Agenten bis zu zwei unbewirtschaftete
 Prospektionsfelder zum Mindestgebot erschließen; akute Versorgung
 sperrt den Kauf, und 10 Credits bleiben geschützt. Im Mittel enden die
-Kolonien mit 3,0 bis 3,1 Harvestern und 4,2 bis 4,8 Grundstücken.
+Kolonien mit 3,0 bis 3,4 Harvestern und 4,4 bis 5,2 Grundstücken.
 
 Kristalle sind inzwischen eine gemeinsame vierte
 Harvesterproduktion; Meteore und der interstellare Käufer laufen auch
@@ -563,10 +580,21 @@ in der Headless-Simulation. Jede Kolonie startet mit einer
 Kristallprobe. Der 200-Partien-Lauf erzeugt 2,4 Meteore und
 1,0 interstellare Käufertransaktion je Partie. Die neue
 Expansionsdiagnose misst eine durchschnittlich größte HQ-Distanz von
-4,4 bis 4,7, 44,5 bis 68,5 Prozent Partien mit erreichter Fernzone und
-44,5 bis 50,5 Prozent mit Zugriff auf einen natürlichen Aderausläufer.
+4,6 bis 4,7, 55,0 bis 65,5 Prozent Partien mit erreichter Fernzone und
+47,5 bis 51,5 Prozent mit Zugriff auf einen natürlichen Aderausläufer.
 
-Die aktuelle Standardserie erzeugt 2,67 Versorgungssignale je Partie.
+Die aktuelle Standardserie erzeugt 0,92 Warnungen je Partie. Ihre
+Aktivitätsdiagnose zeigt 2,4 bis 3,2 Landkäufe je Kolonie und Partie,
+eine reguläre Harvester-Auslastung von 93,0 bis 96,4 Prozent sowie
+aktive Kauf- oder Verkaufsabsichten in 25,1 bis 37,4 Prozent der
+Ressourcenauktionen. Keine Kolonie bleibt zwei Runden in Folge
+vollständig untätig; Produktionspausen von mindestens zwei Runden
+werden durch 1,9 bis 3,8 Noternteeinheiten je Partie überbrückt. Die
+mittlere Endbevölkerung liegt bei 21,6 bis 22,2. Alle 65 Rückgänge
+entstehen durch fehlende Nahrung. Bei 36 fehlt ein Nahrungs-Harvester;
+29 treten trotz aktiver Nahrungsproduktion auf. Kritische
+Nahrungskäufe schützen deshalb 5 Credits für eine mögliche Umrüstung;
+fehlt das Guthaben, finanziert eine einzelne Erzeinheit die Umrüstung.
 Die folgenden isolierten Varianten stammen noch vom früheren
 Startlager: Eine Headless-Variante glättet den Normalbedarf bei 11–15
 Einwohnern auf drei Einheiten und senkt die Signale auf 4,20; zugleich
@@ -577,9 +605,9 @@ zusätzlichen Nahrungs- oder Energieeinheit in jeder zweiten Runde
 senkt die Versorgungssignale auf 3,91, beide Arten leerer Lager und
 erhöht die Fernzonenquote auf 24,5 bis 42,5 Prozent. Sie treibt die
 Endbevölkerung aber auf 22,9 bis 24,1 und bleibt deshalb ebenfalls
-eine reine Headless-Analyse. Als nächstes ist die durch das erhöhte
-Startlager sichtbar gewordene Bevorzugung von Nova und Vega zu
-untersuchen.
+eine reine Headless-Analyse. Als nächstes ist in echten Partien zu
+prüfen, ob der Zwei-Runden-Puffer das Wachstum verständlich bremst und
+die weiterhin auftretenden Nahrungsrückgänge ausreichend abfedert.
 
 Verbindliche Details: `docs/PLANET_MAP.md`.
 <!-- ELUM-PLANET-CONTEXT:END -->

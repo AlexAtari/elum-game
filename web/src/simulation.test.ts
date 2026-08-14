@@ -134,6 +134,14 @@ describe('Interne Wirtschaftssimulation', () => {
         'orion',
         'vega',
       ])
+      expect(
+        Object.keys(snapshot.activity).sort(),
+      ).toEqual([
+        'agima',
+        'nova',
+        'orion',
+        'vega',
+      ])
 
       for (
         const participant of Object.values(
@@ -151,6 +159,25 @@ describe('Interne Wirtschaftssimulation', () => {
         expect(
           participant.remainingResources,
         ).toBeGreaterThanOrEqual(0)
+      }
+
+      for (const activity of Object.values(
+        snapshot.activity,
+      )) {
+        expect(activity.activeHarvesters).toBeGreaterThanOrEqual(0)
+        expect(activity.marketAuctionEntries).toBeGreaterThanOrEqual(0)
+        expect(activity.marketAuctionEntries).toBeLessThanOrEqual(
+          activity.marketAuctionOpportunities,
+        )
+        expect(activity.marketAuctionOpportunities).toBe(
+          snapshot.round === 0 ? 0 : 4,
+        )
+        expect([
+          'none',
+          'food',
+          'energy',
+          'food-and-energy',
+        ]).toContain(activity.basicSupplyConstraint)
       }
     }
   })

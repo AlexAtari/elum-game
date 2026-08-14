@@ -97,6 +97,9 @@ function RoundBriefingPanel({
 }: RoundBriefingPanelProps) {
   const { t } = useI18n()
   const previousPopulation = population - report.populationChange
+  const emergencyHarvestTotal = Object.values(
+    report.emergencyHarvested,
+  ).reduce((total, quantity) => total + quantity, 0)
   const globalEventKeys = globalEvent
     ? globalEventTranslationKeys[globalEvent]
     : null
@@ -204,6 +207,15 @@ function RoundBriefingPanel({
                 <span>
                   {t('briefing.inactiveHarvesters', {
                     ids: report.inactiveHarvesterIds.join(', '),
+                  })}
+                </span>
+              )}
+              {emergencyHarvestTotal > 0 && (
+                <span>
+                  {t('briefing.emergencyHarvest', {
+                    food: report.emergencyHarvested.food,
+                    energy: report.emergencyHarvested.energy,
+                    ore: report.emergencyHarvested.ore,
                   })}
                 </span>
               )}

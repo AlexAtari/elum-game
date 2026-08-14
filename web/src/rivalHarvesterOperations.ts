@@ -1,4 +1,5 @@
 import {
+  AGENT_EMERGENCY_RETOOL_CREDIT_RESERVE,
   createAgentPlan,
   type AgentContext,
 } from './agents'
@@ -16,6 +17,35 @@ import { targetCrystalRatings } from './planetMap'
 export type RivalHarvesterAssignments = Partial<
   Record<string, ProductionType>
 >
+
+export function calculateEmergencyHarvestProduction(
+  assignments: RivalHarvesterAssignments,
+  energyInactiveHarvesterIds: string[],
+  excludedHarvesterIds: string[] = [],
+): Record<ProductionType, number> {
+  const excluded = new Set(excludedHarvesterIds)
+  const production: Record<ProductionType, number> = {
+    food: 0,
+    energy: 0,
+    ore: 0,
+    crystals: 0,
+  }
+
+  for (const harvesterId of energyInactiveHarvesterIds) {
+    if (excluded.has(harvesterId)) {
+      continue
+    }
+
+    const resource = assignments[harvesterId]
+    if (!resource || resource === 'crystals') {
+      continue
+    }
+
+    production[resource] += 1
+  }
+
+  return production
+}
 
 type HarvesterBuildCost = {
   creditCost: number
@@ -79,7 +109,8 @@ function getProductiveTileIds(
   return ownedTileIds.slice(0, -1)
 }
 
-export const RIVAL_RETOOL_CREDIT_COST = 5
+export const RIVAL_RETOOL_CREDIT_COST =
+  AGENT_EMERGENCY_RETOOL_CREDIT_RESERVE
 
 export type RivalHarvesterOperationsPlan = {
   assignments: RivalHarvesterAssignments

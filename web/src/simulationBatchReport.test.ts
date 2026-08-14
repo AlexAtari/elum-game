@@ -184,6 +184,88 @@ export function formatSimulationBatchReport(
       `Signale ${stats.supplySignalsPerGame.toFixed(2)}`
     )
   })
+  const activitySummary = Object.entries(
+    result.activity.participants,
+  ).map(([participantId, stats]) => {
+    const name =
+      result.participants[
+        participantId as keyof typeof result.participants
+      ].name
+
+    return (
+      `${name}: Land ${stats.averageLandPurchasesPerGame.toFixed(1)}/Partie, ` +
+      `mind. ein Harvester ${stats.harvestingRoundRate.toFixed(1)} %, ` +
+      `Auslastung ${stats.harvesterUtilizationRate.toFixed(1)} %, ` +
+      `alle versorgt ${stats.allHarvestersPoweredRoundRate.toFixed(1)} %, ` +
+      `Noternte ${stats.emergencyHarvestRoundRate.toFixed(1)} % ` +
+      `(${stats.averageEmergencyHarvestUnitsPerGame.toFixed(1)}/Partie), ` +
+      `Produktion ${stats.productiveRoundRate.toFixed(1)} %, ` +
+      `Erntepause ≥2R ${stats.gamesWithHarvestingPauseStreakRate.toFixed(1)} % ` +
+      `(Ø längste ${stats.averageLongestHarvestingPause.toFixed(1)}, ` +
+      `max ${stats.maximumHarvestingPause}), ` +
+      `Auktionen ${stats.marketAuctionParticipationRate.toFixed(1)} %, ` +
+      `Auktionspause ${stats.marketSilenceRoundRate.toFixed(1)} % ` +
+      `(≥2R in ${stats.gamesWithMarketSilenceStreakRate.toFixed(1)} %, ` +
+      `Ø längste ${stats.averageLongestMarketSilence.toFixed(1)}, ` +
+      `max ${stats.maximumMarketSilence}), ` +
+      `Handelsrunden ${stats.transactionRoundRate.toFixed(1)} %, ` +
+      `Stillstand ${stats.inactivityRoundRate.toFixed(1)} %, ` +
+      `Serien in ${stats.gamesWithInactivityStreakRate.toFixed(1)} % der Partien ` +
+      `(Ø längste ${stats.averageLongestInactivityStreak.toFixed(1)}, ` +
+      `max ${stats.maximumInactivityStreak} Runden)`
+    )
+  })
+  const inactivityReasonSummary = Object.entries(
+    result.activity.inactivityReasonCounts,
+  )
+    .map(([reason, count]) => `${reason}: ${count}`)
+    .join(' · ')
+  const harvestingPauseReasonSummary = Object.entries(
+    result.activity.harvestingPauseReasonCounts,
+  )
+    .map(([reason, count]) => `${reason}: ${count}`)
+    .join(' · ')
+  const inactivityStreakSummary =
+    result.activity.longestInactivityStreaks.length > 0
+      ? result.activity.longestInactivityStreaks
+          .map(
+            (streak) =>
+              `Seed ${streak.seed} ${streak.participantId} ` +
+              `R${streak.startRound}–${streak.endRound} ` +
+              `(${streak.length}, ${streak.reason})`,
+          )
+          .join(' · ')
+      : 'keine Serien ab zwei Runden'
+  const supplySummary = Object.entries(
+    result.supply.participants,
+  ).map(([participantId, stats]) => {
+    const name =
+      result.participants[
+        participantId as keyof typeof result.participants
+      ].name
+
+    return (
+      `${name}: normal ${stats.normalSupplyRoundRate.toFixed(1)} %, ` +
+      `grundversorgt ${stats.basicSupplyRoundRate.toFixed(1)} %, ` +
+      `Stufe 0 ${stats.noSupplyRoundRate.toFixed(1)} %, ` +
+      `Bevölkerungsrückgang ${stats.populationDeclineRoundRate.toFixed(1)} %`
+    )
+  })
+  const populationDeclineReasonSummary = Object.entries(
+    result.supply.populationDeclineReasonCounts,
+  )
+    .map(([reason, count]) => `${reason}: ${count}`)
+    .join(' · ')
+  const foodDeclineProductionSummary = Object.entries(
+    result.supply.foodDeclineProductionStateCounts,
+  )
+    .map(([state, count]) => `${state}: ${count}`)
+    .join(' · ')
+  const missingFoodHarvesterReasonSummary = Object.entries(
+    result.supply.missingFoodHarvesterReasonCounts,
+  )
+    .map(([reason, count]) => `${reason}: ${count}`)
+    .join(' · ')
 
   return [
     '',
@@ -225,6 +307,19 @@ export function formatSimulationBatchReport(
     harvesterDecisionSummary,
     `Baurunden: ${harvesterBuildRoundSummary || 'keine'}`,
     `Erste Expansion: ${expansionSummary}`,
+    '',
+    'AKTIVITÄT',
+    'Auktionen = aktive Kauf-/Verkaufsabsicht je Ressourcenauktion; Produktion umfasst volle Harvesterarbeit oder Noternte.',
+    ...activitySummary,
+    `Erntepausengründe: ${harvestingPauseReasonSummary}`,
+    `Stillstandsgründe: ${inactivityReasonSummary}`,
+    `Längste Serien: ${inactivityStreakSummary}`,
+    '',
+    'VERSORGUNGSSTUFEN',
+    ...supplySummary,
+    `Ursachen der Bevölkerungsrückgänge: ${populationDeclineReasonSummary}`,
+    `Nahrungsproduktion bei Rückgang: ${foodDeclineProductionSummary}`,
+    `Fehlender Nahrungs-Harvester: ${missingFoodHarvesterReasonSummary}`,
     '',
     'FERNZONEN UND KRISTALLADERN',
     explorationSummary,
@@ -271,6 +366,22 @@ describe('Terminalbericht der Seriensimulation', () => {
     expect(report).toContain('HARVESTERBAU')
     expect(report).toContain('Baurunden:')
     expect(report).toContain('Erste Expansion:')
+    expect(report).toContain('AKTIVITÄT')
+    expect(report).toContain('Auslastung')
+    expect(report).toContain('alle versorgt')
+    expect(report).toContain('Noternte')
+    expect(report).toContain('Erntepausengründe:')
+    expect(report).toContain('Stillstandsgründe:')
+    expect(report).toContain('VERSORGUNGSSTUFEN')
+    expect(report).toContain(
+      'Ursachen der Bevölkerungsrückgänge:',
+    )
+    expect(report).toContain(
+      'Nahrungsproduktion bei Rückgang:',
+    )
+    expect(report).toContain(
+      'Fehlender Nahrungs-Harvester:',
+    )
     expect(report).toContain(
       'FERNZONEN UND KRISTALLADERN',
     )

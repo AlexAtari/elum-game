@@ -100,6 +100,51 @@ describe('Wirtschaftsagenten', () => {
     })
   })
 
+  it('behält beim kritischen Nahrungskauf die Umrüstungsreserve zurück', () => {
+    const plan = createAgentPlan(
+      createContext({
+        colony: {
+          ...createContext().colony,
+          credits: 13,
+          resources: {
+            ...createContext().colony.resources,
+            food: 0,
+          },
+        },
+      }),
+    )
+
+    expect(getAgentMarketIntent(plan, 'food')).toMatchObject({
+      role: 'buyer',
+      quantity: 1,
+      urgency: 100,
+    })
+  })
+
+  it('verkauft im Nahrungsnotfall eine Erzeinheit für die Umrüstung', () => {
+    const plan = createAgentPlan(
+      createContext({
+        colony: {
+          ...createContext().colony,
+          credits: 0,
+          resources: {
+            ...createContext().colony.resources,
+            food: 0,
+            ore: 1,
+          },
+        },
+      }),
+    )
+
+    expect(getAgentMarketIntent(plan, 'ore')).toEqual({
+      resource: 'ore',
+      role: 'seller',
+      quantity: 1,
+      limitPrice: 12,
+      urgency: 100,
+    })
+  })
+
   it('verkauft nur Bestand oberhalb von Reserve und nächstem Bedarf', () => {
     const context = createContext({
       colony: {
