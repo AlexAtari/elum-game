@@ -169,6 +169,82 @@
   grid-template-columns: minmax(0, 1fr) 140px;
 }
 
+.market-content-declaration,
+.market-content-auction {
+  grid-template-areas:
+    'direction-up controls'
+    'arena controls'
+    'direction-down controls';
+  grid-template-rows: auto auto auto;
+  row-gap: 7px;
+}
+
+.market-content-declaration .market-arena,
+.market-content-auction .market-arena {
+  grid-area: arena;
+}
+
+.market-content-declaration .market-controls,
+.market-content-auction .market-controls {
+  grid-area: controls;
+}
+
+.market-direction-control {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+}
+
+.market-direction-control-up {
+  grid-area: direction-up;
+}
+
+.market-direction-control-down {
+  grid-area: direction-down;
+}
+
+.market-direction-button {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  place-items: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  color: #e9edf7;
+  background: rgba(255, 255, 255, 0.055);
+  font: inherit;
+}
+
+.market-direction-button span {
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.market-direction-button:hover,
+.market-direction-button.is-holding {
+  border-color: rgba(121, 221, 185, 0.78);
+  color: #b9f3df;
+  background: rgba(121, 221, 185, 0.17);
+  box-shadow: 0 0 18px rgba(121, 221, 185, 0.22);
+}
+
+.market-direction-button.is-holding {
+  transform: scale(0.94);
+}
+
+.market-direction-button:disabled {
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.06);
+  color: #667287;
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .market-arena {
   position: relative;
   min-height: 600px;
@@ -582,56 +658,6 @@
   background: transparent;
 }
 
-.market-control-buttons {
-  display: grid;
-  grid-template-rows: repeat(2, 72px);
-  gap: 8px;
-}
-
-.market-control-buttons button {
-  display: grid;
-  place-content: center;
-  min-width: 72px;
-  height: 72px;
-  margin-top: 0;
-  touch-action: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  line-height: 1.15;
-}
-
-.market-control-buttons button span {
-  display: block;
-}
-
-.market-controls-declaration .market-control-buttons,
-.market-controls-auction .market-control-buttons {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120px;
-  transform: translate(-50%, -50%);
-}
-
-.market-control-arrow {
-  font-size: 1.65rem;
-  line-height: 0.9;
-}
-
-.market-controls-auction .market-control-arrow {
-  font-size: 2.35rem;
-}
-
-.market-control-buttons button.is-holding {
-  border-color: rgba(121, 221, 185, 0.85);
-  color: #b9f3df;
-  background: rgba(121, 221, 185, 0.2);
-  box-shadow:
-    0 0 0 2px rgba(121, 221, 185, 0.12),
-    0 0 22px rgba(121, 221, 185, 0.28);
-  transform: scale(0.97);
-}
-
 .market-positioning-status {
   position: absolute;
   top: calc(50% - 132px);
@@ -731,6 +757,22 @@
     grid-template-columns: 1fr;
   }
 
+  .market-content-declaration {
+    grid-template-areas:
+      'controls'
+      'direction-up'
+      'arena'
+      'direction-down';
+  }
+
+  .market-content-auction {
+    grid-template-areas:
+      'direction-up'
+      'arena'
+      'direction-down'
+      'controls';
+  }
+
   .market-arena {
     min-height: 0;
     height: clamp(320px, 55dvh, 480px);
@@ -759,26 +801,11 @@
     background: rgba(8, 15, 29, 0.97);
   }
 
-  .market-controls-declaration .market-control-buttons,
-  .market-controls-auction .market-control-buttons,
   .market-controls-auction .trade-indicator,
   .market-controls-auction .market-affordability-warning,
   .market-controls-auction .market-leave-button {
     position: static;
     transform: none;
-  }
-
-  .market-controls-declaration .market-control-buttons,
-  .market-controls-auction .market-control-buttons {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: 58px;
-    width: 100%;
-  }
-
-  .market-controls-declaration .market-control-buttons button,
-  .market-controls-auction .market-control-buttons button {
-    min-width: 56px;
-    height: 58px;
   }
 
   .market-positioning-status {

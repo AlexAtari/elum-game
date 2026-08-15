@@ -124,8 +124,8 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - die lokale Marktsteuerung verwendet in Rollenwahl und Auktion
   dieselben statischen Richtungstasten; Tippen bewegt einen Schritt,
   längeres Berühren wiederholt die Bewegung bis zum Loslassen und
-  hebt den gehaltenen Pfeil sichtbar hervor; in der Handelsphase
-  entfallen die zusätzlichen Tastenbeschriftungen
+  hebt den gehaltenen Pfeil sichtbar hervor; der kleinere Aufwärtspfeil
+  steht mittig oberhalb, der Abwärtspfeil mittig unterhalb der Arena
 - transportneutraler autoritativer Match-Serverkern mit
   Sitzungsbindung an menschliche `ParticipantId`, Abwehr von
   Identitätswechseln und vom Serverzustand isolierten,

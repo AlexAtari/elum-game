@@ -1119,6 +1119,42 @@ function MarketPanel({
       <div
         className={`market-content market-content-${stage}`}
       >
+        {(stage === 'declaration' || stage === 'auction') && (
+          <div className="market-direction-control market-direction-control-up">
+            <button
+              className={`market-direction-button ${
+                heldDirection === 1 ? 'is-holding' : ''
+              }`}
+              type="button"
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture(
+                  event.pointerId,
+                )
+                startHeldMovement(1)
+              }}
+              onPointerUp={stopHeldMovement}
+              onPointerCancel={stopHeldMovement}
+              disabled={
+                stage === 'declaration'
+                  ? role === 'seller'
+                  : buyerCannotEnterMarket ||
+                    buyerReachedCreditLimit
+              }
+              aria-label={
+                stage === 'declaration'
+                  ? role === 'buyer'
+                    ? 'Zur Mitte bewegen'
+                    : 'Als Verkäufer positionieren'
+                  : role === 'buyer' && !playerOfferActive
+                    ? 'Markt betreten'
+                    : 'Preis erhöhen'
+              }
+            >
+              <span aria-hidden="true">↑</span>
+            </button>
+          </div>
+        )}
+
         <div className="market-arena">
           <AuctionPriceScale
             minimum={minimumPrice}
@@ -1367,6 +1403,39 @@ function MarketPanel({
 
         </div>
 
+        {(stage === 'declaration' || stage === 'auction') && (
+          <div className="market-direction-control market-direction-control-down">
+            <button
+              className={`market-direction-button ${
+                heldDirection === -1 ? 'is-holding' : ''
+              }`}
+              type="button"
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture(
+                  event.pointerId,
+                )
+                startHeldMovement(-1)
+              }}
+              onPointerUp={stopHeldMovement}
+              onPointerCancel={stopHeldMovement}
+              disabled={
+                stage === 'declaration' && role === 'buyer'
+              }
+              aria-label={
+                stage === 'declaration'
+                  ? role === 'seller'
+                    ? 'Zur Mitte bewegen'
+                    : 'Als Käufer positionieren'
+                  : role === 'seller' && !playerOfferActive
+                    ? 'Markt betreten'
+                    : 'Preis senken'
+              }
+            >
+              <span aria-hidden="true">↓</span>
+            </button>
+          </div>
+        )}
+
         <aside
           className={`market-controls market-controls-${stage}`}
         >
@@ -1391,79 +1460,6 @@ function MarketPanel({
                     : 'Nicht teilnehmen'}
               </strong>
               <small>Tippen: ein Schritt · Halten: weiterlaufen</small>
-            </div>
-          )}
-
-          {(stage === 'declaration' || stage === 'auction') && (
-            <div
-              className="market-control-buttons"
-              aria-label="Marktsteuerung"
-            >
-                <button
-                  className={heldDirection === 1 ? 'is-holding' : ''}
-                  type="button"
-                  onPointerDown={(event) => {
-                    event.currentTarget.setPointerCapture(
-                      event.pointerId,
-                    )
-                    startHeldMovement(1)
-                  }}
-                  onPointerUp={stopHeldMovement}
-                  onPointerCancel={stopHeldMovement}
-                  disabled={
-                    stage === 'declaration'
-                      ? role === 'seller'
-                      : buyerCannotEnterMarket ||
-                        buyerReachedCreditLimit
-                  }
-                  aria-label={
-                    stage === 'declaration'
-                      ? role === 'buyer'
-                        ? 'Zur Mitte bewegen'
-                        : 'Als Verkäufer positionieren'
-                      : role === 'buyer' && !playerOfferActive
-                      ? 'Markt betreten'
-                      : 'Preis erhöhen'
-                  }
-                >
-                  <span className="market-control-arrow" aria-hidden="true">↑</span>
-                  {stage === 'declaration' && (
-                    <span aria-hidden="true">
-                      {role === 'buyer' ? 'Mitte' : 'Verkaufen'}
-                    </span>
-                  )}
-                </button>
-                <button
-                  className={heldDirection === -1 ? 'is-holding' : ''}
-                  type="button"
-                  onPointerDown={(event) => {
-                    event.currentTarget.setPointerCapture(
-                      event.pointerId,
-                    )
-                    startHeldMovement(-1)
-                  }}
-                  onPointerUp={stopHeldMovement}
-                  onPointerCancel={stopHeldMovement}
-                  disabled={
-                    stage === 'declaration' && role === 'buyer'
-                  }
-                  aria-label={
-                    stage === 'declaration'
-                      ? role === 'seller'
-                        ? 'Zur Mitte bewegen'
-                        : 'Als Käufer positionieren'
-                      : role === 'seller' && !playerOfferActive
-                      ? 'Markt betreten'
-                      : 'Preis senken'
-                  }
-                >
-                  <span className="market-control-arrow" aria-hidden="true">↓</span>
-                  {stage === 'declaration' && (
-                    <span aria-hidden="true">
-                      {role === 'seller' ? 'Mitte' : 'Kaufen'}
-                    </span>
-                  )}
-                </button>
             </div>
           )}
 
