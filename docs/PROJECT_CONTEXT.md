@@ -219,7 +219,9 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
   aktuelle Warenbestand steht direkt über der eigenen Figur. Der
   Initiator kann die Auktion jederzeit verlassen. Rollenwahl und
   Preisbewegung verwenden dieselben statischen Pfeiltasten; Tippen
-  bewegt einmal, Gedrückthalten wiederholt bis zum Loslassen.
+  bewegt einmal, Gedrückthalten wiederholt bis zum Loslassen. Die
+  vergrößerte Arena zeigt nur noch eine kompakte HQ-Station mit beiden
+  Kursen; auch die Bereitmachen-Phase verzichtet auf Bestandsblöcke.
 - Die mobile Rangliste wird auf feste Karten-Slots und ruhige
   Aufdeckung optimiert.
 - Dokumentation wird als dauerhafte Übergabebasis ausgebaut.

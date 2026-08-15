@@ -45,11 +45,6 @@ type MarketPanelProps = {
   warehouseStock: number
   interstellarCrystalPurchases: number
   rivals: RivalColonies
-  rivalResourceAmounts: {
-    orion: number
-    nova: number
-    vega: number
-  }
   nextResource: MarketResource | null
   invitationSeconds?: number
   completionLabel?: string
@@ -164,7 +159,6 @@ function MarketPanel({
   warehouseStock,
   interstellarCrystalPurchases,
   rivals,
-  rivalResourceAmounts,
   nextResource,
   invitationSeconds,
   completionLabel,
@@ -939,38 +933,6 @@ function MarketPanel({
       : stage === 'declaration'
         ? declarationSeconds
         : auctionSeconds
-  const introductionParticipants = [
-    {
-      name: 'Du',
-      icon: '🧑‍🚀',
-      amount: resourceAmount,
-    },
-    {
-      name: 'Orion',
-      icon: '🤖',
-      amount: rivalResourceAmounts.orion,
-    },
-    {
-      name: 'Nova',
-      icon: '👩‍🚀',
-      amount: rivalResourceAmounts.nova,
-    },
-    {
-      name: 'Vega',
-      icon: '🧑‍🚀',
-      amount: rivalResourceAmounts.vega,
-    },
-    ...(resource === 'crystals'
-      ? [
-          {
-            name: 'Interstellarer Käufer',
-            icon: '🛰️',
-            amount: interstellarBuyer.remainingCapacity,
-          },
-        ]
-      : []),
-  ]
-
   return (
     <section className="market-panel">
       <div className="market-heading">
@@ -1001,7 +963,7 @@ function MarketPanel({
         />
       </div>
 
-      {stage !== 'declaration' && stage !== 'auction' && (
+      {(stage === 'finished' || stage === 'skipped') && (
         <>
           <div className="market-summary">
             <div>
@@ -1175,53 +1137,35 @@ function MarketPanel({
               role="status"
               aria-live="polite"
             >
-              <p className="eyebrow">Ressourcenauktion</p>
-              <h3>
-                {resourceType.icon} {resourceType.auctionLabel}
-              </h3>
-              <p>
-                {initiatorName ?? 'Ein Spieler'} hat die Auktion
-                gestartet.
-              </p>
-
-              <div className="market-introduction-roster">
-                {introductionParticipants.map((participant) => (
-                  <div key={participant.name}>
-                    <span>{participant.icon}</span>
-                    <strong>{participant.name}</strong>
-                    <b>
-                      {resourceType.icon} {participant.amount}
-                    </b>
-                  </div>
-                ))}
-              </div>
-
+              <p className="eyebrow">Bereitmachen</p>
               <strong className="market-introduction-countdown">
                 Beginn in {secondsLeft}
               </strong>
               <small>
-                Bereitmachen: Gleich Käufer, Verkäufer oder nicht
-                teilnehmen wählen.
+                ↑ Verkäufer · Mitte aussetzen · ↓ Käufer
               </small>
             </div>
           )}
 
-          <div className="market-warehouse-gate warehouse-sell-gate">
-            <span>📦 HQ-LAGER</span>
-            <strong>KAUF VOM LAGER</strong>
-            <b>{warehousePrices.sellPrice} Credits</b>
+          <div className="market-warehouse" aria-label="HQ-Lager">
+            <span className="market-warehouse-icon" aria-hidden="true">
+              🏬
+            </span>
+            <strong>HQ</strong>
+            <span className="market-warehouse-prices">
+              <small>
+                kauft <b>{warehousePrices.buyPrice}</b>
+              </small>
+              <small>
+                verkauft <b>{warehousePrices.sellPrice}</b>
+              </small>
+            </span>
           </div>
           {stage === 'declaration' && (
             <span className="market-zone hold-zone">
               NICHT TEILNEHMEN
             </span>
           )}
-          <div className="market-warehouse-gate warehouse-buy-gate">
-            <span>📦 HQ-LAGER</span>
-            <strong>VERKAUF AN LAGER</strong>
-            <b>{warehousePrices.buyPrice} Credits</b>
-          </div>
-
           {resource === 'crystals' &&
             (stage === 'declaration' || stage === 'auction') && (
               <div
@@ -1439,16 +1383,6 @@ function MarketPanel({
         <aside
           className={`market-controls market-controls-${stage}`}
         >
-          {stage === 'introduction' && (
-            <div className="market-introduction-ready">
-              <p className="eyebrow">Bereitmachen</p>
-              <strong>{secondsLeft}</strong>
-              <small>
-                Danach hast du fünf Sekunden für deine Rollenwahl.
-              </small>
-            </div>
-          )}
-
           {stage === 'declaration' && (
             <div className="market-positioning-status" aria-live="polite">
               <p className="eyebrow">Positionierungsphase</p>

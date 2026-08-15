@@ -169,6 +169,14 @@
   grid-template-columns: minmax(0, 1fr) 140px;
 }
 
+.market-content-introduction {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.market-controls-introduction {
+  display: none;
+}
+
 .market-content-declaration,
 .market-content-auction {
   grid-template-areas:
@@ -247,7 +255,7 @@
 
 .market-arena {
   position: relative;
-  min-height: 600px;
+  min-height: 680px;
   overflow: hidden;
   border-radius: 18px;
   background:
@@ -292,63 +300,15 @@
   margin: 0;
 }
 
-.market-introduction-roster {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin: 8px 0;
-}
-
-.market-introduction-roster > div {
-  display: grid;
-  min-width: 0;
-  padding: 10px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 11px;
-  gap: 3px;
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.market-introduction-roster span {
-  font-size: 1.35rem;
-}
-
-.market-introduction-roster strong,
-.market-introduction-roster b {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.market-introduction-roster b {
-  color: #f0c96d;
-  font-size: 0.86rem;
-}
-
 .market-introduction-countdown {
   color: #79ddb9;
   font-size: 2rem;
   line-height: 1;
 }
 
-.market-introduction small,
-.market-introduction-ready small {
+.market-introduction small {
   color: #aeb8cb;
   line-height: 1.45;
-}
-
-.market-introduction-ready {
-  display: flex;
-  margin-top: 205px;
-  flex-direction: column;
-  gap: 10px;
-  text-align: center;
-}
-
-.market-introduction-ready strong {
-  color: #79ddb9;
-  font-size: 2.5rem;
-  line-height: 1;
 }
 
 .market-zone {
@@ -365,54 +325,51 @@
   transform: translateY(-50%);
 }
 
-.market-warehouse-gate {
+.market-warehouse {
   position: absolute;
-  right: auto;
-  left: 16px;
+  top: 14px;
+  left: 14px;
   z-index: 5;
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
+  grid-template-columns: auto auto;
   align-items: center;
-  gap: 4px 10px;
-  width: clamp(170px, 26%, 220px);
-  height: 64px;
-  padding: 9px 12px;
+  gap: 1px 7px;
+  padding: 7px 9px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  font-size: 0.68rem;
-  letter-spacing: 0.05em;
+  border-radius: 9px;
+  font-size: 0.64rem;
   background: rgba(9, 16, 30, 0.95);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
   pointer-events: none;
 }
 
-.market-warehouse-gate span {
+.market-warehouse-icon {
   grid-column: 1;
-  grid-row: 1;
-  color: #aeb8cb;
+  grid-row: 1 / 3;
+  font-size: 1.25rem;
 }
 
-.market-warehouse-gate strong {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  text-align: left;
-}
-
-.market-warehouse-gate b {
+.market-warehouse > strong {
   grid-column: 2;
-  grid-row: 1;
+  color: #dce5f3;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.market-warehouse-prices {
+  grid-column: 2;
+  display: flex;
+  gap: 7px;
+  color: #9eabc0;
   white-space: nowrap;
 }
 
-.warehouse-sell-gate {
-  top: 7%;
-  color: #ffb39f;
+.market-warehouse-prices small:first-child b {
+  color: #9ff0ce;
 }
 
-.warehouse-buy-gate {
-  bottom: 7%;
-  color: #9ff0ce;
+.market-warehouse-prices small:last-child b {
+  color: #ffb39f;
 }
 
 .market-interstellar-bid {
@@ -652,7 +609,7 @@
 .market-controls-auction {
   position: relative;
   align-self: stretch;
-  min-height: 600px;
+  min-height: 680px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -753,6 +710,10 @@
 }
 
 @media (max-width: 850px) {
+  .market-panel {
+    padding: 14px;
+  }
+
   .market-content {
     grid-template-columns: 1fr;
   }
@@ -775,7 +736,7 @@
 
   .market-arena {
     min-height: 0;
-    height: clamp(320px, 55dvh, 480px);
+    height: clamp(430px, 68dvh, 600px);
   }
 
   .market-controls {
@@ -785,10 +746,6 @@
     order: -1;
     align-self: start;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
-  }
-
-  .market-introduction-ready {
-    margin-top: 0;
   }
 
   .market-controls-declaration,
@@ -827,10 +784,6 @@
     width: calc(100% - 76px);
   }
 
-  .market-introduction-roster {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .market-avatar {
     width: 78px;
     padding: 7px;
@@ -855,13 +808,14 @@
     right: 38px;
   }
 
-  .market-warehouse-gate {
-    left: 10px;
-    width: 140px;
-    padding: 8px 10px;
+  .market-warehouse {
+    top: 9px;
+    left: 9px;
+    padding: 6px 8px;
   }
 
-  .market-warehouse-gate strong {
+  .market-warehouse-prices {
+    gap: 5px;
     font-size: 0.58rem;
   }
 

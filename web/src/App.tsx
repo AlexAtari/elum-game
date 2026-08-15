@@ -672,20 +672,6 @@ function App() {
               gameState.interstellarCrystalPurchases ?? 0
             }
             rivals={rivals}
-            rivalResourceAmounts={{
-              orion:
-                colonies.orion.resources[
-                  activeMarket.resource
-                ],
-              nova:
-                colonies.nova.resources[
-                  activeMarket.resource
-                ],
-              vega:
-                colonies.vega.resources[
-                  activeMarket.resource
-                ],
-            }}
             nextResource={null}
             initiatorName="Agima"
             completionLabel={t('market.backToPlanning')}
