@@ -485,10 +485,13 @@ Im gemeinsamen Vierer-Markt entscheiden Orion, Nova und Vega anhand ihrer eigene
 | gespielte Runde | Ankündigungszeit | Rollenwahl | Auktionszeit |
 |---:|---:|---:|---:|
 | 1 | 5 Sekunden | 5 Sekunden | 30 Sekunden |
-| 2 | 4 Sekunden | 5 Sekunden | 25 Sekunden |
-| ab 3 | 3 Sekunden | 5 Sekunden | 20 Sekunden |
+| 2 | entfällt | 5 Sekunden | 25 Sekunden |
+| ab 3 | entfällt | 5 Sekunden | 20 Sekunden |
 
 Nimmt niemand an einem Ressourcenmarkt teil, entfällt die Auktionszeit vollständig.
+Der Initiator darf eine laufende Handelsphase vor Ablauf dieser Zeit
+beenden; bereits ausgeführte Transaktionen werden nicht rückgängig
+gemacht.
 
 Jede Ressource kann pro Runde global genau einmal initiiert werden. Das Recht wird bereits beim Aufruf verbraucht und zu Beginn der nächsten Runde für alle vier Ressourcen erneuert.
 

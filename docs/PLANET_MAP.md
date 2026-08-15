@@ -99,7 +99,10 @@ liegt abhängig vom gewählten Feld in der diagonal gegenüberliegenden
 der vier bildschirmsicheren Ecken; unten nutzt sie den Raum bis knapp
 vor der Smartphone-Zoomsteuerung und ist über eine feine Linie mit
 dem Feld verbunden. Komplexere Auswahl- und Gebotsmenüs öffnen
-vorübergehend eine kompakte Fokusfläche.
+vorübergehend eine kompakte Fokusfläche. Die Aktion „Runde beenden“
+schwebt in Einzel- und Mehrspielerpartien dauerhaft am unteren
+Kartenrand oberhalb der Smartphone-Steuerung und ist zusätzlich am
+Ende des Hauptquartiers erreichbar.
 
 Alle Grundstücke sind wirtschaftlich gleich große Spieleinheiten.
 Sichtbare Größenunterschiede beeinflussen weder Produktion noch Preis.
@@ -229,11 +232,16 @@ auswählbar. Öffentliche Meteoritenmarkierungen bleiben davon
 unabhängig.
 
 Für Smartphones werden die mehreren hundert Formen in acht
-zusammengesetzte SVG-Pfade gebündelt. Zeigerbewegungen werden höchstens
-einmal je Bildschirmframe übernommen; während des Ziehens entfällt nur
-die teure Wolkenverformung und kehrt beim Loslassen unmittelbar zurück.
-Die texturierte Kugel verwendet mobil maximal 420 Renderpixel und eine
-pro Kamerastand vorberechnete Rückprojektion. Diese Maßnahmen verändern
+zusammengesetzte SVG-Pfade gebündelt. Die Drehgeste arbeitet direkt mit
+Bildschirmkoordinaten, übernimmt bei gebündelten Zeigerereignissen den
+neuesten Messpunkt und aktualisiert die Kamera höchstens einmal je
+Bildschirmframe. Eine kurze geschwindigkeitsabhängige Auslaufbewegung
+setzt die Geste nach dem Loslassen weich fort; bei reduzierter
+Bewegungsdarstellung ist sie deaktiviert. Während Ziehen und Auslaufen
+entfällt die teure Wolkenverformung und kehrt danach zurück. Mausrad und
+Trackpad skalieren den Zoom kontinuierlich statt in festen Sprüngen. Die
+texturierte Kugel verwendet mobil maximal 420 Renderpixel und eine pro
+Kamerastand vorberechnete Rückprojektion. Diese Maßnahmen verändern
 weder Nebelabdeckung noch Kartenregeln.
 
 Autoritativ übertragene Multiplayer-Snapshots verwenden dieselbe

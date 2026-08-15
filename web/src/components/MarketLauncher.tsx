@@ -3,6 +3,7 @@ import {
   playableMarketResources,
   type MarketResource,
 } from '../game'
+import { useI18n } from '../i18n/I18nContext'
 import './MarketLauncher.css'
 
 type MarketLauncherProps = {
@@ -16,6 +17,8 @@ function MarketLauncher({
   isBlocked,
   onInitiate,
 }: MarketLauncherProps) {
+  const { t } = useI18n()
+
   return (
     <section className="market-launcher">
       <div className="market-launcher-heading">
@@ -32,8 +35,8 @@ function MarketLauncher({
 
       <p className="market-launcher-copy">
         {isBlocked
-          ? 'Ein Ereignis verhindert in dieser Runde das Starten von Ressourcenauktionen.'
-          : 'Starte bei Bedarf eine Auktion. Alle Spieler erhalten zehn Sekunden, um sich als Käufer, Verkäufer oder Zuschauer einzuordnen. Jede Ressource kann pro Runde genau einmal aufgerufen werden.'}
+          ? t('market.launcherBlocked')
+          : t('market.launcherHint')}
       </p>
 
       <div className="market-launcher-grid">

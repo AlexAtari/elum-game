@@ -1262,6 +1262,55 @@ describe('Autoritativer Match-Serverkern', () => {
     })
   })
 
+  it('startet spätere Ressourcenmärkte direkt mit der Rollenwahl', () => {
+    const clock = new FakeClock()
+    const initialState = createPlayableInitialGameState()
+    initialState.round = 2
+    initialState.colonies.orion.resources.food = 0
+    const match = createAuthoritativeMatch(initialState, { clock })
+    match.connectSeat({
+      sessionId: 'agima-session',
+      participantId: 'agima',
+    })
+
+    const initiated = match.submitCommand(
+      'agima-session',
+      {
+        ...createCommand(
+          {
+            participantId: 'agima',
+            type: 'initiate-resource-market',
+            payload: { resource: 'food' },
+          },
+          'later-market-init',
+        ),
+        expectedRound: 2,
+      },
+    )
+
+    expect(initiated).toMatchObject({
+      ok: true,
+      snapshot: {
+        state: {
+          activeResourceMarket: {
+            phase: 'declaration',
+          },
+        },
+        phaseTiming: {
+          kind: 'resource-market',
+          resource: 'food',
+          phase: 'declaration',
+          deadlineAt: 6_000,
+        },
+      },
+    })
+    expect(
+      initiated.snapshot.state.activeResourceMarket?.roles.orion,
+    ).not.toBe('neutral')
+
+    match.dispose()
+  })
+
   it('steuert auch Grundstücksphase und Live-Gebote autoritativ', () => {
     const clock = new FakeClock()
     const initialState = createPlayableInitialGameState()

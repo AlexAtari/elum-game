@@ -381,6 +381,21 @@ button {
   background: rgba(255, 255, 255, 0.09);
 }
 
+.game-exit-button {
+  display: block;
+  margin: 34px auto 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #9ba6b9;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+}
+
+.game-exit-button:hover,
+.game-exit-button:focus-visible {
+  color: #e1e6ef;
+  background: rgba(255, 255, 255, 0.07);
+}
+
 @media (max-width: 650px) {
   .game-screen {
     padding: 12px;
@@ -466,6 +481,10 @@ button {
 
 .round-button:hover {
   transform: translateY(-2px);
+}
+
+.headquarters-round-actions {
+  margin-top: 24px;
 }
 
 .round-report h2 {

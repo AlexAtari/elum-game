@@ -47,10 +47,13 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   Felddetails und Aktionen bleiben darunter verborgen und die Felder
   sind nicht auswählbar
 - mobile Planetendrehung bündelt diese Wolken in acht SVG-Pfade,
-  verarbeitet Zeigerbewegungen höchstens einmal je Bildschirmframe,
-  deaktiviert die teure Wolkenverformung nur während der Geste und
-  berechnet die auf 420 Pixel begrenzte mobile Oberflächentextur mit
-  vorberechneter Kameramathematik; Desktop behält 620 Renderpixel
+  verarbeitet den neuesten gebündelten Zeigermesspunkt direkt in
+  Bildschirmkoordinaten höchstens einmal je Bildschirmframe und lässt
+  die Kugel nach dem Loslassen kurz geschwindigkeitsabhängig auslaufen;
+  während Geste und Auslaufen ist die teure Wolkenverformung deaktiviert,
+  Mausrad-/Trackpad-Zoom reagiert kontinuierlich und die auf 420 Pixel
+  begrenzte mobile Oberflächentextur verwendet vorberechnete
+  Kameramathematik; Desktop behält 620 Renderpixel
 - autoritative Multiplayer-Snapshots begrenzen fremden Besitz,
   Harvesterzuweisungen und feldbezogene Harvester-IDs auf die vom
   empfangenden Sitz bereits aufgedeckten Felder; fremde
@@ -108,6 +111,21 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
 - die lokale Ressourcenauktion initialisiert Preispositionen nur beim
   einmaligen Eintritt in die Auktionsphase; kanonische Angebotsupdates
   setzen aktive Käufer- oder Verkäuferfiguren nicht mehr zurück
+- der fünfsekündige Ressourcenmarkt-Startcountdown erscheint nur in
+  Runde 1; ab Runde 2 beginnt der Markt direkt mit der Rollenwahl,
+  während Rollenwahl und Handelszeit ihre bisherigen Fristen behalten
+- der Initiator kann eine laufende Ressourcenauktion vorzeitig über
+  „Auktion verlassen“ abschließen; ausgeführte Geschäfte bleiben
+  verbucht und der pausierte Mehrspieler-Rundentimer läuft weiter
+- Rollenwahl und Auktion blenden die vorgelagerte Ressourcen-, Lager-
+  und Handelsübersicht aus; während des Handels steht der aktuelle
+  Bestand mit Ressourcensymbol direkt über der eigenen Figur
+  beziehungsweise Mehrspieler-Koloniekarte
+- die lokale Marktsteuerung verwendet in Rollenwahl und Auktion
+  dieselben statischen Richtungstasten; Tippen bewegt einen Schritt,
+  längeres Berühren wiederholt die Bewegung bis zum Loslassen und
+  hebt den gehaltenen Pfeil sichtbar hervor; in der Handelsphase
+  entfallen die zusätzlichen Tastenbeschriftungen
 - transportneutraler autoritativer Match-Serverkern mit
   Sitzungsbindung an menschliche `ParticipantId`, Abwehr von
   Identitätswechseln und vom Serverzustand isolierten,
@@ -309,8 +327,10 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   33 Explorations- und 40 Fernzonenfeldern
 - orthografische Kugelprojektion mit ausgeblendeter Rückseite,
   sichtbaren Nachbarverbindungen und erkennbaren Pentagonen
-- Touch-Drehung, Pinch-/Mausrad-Zoom, HQ-Zentrierung und Feldauswahl
-  auf dem Zielgraphen
+- direkt ansprechende Touch-Drehung mit kurzem weichem Auslaufen,
+  Pinch- und kontinuierlicher Mausrad-/Trackpad-Zoom, HQ-Zentrierung
+  und Feldauswahl auf dem Zielgraphen; reduzierte Bewegung deaktiviert
+  das Auslaufen
 - immersive Kolonieansicht ohne Kartenrahmen: Weltraum und ein
   vergrößerter, leicht unterhalb der Bildschirmmitte platzierter
   Planet füllen den gesamten Bildschirm; die Kolonieüberschrift ist
@@ -329,6 +349,12 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   unter dem Planeten bleibt keine getrennte Aktionsleiste, das HQ
   wird direkt über sein Planetenfeld geöffnet und die frühere
   HQ-beschriftete Zentriertaste verwendet ein neutrales Zielsymbol
+- „Runde beenden“ schwebt in der Einzel- und Mehrspielerkarte am
+  unteren Rand und steht zusätzlich am Ende jedes HQ-Bereichs bereit;
+  im Mehrspieler gibt diese Aktion den eigenen Versorgungsplan ab
+- „Zurück zum Start“ erscheint nur ganz unten im HQ, ist optisch
+  zurückhaltend statt grün hervorgehoben und verlangt vor dem
+  Verlassen eine ausdrückliche Bestätigung
 - die ausgewählte sichtbare Parzelle erhält eine
   holografische Detailkarte mit Name, Besitzer und Ressourcenwerten;
   sie verwendet wieder ihre ursprüngliche Breite, Höhe, Schrift und

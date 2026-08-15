@@ -8,6 +8,7 @@ export const de = {
   'app.finalResult': 'Endstand',
   'app.briefingRound': 'Rundenstart · Runde {{round}}',
   'app.backToStart': 'Zurück zum Start',
+  'app.confirmEndGame': 'Willst du das Spiel wirklich beenden?',
   'app.supplyShipCountdown':
     '🚀 Noch {{rounds}} Runden bis zum Versorgungsschiff',
   'app.supplyShipCountdownOne':
@@ -59,6 +60,7 @@ export const de = {
     '⚠️ Einrichtung/Umrüstung würde pausieren: {{ids}}',
 
   'round.execute': 'Runde ausführen',
+  'round.finish': 'Runde beenden',
   'round.executeHint':
     'Die Runde wird jetzt ohne automatische Marktphase abgerechnet. Starte gewünschte Auktionen vorher. Gewählt: {{food}} Nahrung und {{energy}} Energie je zehn Einwohner.',
   'round.calculation': 'Abrechnung Runde {{round}}',
@@ -259,6 +261,13 @@ export const de = {
     'Harvesterumrüstung gesperrt',
 
   'market.backToPlanning': 'Zurück zur Planung',
+  'market.ownStock': 'Dein Vorrat',
+  'market.ownCredits': 'Deine Credits',
+  'market.leave': 'Auktion verlassen',
+  'market.launcherBlocked':
+    'Ein Ereignis verhindert in dieser Runde das Starten von Ressourcenauktionen.',
+  'market.launcherHint':
+    'Starte bei Bedarf eine Auktion. Nur in Runde 1 erscheint zuvor eine kurze Einführung; danach beginnt sofort die Rollenwahl als Käufer, Verkäufer oder Zuschauer. Jede Ressource kann pro Runde genau einmal aufgerufen werden.',
 
   'start.tagline': 'Exploration · Logistics · Utilization · Mining',
   'start.subtitle':

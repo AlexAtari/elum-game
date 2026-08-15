@@ -610,17 +610,19 @@ Orion verwenden dieselbe Kommandooperation.
 
 `GameState.activeResourceMarket` hält Ressource, Runde, Initiator,
 Phase, Rollen und aktive Preisangebote nach `ParticipantId`.
-`announcement → declaration → auction → finished` wird durch den
+In Runde 1 wird `announcement → declaration → auction → finished`,
+ab Runde 2 direkt `declaration → auction → finished` durch den
 Initiator und mit Prüfung der erwarteten Ausgangsphase
 fortgeschaltet. Eine neutrale Initiatorrolle beendet den Markt nach
-der Erklärung direkt. Marktstart,
+der Erklärung direkt. Der Initiator darf außerdem eine laufende
+`auction` unmittelbar abschließen. Marktstart,
 Rollenerklärung, Preisangebot, Transaktion und Abschluss laufen über
 dieselbe Kommandoschicht. Lager- und interstellarer Handel verwenden
 denselben Teilnehmerparameter wie direkte Koloniegeschäfte. Vor
 einer Transaktion prüft der Kern passende Käufer-/Verkäuferrollen,
 aktive Angebote, Preisberührung, Credits, Bestand und
-Lagerverfügbarkeit. Nur der Initiator darf den aktiven Markt
-abschließen.
+Lagerverfügbarkeit. Nur der Initiator darf den aktiven Markt regulär
+oder vorzeitig abschließen.
 
 Die grafische Marktkomponente bleibt ein Singleplayer-Adapter: Sie
 berechnet Countdown, sichtbare Bewegungen und die Auswahl des aktiven

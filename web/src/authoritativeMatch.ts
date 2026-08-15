@@ -917,7 +917,13 @@ export class AuthoritativeMatch {
       }
     }
 
-    this.acceptState(result.state)
+    const nextState =
+      command.type === 'initiate-resource-market' &&
+      result.state.activeResourceMarket?.phase === 'declaration'
+        ? prepareMultiplayerAiMarketRoles(result.state)
+        : result.state
+
+    this.acceptState(nextState)
 
     return {
       ok: true,

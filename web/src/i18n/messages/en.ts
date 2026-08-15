@@ -10,6 +10,7 @@ export const en = {
   'app.finalResult': 'Final standings',
   'app.briefingRound': 'Round start · Round {{round}}',
   'app.backToStart': 'Back to start',
+  'app.confirmEndGame': 'Do you really want to end the game?',
   'app.supplyShipCountdown':
     '🚀 {{rounds}} rounds until the supply ship',
   'app.supplyShipCountdownOne':
@@ -61,6 +62,7 @@ export const en = {
     '⚠️ Installation/retooling would pause: {{ids}}',
 
   'round.execute': 'Run round',
+  'round.finish': 'End round',
   'round.executeHint':
     'The round is settled without an automatic market phase. Start any auctions you need first. Selected: {{food}} food and {{energy}} energy per ten inhabitants.',
   'round.calculation': 'Round {{round}} settlement',
@@ -260,6 +262,13 @@ export const en = {
     'Harvester retooling blocked',
 
   'market.backToPlanning': 'Back to planning',
+  'market.ownStock': 'Your stock',
+  'market.ownCredits': 'Your credits',
+  'market.leave': 'Leave auction',
+  'market.launcherBlocked':
+    'An event prevents resource auctions from being started this round.',
+  'market.launcherHint':
+    'Start an auction when needed. Only round 1 shows a short introduction; after that, buyer, seller or spectator role selection begins immediately. Each resource can be called once per round.',
 
   'start.tagline': 'Exploration · Logistics · Utilization · Mining',
   'start.subtitle': 'Build the most successful colony on Agima.',

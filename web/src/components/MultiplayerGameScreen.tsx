@@ -14,6 +14,7 @@ import {
   isColonyMarketInitiationBlocked,
   isGameFinished,
   HARVESTER_ORE_COST,
+  marketResourceTypes,
   selectColonyHarvesterAssignments,
   selectColonyRevealedTileIds,
   selectOtherColonyTileIds,
@@ -291,6 +292,12 @@ function MultiplayerGameScreen({
     })
   }
 
+  const leaveGame = () => {
+    if (window.confirm(t('app.confirmEndGame'))) {
+      onLeave()
+    }
+  }
+
   if (state.landAuctionTie) {
     const tie = state.landAuctionTie
     const ownBid = tie.liveBids.bids[participantId] ?? 0
@@ -453,10 +460,35 @@ function MultiplayerGameScreen({
                       participant.credits >= directTradePrice)
 
                 return (
-                  <article key={marketParticipantId}>
-                    <span aria-hidden="true">
-                      {participant.icon}
-                    </span>
+                  <article
+                    className={
+                      activeMarket.phase === 'auction' &&
+                      marketParticipantId === participantId
+                        ? 'has-live-stock'
+                        : undefined
+                    }
+                    key={marketParticipantId}
+                  >
+                    <div className="network-market-avatar">
+                      {activeMarket.phase === 'auction' &&
+                      marketParticipantId === participantId ? (
+                        <b aria-live="polite">
+                          {
+                            marketResourceTypes[
+                              activeMarket.resource
+                            ].icon
+                          }{' '}
+                          {number(
+                            colony.resources[
+                              activeMarket.resource
+                            ],
+                          )}
+                        </b>
+                      ) : null}
+                      <span aria-hidden="true">
+                        {participant.icon}
+                      </span>
+                    </div>
                     <div>
                       <strong>
                         {participant.name}
@@ -658,6 +690,24 @@ function MultiplayerGameScreen({
                 </small>
               ) : null}
             </>
+          ) : null}
+
+          {activeMarket.phase === 'auction' &&
+          activeMarket.initiatorId === participantId ? (
+            <button
+              className="network-market-exit-button"
+              type="button"
+              onClick={() =>
+                sendAction({
+                  type: 'complete-resource-market',
+                  payload: {
+                    resource: activeMarket.resource,
+                  },
+                })
+              }
+            >
+              {t('market.leave')}
+            </button>
           ) : null}
 
           {activeMarket.phase === 'finished' ? (
@@ -907,6 +957,16 @@ function MultiplayerGameScreen({
               })
             }
           />
+          <button
+            className="planet-round-button"
+            disabled={ready}
+            type="button"
+            onClick={submitRoundPlan}
+          >
+            {ready
+              ? t('multiplayerGame.readyWaiting')
+              : t('round.finish')}
+          </button>
           <section className="overview-actions">
             <button
               className="headquarters-button"
@@ -1093,6 +1153,10 @@ function MultiplayerGameScreen({
                 )
               }
             />
+            </div>
+          )}
+
+          <div className="network-hq-round-actions">
             <button
               className="network-primary-button"
               disabled={ready}
@@ -1101,10 +1165,18 @@ function MultiplayerGameScreen({
             >
               {ready
                 ? t('multiplayerGame.readyWaiting')
-                : t('multiplayerGame.finishPlanning')}
+                : t('round.finish')}
             </button>
-            </div>
-          )}
+            <p>{t('multiplayerGame.roundTimeHint')}</p>
+          </div>
+
+          <button
+            className="secondary-button network-leave-button"
+            type="button"
+            onClick={leaveGame}
+          >
+            {t('app.backToStart')}
+          </button>
         </section>
       )}
 
@@ -1122,13 +1194,6 @@ function MultiplayerGameScreen({
           }
         />
       ) : null}
-      <button
-        className="secondary-button network-leave-button"
-        type="button"
-        onClick={onLeave}
-      >
-        {t('multiplayerGame.leave')}
-      </button>
     </main>
   )
 }

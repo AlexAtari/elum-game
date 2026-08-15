@@ -1218,14 +1218,14 @@ export function getMarketTiming(
 
   if (roundPlayed === 2) {
     return {
-      introductionSeconds: 4,
+      introductionSeconds: 0,
       declarationSeconds: 5,
       auctionSeconds: 25,
     }
   }
 
   return {
-    introductionSeconds: 3,
+    introductionSeconds: 0,
     declarationSeconds: 5,
     auctionSeconds: 20,
   }
@@ -2672,7 +2672,10 @@ export function initiateColonyResourceMarket(
       resource,
       roundPlayed: currentState.round,
       initiatorId: participantId,
-      phase: 'announcement',
+      phase:
+        currentState.round === 1
+          ? 'announcement'
+          : 'declaration',
       roles: Object.fromEntries(
         participantIds.map((id) => [id, 'neutral']),
       ) as Record<ParticipantId, MarketRole>,
@@ -2878,7 +2881,8 @@ export function completeColonyResourceMarket(
     !activeMarket ||
     activeMarket.resource !== resource ||
     activeMarket.initiatorId !== participantId ||
-    activeMarket.phase !== 'finished'
+    (activeMarket.phase !== 'auction' &&
+      activeMarket.phase !== 'finished')
   ) {
     return currentState
   }

@@ -102,7 +102,11 @@ type MapGesture = {
   mode: 'pan' | 'pinch'
   camera: MapCamera
   midpoint: Point
+  origin: Point
   distance: number
+  radiansPerPixel: number
+  lastTimestamp: number
+  velocity: Point
 }
 
 type MobileMapAction = 'harvester' | 'land-bid' | null
@@ -112,6 +116,11 @@ const PLANET_RADIUS = 340
 const MIN_MAP_ZOOM = 0.72
 const MAX_MAP_ZOOM = 2.2
 const MAX_MAP_PITCH = Math.PI * 0.48
+const MAP_DRAG_RESPONSE = 1.08
+const MAP_VELOCITY_SMOOTHING = 0.34
+const MAP_MAX_INERTIA_SPEED = 0.004
+const MAP_INERTIA_FRICTION = 0.9
+const MAP_MIN_INERTIA_SPEED = 0.000035
 const FOG_PUFF_LAYER_OPACITIES = [
   0.18,
   0.21,
@@ -168,6 +177,18 @@ function normalizeAngle(angle: number) {
       fullTurn -
     Math.PI
   )
+}
+
+function normalizeCamera(camera: MapCamera): MapCamera {
+  return {
+    yaw: normalizeAngle(camera.yaw),
+    pitch: clamp(
+      camera.pitch,
+      -MAX_MAP_PITCH,
+      MAX_MAP_PITCH,
+    ),
+    zoom: clamp(camera.zoom, MIN_MAP_ZOOM, MAX_MAP_ZOOM),
+  }
 }
 
 function getDistance(first: Point, second: Point) {
@@ -307,11 +328,16 @@ function HexMap({
   const didMoveMap = useRef(false)
   const pendingCamera = useRef<MapCamera | null>(null)
   const cameraAnimationFrame = useRef<number | null>(null)
+  const inertiaAnimationFrame = useRef<number | null>(null)
+  const interactionSurface = useRef<SVGSVGElement | null>(null)
 
   useEffect(
     () => () => {
       if (cameraAnimationFrame.current !== null) {
         cancelAnimationFrame(cameraAnimationFrame.current)
+      }
+      if (inertiaAnimationFrame.current !== null) {
+        cancelAnimationFrame(inertiaAnimationFrame.current)
       }
     },
     [],
@@ -630,15 +656,8 @@ function HexMap({
   )
 
   const updateCamera = (camera: MapCamera) => {
-    const nextCamera = {
-      yaw: normalizeAngle(camera.yaw),
-      pitch: clamp(
-        camera.pitch,
-        -MAX_MAP_PITCH,
-        MAX_MAP_PITCH,
-      ),
-      zoom: clamp(camera.zoom, MIN_MAP_ZOOM, MAX_MAP_ZOOM),
-    }
+    cancelInertia()
+    const nextCamera = normalizeCamera(camera)
 
     if (cameraAnimationFrame.current !== null) {
       cancelAnimationFrame(cameraAnimationFrame.current)
@@ -651,15 +670,7 @@ function HexMap({
   }
 
   const scheduleCameraUpdate = (camera: MapCamera) => {
-    const nextCamera = {
-      yaw: normalizeAngle(camera.yaw),
-      pitch: clamp(
-        camera.pitch,
-        -MAX_MAP_PITCH,
-        MAX_MAP_PITCH,
-      ),
-      zoom: clamp(camera.zoom, MIN_MAP_ZOOM, MAX_MAP_ZOOM),
-    }
+    const nextCamera = normalizeCamera(camera)
 
     cameraRef.current = nextCamera
     pendingCamera.current = nextCamera
@@ -679,26 +690,103 @@ function HexMap({
     })
   }
 
-  const clientToMapPoint = (
+  const getRadiansPerPixel = (
     element: SVGSVGElement,
-    clientX: number,
-    clientY: number,
+    zoom: number,
   ) => {
-    const screenMatrix = element.getScreenCTM()
-
-    if (!screenMatrix) {
-      return { x: 0, y: 0 }
-    }
-
-    const point = element.createSVGPoint()
-    point.x = clientX
-    point.y = clientY
-
-    const mapPoint = point.matrixTransform(
-      screenMatrix.inverse(),
+    const bounds = element.getBoundingClientRect()
+    const shortSide = Math.max(
+      1,
+      Math.min(bounds.width, bounds.height),
     )
 
-    return { x: mapPoint.x, y: mapPoint.y }
+    return (
+      (MAP_VIEW_SIZE / shortSide) /
+      (PLANET_RADIUS * zoom) *
+      MAP_DRAG_RESPONSE
+    )
+  }
+
+  const cancelInertia = () => {
+    if (inertiaAnimationFrame.current !== null) {
+      cancelAnimationFrame(inertiaAnimationFrame.current)
+      inertiaAnimationFrame.current = null
+    }
+    interactionSurface.current?.classList.remove(
+      'is-interacting',
+    )
+    interactionSurface.current = null
+  }
+
+  const startInertia = (
+    element: SVGSVGElement,
+    initialVelocity: Point,
+  ) => {
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+    const initialSpeed = Math.hypot(
+      initialVelocity.x,
+      initialVelocity.y,
+    )
+
+    if (
+      prefersReducedMotion ||
+      initialSpeed < MAP_MIN_INERTIA_SPEED
+    ) {
+      element.classList.remove('is-interacting')
+      return
+    }
+
+    interactionSurface.current = element
+    let velocity = { ...initialVelocity }
+    let previousTimestamp = performance.now()
+
+    const advance = (timestamp: number) => {
+      const elapsed = clamp(
+        timestamp - previousTimestamp,
+        8,
+        32,
+      )
+      previousTimestamp = timestamp
+      const decay = Math.pow(
+        MAP_INERTIA_FRICTION,
+        elapsed / (1000 / 60),
+      )
+      velocity = {
+        x: velocity.x * decay,
+        y: velocity.y * decay,
+      }
+
+      if (
+        Math.hypot(velocity.x, velocity.y) <
+        MAP_MIN_INERTIA_SPEED
+      ) {
+        inertiaAnimationFrame.current = null
+        element.classList.remove('is-interacting')
+        interactionSurface.current = null
+        return
+      }
+
+      const currentCamera = cameraRef.current
+      const nextCamera = normalizeCamera({
+        yaw: currentCamera.yaw + velocity.x * elapsed,
+        pitch: currentCamera.pitch + velocity.y * elapsed,
+        zoom: currentCamera.zoom,
+      })
+
+      if (nextCamera.pitch === currentCamera.pitch) {
+        velocity.y = 0
+      }
+
+      cameraRef.current = nextCamera
+      setCameraState(nextCamera)
+      inertiaAnimationFrame.current =
+        requestAnimationFrame(advance)
+    }
+
+    inertiaAnimationFrame.current =
+      requestAnimationFrame(advance)
   }
 
   const zoomMap = (zoomFactor: number) => {
@@ -719,14 +807,11 @@ function HexMap({
   const handlePointerDown = (
     event: PointerEvent<SVGSVGElement>,
   ) => {
+    cancelInertia()
     event.currentTarget.setPointerCapture(event.pointerId)
     event.currentTarget.classList.add('is-interacting')
 
-    const point = clientToMapPoint(
-      event.currentTarget,
-      event.clientX,
-      event.clientY,
-    )
+    const point = { x: event.clientX, y: event.clientY }
 
     if (pointerPositions.current.size === 0) {
       didMoveMap.current = false
@@ -740,7 +825,14 @@ function HexMap({
         mode: 'pinch',
         camera: cameraRef.current,
         midpoint: getMidpoint(points[0]!, points[1]!),
+        origin: getMidpoint(points[0]!, points[1]!),
         distance: getDistance(points[0]!, points[1]!),
+        radiansPerPixel: getRadiansPerPixel(
+          event.currentTarget,
+          cameraRef.current.zoom,
+        ),
+        lastTimestamp: event.timeStamp,
+        velocity: { x: 0, y: 0 },
       }
       didMoveMap.current = true
       return
@@ -750,7 +842,14 @@ function HexMap({
       mode: 'pan',
       camera: cameraRef.current,
       midpoint: point,
+      origin: point,
       distance: 0,
+      radiansPerPixel: getRadiansPerPixel(
+        event.currentTarget,
+        cameraRef.current.zoom,
+      ),
+      lastTimestamp: event.timeStamp,
+      velocity: { x: 0, y: 0 },
     }
   }
 
@@ -761,11 +860,14 @@ function HexMap({
       return
     }
 
-    const point = clientToMapPoint(
-      event.currentTarget,
-      event.clientX,
-      event.clientY,
-    )
+    const coalescedEvents =
+      event.nativeEvent.getCoalescedEvents?.() ?? []
+    const latestEvent =
+      coalescedEvents.at(-1) ?? event.nativeEvent
+    const point = {
+      x: latestEvent.clientX,
+      y: latestEvent.clientY,
+    }
     pointerPositions.current.set(event.pointerId, point)
 
     const currentGesture = gesture.current
@@ -799,34 +901,69 @@ function HexMap({
     if (currentGesture.mode === 'pan' && points[0]) {
       const distanceMoved = getDistance(
         points[0],
-        currentGesture.midpoint,
+        currentGesture.origin,
       )
 
       if (distanceMoved > 4) {
         didMoveMap.current = true
       }
 
+      const elapsed = clamp(
+        latestEvent.timeStamp -
+          currentGesture.lastTimestamp,
+        4,
+        48,
+      )
+      const yawDelta =
+        (points[0].x - currentGesture.midpoint.x) *
+        currentGesture.radiansPerPixel
+      const pitchDelta =
+        (points[0].y - currentGesture.midpoint.y) *
+        currentGesture.radiansPerPixel
+      const instantaneousVelocity = {
+        x: clamp(
+          yawDelta / elapsed,
+          -MAP_MAX_INERTIA_SPEED,
+          MAP_MAX_INERTIA_SPEED,
+        ),
+        y: clamp(
+          pitchDelta / elapsed,
+          -MAP_MAX_INERTIA_SPEED,
+          MAP_MAX_INERTIA_SPEED,
+        ),
+      }
+      const velocity = {
+        x:
+          currentGesture.velocity.x *
+            (1 - MAP_VELOCITY_SMOOTHING) +
+          instantaneousVelocity.x *
+            MAP_VELOCITY_SMOOTHING,
+        y:
+          currentGesture.velocity.y *
+            (1 - MAP_VELOCITY_SMOOTHING) +
+          instantaneousVelocity.y *
+            MAP_VELOCITY_SMOOTHING,
+      }
+      const currentCamera = cameraRef.current
+
       scheduleCameraUpdate({
-        yaw:
-          currentGesture.camera.yaw +
-          (points[0].x -
-            currentGesture.midpoint.x) /
-            (PLANET_RADIUS *
-              currentGesture.camera.zoom),
-        pitch:
-          currentGesture.camera.pitch +
-          (points[0].y -
-            currentGesture.midpoint.y) /
-            (PLANET_RADIUS *
-              currentGesture.camera.zoom),
-        zoom: currentGesture.camera.zoom,
+        yaw: currentCamera.yaw + yawDelta,
+        pitch: currentCamera.pitch + pitchDelta,
+        zoom: currentCamera.zoom,
       })
+      gesture.current = {
+        ...currentGesture,
+        midpoint: points[0],
+        lastTimestamp: latestEvent.timeStamp,
+        velocity,
+      }
     }
   }
 
   const handlePointerEnd = (
     event: PointerEvent<SVGSVGElement>,
   ) => {
+    const endedGesture = gesture.current
     pointerPositions.current.delete(event.pointerId)
 
     if (
@@ -844,18 +981,48 @@ function HexMap({
           mode: 'pan',
           camera: cameraRef.current,
           midpoint: remainingPoint,
+          origin: remainingPoint,
           distance: 0,
+          radiansPerPixel: getRadiansPerPixel(
+            event.currentTarget,
+            cameraRef.current.zoom,
+          ),
+          lastTimestamp: event.timeStamp,
+          velocity: { x: 0, y: 0 },
         }
       : null
 
     if (!remainingPoint) {
-      event.currentTarget.classList.remove('is-interacting')
+      if (
+        event.type !== 'pointercancel' &&
+        endedGesture?.mode === 'pan' &&
+        didMoveMap.current
+      ) {
+        startInertia(
+          event.currentTarget,
+          endedGesture.velocity,
+        )
+      } else {
+        event.currentTarget.classList.remove('is-interacting')
+      }
     }
   }
 
   const handleWheel = (event: WheelEvent<SVGSVGElement>) => {
     event.preventDefault()
-    zoomMap(event.deltaY < 0 ? 1.12 : 0.89)
+    cancelInertia()
+    const currentCamera = cameraRef.current
+    const zoomFactor = clamp(
+      Math.exp(-event.deltaY * 0.0018),
+      0.84,
+      1.19,
+    )
+
+    scheduleCameraUpdate({
+      yaw: currentCamera.yaw,
+      pitch: currentCamera.pitch,
+      zoom: currentCamera.zoom * zoomFactor,
+    })
   }
 
   const selectTile = (tileId: string) => {

@@ -1,5 +1,6 @@
 import { createRivalMarketSelection } from '../rivalMarket'
 import { getInterstellarCrystalBuyerOffer } from '../interstellarCrystalBuyer'
+import { useI18n } from '../i18n/I18nContext'
 import type { ParticipantId } from '../match'
 import {
   useCallback,
@@ -175,6 +176,7 @@ function MarketPanel({
   onAdvancePhase,
   onComplete,
 }: MarketPanelProps) {
+  const { t } = useI18n()
   const marketTiming = getMarketTiming(roundPlayed)
   const introductionSeconds =
     marketTiming.introductionSeconds
@@ -277,7 +279,15 @@ function MarketPanel({
   const [lastTradePartner, setLastTradePartner] = useState<
     MarketUiCounterparty | null
   >(null)
+  const [heldDirection, setHeldDirection] = useState<
+    1 | -1 | null
+  >(null)
   const nextPlayerMovementAt = useRef(0)
+  const holdStartTimer = useRef<number | null>(null)
+  const holdMovementTimer = useRef<number | null>(null)
+  const heldMovementStep = useRef<(difference: number) => void>(
+    () => undefined,
+  )
   const initializedAuctionKey = useRef<string | null>(null)
   if (countdown.phase !== phase) {
     setCountdown({
@@ -293,6 +303,19 @@ function MarketPanel({
 
   const chooseRole = useCallback((nextRole: MarketRole) => {
     setRole(nextRole)
+    setOrionRole('pending')
+    setPlayerOfferActive(false)
+    setOrionParked(false)
+  }, [])
+
+  const movePlayerRole = useCallback((difference: number) => {
+    setRole((currentRole) => {
+      if (difference > 0) {
+        return currentRole === 'buyer' ? 'neutral' : 'seller'
+      }
+
+      return currentRole === 'seller' ? 'neutral' : 'buyer'
+    })
     setOrionRole('pending')
     setPlayerOfferActive(false)
     setOrionParked(false)
@@ -741,15 +764,73 @@ function MarketPanel({
     stage,
   ])
 
+  const stopHeldMovement = useCallback(() => {
+    setHeldDirection(null)
+
+    if (holdStartTimer.current !== null) {
+      window.clearTimeout(holdStartTimer.current)
+      holdStartTimer.current = null
+    }
+
+    if (holdMovementTimer.current !== null) {
+      window.clearInterval(holdMovementTimer.current)
+      holdMovementTimer.current = null
+    }
+  }, [])
+
+  const movePlayer = useCallback((difference: number) => {
+    if (stage === 'declaration') {
+      movePlayerRole(difference)
+      return
+    }
+
+    movePlayerOffer(difference)
+  }, [movePlayerOffer, movePlayerRole, stage])
+
+  useEffect(() => {
+    heldMovementStep.current = movePlayer
+  }, [movePlayer])
+
+  const startHeldMovement = useCallback((difference: 1 | -1) => {
+    stopHeldMovement()
+    setHeldDirection(difference)
+    heldMovementStep.current(difference)
+    holdStartTimer.current = window.setTimeout(() => {
+      holdMovementTimer.current = window.setInterval(() => {
+        heldMovementStep.current(difference)
+      }, movementMilliseconds)
+    }, 360)
+  }, [stopHeldMovement])
+
+  useEffect(() => stopHeldMovement, [stage, stopHeldMovement])
+
+  useEffect(() => {
+    const stopWhenHidden = () => {
+      if (document.visibilityState !== 'visible') {
+        stopHeldMovement()
+      }
+    }
+
+    window.addEventListener('blur', stopHeldMovement)
+    document.addEventListener('visibilitychange', stopWhenHidden)
+    return () => {
+      window.removeEventListener('blur', stopHeldMovement)
+      document.removeEventListener(
+        'visibilitychange',
+        stopWhenHidden,
+      )
+    }
+  }, [stopHeldMovement])
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (stage === 'declaration') {
         if (event.key === 'ArrowUp') {
           event.preventDefault()
-          chooseRole('seller')
+          movePlayerRole(1)
         } else if (event.key === 'ArrowDown') {
           event.preventDefault()
-          chooseRole('buyer')
+          movePlayerRole(-1)
         } else if (event.key === 'Escape') {
           chooseRole('neutral')
         }
@@ -772,6 +853,7 @@ function MarketPanel({
   }, [
     chooseRole,
     movePlayerOffer,
+    movePlayerRole,
     stage,
   ])
 
@@ -919,114 +1001,119 @@ function MarketPanel({
         />
       </div>
 
-      <div className="market-summary">
-        <div>
-          <span>Dein Vorrat</span>
-          <strong
-            key={`${resource}-${resourceAmount}`}
-            className={`market-live-value ${
-              tradedUnits > 0
-                ? role === 'buyer'
-                  ? 'market-value-up'
-                  : 'market-value-down'
-                : ''
-            }`}
-          >
-            {resourceType.icon} {resourceAmount}
-          </strong>
-        </div>
-        <div>
-          <span>Deine Credits</span>
-          <strong
-            key={`credits-${credits}`}
-            className={`market-live-value ${
-              tradedUnits > 0
-                ? role === 'seller'
-                  ? 'market-value-up'
-                  : 'market-value-down'
-                : ''
-            }`}
-          >
-            💰 {credits}
-          </strong>
-        </div>
-      </div>
-
-      <div className="market-context" aria-live="polite">
-        <div>
-          <span>HQ-Gesamtlager</span>
-          <strong
-            key={`warehouse-${warehouseStock}`}
-            className={`market-live-value ${
-              tradedUnits > 0 &&
-              lastTradePartner === 'warehouse'
-                ? role === 'seller'
-                  ? 'market-value-up'
-                  : 'market-value-down'
-                : ''
-            }`}
-          >
-            {resourceType.icon} {warehouseStock}
-          </strong>
-        </div>
-
-        <div>
-          <span>Handelsverlauf</span>
-          <strong
-            key={`trades-${tradedUnits}`}
-            className={
-              tradedUnits > 0
-                ? 'market-live-value market-value-up'
-                : ''
-            }
-          >
-            {tradedUnits === 0
-              ? 'Noch kein Handel abgeschlossen'
-              : `${tradedUnits} ${
-                  tradedUnits === 1 ? 'Einheit' : 'Einheiten'
+      {stage !== 'declaration' && stage !== 'auction' && (
+        <>
+          <div className="market-summary">
+            <div>
+              <span>Dein Vorrat</span>
+              <strong
+                key={`${resource}-${resourceAmount}`}
+                className={`market-live-value ${
+                  tradedUnits > 0
+                    ? role === 'buyer'
+                      ? 'market-value-up'
+                      : 'market-value-down'
+                    : ''
                 }`}
-          </strong>
-          <small
-            className={
-              tradedUnits === 0
-                ? 'market-context-placeholder'
-                : ''
-            }
-          >
-            {tradedUnits === 0
-              ? '\u00a0'
-              : `Zuletzt für ${lastTradePrice} Credits mit ${
-                  lastTradePartner === null
-              ? ''
-              : lastTradePartner === 'warehouse'
-              ? 'dem HQ-Lager'
-              : lastTradePartner === 'interstellar-buyer'
-                ? 'dem interstellaren Käufer'
-                : rivals[lastTradePartner].name
+              >
+                {resourceType.icon} {resourceAmount}
+              </strong>
+            </div>
+            <div>
+              <span>Deine Credits</span>
+              <strong
+                key={`credits-${credits}`}
+                className={`market-live-value ${
+                  tradedUnits > 0
+                    ? role === 'seller'
+                      ? 'market-value-up'
+                      : 'market-value-down'
+                    : ''
                 }`}
-          </small>
-        </div>
-      </div>
-
-      {resource === 'crystals' && (
-        <div
-          className={`interstellar-buyer-status ${
-            interstellarBuyer.isAvailable
-              ? 'is-available'
-              : 'is-exhausted'
-          }`}
-          role="status"
-        >
-          <span aria-hidden="true">🛰️</span>
-          <div>
-            <strong>Interstellarer Kristallkäufer</strong>
-            <small>
-              Kaufgebot {interstellarBuyer.offerPrice} Credits ·{' '}
-              Kapazität {interstellarBuyer.remainingCapacity}/
-              {interstellarBuyer.capacity}
-            </small>
+              >
+                💰 {credits}
+              </strong>
+            </div>
           </div>
-        </div>
+
+          <div className="market-context" aria-live="polite">
+            <div>
+              <span>HQ-Gesamtlager</span>
+              <strong
+                key={`warehouse-${warehouseStock}`}
+                className={`market-live-value ${
+                  tradedUnits > 0 &&
+                  lastTradePartner === 'warehouse'
+                    ? role === 'seller'
+                      ? 'market-value-up'
+                      : 'market-value-down'
+                    : ''
+                }`}
+              >
+                {resourceType.icon} {warehouseStock}
+              </strong>
+            </div>
+
+            <div>
+              <span>Handelsverlauf</span>
+              <strong
+                key={`trades-${tradedUnits}`}
+                className={
+                  tradedUnits > 0
+                    ? 'market-live-value market-value-up'
+                    : ''
+                }
+              >
+                {tradedUnits === 0
+                  ? 'Noch kein Handel abgeschlossen'
+                  : `${tradedUnits} ${
+                      tradedUnits === 1 ? 'Einheit' : 'Einheiten'
+                    }`}
+              </strong>
+              <small
+                className={
+                  tradedUnits === 0
+                    ? 'market-context-placeholder'
+                    : ''
+                }
+              >
+                {tradedUnits === 0
+                  ? '\u00a0'
+                  : `Zuletzt für ${lastTradePrice} Credits mit ${
+                      lastTradePartner === null
+                        ? ''
+                        : lastTradePartner === 'warehouse'
+                          ? 'dem HQ-Lager'
+                          : lastTradePartner ===
+                              'interstellar-buyer'
+                            ? 'dem interstellaren Käufer'
+                            : rivals[lastTradePartner].name
+                    }`}
+              </small>
+            </div>
+          </div>
+
+          {resource === 'crystals' && (
+            <div
+              className={`interstellar-buyer-status ${
+                interstellarBuyer.isAvailable
+                  ? 'is-available'
+                  : 'is-exhausted'
+              }`}
+              role="status"
+            >
+              <span aria-hidden="true">🛰️</span>
+              <div>
+                <strong>Interstellarer Kristallkäufer</strong>
+                <small>
+                  Kaufgebot {interstellarBuyer.offerPrice} Credits ·{' '}
+                  Kapazität {interstellarBuyer.remainingCapacity}/
+                  {interstellarBuyer.capacity}
+                </small>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <div
@@ -1294,98 +1381,88 @@ function MarketPanel({
           )}
 
           {stage === 'declaration' && (
-            <>
+            <div className="market-positioning-status" aria-live="polite">
               <p className="eyebrow">Positionierungsphase</p>
-              <h3>Wie möchtest du teilnehmen?</h3>
-              <p>
-                {initiatorName
-                  ? `${initiatorName} hat diese Auktion gestartet. `
-                  : ''}
-                Entscheide dich vor Ablauf der Zeit. Du kannst die
-                Position bis dahin jederzeit wechseln.
-              </p>
-
-              <button
-                className={role === 'seller' ? 'active' : ''}
-                type="button"
-                onClick={() => chooseRole('seller')}
-              >
-                ↑ Als Verkäufer starten
-              </button>
-              <button
-                className={role === 'neutral' ? 'active' : ''}
-                type="button"
-                onClick={() => chooseRole('neutral')}
-              >
-                Nicht teilnehmen
-              </button>
-              <button
-                className={role === 'buyer' ? 'active' : ''}
-                type="button"
-                onClick={() => chooseRole('buyer')}
-              >
-                ↓ Als Käufer starten
-              </button>
-
-              <p className="market-key-hint">
-                Tastatur: ↑ verkaufen · ↓ kaufen · Esc aussetzen
-              </p>
-              <p className="market-key-hint market-layout-hint">
-                Alle Rivalen entscheiden anhand ihrer Vorräte und ihrer Wirtschaftsstrategie.
-              </p>
-            </>
+              <strong>
+                {role === 'seller'
+                  ? 'Verkäufer'
+                  : role === 'buyer'
+                    ? 'Käufer'
+                    : 'Nicht teilnehmen'}
+              </strong>
+              <small>Tippen: ein Schritt · Halten: weiterlaufen</small>
+            </div>
           )}
 
-          {stage === 'auction' && (
+          {(stage === 'declaration' || stage === 'auction') && (
             <div
               className="market-control-buttons"
               aria-label="Marktsteuerung"
             >
                 <button
+                  className={heldDirection === 1 ? 'is-holding' : ''}
                   type="button"
-                  onClick={() => movePlayerOffer(1)}
+                  onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(
+                      event.pointerId,
+                    )
+                    startHeldMovement(1)
+                  }}
+                  onPointerUp={stopHeldMovement}
+                  onPointerCancel={stopHeldMovement}
                   disabled={
-                    buyerCannotEnterMarket ||
-                    buyerReachedCreditLimit
+                    stage === 'declaration'
+                      ? role === 'seller'
+                      : buyerCannotEnterMarket ||
+                        buyerReachedCreditLimit
                   }
                   aria-label={
-                    role === 'buyer' && !playerOfferActive
+                    stage === 'declaration'
+                      ? role === 'buyer'
+                        ? 'Zur Mitte bewegen'
+                        : 'Als Verkäufer positionieren'
+                      : role === 'buyer' && !playerOfferActive
                       ? 'Markt betreten'
                       : 'Preis erhöhen'
                   }
                 >
-                  <span aria-hidden="true">
-                    ↑{' '}
-                    {role === 'buyer' && !playerOfferActive
-                      ? 'Markt'
-                      : 'Preis'}
-                  </span>
-                  <span aria-hidden="true">
-                    {role === 'buyer' && !playerOfferActive
-                      ? 'betreten'
-                      : 'erhöhen'}
-                  </span>
+                  <span className="market-control-arrow" aria-hidden="true">↑</span>
+                  {stage === 'declaration' && (
+                    <span aria-hidden="true">
+                      {role === 'buyer' ? 'Mitte' : 'Verkaufen'}
+                    </span>
+                  )}
                 </button>
                 <button
+                  className={heldDirection === -1 ? 'is-holding' : ''}
                   type="button"
-                  onClick={() => movePlayerOffer(-1)}
+                  onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(
+                      event.pointerId,
+                    )
+                    startHeldMovement(-1)
+                  }}
+                  onPointerUp={stopHeldMovement}
+                  onPointerCancel={stopHeldMovement}
+                  disabled={
+                    stage === 'declaration' && role === 'buyer'
+                  }
                   aria-label={
-                    role === 'seller' && !playerOfferActive
+                    stage === 'declaration'
+                      ? role === 'seller'
+                        ? 'Zur Mitte bewegen'
+                        : 'Als Käufer positionieren'
+                      : role === 'seller' && !playerOfferActive
                       ? 'Markt betreten'
                       : 'Preis senken'
                   }
                 >
-                  <span aria-hidden="true">
-                    ↓{' '}
-                    {role === 'seller' && !playerOfferActive
-                      ? 'Markt'
-                      : 'Preis'}
-                  </span>
-                  <span aria-hidden="true">
-                    {role === 'seller' && !playerOfferActive
-                      ? 'betreten'
-                      : 'senken'}
-                  </span>
+                  <span className="market-control-arrow" aria-hidden="true">↓</span>
+                  {stage === 'declaration' && (
+                    <span aria-hidden="true">
+                      {role === 'seller' ? 'Mitte' : 'Kaufen'}
+                    </span>
+                  )}
                 </button>
             </div>
           )}
@@ -1413,6 +1490,16 @@ function MarketPanel({
                 {buyerShortfall}
               </span>
             </div>
+          )}
+
+          {stage === 'auction' && (
+            <button
+              className="market-leave-button"
+              type="button"
+              onClick={() => onComplete(resource)}
+            >
+              {t('market.leave')}
+            </button>
           )}
 
           {stage === 'finished' && (

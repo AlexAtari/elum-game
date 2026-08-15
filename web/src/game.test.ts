@@ -8,6 +8,7 @@ import {
   calculateColonySupplyPreview,
   hasHarvesterEnergyShortage,
   cancelLandBid,
+  completeColonyResourceMarket,
   completeRoundAfterMarket,
   completeResourceMarket,
   createInitialGameState,
@@ -724,23 +725,57 @@ describe('Markthandel', () => {
     expect(getNextMarketResource('crystals')).toBeNull()
   })
 
-  it('verkürzt den Markt in Runde zwei und ab Runde drei dauerhaft', () => {
+  it('zeigt die Markteinführung nur in Runde eins', () => {
     expect(getMarketTiming(1)).toEqual({
       introductionSeconds: 5,
       declarationSeconds: 5,
       auctionSeconds: 30,
     })
     expect(getMarketTiming(2)).toEqual({
-      introductionSeconds: 4,
+      introductionSeconds: 0,
       declarationSeconds: 5,
       auctionSeconds: 25,
     })
     expect(getMarketTiming(3)).toEqual({
-      introductionSeconds: 3,
+      introductionSeconds: 0,
       declarationSeconds: 5,
       auctionSeconds: 20,
     })
     expect(getMarketTiming(12)).toEqual(getMarketTiming(3))
+  })
+
+  it('beginnt Ressourcenmärkte ab Runde zwei direkt mit der Rollenwahl', () => {
+    const state = createInitialGameState()
+    state.round = 2
+
+    const marketState = initiateResourceMarket(state, 'food')
+
+    expect(marketState.activeResourceMarket?.phase).toBe(
+      'declaration',
+    )
+  })
+
+  it('lässt den Initiator eine laufende Auktion vorzeitig verlassen', () => {
+    const state = createInitialGameState()
+    state.activeResourceMarket = {
+      resource: 'food',
+      roundPlayed: 1,
+      initiatorId: 'agima',
+      phase: 'auction',
+      roles: { agima: 'seller' },
+      offers: { agima: { active: true, price: 8 } },
+    }
+
+    const completed = completeColonyResourceMarket(
+      state,
+      'agima',
+      'food',
+    )
+
+    expect(completed.activeResourceMarket).toBeNull()
+    expect(
+      completeColonyResourceMarket(state, 'orion', 'food'),
+    ).toBe(state)
   })
 
   it('erlaubt jede Ressourcenauktion nur einmal pro Runde', () => {

@@ -202,10 +202,24 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
   verdeckt und in der gemeinsamen Einzel-/Mehrspielerkarte gesperrt;
   mehrere hundert weiche Wolkenpolygone und eine auslaufende
   Randmaske vermeiden harte Feld- und Planetenkanten; acht gebündelte
-  SVG-Pfade, frameweise Kameraupdates und eine reduzierte mobile
-  Canvas-Auflösung halten die Touch-Drehung flüssig;
+  SVG-Pfade, direkte Bildschirmkoordinaten, frameweise Kameraupdates,
+  eine kurze geschwindigkeitsabhängige Auslaufbewegung und eine
+  reduzierte mobile Canvas-Auflösung halten die Touch-Drehung flüssig;
+  Mausrad und Trackpad zoomen kontinuierlich, während reduzierte
+  Bewegung das Auslaufen abschaltet;
   personalisierte Multiplayer-Snapshots entfernen zusätzlich
   fremden dynamischen Feldzustand außerhalb der eigenen Sicht.
+- Die Rundenaktion ist am unteren Rand der Einzel- und
+  Mehrspielerkarte sowie im HQ direkt erreichbar. Der neutrale
+  Rückweg zum Start liegt ausschließlich ganz unten im HQ und wird
+  durch eine Sicherheitsabfrage geschützt.
+- Ressourcenmärkte zeigen ihre fünfsekündige Einführung nur in Runde
+  1 und beginnen später direkt mit der Rollenwahl. Rollenwahl und
+  Handel verzichten auf eine vorgelagerte Ressourcenübersicht; der
+  aktuelle Warenbestand steht direkt über der eigenen Figur. Der
+  Initiator kann die Auktion jederzeit verlassen. Rollenwahl und
+  Preisbewegung verwenden dieselben statischen Pfeiltasten; Tippen
+  bewegt einmal, Gedrückthalten wiederholt bis zum Loslassen.
 - Die mobile Rangliste wird auf feste Karten-Slots und ruhige
   Aufdeckung optimiert.
 - Dokumentation wird als dauerhafte Übergabebasis ausgebaut.

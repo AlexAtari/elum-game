@@ -91,6 +91,21 @@
   background: rgba(255, 255, 255, 0.045);
 }
 
+.network-market-exit-button {
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  margin-top: 16px;
+  padding: 9px 12px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  color: #c7d0df;
+  background: rgba(255, 255, 255, 0.05);
+  font: inherit;
+  font-weight: 750;
+}
+
 .network-headquarters > .network-leaderboard {
   margin-top: 18px;
 }
@@ -279,8 +294,39 @@
   background: rgba(255, 255, 255, 0.045);
 }
 
+.network-market-participants article.has-live-stock {
+  padding-top: 22px;
+}
+
 .network-market-participants article > span {
   font-size: 1.35rem;
+}
+
+.network-market-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+}
+
+.network-market-avatar > span {
+  font-size: 1.35rem;
+}
+
+.network-market-avatar > b {
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  padding: 3px 7px;
+  border: 1px solid rgba(121, 221, 185, 0.36);
+  border-radius: 999px;
+  color: #dff8ef;
+  background: rgba(8, 20, 29, 0.96);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-size: 0.72rem;
+  line-height: 1;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .network-market-participants article div {
@@ -314,7 +360,30 @@
 }
 
 .network-leave-button {
-  margin-top: 20px;
+  display: block;
+  margin: 34px auto 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #9ba6b9;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+}
+
+.network-hq-round-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.network-hq-round-actions p {
+  margin: 0;
+  color: #8995aa;
+  font-size: 0.88rem;
 }
 
 @media (max-width: 700px) {
@@ -344,5 +413,17 @@
 
   .network-market-participants > div {
     grid-template-columns: 1fr;
+  }
+
+  .network-market-exit-button {
+    position: sticky;
+    z-index: 20;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+  }
+
+  .network-hq-round-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

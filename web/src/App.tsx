@@ -526,6 +526,12 @@ function App() {
     applyCompletedRound(completedRound)
   }
 
+  const returnToStart = () => {
+    if (window.confirm(t('app.confirmEndGame'))) {
+      setGameStarted(false)
+    }
+  }
+
   const continueAfterLeaderboard = useCallback(() => {
     const globalEvent = selectGlobalEvent(gameState.round)
     const localEvent = selectLocalEvent(gameState.round)
@@ -754,6 +760,14 @@ function App() {
               onRemoveHarvester={removeHarvester}
             />
 
+                <button
+                  className="planet-round-button"
+                  type="button"
+                  onClick={executeRound}
+                >
+                  {t('round.finish')}
+                </button>
+
                 <section className="overview-actions">
                   <button
                     className="headquarters-button"
@@ -960,14 +974,13 @@ function App() {
                   </section>
                 )}
 
-                {headquartersView === 'storage' && (
-                  <section className="round-actions">
+                <section className="round-actions headquarters-round-actions">
               <button
                 className="round-button"
                 type="button"
                 onClick={executeRound}
               >
-                {t('round.execute')}
+                {t('round.finish')}
               </button>
 
               <p>
@@ -976,8 +989,15 @@ function App() {
                   energy: energySupplyLevel,
                 })}
               </p>
-                  </section>
-                )}
+                </section>
+
+                <button
+                  className="secondary-button game-exit-button"
+                  type="button"
+                  onClick={returnToStart}
+                >
+                  {t('app.backToStart')}
+                </button>
               </>
             )}
           </>
@@ -995,13 +1015,6 @@ function App() {
             />
           )}
 
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={() => setGameStarted(false)}
-        >
-          {t('app.backToStart')}
-        </button>
       </main>
     )
   }
