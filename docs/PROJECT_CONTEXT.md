@@ -220,8 +220,10 @@ Bei UI-Arbeiten zusätzlich auf echtem Smartphone testen.
   Initiator kann die Auktion jederzeit verlassen. Rollenwahl und
   Preisbewegung verwenden dieselben statischen Pfeiltasten; Tippen
   bewegt einmal, Gedrückthalten wiederholt bis zum Loslassen. Die
-  vergrößerte Arena zeigt nur noch eine kompakte HQ-Station mit beiden
-  Kursen; auch die Bereitmachen-Phase verzichtet auf Bestandsblöcke.
+  kompakte Arena verlegt die HQ-Station mit beiden Kursen in die obere
+  Steuerzeile; statt der seitlichen Preisskala zeigt sie nur Minimum,
+  Maximum und dynamische Preise direkt an den Marktlinien. Auch die
+  Bereitmachen-Phase verzichtet auf Bestandsblöcke.
 - Die mobile Rangliste wird auf feste Karten-Slots und ruhige
   Aufdeckung optimiert.
 - Dokumentation wird als dauerhafte Übergabebasis ausgebaut.

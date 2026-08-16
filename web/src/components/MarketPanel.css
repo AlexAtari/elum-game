@@ -205,6 +205,7 @@
 }
 
 .market-direction-control-up {
+  position: relative;
   grid-area: direction-up;
 }
 
@@ -327,8 +328,8 @@
 
 .market-warehouse {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 50%;
+  left: 0;
   z-index: 5;
   display: grid;
   grid-template-columns: auto auto;
@@ -340,6 +341,7 @@
   font-size: 0.64rem;
   background: rgba(9, 16, 30, 0.95);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+  transform: translateY(-50%);
   pointer-events: none;
 }
 
@@ -425,11 +427,48 @@
 
 .market-price-line {
   position: absolute;
-  right: 48px;
+  right: 0;
   left: 0;
   z-index: 2;
   height: 3px;
   transition: bottom 180ms ease;
+}
+
+.market-line-price {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  min-width: 42px;
+  padding: 3px 7px;
+  border: 1px solid rgba(121, 221, 185, 0.46);
+  border-radius: 999px;
+  color: #dff8ef;
+  background: rgba(8, 20, 29, 0.96);
+  box-shadow: 0 0 12px rgba(121, 221, 185, 0.22);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  transform: translateY(-50%);
+}
+
+.market-price-bound {
+  position: absolute;
+  right: 10px;
+  z-index: 3;
+  color: #94a1b5;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  pointer-events: none;
+}
+
+.market-price-maximum {
+  top: 9px;
+}
+
+.market-price-minimum {
+  bottom: 9px;
 }
 
 .seller-price-line {
@@ -736,7 +775,7 @@
 
   .market-arena {
     min-height: 0;
-    height: clamp(430px, 68dvh, 600px);
+    height: clamp(320px, 40dvh, 360px);
   }
 
   .market-controls {
@@ -800,17 +839,7 @@
     font-size: 0.76rem;
   }
 
-  .market-price-scale {
-    width: 38px;
-  }
-
-  .market-price-line {
-    right: 38px;
-  }
-
   .market-warehouse {
-    top: 9px;
-    left: 9px;
     padding: 6px 8px;
   }
 

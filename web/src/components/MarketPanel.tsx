@@ -20,7 +20,6 @@ import {
   type RivalColonies,
   type RivalId,
 } from '../game'
-import AuctionPriceScale from './AuctionPriceScale'
 import AuctionTimer from './AuctionTimer'
 import './MarketPanel.css'
 
@@ -1083,6 +1082,20 @@ function MarketPanel({
       >
         {(stage === 'declaration' || stage === 'auction') && (
           <div className="market-direction-control market-direction-control-up">
+            <div className="market-warehouse" aria-label="HQ-Lager">
+              <span className="market-warehouse-icon" aria-hidden="true">
+                🏬
+              </span>
+              <strong>HQ</strong>
+              <span className="market-warehouse-prices">
+                <small>
+                  kauft <b>{warehousePrices.buyPrice}</b>
+                </small>
+                <small>
+                  verkauft <b>{warehousePrices.sellPrice}</b>
+                </small>
+              </span>
+            </div>
             <button
               className={`market-direction-button ${
                 heldDirection === 1 ? 'is-holding' : ''
@@ -1118,19 +1131,6 @@ function MarketPanel({
         )}
 
         <div className="market-arena">
-          <AuctionPriceScale
-            minimum={minimumPrice}
-            maximum={maximumPrice}
-            positionForPrice={(price) =>
-              pricePosition(
-                price,
-                minimumPrice,
-                maximumPrice,
-              )
-            }
-            ariaLabel={`Preisskala von ${minimumPrice} bis ${maximumPrice} Credits`}
-          />
-
           {stage === 'introduction' && (
             <div
               className="market-introduction"
@@ -1147,20 +1147,6 @@ function MarketPanel({
             </div>
           )}
 
-          <div className="market-warehouse" aria-label="HQ-Lager">
-            <span className="market-warehouse-icon" aria-hidden="true">
-              🏬
-            </span>
-            <strong>HQ</strong>
-            <span className="market-warehouse-prices">
-              <small>
-                kauft <b>{warehousePrices.buyPrice}</b>
-              </small>
-              <small>
-                verkauft <b>{warehousePrices.sellPrice}</b>
-              </small>
-            </span>
-          </div>
           {stage === 'declaration' && (
             <span className="market-zone hold-zone">
               NICHT TEILNEHMEN
@@ -1194,6 +1180,18 @@ function MarketPanel({
 
           {(stage === 'declaration' || stage === 'auction') && (
             <>
+              <span
+                className="market-price-bound market-price-maximum"
+                aria-label={`Maximalpreis ${maximumPrice} Credits`}
+              >
+                MAX {maximumPrice}
+              </span>
+              <span
+                className="market-price-bound market-price-minimum"
+                aria-label={`Minimalpreis ${minimumPrice} Credits`}
+              >
+                MIN {minimumPrice}
+              </span>
               <div
                 className={`market-price-line seller-price-line ${
                   stage === 'auction' && canTrade
@@ -1208,7 +1206,13 @@ function MarketPanel({
                     maximumPrice,
                   ),
                 }}
-              />
+              >
+                <span className="market-line-price" aria-hidden="true">
+                  {stage === 'auction' && canTrade
+                    ? `↔ ${tradePrice}`
+                    : `↑ ${displayedSellerPrice}`}
+                </span>
+              </div>
               <div
                 className={`market-price-line buyer-price-line ${
                   stage === 'auction' && canTrade
@@ -1223,7 +1227,13 @@ function MarketPanel({
                     maximumPrice,
                   ),
                 }}
-              />
+              >
+                {!(stage === 'auction' && canTrade) && (
+                  <span className="market-line-price" aria-hidden="true">
+                    ↓ {displayedBuyerPrice}
+                  </span>
+                )}
+              </div>
             </>
           )}
 

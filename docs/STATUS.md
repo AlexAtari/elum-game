@@ -126,12 +126,17 @@ Diese Angaben sind ein Startpunkt. Vor jeder Arbeit immer erneut
   längeres Berühren wiederholt die Bewegung bis zum Loslassen und
   hebt den gehaltenen Pfeil sichtbar hervor; der kleinere Aufwärtspfeil
   steht mittig oberhalb, der Abwärtspfeil mittig unterhalb der Arena
-- die mobile Preisarena ist höher und durch geringere Außenabstände
-  breiter; die Bereitmachen-Phase blendet sämtliche Bestandsblöcke
+- die mobile Preisarena nutzt eine auf typische Smartphone-Höhen
+  begrenzte, vollständig sichtbare
+  Höhe und durch geringere Außenabstände die verfügbare Breite; die
+  Bereitmachen-Phase blendet sämtliche Bestandsblöcke
   sowie die doppelte Vorbereitungskarte aus und zeigt in der Arena
   nur Countdown und Rollenhinweis
 - eine einzige kompakte HQ-Station ersetzt die beiden großen
-  Lagerkarten und zeigt weiterhin getrennt An- und Verkaufskurs
+  Lagerkarten, steht außerhalb der Arena in der oberen Steuerzeile
+  und zeigt weiterhin getrennt An- und Verkaufskurs; statt einer
+  seitlichen Preisskala erscheinen nur Minimum und Maximum sowie der
+  aktuelle Preis direkt am rechten Ende der bewegten Marktlinien
 - transportneutraler autoritativer Match-Serverkern mit
   Sitzungsbindung an menschliche `ParticipantId`, Abwehr von
   Identitätswechseln und vom Serverzustand isolierten,
